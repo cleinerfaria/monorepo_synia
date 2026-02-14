@@ -1,0 +1,81 @@
+name: Monorepo CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Environment to deploy
+        required: true
+        default: development
+        type: choice
+        options:
+          - development
+          - homolog
+          - production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monorepo-cd-${{ github.event.inputs.target_environment || 'development' }}
+  cancel-in-progress: false
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: ${{ github.event.inputs.target_environment || 'development' }}
+    env:
+      DEPLOY_COMMAND: ${{ vars.DEPLOY_COMMAND }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deploy command
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_COMMAND:-}" ]; then
+            echo "Missing DEPLOY_COMMAND for this environment."
+            exit 1
+          fi
+
+      - name: Run deploy command
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "${DEPLOY_COMMAND}"
