@@ -13,7 +13,7 @@ Este arquivo define **as regras obrigatórias** que o agente deve seguir ao anal
 Antes de qualquer ação, o agente deve:
 
 1. **Ler integralmente este arquivo**
-2. **Ler todos os arquivos de regras listados abaixo**
+2. **Ler os arquivos de regras listados abaixo caso necessário**
 3. Validar se a tarefa solicitada **é permitida** pelas regras
 4. Somente então propor alterações
 
