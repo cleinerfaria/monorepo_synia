@@ -20,5 +20,31 @@
   },
   "github.copilot.enable": {
     "markdown": true
-  }
+  },
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Use padrão Conventional Commits: type(scope): description"
+    },
+    {
+      "text": "Tipos permitidos: feat, fix, refactor, perf, docs, style, test, chore, ci"
+    },
+    {
+      "text": "Escrever em português"
+    },
+    {
+      "text": "Descrição curta (máx 72 chars)"
+    },
+    {
+      "text": "Sempre explicar o motivo da mudança no body"
+    },
+    {
+      "text": "Se for banco de dados prefixar com db"
+    },
+    {
+      "text": "Se for UI prefixar com ui"
+    },
+    {
+      "text": "Se for apenas em um projeto prefixar com o nome do projeto"
+    }
+  ]
 }

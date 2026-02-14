@@ -2,7 +2,7 @@
 import path from 'node:path';
 
 export default async function globalSetup(): Promise<void> {
-  const repoRoot = path.resolve(__dirname, '../../..');
+  const repoRoot = path.resolve(__dirname, '../..');
   process.env.TEST_USER_EMAIL =
     process.env.TEST_USER_EMAIL ||
     process.env.WHITE_LABEL_E2E_ADMIN_EMAIL ||

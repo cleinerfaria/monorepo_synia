@@ -5,7 +5,7 @@ const PROJECT = 'white-label'
 const DB_URL_ENV = 'WHITE_LABEL_DB_URL'
 const SUPABASE_URL_ENV = 'WHITE_LABEL_SUPABASE_URL'
 const SERVICE_ROLE_ENV = 'WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY'
-const APP_DIR = path.resolve(__dirname, '../../../apps/white-label')
+const APP_DIR = path.resolve(__dirname, '..')
 
 function requireEnv(name) {
   const value = process.env[name]

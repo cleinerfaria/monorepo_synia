@@ -5,7 +5,7 @@ const PROJECT = 'aurea'
 const DB_URL_ENV = 'AUREA_DB_URL'
 const SUPABASE_URL_ENV = 'AUREA_SUPABASE_URL'
 const SERVICE_ROLE_ENV = 'AUREA_SUPABASE_SERVICE_ROLE_KEY'
-const APP_DIR = path.resolve(__dirname, '../../../apps/aurea')
+const APP_DIR = path.resolve(__dirname, '..')
 
 function requireEnv(name) {
   const value = process.env[name]

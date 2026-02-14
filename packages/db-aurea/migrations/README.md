@@ -1,2 +1,2 @@
-﻿Source of truth for Aurea migrations lives in:
-apps/aurea/supabase/migrations
+Source of truth for Aurea migrations lives in:
+packages/db-aurea/supabase/migrations

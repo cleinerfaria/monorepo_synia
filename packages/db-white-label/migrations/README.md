@@ -1,2 +1,2 @@
-﻿Source of truth for White Label migrations lives in:
-apps/white-label/supabase/migrations
+Source of truth for White Label migrations lives in:
+packages/db-white-label/supabase/migrations
