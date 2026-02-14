@@ -275,7 +275,7 @@ export default function UnitsOfMeasurePage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Buscar por nome, código ou símbolo..."
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             {hasActiveSearch && (
@@ -425,7 +425,7 @@ export default function UnitsOfMeasurePage() {
                           : [...allowedScopes, option.value]
                         setValue('allowed_scopes', nextScopes, { shouldDirty: true })
                       }}
-                      className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="text-primary-600 focus:ring-primary-500 mt-0.5 h-4 w-4 rounded border-gray-300"
                     />
                     <span className="flex flex-col">
                       <span className="text-sm font-medium text-gray-900 dark:text-white">

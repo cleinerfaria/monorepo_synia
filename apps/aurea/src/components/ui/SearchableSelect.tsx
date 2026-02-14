@@ -256,7 +256,7 @@ export const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectPro
               <li className="px-4 py-8 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <svg
-                    className="h-4 w-4 animate-spin text-primary-500"
+                    className="text-primary-500 h-4 w-4 animate-spin"
                     fill="none"
                     viewBox="0 0 24 24"
                   >
@@ -288,7 +288,7 @@ export const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectPro
                       setSearchQuery('')
                       onCreateNew()
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600/10 px-3 py-1.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:hover:bg-primary-400/20"
+                    className="bg-primary-600/10 text-primary-600 hover:bg-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:hover:bg-primary-400/20 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -388,7 +388,7 @@ export const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectPro
                     </div>
                     {isSelected && (
                       <span className="absolute inset-y-0 left-0 flex items-center pl-2">
-                        <Check className="h-4 w-4 text-primary-500" />
+                        <Check className="text-primary-500 h-4 w-4" />
                       </span>
                     )}
                   </li>
@@ -506,14 +506,14 @@ export const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectPro
             className={clsx(
               'relative w-full px-3 py-1.5 pl-4 pr-10 text-sm',
               'bg-surface-elevated',
-              'border border-gray-200 hover:border-gray-300 focus:border-primary-500 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:border-primary-500',
+              'focus:border-primary-500 dark:focus:border-primary-500 border border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500',
               'shadow-sm hover:shadow-lg',
               'rounded-xl',
               error
                 ? 'border-red-500 dark:border-red-500'
-                : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:border-primary-500',
+                : 'focus:border-primary-500 dark:focus:border-primary-500 border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500',
               !disabled && 'hover:border-gray-300 dark:hover:border-gray-600',
-              'focus:outline-none focus:ring-4 focus:ring-primary-500/10',
+              'focus:ring-primary-500/10 focus:outline-none focus:ring-4',
               'text-gray-900 dark:text-white',
               'placeholder:text-gray-400',
               disabled && 'cursor-not-allowed opacity-50'

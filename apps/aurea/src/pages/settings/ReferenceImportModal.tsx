@@ -607,7 +607,7 @@ export default function ReferenceImportModal({
 
                         {/* Percentage Display */}
                         <div className="text-center">
-                          <span className="text-4xl font-bold text-primary-500">
+                          <span className="text-primary-500 text-4xl font-bold">
                             {processImport.progress?.percentage || 0}%
                           </span>
                         </div>
@@ -617,7 +617,7 @@ export default function ReferenceImportModal({
                           <div className="flex h-3 overflow-hidden rounded-full bg-gray-200 text-xs dark:bg-gray-700">
                             <div
                               style={{ width: `${processImport.progress?.percentage || 0}%` }}
-                              className="flex flex-col justify-center whitespace-nowrap bg-primary-500 text-center text-white shadow-none transition-all duration-300 ease-out"
+                              className="bg-primary-500 flex flex-col justify-center whitespace-nowrap text-center text-white shadow-none transition-all duration-300 ease-out"
                             />
                           </div>
                         </div>

@@ -97,7 +97,7 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="mb-8 text-center">
-            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 shadow-lg">
+            <div className="from-gold-400 to-gold-600 mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg">
               <svg
                 className="h-10 w-10 text-white"
                 xmlns="http://www.w3.org/2000/svg"

@@ -122,7 +122,7 @@ export function ImageCropper({
             step={0.1}
             value={zoom}
             onChange={(e) => setZoom(Number(e.target.value))}
-            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-primary-600 dark:bg-gray-700"
+            className="accent-primary-600 h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
           />
         </div>
 

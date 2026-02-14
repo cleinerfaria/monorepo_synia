@@ -21,8 +21,8 @@ export function Card({ children, className, hover = false, padding = 'md', onCli
     <div
       onClick={onClick}
       className={clsx(
-        'rounded-2xl bg-white shadow-soft dark:bg-gray-800',
-        hover && 'transition-all duration-300 hover:-translate-y-1 hover:shadow-soft-lg',
+        'shadow-soft rounded-2xl bg-white dark:bg-gray-800',
+        hover && 'hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-1',
         paddings[padding],
         className
       )}

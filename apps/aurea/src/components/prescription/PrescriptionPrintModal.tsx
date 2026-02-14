@@ -229,10 +229,10 @@ export function PrescriptionPrintModal({
           />
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface-elevated/80 p-4 shadow-soft">
+        <div className="border-border bg-surface-elevated/80 shadow-soft rounded-2xl border p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-semibold text-content-primary">Intervalo calculado</p>
-            <span className="inline-flex items-center rounded-full border border-primary-500/30 bg-primary-500/10 px-2.5 py-1 text-xs font-medium text-primary-700 dark:text-primary-300">
+            <p className="text-content-primary text-sm font-semibold">Intervalo calculado</p>
+            <span className="border-primary-500/30 bg-primary-500/10 text-primary-700 dark:text-primary-300 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium">
               {periodInfo?.periodStartLabel || '--'} a {periodInfo?.periodEndLabel || '--'}
             </span>
           </div>
@@ -241,7 +241,7 @@ export function PrescriptionPrintModal({
               {WEEK_DAY_HEADERS.map((dayHeader) => (
                 <span
                   key={dayHeader}
-                  className="text-center text-[11px] font-semibold uppercase tracking-wide text-content-muted"
+                  className="text-content-muted text-center text-[11px] font-semibold uppercase tracking-wide"
                 >
                   {dayHeader}
                 </span>
@@ -255,7 +255,7 @@ export function PrescriptionPrintModal({
                       day ? (
                         <span
                           key={day.id}
-                          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-surface-card px-2 py-1 text-center text-xs text-content-secondary"
+                          className="border-border bg-surface-card text-content-secondary inline-flex min-h-11 items-center justify-center rounded-lg border px-2 py-1 text-center text-xs"
                         >
                           <span className="font-semibold">{day.dayMonthLabel}</span>
                         </span>
@@ -263,7 +263,7 @@ export function PrescriptionPrintModal({
                         <span
                           key={`empty-${rowIndex}-${columnIndex}`}
                           aria-hidden
-                          className="min-h-11 rounded-lg border border-dashed border-border/60 bg-surface-card/40"
+                          className="border-border/60 bg-surface-card/40 min-h-11 rounded-lg border border-dashed"
                         />
                       )
                     )}
@@ -271,11 +271,11 @@ export function PrescriptionPrintModal({
                 ))}
               </div>
             ) : (
-              <span className="text-xs text-content-muted">Sem dias calculados.</span>
+              <span className="text-content-muted text-xs">Sem dias calculados.</span>
             )}
           </div>
           {!canPrint && (
-            <p className="mt-3 text-sm text-feedback-danger-fg">
+            <p className="text-feedback-danger-fg mt-3 text-sm">
               Seu perfil não possui permissão para imprimir prescrições.
             </p>
           )}

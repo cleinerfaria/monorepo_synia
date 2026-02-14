@@ -332,7 +332,7 @@ function MultiSelectComponent(props: MultiSelectProps & { ref?: React.Ref<HTMLIn
                 'rounded-lg border border-gray-200 dark:border-gray-700',
                 'text-gray-900 dark:text-white',
                 'placeholder:text-gray-400',
-                'focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500'
+                'focus:ring-primary-500 focus:border-transparent focus:outline-none focus:ring-2'
               )}
               placeholder={searchPlaceholder}
               value={searchQuery}
@@ -359,7 +359,7 @@ function MultiSelectComponent(props: MultiSelectProps & { ref?: React.Ref<HTMLIn
                     setSearchQuery('');
                     onCreateNew();
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600/10 px-3 py-1.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:hover:bg-primary-400/20"
+                  className="bg-primary-600/10 text-primary-600 hover:bg-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:hover:bg-primary-400/20 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -414,7 +414,7 @@ function MultiSelectComponent(props: MultiSelectProps & { ref?: React.Ref<HTMLIn
                     </div>
                     {isSelected && (
                       <span className="absolute inset-y-0 left-0 flex items-center pl-2">
-                        <Check className="h-4 w-4 text-primary-500" />
+                        <Check className="text-primary-500 h-4 w-4" />
                       </span>
                     )}
                   </li>
@@ -457,7 +457,7 @@ function MultiSelectComponent(props: MultiSelectProps & { ref?: React.Ref<HTMLIn
                 setIsOpen(false);
                 setSearchQuery('');
               }}
-              className="flex-1 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+              className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 flex-1 rounded-lg px-3 py-2 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Aplicar
             </button>
@@ -469,7 +469,7 @@ function MultiSelectComponent(props: MultiSelectProps & { ref?: React.Ref<HTMLIn
                   setIsOpen(false);
                   setSearchQuery('');
                 }}
-                className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800"
+                className="focus:ring-primary-500 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800"
               >
                 Cancelar
               </button>
@@ -517,7 +517,7 @@ function MultiSelectComponent(props: MultiSelectProps & { ref?: React.Ref<HTMLIn
           'border transition-colors duration-200',
           error ? 'border-red-300 dark:border-red-700' : 'border-gray-200 dark:border-gray-700',
           !disabled && 'hover:border-gray-300 dark:hover:border-gray-600',
-          'focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500',
+          'focus:ring-primary-500 focus:border-transparent focus:outline-none focus:ring-2',
           disabled && 'cursor-not-allowed opacity-50'
         )}
       >
@@ -527,12 +527,12 @@ function MultiSelectComponent(props: MultiSelectProps & { ref?: React.Ref<HTMLIn
               {selectedOptions.slice(0, 3).map((option) => (
                 <span
                   key={option.value}
-                  className="inline-flex items-center gap-1 rounded-md bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-300"
+                  className="bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
                 >
                   {option.label}
                   <span
                     onClick={(e) => handleRemove(option.value, e)}
-                    className="cursor-pointer hover:text-primary-600 dark:hover:text-primary-200"
+                    className="hover:text-primary-600 dark:hover:text-primary-200 cursor-pointer"
                   >
                     <X className="h-3 w-3" />
                   </span>

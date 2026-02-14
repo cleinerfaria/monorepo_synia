@@ -1062,8 +1062,8 @@ function UsersTab({
                     >
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 flex-shrink-0">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-                            <span className="text-lg font-medium text-primary-600 dark:text-primary-400">
+                          <div className="bg-primary-100 dark:bg-primary-900/30 flex h-12 w-12 items-center justify-center rounded-full">
+                            <span className="text-primary-600 dark:text-primary-400 text-lg font-medium">
                               {user.name.charAt(0).toUpperCase()}
                             </span>
                           </div>

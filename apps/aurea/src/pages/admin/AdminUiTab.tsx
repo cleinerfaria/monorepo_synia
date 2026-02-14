@@ -61,26 +61,26 @@ function UiPreviewPanel({
   previewProps: ButtonNewProps
 }) {
   return (
-    <div className={clsx('rounded-2xl border border-border shadow-soft', forceDark && 'dark')}>
-      <div className="border-b border-border px-4 py-3">
+    <div className={clsx('border-border shadow-soft rounded-2xl border', forceDark && 'dark')}>
+      <div className="border-border border-b px-4 py-3">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-semibold text-content-primary">{title}</h3>
+          <h3 className="text-content-primary font-semibold">{title}</h3>
           <Badge variant={forceDark ? 'info' : 'neutral'}>{forceDark ? 'Dark' : 'Light'}</Badge>
         </div>
-        <p className="mt-1 text-xs text-content-muted">{subtitle}</p>
+        <p className="text-content-muted mt-1 text-xs">{subtitle}</p>
       </div>
-      <div className="rounded-b-2xl bg-surface-canvas p-5">
-        <div className="rounded-xl border border-border bg-surface-card p-6">
+      <div className="bg-surface-canvas rounded-b-2xl p-5">
+        <div className="border-border bg-surface-card rounded-xl border p-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-content-muted">
+              <p className="text-content-muted text-xs font-semibold uppercase tracking-[0.08em]">
                 Principal
               </p>
               <ButtonNew {...previewProps} />
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-content-muted">
+              <p className="text-content-muted text-xs font-semibold uppercase tracking-[0.08em]">
                 Disabled
               </p>
               <ButtonNew {...previewProps} disabled />
@@ -112,19 +112,19 @@ function SwitchPreviewPanel({
   disabled: boolean
 }) {
   return (
-    <div className={clsx('rounded-2xl border border-border shadow-soft', forceDark && 'dark')}>
-      <div className="border-b border-border px-4 py-3">
+    <div className={clsx('border-border shadow-soft rounded-2xl border', forceDark && 'dark')}>
+      <div className="border-border border-b px-4 py-3">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-semibold text-content-primary">{title}</h3>
+          <h3 className="text-content-primary font-semibold">{title}</h3>
           <Badge variant={forceDark ? 'info' : 'neutral'}>{forceDark ? 'Dark' : 'Light'}</Badge>
         </div>
-        <p className="mt-1 text-xs text-content-muted">{subtitle}</p>
+        <p className="text-content-muted mt-1 text-xs">{subtitle}</p>
       </div>
-      <div className="rounded-b-2xl bg-surface-canvas p-5">
-        <div className="rounded-xl border border-border bg-surface-card p-6">
+      <div className="bg-surface-canvas rounded-b-2xl p-5">
+        <div className="border-border bg-surface-card rounded-xl border p-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-content-muted">
+              <p className="text-content-muted text-xs font-semibold uppercase tracking-[0.08em]">
                 Principal
               </p>
               <SwitchNew
@@ -138,7 +138,7 @@ function SwitchPreviewPanel({
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-content-muted">
+              <p className="text-content-muted text-xs font-semibold uppercase tracking-[0.08em]">
                 Disabled
               </p>
               <SwitchNew
@@ -207,8 +207,8 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
         <CardContent className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="text-lg font-semibold text-content-primary">UI Lab - ButtonNew</h2>
-              <p className="text-sm text-content-muted">
+              <h2 className="text-content-primary text-lg font-semibold">UI Lab - ButtonNew</h2>
+              <p className="text-content-muted text-sm">
                 Vitrine visual com modo light e dark em paralelo.
                 {companyName ? ` Tema atual: ${companyName}.` : ''}
               </p>
@@ -220,7 +220,7 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
 
       <Card>
         <CardContent className="p-5">
-          <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-content-muted">
+          <h3 className="text-content-muted text-sm font-semibold uppercase tracking-[0.08em]">
             Playground
           </h3>
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -300,37 +300,37 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-4">
-            <label className="inline-flex items-center gap-2 text-sm text-content-secondary">
+            <label className="text-content-secondary inline-flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-border"
+                className="border-border h-4 w-4 rounded"
                 checked={showIcon}
                 onChange={(event) => setShowIcon(event.target.checked)}
               />
               Exibir icone
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-content-secondary">
+            <label className="text-content-secondary inline-flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-border"
+                className="border-border h-4 w-4 rounded"
                 checked={disabled}
                 onChange={(event) => setDisabled(event.target.checked)}
               />
               Desabilitado
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-content-secondary">
+            <label className="text-content-secondary inline-flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-border"
+                className="border-border h-4 w-4 rounded"
                 checked={withDropdown}
                 onChange={(event) => setWithDropdown(event.target.checked)}
               />
               Com dropdown
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-content-secondary">
+            <label className="text-content-secondary inline-flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-border"
+                className="border-border h-4 w-4 rounded"
                 checked={dropdownPortal}
                 onChange={(event) => setDropdownPortal(event.target.checked)}
               />
@@ -342,7 +342,7 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
 
       <Card>
         <CardContent className="p-5">
-          <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-content-muted">
+          <h3 className="text-content-muted text-sm font-semibold uppercase tracking-[0.08em]">
             SwitchNew Playground
           </h3>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -361,28 +361,28 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-4">
-            <label className="inline-flex items-center gap-2 text-sm text-content-secondary">
+            <label className="text-content-secondary inline-flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-border"
+                className="border-border h-4 w-4 rounded"
                 checked={switchChecked}
                 onChange={(event) => setSwitchChecked(event.target.checked)}
               />
               Ativo
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-content-secondary">
+            <label className="text-content-secondary inline-flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-border"
+                className="border-border h-4 w-4 rounded"
                 checked={switchDisabled}
                 onChange={(event) => setSwitchDisabled(event.target.checked)}
               />
               Desabilitado
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-content-secondary">
+            <label className="text-content-secondary inline-flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-border"
+                className="border-border h-4 w-4 rounded"
                 checked={switchShowStatus}
                 onChange={(event) => setSwitchShowStatus(event.target.checked)}
               />
@@ -430,10 +430,10 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
 
       <Card>
         <CardContent className="p-5">
-          <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-content-muted">
+          <h3 className="text-content-muted text-sm font-semibold uppercase tracking-[0.08em]">
             Catalogo completo
           </h3>
-          <p className="mt-1 text-sm text-content-muted">
+          <p className="text-content-muted mt-1 text-sm">
             Todas as combinacoes de variant e size para os cenarios base.
           </p>
 
@@ -441,17 +441,17 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
             {variants.map((currentVariant) => (
               <div
                 key={currentVariant}
-                className="rounded-xl border border-border bg-surface-canvas p-4 shadow-soft"
+                className="border-border bg-surface-canvas shadow-soft rounded-xl border p-4"
               >
                 <div className="mb-3 flex items-center gap-2">
                   <Badge variant="neutral">{variantLabels[currentVariant]}</Badge>
-                  <span className="text-xs text-content-muted">Com e sem dropdown</span>
+                  <span className="text-content-muted text-xs">Com e sem dropdown</span>
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-3">
                   {sizes.map((currentSize) => (
                     <div key={`${currentVariant}-${currentSize}`} className="space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-content-muted">
+                      <p className="text-content-muted text-xs font-semibold uppercase tracking-[0.08em]">
                         {sizeLabels[currentSize]}
                       </p>
                       <div className="space-y-3">
@@ -492,15 +492,15 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
 
       <Card>
         <CardContent className="p-5">
-          <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-content-muted">
+          <h3 className="text-content-muted text-sm font-semibold uppercase tracking-[0.08em]">
             SwitchNew Catalogo
           </h3>
-          <p className="mt-1 text-sm text-content-muted">Estados base do componente.</p>
+          <p className="text-content-muted mt-1 text-sm">Estados base do componente.</p>
 
-          <div className="mt-5 rounded-xl border border-border bg-surface-canvas p-4 shadow-soft">
+          <div className="border-border bg-surface-canvas shadow-soft mt-5 rounded-xl border p-4">
             <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-content-muted">
+                <p className="text-content-muted text-xs font-semibold uppercase tracking-[0.08em]">
                   Interativo
                 </p>
                 <SwitchNew
@@ -519,7 +519,7 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
               </div>
 
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-content-muted">
+                <p className="text-content-muted text-xs font-semibold uppercase tracking-[0.08em]">
                   Disabled
                 </p>
                 <SwitchNew

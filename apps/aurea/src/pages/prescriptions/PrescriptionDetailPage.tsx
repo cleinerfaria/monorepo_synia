@@ -2044,7 +2044,7 @@ export default function PrescriptionDetailPage() {
               <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 items-center gap-2">
-                    <h1 className="truncate font-display text-2xl font-bold text-gray-900 dark:text-white">
+                    <h1 className="font-display truncate text-2xl font-bold text-gray-900 dark:text-white">
                       {(prescription as any).patient?.name || 'Paciente não identificado'}
                     </h1>{' '}
                     {patientOperatorName && (
@@ -2132,7 +2132,7 @@ export default function PrescriptionDetailPage() {
                         href={prescription.attachment_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                        className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 inline-flex items-center gap-1 text-sm font-medium"
                       >
                         <FileDown className="h-3 w-3" />
                         Ver anexo
@@ -2147,7 +2147,7 @@ export default function PrescriptionDetailPage() {
 
             {/* Seção de ações */}
             <div className="flex flex-col gap-3 lg:w-auto lg:min-w-0">
-              <div className="mb-1 hidden text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400 lg:block">
+              <div className="mb-1 hidden text-xs font-medium uppercase tracking-wider text-gray-600 lg:block dark:text-gray-400">
                 Ações
               </div>
 

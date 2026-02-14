@@ -104,8 +104,8 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
             </form>
           ) : (
             <div className="space-y-4">
-              <div className="rounded-lg bg-primary-50 p-4 dark:bg-primary-900/20">
-                <p className="text-sm text-primary-800 dark:text-primary-300">
+              <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-4">
+                <p className="text-primary-800 dark:text-primary-300 text-sm">
                   Um e-mail foi enviado para <strong>{email}</strong> com as instruções para
                   recuperar sua senha.
                 </p>

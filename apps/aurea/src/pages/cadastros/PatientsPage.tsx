@@ -121,7 +121,7 @@ export default function PatientsPage() {
         header: () => (
           <button
             onClick={() => handleSort('name')}
-            className="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1"
           >
             NOME
             {sortColumn === 'name' && (
@@ -144,7 +144,7 @@ export default function PatientsPage() {
         header: () => (
           <button
             onClick={() => handleSort('birth_date')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             DATA NASC.
             {sortColumn === 'birth_date' && (
@@ -236,7 +236,7 @@ export default function PatientsPage() {
         header: () => (
           <button
             onClick={() => handleSort('active')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             STATUS
             {sortColumn === 'active' && (
@@ -336,7 +336,7 @@ export default function PatientsPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             <div className="flex items-center gap-2">

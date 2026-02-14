@@ -106,14 +106,14 @@ export const SwitchNew = forwardRef<HTMLInputElement, SwitchNewProps>(
                 !resolvedChecked && 'bg-content-muted/30 dark:bg-content-muted/25',
                 resolvedChecked &&
                   clsx(
-                    'border border-primary-300/20 bg-gradient-to-b from-primary-500 via-primary-600 to-primary-700',
+                    'border-primary-300/20 from-primary-500 via-primary-600 to-primary-700 border bg-gradient-to-b',
                     'dark:from-primary-500/80 dark:via-primary-600/70 dark:to-primary-700/60',
                     'shadow-sm hover:shadow-lg'
                   ),
                 'peer-disabled:bg-border/70 dark:peer-disabled:bg-border/50',
                 'transition-[background-image,background-color,box-shadow,transform] duration-300 ease-[cubic-bezier(.2,.8,.2,1)]',
                 'group-active:scale-[0.985]',
-                'peer-focus-visible:primary-offset-1 peer-focus-visible:outline-none peer-focus-visible:ring-4 peer-focus-visible:ring-primary-500/10',
+                'peer-focus-visible:primary-offset-1 peer-focus-visible:ring-primary-500/10 peer-focus-visible:outline-none peer-focus-visible:ring-4',
                 !resolvedChecked && clsx('shadow-sm hover:shadow-lg')
               )}
             >

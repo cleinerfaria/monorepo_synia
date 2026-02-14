@@ -216,7 +216,7 @@ export default function ProductsPage() {
         header: () => (
           <button
             onClick={() => handleSort('name')}
-            className="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1"
           >
             NOME
             {sortColumn === 'name' && (
@@ -236,7 +236,7 @@ export default function ProductsPage() {
               )}
             </p>
             {(row.original as any).active_ingredient_rel && (
-              <p className="text-sm text-primary-600 dark:text-primary-400">
+              <p className="text-primary-600 dark:text-primary-400 text-sm">
                 {(row.original as any).active_ingredient_rel.name}
               </p>
             )}
@@ -248,7 +248,7 @@ export default function ProductsPage() {
         header: () => (
           <button
             onClick={() => handleSort('item_type')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             TIPO
             {sortColumn === 'item_type' && (
@@ -302,7 +302,7 @@ export default function ProductsPage() {
         header: () => (
           <button
             onClick={() => handleSort('min_stock')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             EST. MÍNIMO
             {sortColumn === 'min_stock' && (
@@ -328,7 +328,7 @@ export default function ProductsPage() {
           }
           return (
             <div className="text-center">
-              <span className="inline-flex min-w-[24px] items-center justify-center rounded-full bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-400">
+              <span className="bg-primary-500/10 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 inline-flex min-w-[24px] items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium">
                 {count}
               </span>
             </div>
@@ -340,7 +340,7 @@ export default function ProductsPage() {
         header: () => (
           <button
             onClick={() => handleSort('active')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             STATUS
             {sortColumn === 'active' && (
@@ -424,7 +424,7 @@ export default function ProductsPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             <div className="flex items-center gap-2">

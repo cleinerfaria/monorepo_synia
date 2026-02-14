@@ -315,7 +315,7 @@ export default function PageFilterModal({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, has_search: e.target.checked }))
                     }
-                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                     disabled={isLoading}
                   />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">

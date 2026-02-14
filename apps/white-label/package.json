@@ -16,7 +16,7 @@
     "format:check": "prettier --check .",
     "format:check:staged": "node scripts/quality/check-prettier-staged.cjs",
     "encoding:check:staged": "node scripts/quality/check-encoding-staged.cjs",
-    "precommit:check": "npm run format:check && npm run lint && npm run format:check:staged && npm run encoding:check:staged && npm run test:run && npm run build",
+    "precommit:check": "npm run format && npm run lint:fix && npm run format:check:staged && npm run encoding:check:staged && npm run test:run && npm run build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest",

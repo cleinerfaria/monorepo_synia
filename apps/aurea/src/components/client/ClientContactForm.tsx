@@ -140,7 +140,7 @@ export default function ClientContactForm({
                         contact.type}
                     </span>
                     {contact.is_primary && (
-                      <span className="rounded border border-primary-500/30 bg-primary-500/10 px-2 py-0.5 text-xs font-semibold text-primary-700 dark:bg-primary-400/20 dark:text-primary-300">
+                      <span className="border-primary-500/30 bg-primary-500/10 text-primary-700 dark:bg-primary-400/20 dark:text-primary-300 rounded border px-2 py-0.5 text-xs font-semibold">
                         Principal
                       </span>
                     )}

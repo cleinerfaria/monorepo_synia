@@ -1,11 +1,12 @@
-# Dependências
+# Dependencies
 node_modules/
 
-# Build
+# Build outputs
 dist/
 build/
+coverage/
 
-# Arquivos de sistema
+# System files
 .DS_Store
 .vscode/
 .idea/

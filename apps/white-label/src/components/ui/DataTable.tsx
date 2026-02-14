@@ -148,7 +148,7 @@ export function DataTable<TData>({
                 <td colSpan={columns.length} className="py-8 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <svg
-                      className="h-5 w-5 animate-spin text-primary-500"
+                      className="text-primary-500 h-5 w-5 animate-spin"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"

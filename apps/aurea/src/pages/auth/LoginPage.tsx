@@ -147,7 +147,7 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-7 text-primary-400 hover:text-primary-600 dark:hover:text-primary-400"
+                  className="text-primary-400 hover:text-primary-600 dark:hover:text-primary-400 absolute right-3 top-7"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -182,14 +182,14 @@ export default function LoginPage() {
                 <label className="flex cursor-pointer items-center gap-2">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                    className="text-primary-500 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                   />
                   <span className="text-sm text-gray-600 dark:text-gray-400">Lembrar-me</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsForgotPasswordModalOpen(true)}
-                  className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                  className="text-primary-600 hover:text-primary-700 dark:text-primary-400 text-sm"
                 >
                   Esqueci minha senha
                 </button>

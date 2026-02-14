@@ -768,7 +768,7 @@ export default function SettingsPage() {
                     }}
                     className={`rounded-xl border-2 px-4 py-3 font-medium transition-colors ${
                       theme === option.value
-                        ? 'border-primary-500 bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700'
+                        ? 'border-primary-500 bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white'
                         : 'border-gray-300 bg-white text-gray-900 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-gray-500'
                     }`}
                   >

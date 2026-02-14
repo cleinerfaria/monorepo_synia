@@ -490,7 +490,7 @@ export default function ProfessionalFormPage() {
                   </div>
 
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div className="flex h-24 w-full items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-900/40 md:w-64">
+                    <div className="flex h-24 w-full items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 p-2 md:w-64 dark:border-gray-600 dark:bg-gray-900/40">
                       {isLoadingSignaturePreview ? (
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           Carregando assinatura...

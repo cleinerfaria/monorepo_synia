@@ -217,7 +217,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   autoComplete="current-password"
                   data-form-type="login"
-                  className="!border-primary-500/70 pr-10 focus:!border-primary-500 focus:!ring-primary-500/25"
+                  className="!border-primary-500/70 focus:!border-primary-500 focus:!ring-primary-500/25 pr-10"
                   {...register('password', {
                     required: 'Senha é obrigatória',
                     minLength: {

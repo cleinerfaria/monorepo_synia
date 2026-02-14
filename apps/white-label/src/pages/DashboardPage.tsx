@@ -38,7 +38,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white lg:text-3xl">
+        <h1 className="font-display text-2xl font-bold text-gray-900 lg:text-3xl dark:text-white">
           Olá, {appUser?.name?.split(' ')[0]}
         </h1>
         <p className="mt-1 text-gray-500 dark:text-gray-400">
@@ -58,8 +58,8 @@ export default function DashboardPage() {
                       {item.description}
                     </p>
                   </div>
-                  <div className="rounded-xl bg-primary-100 p-3 dark:bg-primary-900/20">
-                    <item.icon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                  <div className="bg-primary-100 dark:bg-primary-900/20 rounded-xl p-3">
+                    <item.icon className="text-primary-600 dark:text-primary-400 h-6 w-6" />
                   </div>
                 </div>
               </CardContent>

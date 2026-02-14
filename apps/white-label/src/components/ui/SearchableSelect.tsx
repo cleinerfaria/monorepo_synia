@@ -234,7 +234,7 @@ export const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectPro
                   'rounded-lg border border-gray-200 dark:border-gray-700',
                   'text-gray-900 dark:text-white',
                   'placeholder:text-gray-400',
-                  'focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500'
+                  'focus:ring-primary-500 focus:border-transparent focus:outline-none focus:ring-2'
                 )}
                 placeholder={searchPlaceholder}
                 value={searchQuery}
@@ -261,7 +261,7 @@ export const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectPro
                       setSearchQuery('');
                       onCreateNew();
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600/10 px-3 py-1.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:hover:bg-primary-400/20"
+                    className="bg-primary-600/10 text-primary-600 hover:bg-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:hover:bg-primary-400/20 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -307,7 +307,7 @@ export const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectPro
                     </div>
                     {isSelected && (
                       <span className="absolute inset-y-0 left-0 flex items-center pl-2">
-                        <Check className="h-4 w-4 text-primary-500" />
+                        <Check className="text-primary-500 h-4 w-4" />
                       </span>
                     )}
                   </li>
@@ -356,7 +356,7 @@ export const SearchableSelect = forwardRef<HTMLInputElement, SearchableSelectPro
             'border transition-colors duration-200',
             error ? 'border-red-300 dark:border-red-700' : 'border-gray-200 dark:border-gray-700',
             !disabled && 'hover:border-gray-300 dark:hover:border-gray-600',
-            'focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500',
+            'focus:ring-primary-500 focus:border-transparent focus:outline-none focus:ring-2',
             disabled && 'cursor-not-allowed opacity-50'
           )}
         >

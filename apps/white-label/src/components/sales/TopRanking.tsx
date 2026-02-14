@@ -70,7 +70,7 @@ export default function TopRanking({ title, subtitle, data, isLoading }: TopRank
                     {item.name}
                   </span>
                   <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
-                    <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                    <span className="text-primary-600 dark:text-primary-400 text-sm font-semibold">
                       {toBRL(item.value)}
                     </span>
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -80,7 +80,7 @@ export default function TopRanking({ title, subtitle, data, isLoading }: TopRank
                 </div>
                 <div className="relative h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary-400 to-primary-500"
+                    className="from-primary-400 to-primary-500 h-full rounded-full bg-gradient-to-r"
                     style={{ width: `${barWidth}%` }}
                   />
                 </div>

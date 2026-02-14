@@ -811,7 +811,7 @@ export default function ProductFormPage() {
                 toast.error('Preencha todos os campos obrigatórios')
               })}
               disabled={createItem.isPending || updateItem.isPending}
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-primary-300/50 bg-primary-100/30 text-primary-800 transition-colors hover:bg-primary-100/50 hover:text-primary-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-primary-700/50 dark:bg-primary-900/40 dark:text-primary-300 dark:hover:bg-primary-900/60"
+              className="border-primary-300/50 bg-primary-100/30 text-primary-800 hover:bg-primary-100/50 hover:text-primary-900 dark:border-primary-700/50 dark:bg-primary-900/40 dark:text-primary-300 dark:hover:bg-primary-900/60 flex h-8 w-8 items-center justify-center rounded-md border transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               title="Salvar alterações"
             >
               {createItem.isPending || updateItem.isPending ? (
@@ -901,7 +901,7 @@ export default function ProductFormPage() {
                   <div className="flex items-center gap-1">
                     <label htmlFor="unit_prescription_factor" className="label">
                       Fator Prescrição
-                      <span className="ml-1 text-feedback-danger-fg">*</span>
+                      <span className="text-feedback-danger-fg ml-1">*</span>
                     </label>
                     <span
                       className="mb-1 inline-flex h-4 w-4 items-center justify-center text-gray-600 dark:border-gray-600 dark:text-gray-300"
@@ -1286,8 +1286,8 @@ export default function ProductFormPage() {
                               disabled={link.is_primary || setPrimaryRef.isPending}
                               className={`shrink-0 rounded p-1 transition-colors ${
                                 link.is_primary
-                                  ? 'cursor-default text-feedback-warning-fg'
-                                  : 'text-gray-300 hover:text-feedback-warning-fg/80 dark:text-gray-600 dark:hover:text-feedback-warning-fg/80'
+                                  ? 'text-feedback-warning-fg cursor-default'
+                                  : 'hover:text-feedback-warning-fg/80 dark:hover:text-feedback-warning-fg/80 text-gray-300 dark:text-gray-600'
                               }`}
                               title={
                                 link.is_primary ? 'Referência principal' : 'Definir como principal'
@@ -1385,7 +1385,7 @@ export default function ProductFormPage() {
                               isLoading={unlinkFromRef.isPending}
                               className="shrink-0"
                             >
-                              <X className="h-4 w-4 text-feedback-danger-fg" />
+                              <X className="text-feedback-danger-fg h-4 w-4" />
                             </Button>
                           </div>
                         </div>
@@ -1408,7 +1408,7 @@ export default function ProductFormPage() {
                     placeholder="Buscar por nome, código ou EAN nas tabelas de referência..."
                     value={refSearchTerm}
                     onChange={(e) => setRefSearchTerm(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-4 text-gray-900 placeholder-gray-400 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-4 text-gray-900 placeholder-gray-400 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
 
@@ -1641,7 +1641,7 @@ export default function ProductFormPage() {
                     document: suggestedManufacturer.cnpj,
                   })
                 }}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-content-inverse transition-colors hover:bg-primary-700"
+                className="bg-primary-600 text-content-inverse hover:bg-primary-700 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Cadastrar "{suggestedManufacturer.name}"

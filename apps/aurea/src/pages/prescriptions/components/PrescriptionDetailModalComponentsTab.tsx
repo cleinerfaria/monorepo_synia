@@ -47,7 +47,7 @@ export function PrescriptionDetailModalComponentsTab({
 
   return (
     <div className="space-y-6 p-2">
-      <div className="rounded-xl border-2 border-dashed border-primary-300 bg-gradient-to-br from-primary-50/50 to-primary-100/30 p-5 dark:border-primary-700 dark:from-primary-900/20 dark:to-primary-800/10">
+      <div className="border-primary-300 from-primary-50/50 to-primary-100/30 dark:border-primary-700 dark:from-primary-900/20 dark:to-primary-800/10 rounded-xl border-2 border-dashed bg-gradient-to-br p-5">
         <div className="space-y-4">
           <SearchableSelect
             label="Produto"
@@ -154,7 +154,7 @@ export function PrescriptionDetailModalComponentsTab({
             Componentes Adicionados
           </h4>
           {localComponents.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-400">
+            <span className="bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
               {localComponents.length} {localComponents.length === 1 ? 'item' : 'itens'}
             </span>
           )}
@@ -181,10 +181,10 @@ export function PrescriptionDetailModalComponentsTab({
               return (
                 <div
                   key={component.id || `new-${index}`}
-                  className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm transition-all hover:border-primary-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/50 dark:hover:border-primary-600"
+                  className="hover:border-primary-300 dark:hover:border-primary-600 group relative overflow-hidden rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800/50"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <span className="w-6 flex-shrink-0 text-sm font-bold text-primary-500">
+                    <span className="text-primary-500 w-6 flex-shrink-0 text-sm font-bold">
                       {index + 1}.
                     </span>
 
@@ -249,7 +249,7 @@ export function PrescriptionDetailModalComponentsTab({
                         <button
                           type="button"
                           onClick={() => setEditingComponentIndex(index)}
-                          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm transition-all hover:border-primary-300 hover:bg-primary-50 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-primary-500 dark:hover:bg-primary-900/20"
+                          className="hover:border-primary-300 hover:bg-primary-50 dark:hover:border-primary-500 dark:hover:bg-primary-900/20 flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm transition-all dark:border-gray-600 dark:bg-gray-700"
                         >
                           <span className="font-semibold text-gray-900 dark:text-white">
                             {component.quantity ?? '--'}

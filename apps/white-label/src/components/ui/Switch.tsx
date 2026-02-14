@@ -94,7 +94,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
             onClick={handleToggle}
             disabled={disabled}
             className={clsx(
-              'relative inline-flex w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900',
+              'focus:ring-primary-500 relative inline-flex w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900',
               isChecked
                 ? 'bg-primary-500/80 dark:bg-primary-400/80'
                 : 'bg-gray-300 dark:bg-gray-600',

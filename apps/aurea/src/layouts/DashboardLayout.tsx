@@ -213,9 +213,9 @@ export default function DashboardLayout() {
         )}
       >
         {/* Top bar */}
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-gray-200 bg-white/80 px-4 backdrop-blur-lg dark:border-gray-700 dark:bg-gray-800/80 lg:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-gray-200 bg-white/80 px-4 backdrop-blur-lg lg:px-8 dark:border-gray-700 dark:bg-gray-800/80">
           <button
-            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden dark:hover:bg-gray-700"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
@@ -308,7 +308,7 @@ function SidebarContent({
               className="h-14 w-14 rounded-xl object-contain transition-all duration-300"
             />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-lg transition-all duration-300">
+            <div className="from-primary-400 to-primary-600 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg transition-all duration-300">
               <svg
                 className="h-8 w-8 text-white transition-all duration-300"
                 xmlns="http://www.w3.org/2000/svg"
@@ -329,7 +329,7 @@ function SidebarContent({
                 className="h-16 max-w-[9.5rem] object-contain transition-all duration-300"
               />
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-lg transition-all duration-300">
+              <div className="from-primary-400 to-primary-600 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg transition-all duration-300">
                 <svg
                   className="h-7 w-7 text-white transition-all duration-300"
                   xmlns="http://www.w3.org/2000/svg"

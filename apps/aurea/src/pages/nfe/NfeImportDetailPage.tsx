@@ -981,7 +981,7 @@ export default function NfeImportDetailPage() {
               <span>Código: {row.original.product_code || '-'}</span>
               {row.original.ncm && <span>NCM: {row.original.ncm}</span>}
               {row.original.ean && (
-                <span className="inline-flex items-center gap-1 text-feedback-info-fg">
+                <span className="text-feedback-info-fg inline-flex items-center gap-1">
                   <QrCode className="h-3 w-3" />
                   EAN: {row.original.ean}
                 </span>
@@ -1063,7 +1063,7 @@ export default function NfeImportDetailPage() {
                 </span>
                 {isGoodPrice && (
                   <span
-                    className="flex items-center text-xs text-feedback-success-fg"
+                    className="text-feedback-success-fg flex items-center text-xs"
                     title={`${Math.abs(priceComparison).toFixed(1)}% abaixo do PF`}
                   >
                     <CheckCircle className="h-4 w-4" />
@@ -1071,7 +1071,7 @@ export default function NfeImportDetailPage() {
                 )}
                 {isBadPrice && (
                   <span
-                    className="flex items-center text-xs text-feedback-danger-fg"
+                    className="text-feedback-danger-fg flex items-center text-xs"
                     title={`${priceComparison.toFixed(1)}% acima do PF`}
                   >
                     <AlertTriangle className="h-4 w-4" />
@@ -1122,12 +1122,12 @@ export default function NfeImportDetailPage() {
                   {wasAutoLinked ? (
                     <div title="Vinculado automaticamente via EAN">
                       <Sparkles
-                        className="h-5 w-5 text-feedback-accent-fg"
+                        className="text-feedback-accent-fg h-5 w-5"
                         aria-label="Vinculado automaticamente via EAN"
                       />
                     </div>
                   ) : (
-                    <CheckCircle className="h-5 w-5 text-feedback-success-fg" />
+                    <CheckCircle className="text-feedback-success-fg h-5 w-5" />
                   )}
                   <span className="text-gray-900 dark:text-white">{productDisplay}</span>
                 </div>
@@ -1139,7 +1139,7 @@ export default function NfeImportDetailPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="p-1 text-gray-400 transition-colors hover:text-primary-600 dark:hover:text-primary-400"
+                      className="hover:text-primary-600 dark:hover:text-primary-400 p-1 text-gray-400 transition-colors"
                       title="Ver detalhes do produto"
                     >
                       <Eye className="h-4 w-4" />
@@ -1166,13 +1166,13 @@ export default function NfeImportDetailPage() {
                 ) : itemRefData ? (
                   // Tem dados de referência - mostrar botões de ação
                   <>
-                    <div className="text-xs text-feedback-accent-fg">
+                    <div className="text-feedback-accent-fg text-xs">
                       {itemRefData.substance || itemRefData.name}
                     </div>
                     <div className="flex flex-wrap gap-1">
                       <button
                         onClick={() => openProductSelectionModal(row.original)}
-                        className="inline-flex items-center gap-1 rounded border border-feedback-warning-border/40 bg-feedback-warning-bg px-2 py-1 text-xs font-medium text-feedback-warning-fg transition-colors hover:bg-feedback-warning-border/30"
+                        className="border-feedback-warning-border/40 bg-feedback-warning-bg text-feedback-warning-fg hover:bg-feedback-warning-border/30 inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-medium transition-colors"
                       >
                         <Plus className="h-3 w-3" />
                         Apresentação
@@ -1185,7 +1185,7 @@ export default function NfeImportDetailPage() {
                           setManufactureDate(row.original.manufacture_date || '')
                           setIsCmedSuggestionModalOpen(true)
                         }}
-                        className="inline-flex items-center gap-1 rounded border border-feedback-accent-border/40 bg-feedback-accent-bg px-2 py-1 text-xs font-medium text-feedback-accent-fg transition-colors hover:bg-feedback-accent-border/30"
+                        className="border-feedback-accent-border/40 bg-feedback-accent-bg text-feedback-accent-fg hover:bg-feedback-accent-border/30 inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-medium transition-colors"
                       >
                         <Sparkles className="h-3 w-3" />
                         Via Referência
@@ -1199,7 +1199,7 @@ export default function NfeImportDetailPage() {
                     <div className="flex flex-wrap gap-1">
                       <button
                         onClick={() => openProductSelectionModal(row.original)}
-                        className="inline-flex items-center gap-1 rounded border border-feedback-warning-border/40 bg-feedback-warning-bg px-2 py-1 text-xs font-medium text-feedback-warning-fg transition-colors hover:bg-feedback-warning-border/30"
+                        className="border-feedback-warning-border/40 bg-feedback-warning-bg text-feedback-warning-fg hover:bg-feedback-warning-border/30 inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-medium transition-colors"
                       >
                         <Plus className="h-3 w-3" />
                         Apresentação
@@ -1220,7 +1220,7 @@ export default function NfeImportDetailPage() {
               <div className="flex flex-wrap gap-1">
                 <button
                   onClick={() => openProductSelectionModal(row.original)}
-                  className="inline-flex items-center gap-1 rounded border border-feedback-warning-border/40 bg-feedback-warning-bg px-2 py-1 text-xs font-medium text-feedback-warning-fg transition-colors hover:bg-feedback-warning-border/30"
+                  className="border-feedback-warning-border/40 bg-feedback-warning-bg text-feedback-warning-fg hover:bg-feedback-warning-border/30 inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-medium transition-colors"
                 >
                   <Plus className="h-3 w-3" />
                   Apresentação
@@ -1255,7 +1255,7 @@ export default function NfeImportDetailPage() {
             <span className="inline-flex items-center rounded bg-gray-200 px-2 py-1 text-xs font-medium dark:bg-gray-700">
               <span className="text-gray-600 dark:text-gray-400">1 {presUnit}</span>
               <span className="mx-1 text-gray-500 dark:text-gray-500">=</span>
-              <span className="font-semibold text-feedback-warning-fg">
+              <span className="text-feedback-warning-fg font-semibold">
                 {factor} {prodUnit}
               </span>
             </span>
@@ -1284,14 +1284,14 @@ export default function NfeImportDetailPage() {
           const totalConverted = qty * factor
 
           return (
-            <span className="inline-flex items-center rounded border border-feedback-info-border/40 bg-feedback-info-bg px-2 py-1 text-xs font-medium text-feedback-info-fg">
+            <span className="border-feedback-info-border/40 bg-feedback-info-bg text-feedback-info-fg inline-flex items-center rounded border px-2 py-1 text-xs font-medium">
               <span className="text-feedback-info-fg">
                 {new Intl.NumberFormat('pt-BR', {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 2,
                 }).format(totalConverted)}
               </span>
-              <span className="mx-1 text-feedback-info-fg/80">{prodUnit}</span>
+              <span className="text-feedback-info-fg/80 mx-1">{prodUnit}</span>
             </span>
           )
         },
@@ -1311,7 +1311,7 @@ export default function NfeImportDetailPage() {
               <div className="flex items-center gap-1">
                 {missingData ? (
                   <AlertTriangle
-                    className="h-4 w-4 text-feedback-danger-fg"
+                    className="text-feedback-danger-fg h-4 w-4"
                     aria-label="Lote e validade obrigatórios"
                   />
                 ) : (
@@ -1334,7 +1334,7 @@ export default function NfeImportDetailPage() {
               </div>
               {missingData && (
                 <AlertTriangle
-                  className="h-4 w-4 text-feedback-danger-fg"
+                  className="text-feedback-danger-fg h-4 w-4"
                   aria-label="Dados incompletos para entrada"
                 />
               )}
@@ -1547,7 +1547,7 @@ export default function NfeImportDetailPage() {
                 <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Valor Total
                 </p>
-                <p className="text-xl font-bold text-feedback-success-fg">
+                <p className="text-feedback-success-fg text-xl font-bold">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
@@ -1572,7 +1572,7 @@ export default function NfeImportDetailPage() {
               </div>
 
               {/* Separador vertical */}
-              <div className="hidden h-8 w-px bg-gray-200 dark:bg-gray-700 sm:block" />
+              <div className="hidden h-8 w-px bg-gray-200 sm:block dark:bg-gray-700" />
 
               {/* CNPJ */}
               <div className="flex items-center gap-2">
@@ -1586,7 +1586,7 @@ export default function NfeImportDetailPage() {
               </div>
 
               {/* Separador vertical */}
-              <div className="hidden h-8 w-px bg-gray-200 dark:bg-gray-700 sm:block" />
+              <div className="hidden h-8 w-px bg-gray-200 sm:block dark:bg-gray-700" />
 
               {/* Chave de Acesso */}
               {nfe.access_key && (
@@ -1610,7 +1610,7 @@ export default function NfeImportDetailPage() {
                     </div>
                   </div>
                   {/* Separador vertical */}
-                  <div className="hidden h-8 w-px bg-gray-200 dark:bg-gray-700 sm:block" />
+                  <div className="hidden h-8 w-px bg-gray-200 sm:block dark:bg-gray-700" />
                 </>
               )}
 
@@ -1632,16 +1632,16 @@ export default function NfeImportDetailPage() {
               </div>
 
               {/* Separador vertical */}
-              <div className="hidden h-8 w-px bg-gray-200 dark:bg-gray-700 lg:block" />
+              <div className="hidden h-8 w-px bg-gray-200 lg:block dark:bg-gray-700" />
 
               {/* Fornecedor */}
               <div className="flex items-center gap-2">
                 {linkedSupplier ? (
                   <>
-                    <CheckCircle className="h-4 w-4 text-feedback-success-fg" />
+                    <CheckCircle className="text-feedback-success-fg h-4 w-4" />
                     <div>
                       <span className="text-xs text-gray-500 dark:text-gray-400">Fornecedor</span>
-                      <p className="text-sm font-medium text-feedback-success-fg">
+                      <p className="text-feedback-success-fg text-sm font-medium">
                         {linkedSupplier.trade_name || linkedSupplier.name}
                       </p>
                     </div>
@@ -1649,20 +1649,20 @@ export default function NfeImportDetailPage() {
                 ) : (
                   !isProcessed && (
                     <>
-                      <AlertTriangle className="h-4 w-4 text-feedback-warning-fg" />
+                      <AlertTriangle className="text-feedback-warning-fg h-4 w-4" />
                       <div className="flex items-center gap-2">
                         <div>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             Fornecedor
                           </span>
-                          <p className="text-sm font-medium text-feedback-warning-fg">
+                          <p className="text-feedback-warning-fg text-sm font-medium">
                             Não vinculado
                           </p>
                         </div>
                         <div className="ml-2 flex items-center gap-1">
                           <button
                             onClick={openNewSupplierModal}
-                            className="inline-flex items-center gap-1 rounded border border-feedback-warning-border/40 bg-feedback-warning-bg px-2 py-1 text-xs font-medium text-feedback-warning-fg transition-colors hover:bg-feedback-warning-border/30"
+                            className="border-feedback-warning-border/40 bg-feedback-warning-bg text-feedback-warning-fg hover:bg-feedback-warning-border/30 inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-medium transition-colors"
                           >
                             <Plus className="h-3 w-3" />
                             Cadastrar
@@ -1704,7 +1704,7 @@ export default function NfeImportDetailPage() {
                       (!item.batch_number || !item.expiration_date)
                   )
                   return missingBatchItems.length > 0 ? (
-                    <div className="flex items-center gap-1 rounded-full border border-feedback-danger-border/40 bg-feedback-danger-bg px-2 py-1 text-xs font-medium text-feedback-danger-fg">
+                    <div className="border-feedback-danger-border/40 bg-feedback-danger-bg text-feedback-danger-fg flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium">
                       <AlertTriangle className="h-3 w-3" />
                       {missingBatchItems.length} {missingBatchItems.length === 1 ? 'item' : 'itens'}{' '}
                       sem lote/validade
@@ -1723,7 +1723,7 @@ export default function NfeImportDetailPage() {
                   </div>
                   <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700">
                     <div
-                      className="h-2 rounded-full bg-primary-500 transition-all duration-300"
+                      className="bg-primary-500 h-2 rounded-full transition-all duration-300"
                       style={{
                         width: `${(loadingEanProgress.current / loadingEanProgress.total) * 100}%`,
                       }}
@@ -1787,7 +1787,7 @@ export default function NfeImportDetailPage() {
               / unidade
             </p>
             {selectedItem?.ean && (
-              <p className="mt-1 flex items-center gap-1 text-sm text-feedback-info-fg">
+              <p className="text-feedback-info-fg mt-1 flex items-center gap-1 text-sm">
                 <QrCode className="h-4 w-4" />
                 EAN: {selectedItem.ean}
               </p>
@@ -1796,19 +1796,19 @@ export default function NfeImportDetailPage() {
 
           {/* Reference Item Suggestion Banner - shows when product has EAN and ref_item data is found */}
           {selectedItem?.ean && selectedItemRefData && !selectedProductId && (
-            <div className="rounded-lg border border-feedback-accent-border/40 bg-feedback-accent-bg p-4">
+            <div className="border-feedback-accent-border/40 bg-feedback-accent-bg rounded-lg border p-4">
               <div className="flex items-start gap-3">
-                <Sparkles className="mt-0.5 h-6 w-6 flex-shrink-0 text-feedback-accent-fg" />
+                <Sparkles className="text-feedback-accent-fg mt-0.5 h-6 w-6 flex-shrink-0" />
                 <div className="flex-1">
-                  <h3 className="font-medium text-feedback-accent-fg">
+                  <h3 className="text-feedback-accent-fg font-medium">
                     Produto encontrado na tabela de referência!
                   </h3>
-                  <p className="mt-1 text-sm text-feedback-accent-fg">
+                  <p className="text-feedback-accent-fg mt-1 text-sm">
                     <strong>{selectedItemRefData.name || selectedItemRefData.substance}</strong>
                     {selectedItemRefData.manufacturer && ` - ${selectedItemRefData.manufacturer}`}
                   </p>
                   {selectedItemRefData.concentration && (
-                    <p className="mt-0.5 text-xs text-feedback-accent-fg">
+                    <p className="text-feedback-accent-fg mt-0.5 text-xs">
                       {selectedItemRefData.concentration}
                     </p>
                   )}
@@ -1878,13 +1878,13 @@ export default function NfeImportDetailPage() {
                           <Alert tone="info">
                             <div className="flex items-center justify-between gap-4 text-sm">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium text-feedback-info-fg">
+                                <span className="text-feedback-info-fg font-medium">
                                   Conversão:
                                 </span>
-                                <span className="inline-flex items-center rounded border border-feedback-info-border/40 bg-feedback-info-bg px-2 py-1 text-xs font-medium text-feedback-info-fg">
+                                <span className="border-feedback-info-border/40 bg-feedback-info-bg text-feedback-info-fg inline-flex items-center rounded border px-2 py-1 text-xs font-medium">
                                   <span className="text-feedback-info-fg">1 {presUnit}</span>
-                                  <span className="mx-1 text-feedback-info-fg/80">=</span>
-                                  <span className="font-semibold text-feedback-info-fg">
+                                  <span className="text-feedback-info-fg/80 mx-1">=</span>
+                                  <span className="text-feedback-info-fg font-semibold">
                                     {new Intl.NumberFormat('pt-BR', {
                                       minimumFractionDigits: 0,
                                       maximumFractionDigits: 2,
@@ -1894,8 +1894,8 @@ export default function NfeImportDetailPage() {
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="font-medium text-feedback-info-fg">Total:</span>
-                                <span className="inline-flex items-center rounded border border-feedback-info-border/40 bg-feedback-info-bg px-2 py-1 text-xs font-medium text-feedback-info-fg">
+                                <span className="text-feedback-info-fg font-medium">Total:</span>
+                                <span className="border-feedback-info-border/40 bg-feedback-info-bg text-feedback-info-fg inline-flex items-center rounded border px-2 py-1 text-xs font-medium">
                                   <span className="text-feedback-info-fg">
                                     {new Intl.NumberFormat('pt-BR', {
                                       minimumFractionDigits: 0,
@@ -1903,8 +1903,8 @@ export default function NfeImportDetailPage() {
                                     }).format(selectedItem?.qty || 0)}{' '}
                                     {presUnit}
                                   </span>
-                                  <span className="mx-1 text-feedback-info-fg/80">=</span>
-                                  <span className="font-semibold text-feedback-info-fg">
+                                  <span className="text-feedback-info-fg/80 mx-1">=</span>
+                                  <span className="text-feedback-info-fg font-semibold">
                                     {new Intl.NumberFormat('pt-BR', {
                                       minimumFractionDigits: 0,
                                       maximumFractionDigits: 2,
@@ -2118,7 +2118,7 @@ export default function NfeImportDetailPage() {
                   refItemDataForPresentation?.substance ||
                   refItemDataForPresentation?.manufacturer ||
                   selectedPresentationManufacturerId) && (
-                  <div className="mt-2 space-y-1 border-t border-feedback-accent-border/40 pt-2">
+                  <div className="border-feedback-accent-border/40 mt-2 space-y-1 border-t pt-2">
                     {/* Descrição do produto */}
                     {(refItemDataForPresentation?.name ||
                       refItemDataForPresentation?.substance) && (
@@ -2173,7 +2173,7 @@ export default function NfeImportDetailPage() {
                     })
                   }}
                   disabled={createManufacturer.isPending}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-medium text-content-inverse transition-colors hover:bg-primary-700 disabled:opacity-50"
+                  className="bg-primary-600 text-content-inverse hover:bg-primary-700 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
                 >
                   <Plus className="h-4 w-4" />
                   Cadastrar "{suggestedManufacturer.name}"
@@ -2526,7 +2526,7 @@ export default function NfeImportDetailPage() {
                 {selectedItem.raw_description}
               </p>
               {selectedItem.ean && (
-                <p className="mt-1 flex items-center gap-1 text-sm text-feedback-info-fg">
+                <p className="text-feedback-info-fg mt-1 flex items-center gap-1 text-sm">
                   <QrCode className="h-4 w-4" />
                   EAN: {selectedItem.ean}
                 </p>
@@ -2534,11 +2534,11 @@ export default function NfeImportDetailPage() {
             </div>
           )}
 
-          <div className="rounded-lg border border-feedback-warning-border/40 bg-feedback-warning-bg p-4">
-            <p className="mb-2 text-sm font-medium text-feedback-warning-fg">
+          <div className="border-feedback-warning-border/40 bg-feedback-warning-bg rounded-lg border p-4">
+            <p className="text-feedback-warning-fg mb-2 text-sm font-medium">
               O produto base já está cadastrado no sistema?
             </p>
-            <p className="text-xs text-feedback-warning-fg">
+            <p className="text-feedback-warning-fg text-xs">
               Se o produto já existe, você selecionará ele e cadastrará apenas uma nova
               apresentação. Caso contrário, você poderá cadastrar o produto completo.
             </p>
@@ -2588,7 +2588,7 @@ export default function NfeImportDetailPage() {
                 </p>
               </div>
               {selectedItem.ean && (
-                <div className="flex flex-shrink-0 items-center gap-1.5 rounded border border-feedback-info-border/40 bg-feedback-info-bg px-2.5 py-1 font-mono text-sm text-feedback-info-fg">
+                <div className="border-feedback-info-border/40 bg-feedback-info-bg text-feedback-info-fg flex flex-shrink-0 items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-sm">
                   <QrCode className="h-4 w-4" />
                   {selectedItem.ean}
                 </div>
@@ -2603,19 +2603,19 @@ export default function NfeImportDetailPage() {
               if (!refData) return null
 
               return (
-                <div className="overflow-hidden rounded-lg border border-feedback-accent-border/40">
+                <div className="border-feedback-accent-border/40 overflow-hidden rounded-lg border">
                   {/* Header com badge de fonte */}
-                  <div className="flex items-center justify-between border-b border-feedback-accent-border/40 bg-feedback-accent-bg px-4 py-2.5">
+                  <div className="border-feedback-accent-border/40 bg-feedback-accent-bg flex items-center justify-between border-b px-4 py-2.5">
                     <div className="flex items-center gap-2">
-                      <Info className="h-4 w-4 text-feedback-accent-fg" />
-                      <span className="text-sm font-medium text-feedback-accent-fg">
+                      <Info className="text-feedback-accent-fg h-4 w-4" />
+                      <span className="text-feedback-accent-fg text-sm font-medium">
                         Informações das Tabelas de Referência
                       </span>
                     </div>
                     {(refData.cmed_item_id ||
                       refData.brasindice_item_id ||
                       refData.simpro_item_id) && (
-                      <span className="rounded bg-primary-600 px-2 py-0.5 text-xs font-semibold text-content-inverse">
+                      <span className="bg-primary-600 text-content-inverse rounded px-2 py-0.5 text-xs font-semibold">
                         {refData.cmed_item_id
                           ? 'CMED'
                           : refData.brasindice_item_id
@@ -2639,13 +2639,13 @@ export default function NfeImportDetailPage() {
                           </p>
                           {refData.substance && (
                             <div className="mt-1 flex items-center gap-1">
-                              <p className="text-xs font-bold text-feedback-accent-fg">
+                              <p className="text-feedback-accent-fg text-xs font-bold">
                                 {refData.substance}
                               </p>
                               <button
                                 type="button"
                                 onClick={() => setProductSearchQuery(refData.substance || '')}
-                                className="rounded p-0.5 text-feedback-accent-fg transition-colors hover:bg-feedback-accent-border/25"
+                                className="text-feedback-accent-fg hover:bg-feedback-accent-border/25 rounded p-0.5 transition-colors"
                                 title="Buscar produtos com esta substância"
                               >
                                 <Search className="h-3 w-3" />
@@ -2694,12 +2694,12 @@ export default function NfeImportDetailPage() {
                       refData.ggrem_code) && (
                       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700">
                         {refData.brasindice_code && (
-                          <span className="rounded border border-feedback-info-border/40 bg-feedback-info-bg px-2 py-0.5 text-[10px] font-medium text-feedback-info-fg">
+                          <span className="border-feedback-info-border/40 bg-feedback-info-bg text-feedback-info-fg rounded border px-2 py-0.5 text-[10px] font-medium">
                             BrasÍndice: {refData.brasindice_code}
                           </span>
                         )}
                         {refData.simpro_code && (
-                          <span className="rounded border border-feedback-success-border/40 bg-feedback-success-bg px-2 py-0.5 text-[10px] font-medium text-feedback-success-fg">
+                          <span className="border-feedback-success-border/40 bg-feedback-success-bg text-feedback-success-fg rounded border px-2 py-0.5 text-[10px] font-medium">
                             SIMPRO: {refData.simpro_code}
                           </span>
                         )}
@@ -2714,7 +2714,7 @@ export default function NfeImportDetailPage() {
                           </span>
                         )}
                         {refData.ggrem_code && (
-                          <span className="rounded border border-feedback-accent-border/40 bg-feedback-accent-bg px-2 py-0.5 text-[10px] font-medium text-feedback-accent-fg">
+                          <span className="border-feedback-accent-border/40 bg-feedback-accent-bg text-feedback-accent-fg rounded border px-2 py-0.5 text-[10px] font-medium">
                             GGREM: {refData.ggrem_code}
                           </span>
                         )}
@@ -2750,7 +2750,7 @@ export default function NfeImportDetailPage() {
                 setProductSearchQuery('')
                 setIsNewProductModalOpen(true)
               }}
-              className="border border-feedback-accent-border !text-feedback-accent-fg hover:!bg-feedback-accent-bg"
+              className="border-feedback-accent-border !text-feedback-accent-fg hover:!bg-feedback-accent-bg border"
             >
               <Plus className="h-5 w-5" />
               Cadastrar Produto

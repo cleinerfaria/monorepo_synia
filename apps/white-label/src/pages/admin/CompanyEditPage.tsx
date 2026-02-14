@@ -1009,7 +1009,7 @@ function DatabaseModal({ isOpen, onClose, companyId, database }: DatabaseModalPr
               type="checkbox"
               checked={formData.is_active}
               onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
             />
             <span className="text-sm text-gray-700 dark:text-gray-300">Ativo</span>
           </label>
@@ -1019,7 +1019,7 @@ function DatabaseModal({ isOpen, onClose, companyId, database }: DatabaseModalPr
               type="checkbox"
               checked={formData.is_default}
               onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
             />
             <span className="text-sm text-gray-700 dark:text-gray-300">Conexão Padrão</span>
           </label>
@@ -1498,7 +1498,7 @@ function PageChartsSection({
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="mb-2 flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5 text-primary-500" />
+                        <BarChart3 className="text-primary-500 h-5 w-5" />
                         <h4 className="font-medium text-gray-900 dark:text-white">
                           {chart.title || chart.name}
                         </h4>

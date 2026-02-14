@@ -217,7 +217,7 @@ export default function PresentationSearchModal({
                 placeholder="Buscar por nome, posologia..."
                 value={filters.nome}
                 onChange={(e) => handleFilterChange('nome', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:border-primary-500 focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             <Button
@@ -393,7 +393,7 @@ export default function PresentationSearchModal({
                           </p>
                           {item.substance && (
                             <p
-                              className="truncate text-xs text-primary-600 dark:text-primary-400"
+                              className="text-primary-600 dark:text-primary-400 truncate text-xs"
                               title={
                                 item.substance +
                                 (item.concentration ? ` ${item.concentration}` : '')

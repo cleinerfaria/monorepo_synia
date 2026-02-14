@@ -55,7 +55,7 @@ export function KpiCard({
       return <Minus className="h-3.5 w-3.5 text-gray-400" />;
     }
     if (change > 0) {
-      return <TrendingUp className="h-3.5 w-3.5 text-primary-500" />;
+      return <TrendingUp className="text-primary-500 h-3.5 w-3.5" />;
     }
     return <TrendingDown className="h-3.5 w-3.5 text-red-500" />;
   };
@@ -82,7 +82,7 @@ export function KpiCard({
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/60 backdrop-blur-[1px] dark:bg-gray-800/60">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-500 border-t-transparent dark:border-primary-400 dark:border-t-transparent" />
+          <div className="border-primary-500 dark:border-primary-400 h-5 w-5 animate-spin rounded-full border-2 border-t-transparent dark:border-t-transparent" />
         </div>
       )}
 

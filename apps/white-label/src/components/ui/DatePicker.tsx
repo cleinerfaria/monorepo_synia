@@ -198,8 +198,8 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
                     'border transition-all duration-200',
                     error
                       ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 hover:border-gray-400 focus:border-primary-500 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:border-primary-500',
-                    'focus:outline-none focus:ring-2 focus:ring-primary-500',
+                      : 'focus:border-primary-500 dark:focus:border-primary-500 border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500',
+                    'focus:ring-primary-500 focus:outline-none focus:ring-2',
                     'shadow-sm',
                     disabled && 'cursor-not-allowed bg-gray-50 opacity-50 dark:bg-gray-900'
                   )}
@@ -416,14 +416,14 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
                             onClick={() => handleDateSelect(day, close)}
                             className={clsx(
                               'relative rounded-lg p-2 text-sm transition-all duration-150',
-                              'focus:outline-none focus:ring-2 focus:ring-primary-500/50',
+                              'focus:ring-primary-500/50 focus:outline-none focus:ring-2',
                               !isCurrentMonth && 'text-gray-300 dark:text-gray-600',
                               isCurrentMonth &&
                                 !isSelected &&
                                 !isDisabled &&
-                                'text-gray-900 hover:bg-primary-50 dark:text-gray-100 dark:hover:bg-primary-900/20',
+                                'hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-900 dark:text-gray-100',
                               isSelected && 'bg-primary-500 font-semibold text-white shadow-md',
-                              isTodayDate && !isSelected && 'ring-2 ring-primary-500/50',
+                              isTodayDate && !isSelected && 'ring-primary-500/50 ring-2',
                               isDisabled && 'cursor-not-allowed opacity-30'
                             )}
                           >
@@ -438,7 +438,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
                       <button
                         type="button"
                         onClick={() => handleDateSelect(new Date(), close)}
-                        className="flex-1 rounded-lg bg-primary-50 px-3 py-2 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/30"
+                        className="bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/30 flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
                       >
                         Hoje
                       </button>

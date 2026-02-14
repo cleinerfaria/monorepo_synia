@@ -280,7 +280,7 @@ export default function PatientAddressForm({
                         address.type}
                     </span>
                     {address.is_primary && (
-                      <span className="rounded border border-primary-500/30 bg-primary-500/10 px-2 py-0.5 text-xs font-semibold text-primary-700 dark:bg-primary-400/20 dark:text-primary-300">
+                      <span className="border-primary-500/30 bg-primary-500/10 text-primary-700 dark:bg-primary-400/20 dark:text-primary-300 rounded border px-2 py-0.5 text-xs font-semibold">
                         Principal
                       </span>
                     )}
@@ -312,7 +312,7 @@ export default function PatientAddressForm({
             </div>
             <div className="flex items-center gap-2">
               {address.latitude && address.longitude && (
-                <MapPin className="h-5 w-5 text-primary-600/70 dark:text-primary-400/70" />
+                <MapPin className="text-primary-600/70 dark:text-primary-400/70 h-5 w-5" />
               )}
               <ButtonNew
                 type="button"
@@ -375,7 +375,7 @@ export default function PatientAddressForm({
                   {loadingCEP === index && (
                     <div className="absolute right-3 top-9 flex items-center gap-2">
                       <svg
-                        className="h-4 w-4 animate-spin text-primary-500"
+                        className="text-primary-500 h-4 w-4 animate-spin"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"

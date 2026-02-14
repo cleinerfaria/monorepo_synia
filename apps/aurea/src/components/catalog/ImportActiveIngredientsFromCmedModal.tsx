@@ -439,7 +439,7 @@ export function ImportActiveIngredientsFromCmedModal({
           <div className="max-h-[400px] overflow-y-auto">
             {isLoading || isLoadingStats ? (
               <div className="p-8 text-center text-gray-500">
-                <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-primary-500"></div>
+                <div className="border-primary-500 mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
                 <p>Carregando substâncias do CMED...</p>
               </div>
             ) : substances.length === 0 ? (
@@ -497,7 +497,7 @@ export function ImportActiveIngredientsFromCmedModal({
                           checked={selectedSubstances.has(substance.name)}
                           onChange={() => handleToggleSubstance(substance.name)}
                           disabled={substance.already_exists}
-                          className="h-4 w-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500 disabled:opacity-50"
+                          className="text-primary-500 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 disabled:opacity-50"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </td>

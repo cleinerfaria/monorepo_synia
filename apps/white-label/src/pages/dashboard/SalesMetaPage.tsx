@@ -199,7 +199,7 @@ export default function SalesMetaPage() {
     <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700/50 dark:bg-gray-800/50">
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-800/50">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
+          <div className="border-primary-500 h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
         </div>
       )}
       <div className="flex items-start justify-between">
@@ -290,7 +290,7 @@ export default function SalesMetaPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white lg:text-3xl">
+          <h1 className="font-display text-2xl font-bold text-gray-900 lg:text-3xl dark:text-white">
             Meta
           </h1>
           <p className="mt-1 text-gray-500 dark:text-gray-400">

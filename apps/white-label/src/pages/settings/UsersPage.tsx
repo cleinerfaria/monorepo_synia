@@ -52,8 +52,8 @@ export default function UsersPage() {
         header: 'Usuário',
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary-100 dark:bg-primary-900/30">
-              <Users className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+            <div className="bg-primary-100 dark:bg-primary-900/30 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+              <Users className="text-primary-600 dark:text-primary-400 h-5 w-5" />
             </div>
             <div className="min-w-0">
               <p className="truncate font-medium text-gray-900 dark:text-white">
@@ -173,7 +173,7 @@ export default function UsersPage() {
                 placeholder="Buscar por nome ou e-mail..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
           </div>

@@ -488,7 +488,7 @@ export default function CmedSuggestionModal({
         {/* Formulário de edição */}
         <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
           {/* Linha 1: Nome do Produto (10) + Concentração (6) + Unidade Base (8) */}
-          <div className="grid grid-cols-24 gap-3">
+          <div className="grid-cols-24 grid gap-3">
             <div className="col-span-24 md:col-span-10">
               <Input
                 label="Nome do Produto"
@@ -521,7 +521,7 @@ export default function CmedSuggestionModal({
           </div>
 
           {/* Linha 2: Fabricante (12) + Princípio Ativo (12) */}
-          <div className="grid grid-cols-24 gap-3">
+          <div className="grid-cols-24 grid gap-3">
             <div className="col-span-24 md:col-span-12">
               <SearchableSelect
                 label="Fabricante"
@@ -560,7 +560,7 @@ export default function CmedSuggestionModal({
           </div>
 
           {/* Linha 3: Apresentação (14) + Fator Conversão (4) + Unidade Entrada (6) */}
-          <div className="grid grid-cols-24 gap-3">
+          <div className="grid-cols-24 grid gap-3">
             <div className="col-span-24 md:col-span-13">
               <Input
                 label="Apresentação (EAN)"
@@ -577,7 +577,7 @@ export default function CmedSuggestionModal({
                   </label>
                   <div className="group relative">
                     <Info className="h-4 w-4 cursor-help text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                    <div className="pointer-events-none invisible absolute bottom-full right-0 z-50 mb-2 w-48 rounded-lg border border-primary-500 bg-gray-900 p-2 text-xs text-white group-hover:visible dark:bg-gray-800">
+                    <div className="border-primary-500 pointer-events-none invisible absolute bottom-full right-0 z-50 mb-2 w-48 rounded-lg border bg-gray-900 p-2 text-xs text-white group-hover:visible dark:bg-gray-800">
                       Quantidade de unidades base que em uma unidade de entrada. Ex: 1 cx = 20 cp
                       (fator 20)
                       <div className="absolute right-2 top-full h-0 w-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900 dark:border-t-gray-800"></div>

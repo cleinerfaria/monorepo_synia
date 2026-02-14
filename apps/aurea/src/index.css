@@ -258,7 +258,7 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  @apply outline-none ring-4 ring-primary-500/10;
+  @apply ring-primary-500/10 outline-none ring-4;
 }
 
 input[type='checkbox']:checked,
@@ -358,31 +358,31 @@ select option:hover {
   }
 
   .card {
-    @apply rounded-2xl bg-surface-card shadow-soft;
+    @apply bg-surface-card shadow-soft rounded-2xl;
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-soft-lg;
+    @apply hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-1;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-primary-500 px-4 py-2.5 font-medium text-white shadow-sm transition-all duration-200 hover:bg-primary-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply bg-primary-500 hover:bg-primary-600 focus:ring-primary-500/50 inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium text-white shadow-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-xl bg-surface-elevated px-4 py-2.5 font-medium text-content-secondary transition-all duration-200 hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-border-focus/50 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply bg-surface-elevated text-content-secondary hover:bg-surface-hover focus:ring-border-focus/50 inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium text-content-secondary transition-all duration-200 hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-border-focus/30 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply text-content-secondary hover:bg-surface-hover focus:ring-border-focus/30 inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-danger {
-    @apply inline-flex items-center justify-center rounded-xl bg-feedback-danger-solid px-4 py-2.5 font-medium text-content-inverse transition-all duration-200 hover:bg-feedback-danger-solid/90 focus:outline-none focus:ring-2 focus:ring-feedback-danger-border/60 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply bg-feedback-danger-solid text-content-inverse hover:bg-feedback-danger-solid/90 focus:ring-feedback-danger-border/60 inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .filter-toggle-button {
-    @apply inline-flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-border-focus/40;
+    @apply focus:ring-border-focus/40 inline-flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors focus:outline-none focus:ring-2;
   }
 
   .filter-toggle-button-active {
@@ -394,19 +394,19 @@ select option:hover {
   }
 
   .filter-toggle-counter {
-    @apply ml-1 inline-flex items-center justify-center whitespace-nowrap rounded-full bg-primary-500 px-1.5 py-0.5 align-middle text-xs leading-4 text-white;
+    @apply bg-primary-500 ml-1 inline-flex items-center justify-center whitespace-nowrap rounded-full px-1.5 py-0.5 align-middle text-xs leading-4 text-white;
   }
 
   .input-field {
-    @apply w-full rounded-xl border bg-surface-elevated px-3 py-1.5 text-sm text-content-primary shadow-sm transition-all duration-200 placeholder:text-content-muted hover:border-gray-300 hover:shadow-lg focus:ring-2 focus:ring-border-focus/20 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:border-primary-500;
+    @apply bg-surface-elevated text-content-primary placeholder:text-content-muted focus:ring-border-focus/20 dark:focus:border-primary-500 w-full rounded-xl border px-3 py-1.5 text-sm shadow-sm transition-all duration-200 hover:border-gray-300 hover:shadow-lg focus:ring-2 dark:border-gray-600 dark:hover:border-gray-500;
   }
 
   .label {
-    @apply mb-1 block text-xs font-medium text-content-secondary;
+    @apply text-content-secondary mb-1 block text-xs font-medium;
   }
 
   .link {
-    @apply text-primary-600 underline-offset-2 transition-colors duration-200 hover:text-primary-700 hover:underline dark:text-primary-400 dark:hover:text-primary-300;
+    @apply text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 underline-offset-2 transition-colors duration-200 hover:underline;
   }
 
   .badge {
@@ -499,7 +499,7 @@ select option:hover {
    ===================================================== */
 
 .table-container {
-  @apply overflow-x-auto rounded-xl border border-border;
+  @apply border-border overflow-x-auto rounded-xl border;
 }
 
 .table {
@@ -511,15 +511,15 @@ select option:hover {
 }
 
 .table th {
-  @apply px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-content-muted;
+  @apply text-content-muted px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider;
 }
 
 .table td {
-  @apply border-t border-border px-4 py-2.5 text-content-secondary;
+  @apply border-border text-content-secondary border-t px-4 py-2.5;
 }
 
 .table tbody tr {
-  @apply bg-surface-card transition-colors hover:bg-surface-hover;
+  @apply bg-surface-card hover:bg-surface-hover transition-colors;
 }
 
 /* =====================================================
@@ -531,7 +531,7 @@ select option:hover {
 }
 
 .sidebar-link.active {
-  @apply bg-primary-100/20 font-medium text-primary-900 dark:bg-primary-900/20 dark:text-primary-400;
+  @apply bg-primary-100/20 text-primary-900 dark:bg-primary-900/20 dark:text-primary-400 font-medium;
 }
 
 .sidebar-link svg {

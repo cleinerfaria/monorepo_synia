@@ -147,8 +147,8 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
                 'border transition-all duration-200',
                 error
                   ? 'border-red-500 focus:border-red-500'
-                  : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:border-primary-500',
-                'focus:outline-none focus:ring-4 focus:ring-primary-500/10',
+                  : 'focus:border-primary-500 dark:focus:border-primary-500 border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500',
+                'focus:ring-primary-500/10 focus:outline-none focus:ring-4',
                 'shadow-sm hover:shadow-lg',
                 disabled && 'cursor-not-allowed bg-gray-100 opacity-50 dark:bg-gray-800/70'
               )}
@@ -164,7 +164,7 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
                 {selectedOption ? (
                   <span className="flex items-center gap-2">
                     {selectedOption.icon && (
-                      <selectedOption.icon className="h-5 w-5 text-primary-500" />
+                      <selectedOption.icon className="text-primary-500 h-5 w-5" />
                     )}
                     {selectedOption.label}
                   </span>
@@ -262,7 +262,7 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
 
                               {isSelected && (
                                 <span className="absolute inset-y-0 right-0 flex items-center pr-4">
-                                  <Check className="h-5 w-5 text-primary-500" aria-hidden="true" />
+                                  <Check className="text-primary-500 h-5 w-5" aria-hidden="true" />
                                 </span>
                               )}
                             </>
@@ -350,7 +350,7 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
 
                             {isSelected && (
                               <span className="absolute inset-y-0 right-0 flex items-center pr-4">
-                                <Check className="h-5 w-5 text-primary-500" aria-hidden="true" />
+                                <Check className="text-primary-500 h-5 w-5" aria-hidden="true" />
                               </span>
                             )}
                           </>

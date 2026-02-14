@@ -104,8 +104,8 @@ export const RadioGroup = forwardRef<HTMLInputElement, RadioGroupProps>(
                     'relative flex cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 transition-all duration-200',
                     'border text-xs font-medium',
                     isSelected
-                      ? 'border-primary-500 bg-primary-500 text-white shadow-sm dark:border-primary-500 dark:bg-primary-600 dark:text-white'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:bg-primary-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:border-primary-500 dark:hover:bg-primary-900/20'
+                      ? 'border-primary-500 bg-primary-500 dark:border-primary-500 dark:bg-primary-600 text-white shadow-sm dark:text-white'
+                      : 'hover:border-primary-300 hover:bg-primary-50 dark:hover:border-primary-500 dark:hover:bg-primary-900/20 border-gray-200 bg-white text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400'
                   )}
                 >
                   {option.icon && <span className="mr-2">{option.icon}</span>}
@@ -130,7 +130,7 @@ export const RadioGroup = forwardRef<HTMLInputElement, RadioGroupProps>(
                       'flex h-4 w-4 items-center justify-center rounded-full border transition-all duration-200',
                       isSelected
                         ? 'border-primary-500 bg-primary-500'
-                        : 'border-gray-300 bg-white group-hover:border-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:group-hover:border-primary-500'
+                        : 'group-hover:border-primary-300 dark:group-hover:border-primary-500 border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700'
                     )}
                   >
                     {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -139,7 +139,7 @@ export const RadioGroup = forwardRef<HTMLInputElement, RadioGroupProps>(
                     className={clsx(
                       'text-xs transition-colors',
                       isSelected
-                        ? 'font-medium text-primary-600 dark:text-primary-400'
+                        ? 'text-primary-600 dark:text-primary-400 font-medium'
                         : 'text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-gray-200'
                     )}
                   >

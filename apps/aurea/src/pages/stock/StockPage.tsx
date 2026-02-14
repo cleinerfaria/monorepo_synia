@@ -340,7 +340,7 @@ export default function StockPage() {
               >
                 {qty} {row.original.product?.unit_stock?.code}
               </span>
-              {isLow && <AlertTriangle className="h-4 w-4 text-feedback-danger-fg" />}
+              {isLow && <AlertTriangle className="text-feedback-danger-fg h-4 w-4" />}
             </div>
           )
         },
@@ -503,7 +503,7 @@ export default function StockPage() {
         accessorKey: 'qty_on_hand',
         header: 'Saldo Atual',
         cell: ({ row }) => (
-          <span className="font-medium text-feedback-danger-fg">
+          <span className="text-feedback-danger-fg font-medium">
             {row.original.qty_on_hand} {row.original.product?.unit_stock?.code}
           </span>
         ),
@@ -523,7 +523,7 @@ export default function StockPage() {
         cell: ({ row }) => {
           const deficit = row.original.product?.min_stock - row.original.qty_on_hand
           return (
-            <span className="font-medium text-feedback-danger-fg">
+            <span className="text-feedback-danger-fg font-medium">
               {deficit} {row.original.product?.unit_stock?.code}
             </span>
           )
@@ -545,7 +545,7 @@ export default function StockPage() {
               {row.original.product?.name}
             </p>
             {row.original.product?.active_ingredient_rel && (
-              <p className="text-sm text-primary-600 dark:text-primary-400">
+              <p className="text-primary-600 dark:text-primary-400 text-sm">
                 {row.original.product.active_ingredient_rel.name}
                 {row.original.product.concentration && ` ${row.original.product.concentration}`}
               </p>
@@ -673,8 +673,8 @@ export default function StockPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="flex items-center gap-4 py-4">
-            <div className="rounded-xl bg-feedback-info-bg p-3">
-              <Box className="h-6 w-6 text-feedback-info-fg" />
+            <div className="bg-feedback-info-bg rounded-xl p-3">
+              <Box className="text-feedback-info-fg h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Itens em Estoque</p>
@@ -687,8 +687,8 @@ export default function StockPage() {
 
         <Card>
           <CardContent className="flex items-center gap-4 py-4">
-            <div className="rounded-xl bg-feedback-success-bg p-3">
-              <DollarSign className="h-6 w-6 text-feedback-success-fg" />
+            <div className="bg-feedback-success-bg rounded-xl p-3">
+              <DollarSign className="text-feedback-success-fg h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Valor Total</p>
@@ -705,8 +705,8 @@ export default function StockPage() {
 
         <Card>
           <CardContent className="flex items-center gap-4 py-4">
-            <div className="rounded-xl bg-feedback-warning-bg p-3">
-              <AlertTriangle className="h-6 w-6 text-feedback-warning-fg" />
+            <div className="bg-feedback-warning-bg rounded-xl p-3">
+              <AlertTriangle className="text-feedback-warning-fg h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Estoque Baixo</p>
@@ -719,8 +719,8 @@ export default function StockPage() {
 
         <Card>
           <CardContent className="flex items-center gap-4 py-4">
-            <div className="rounded-xl bg-feedback-warning-bg p-3">
-              <Clock className="h-6 w-6 text-feedback-warning-fg" />
+            <div className="bg-feedback-warning-bg rounded-xl p-3">
+              <Clock className="text-feedback-warning-fg h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Lotes Vencendo</p>
@@ -733,8 +733,8 @@ export default function StockPage() {
 
         <Card>
           <CardContent className="flex items-center gap-4 py-4">
-            <div className="rounded-xl bg-feedback-accent-bg p-3">
-              <RefreshCw className="h-6 w-6 text-feedback-accent-fg" />
+            <div className="bg-feedback-accent-bg rounded-xl p-3">
+              <RefreshCw className="text-feedback-accent-fg h-6 w-6" />
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Movimentações (mês)</p>
@@ -759,7 +759,7 @@ export default function StockPage() {
               hoverBorder
               badge={
                 tab.count !== undefined && tab.count > 0 ? (
-                  <span className="ml-1 inline-flex items-center justify-center whitespace-nowrap rounded-full bg-feedback-danger-bg px-2 py-0.5 align-middle text-xs leading-4 text-feedback-danger-fg">
+                  <span className="bg-feedback-danger-bg text-feedback-danger-fg ml-1 inline-flex items-center justify-center whitespace-nowrap rounded-full px-2 py-0.5 align-middle text-xs leading-4">
                     {tab.count}
                   </span>
                 ) : undefined
@@ -799,7 +799,7 @@ export default function StockPage() {
                   placeholder="Buscar por nome, concentração ou fabricante..."
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                  className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 />
               </div>
               <FilterToggleButton
@@ -823,7 +823,7 @@ export default function StockPage() {
                       <select
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className={`w-full px-3 py-2 ${typeFilter ? 'pr-10' : 'pr-4'} rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white`}
+                        className={`w-full px-3 py-2 ${typeFilter ? 'pr-10' : 'pr-4'} focus:ring-primary-500 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white`}
                       >
                         <option value="">Todos</option>
                         <option value="medication">Medicamento</option>
@@ -850,7 +850,7 @@ export default function StockPage() {
                       <select
                         value={manufacturerFilter}
                         onChange={(e) => setManufacturerFilter(e.target.value)}
-                        className={`w-full px-3 py-2 ${manufacturerFilter ? 'pr-14' : 'pr-8'} rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white`}
+                        className={`w-full px-3 py-2 ${manufacturerFilter ? 'pr-14' : 'pr-8'} focus:ring-primary-500 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white`}
                       >
                         <option value="">Todos</option>
                         {manufacturers
@@ -882,7 +882,7 @@ export default function StockPage() {
                         <select
                           value={selectedLocationId}
                           onChange={(e) => setSelectedLocationId(e.target.value)}
-                          className={`w-full px-3 py-2 ${selectedLocationId ? 'pr-14' : 'pr-8'} rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white`}
+                          className={`w-full px-3 py-2 ${selectedLocationId ? 'pr-14' : 'pr-8'} focus:ring-primary-500 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white`}
                         >
                           <option value="">Todos os locais</option>
                           {locations.map((loc) => (
@@ -909,7 +909,7 @@ export default function StockPage() {
                   <div className="flex justify-end">
                     <button
                       onClick={clearFilters}
-                      className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                      className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 text-sm"
                     >
                       Limpar todos os filtros
                     </button>

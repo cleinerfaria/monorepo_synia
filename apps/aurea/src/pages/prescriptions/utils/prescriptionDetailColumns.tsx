@@ -173,7 +173,7 @@ export function buildItemColumns({
       cell: ({ row }) => {
         const itemNumber = itemNumbers.get(row.original.id)
         return (
-          <div className="flex items-center justify-center rounded-lg bg-primary-100/10 px-2 py-1 font-semibold text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+          <div className="bg-primary-100/10 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 flex items-center justify-center rounded-lg px-2 py-1 font-semibold">
             {itemNumber || '-'}
           </div>
         )
@@ -220,7 +220,7 @@ export function buildItemColumns({
             <p className="font-medium text-gray-900 dark:text-white">
               {name}
               {quantity != null && (
-                <span className="ml-2 font-semibold text-primary-600 dark:text-primary-400">
+                <span className="text-primary-600 dark:text-primary-400 ml-2 font-semibold">
                   {quantity} {unit}
                 </span>
               )}
@@ -231,7 +231,7 @@ export function buildItemColumns({
               )}
             </p>
             {components.length > 0 && (
-              <div className="ml-3 space-y-0.5 border-l-2 border-primary-200 pl-3 dark:border-primary-700">
+              <div className="border-primary-200 dark:border-primary-700 ml-3 space-y-0.5 border-l-2 pl-3">
                 {components.map((comp: any, idx: number) => {
                   const compProduct = comp.product
                   const compName = compProduct?.name || 'Produto'

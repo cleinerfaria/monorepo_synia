@@ -135,7 +135,7 @@ export function SalesFiltersBar({
           <div className="flex items-center gap-1">
             <button
               onClick={onApplyClientesFilter}
-              className="flex items-center gap-1 rounded-lg bg-primary-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary-600"
+              className="bg-primary-500 hover:bg-primary-600 flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-colors"
               title="Aplicar filtro de clientes"
             >
               <Check className="h-3.5 w-3.5" />

@@ -260,7 +260,7 @@ export default function MessagesPage() {
               href={mediaUrl}
               target="_blank"
               rel="noreferrer"
-              className="mb-2 flex items-center gap-2 text-sm text-primary-200 hover:underline"
+              className="text-primary-200 mb-2 flex items-center gap-2 text-sm hover:underline"
             >
               <FileText className="h-4 w-4" />
               Baixar documento
@@ -269,7 +269,7 @@ export default function MessagesPage() {
 
           {!mediaUrl && isImageMessage(type) && canManageMessages && (
             <button
-              className="mb-2 flex items-center gap-2 text-xs text-primary-200"
+              className="text-primary-200 mb-2 flex items-center gap-2 text-xs"
               onClick={() => toast('Funcionalidade em desenvolvimento', { icon: '🚧' })}
             >
               <Image className="h-4 w-4" />

@@ -568,8 +568,8 @@ function UsersTab({
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-                              <span className="font-medium text-primary-600 dark:text-primary-400">
+                            <div className="bg-primary-100 dark:bg-primary-900/30 flex h-10 w-10 items-center justify-center rounded-full">
+                              <span className="text-primary-600 dark:text-primary-400 font-medium">
                                 {user.name.charAt(0).toUpperCase()}
                               </span>
                             </div>

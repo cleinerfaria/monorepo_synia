@@ -232,7 +232,7 @@ export default function AccessProfileModal({
             checked={formData.is_admin}
             onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
             disabled={isSystemProfile}
-            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
           />
           <label htmlFor="is_admin" className="text-sm text-gray-700 dark:text-gray-300">
             Administrador (acesso total a todas as funcionalidades)
@@ -291,7 +291,7 @@ export default function AccessProfileModal({
                             }`}
                           >
                             {allSelected && <Check className="h-3 w-3 text-white" />}
-                            {someSelected && <div className="h-2 w-2 rounded-sm bg-primary-500" />}
+                            {someSelected && <div className="bg-primary-500 h-2 w-2 rounded-sm" />}
                           </div>
                           <span className="font-medium text-gray-900 dark:text-white">
                             {module.name}
@@ -318,7 +318,7 @@ export default function AccessProfileModal({
                               checked={selectedPermissions.has(permission.id)}
                               onChange={() => togglePermission(permission.id)}
                               disabled={isSystemProfile}
-                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                             />
                             <span className="text-gray-700 dark:text-gray-300">
                               {permission.name}

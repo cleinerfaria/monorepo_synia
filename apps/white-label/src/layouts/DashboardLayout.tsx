@@ -439,9 +439,9 @@ export default function DashboardLayout() {
       >
         {/* Top bar */}
 
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-gray-200 bg-white/80 px-4 backdrop-blur-lg dark:border-gray-700 dark:bg-gray-800/80 lg:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-gray-200 bg-white/80 px-4 backdrop-blur-lg lg:px-8 dark:border-gray-700 dark:bg-gray-800/80">
           <button
-            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden dark:hover:bg-gray-700"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
@@ -489,7 +489,7 @@ export default function DashboardLayout() {
                       placeholder="Buscar empresa..."
                       value={companySearchTerm}
                       onChange={(e) => setCompanySearchTerm(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500"
+                      className="focus:border-primary-500 focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500"
                       autoFocus
                     />
                   </div>
@@ -534,7 +534,7 @@ export default function DashboardLayout() {
                             )}
                           </div>
                           {comp.id === company.id && (
-                            <div className="h-2 w-2 rounded-full bg-primary-600 dark:bg-primary-400" />
+                            <div className="bg-primary-600 dark:bg-primary-400 h-2 w-2 rounded-full" />
                           )}
                         </button>
                       ))}

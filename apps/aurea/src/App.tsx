@@ -278,7 +278,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           <p className="mb-6 text-gray-600 dark:text-gray-400">{authError}</p>
           <button
             onClick={handleClearSession}
-            className="rounded-lg bg-gold-500 px-6 py-2 text-white transition-colors hover:bg-gold-600"
+            className="bg-gold-500 hover:bg-gold-600 rounded-lg px-6 py-2 text-white transition-colors"
           >
             Limpar Sessão e Tentar Novamente
           </button>

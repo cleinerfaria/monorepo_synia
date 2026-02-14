@@ -470,14 +470,14 @@ export default function ReferenceSourceDetail({
                                   placeholder="Buscar por código, descrição ou EAN..."
                                   value={searchTerm}
                                   onChange={(e) => setSearchTerm(e.target.value)}
-                                  className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                  className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 />
                               </div>
                             </div>
                             <select
                               value={selectedCategory}
                               onChange={(e) => setSelectedCategory(e.target.value)}
-                              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                              className="focus:ring-primary-500 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                             >
                               <option value="">Todas as categorias</option>
                               {categories.map((cat) => (
