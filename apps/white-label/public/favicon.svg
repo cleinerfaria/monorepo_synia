@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="109.49151mm"
+   height="109.48978mm"
+   viewBox="0 0 109.49151 109.48978"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   sodipodi:docname="favicon.svg"
+   inkscape:export-filename="LogoVertica.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="0.21081653"
+     inkscape:cx="1323.4256"
+     inkscape:cy="974.78123"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer2">
+    <inkscape:grid
+       id="grid1"
+       units="mm"
+       originx="-880.48237"
+       originy="-30.510235"
+       spacingx="0.99999999"
+       spacingy="0.99999999"
+       empcolor="#ff0000"
+       empopacity="0.30196078"
+       color="#ff0000"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="true" />
+    <inkscape:page
+       x="-9.7471129e-06"
+       y="-2.7598162e-08"
+       width="109.49151"
+       height="109.48978"
+       id="page3"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <linearGradient
+       id="linearGradient3"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#0044ff;stop-opacity:1;"
+         offset="0.09919571"
+         id="stop2" />
+      <stop
+         style="stop-color:#33ffff;stop-opacity:1;"
+         offset="1"
+         id="stop3" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient4"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#0044ff;stop-opacity:1;"
+         offset="0"
+         id="stop4" />
+      <stop
+         style="stop-color:#33ffff;stop-opacity:1;"
+         offset="0.89544237"
+         id="stop5" />
+    </linearGradient>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath2-7-8-5">
+      <path
+         d="M 0,1000 H 2000 V 0 H 0 Z"
+         transform="translate(-1205.5308,-413.99381)"
+         id="path2-33-2-7" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath2-9-8-5-9">
+      <path
+         d="M 0,1000 H 2000 V 0 H 0 Z"
+         transform="translate(-1205.5308,-413.99381)"
+         id="path2-3-1-1-2" />
+    </clipPath>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4"
+       id="linearGradient6"
+       gradientUnits="userSpaceOnUse"
+       x1="-500.39001"
+       y1="180"
+       x2="0"
+       y2="-180" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3"
+       id="linearGradient7"
+       gradientUnits="userSpaceOnUse"
+       x1="0"
+       y1="-180"
+       x2="-500.39001"
+       y2="180" />
+  </defs>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Camada 2"
+     style="display:inline"
+     transform="translate(-880.48236,-30.510234)">
+    <g
+       id="g3-6-4-5"
+       inkscape:label="Logo"
+       style="display:inline"
+       transform="matrix(1.5629579,0,0,1.5629579,778.89663,-0.70756313)">
+      <path
+         id="path1-60-2-4"
+         d="m 0,0 c 0,-101.64637 -82.615485,-180 -180,-180 h -144 c -73.02697,0 -154.54546,46.353 -176.39,144 8.32076,-7.780879 69.21723,-72 176.38,-72 h 144.02 C -122.68557,-108 -72,-61.493149 -72,-0.01 V 0 c 0,58.959902 -47.94423,108 -107.99,108 h -142.37391 c -19.88,0.01 -35.99,16.12 -35.99,36 0,19.88 16.12,36 36,36 H -180 C -86.040322,180 -0.42539189,105.76928 0,0"
+         style="fill:url(#linearGradient6);fill-opacity:1;fill-rule:nonzero;stroke:none"
+         transform="matrix(0.13973643,0,0,-0.13907265,134.91852,64.993385)"
+         clip-path="url(#clipPath2-7-8-5)"
+         sodipodi:nodetypes="csscssssscsssc"
+         inkscape:label="LogoInferior" />
+      <path
+         id="path1-6-3-3-3"
+         d="m 0,0 c 0,-101.64637 -82.615485,-180 -180,-180 h -144 c -73.02697,0 -154.54546,46.353 -176.39,144 8.32076,-7.780879 69.21723,-72 176.38,-72 h 144.02 C -122.68557,-108 -72,-61.493149 -72,-0.01 V 0 c 0,58.959902 -47.94423,108 -107.99,108 h -142.37391 c -19.88,0.01 -35.99,16.12 -35.99,36 0,19.88 16.12,36 36,36 H -180 C -86.040322,180 -0.42539189,105.76928 0,0"
+         style="fill:url(#linearGradient7);fill-opacity:1;fill-rule:nonzero;stroke:none"
+         transform="matrix(-0.13973643,0,0,0.13907265,65.127149,45.006615)"
+         clip-path="url(#clipPath2-9-8-5-9)"
+         sodipodi:nodetypes="csscssssscsssc"
+         inkscape:label="LogoSuperior" />
+    </g>
+  </g>
+</svg>

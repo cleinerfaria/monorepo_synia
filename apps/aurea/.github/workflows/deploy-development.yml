@@ -1,0 +1,39 @@
+name: Deploy Development
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-development
+  cancel-in-progress: true
+
+jobs:
+  deploy-development:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: development
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deploy command
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${{ vars.DEPLOY_COMMAND }}" ]; then
+            echo "Environment variable DEPLOY_COMMAND is not configured for development."
+            exit 1
+          fi
+
+      - name: Run deploy command
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "${{ vars.DEPLOY_COMMAND }}"

@@ -1,0 +1,761 @@
+import { useState, useRef, Fragment, useCallback } from 'react'
+import { Dialog, Transition } from '@headlessui/react'
+import { format } from 'date-fns'
+import { Button, Loading, DatePicker, IconButton } from '@/components/ui'
+import { RefSourceWithStats, useProcessRefImport } from '@/hooks/useReferenceTables'
+import {
+  CMED_PF_OPTIONS,
+  CMED_PMC_OPTIONS,
+  parseCmedFile,
+  validateCmedFile,
+} from '@/lib/cmedParser'
+import { SIMPRO_PRICE_OPTIONS, parseSimproFile, validateSimproFile } from '@/lib/simproParser'
+import { validateBrasindiceFile } from '@/lib/brasindiceParser'
+import { X, Upload, FileText, CheckCircle, AlertTriangle, CloudUpload } from 'lucide-react'
+interface ReferenceImportModalProps {
+  source: RefSourceWithStats
+  isOpen: boolean
+  onClose: () => void
+  onSuccess: () => void
+}
+
+type ImportStep = 'upload' | 'preview' | 'processing' | 'complete'
+
+// Helper function to get accepted file format based on source code
+function getAcceptedFormat(sourceCode: string): string {
+  const formatMap: Record<string, string> = {
+    cmed: 'XLSX',
+    simpro: 'XML',
+    brasindice: 'TXT',
+  }
+  return formatMap[sourceCode] || 'XLSX'
+}
+
+// Helper function to get accept attribute for input based on source code
+function getAcceptAttribute(sourceCode: string): string {
+  const acceptMap: Record<string, string> = {
+    cmed: '.xlsx',
+    simpro: '.xml',
+    brasindice: '.txt',
+  }
+  return acceptMap[sourceCode] || '.xlsx'
+}
+
+// Helper function to get valid extensions for a source
+function getValidExtensions(sourceCode: string): string[] {
+  const extensionsMap: Record<string, string[]> = {
+    cmed: ['.xlsx', '.xls'],
+    simpro: ['.xml'],
+    brasindice: ['.txt'],
+  }
+  return extensionsMap[sourceCode] || ['.xlsx']
+}
+
+// Helper function to format seconds to HH:MM:SS
+function formatDurationSeconds(seconds: number): string {
+  if (seconds < 60) {
+    return `${seconds}s`
+  }
+
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = seconds % 60
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${secs}s`
+  }
+  return `${minutes}m ${secs}s`
+}
+
+export default function ReferenceImportModal({
+  source,
+  isOpen,
+  onClose,
+  onSuccess,
+}: ReferenceImportModalProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [step, setStep] = useState<ImportStep>('upload')
+  const [file, setFile] = useState<File | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [referenceDate, setReferenceDate] = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [pfColumn, setPfColumn] = useState('pf_20')
+  const [pmcColumn, setPmcColumn] = useState('pmc_20')
+  const [simproPfColumn, setSimproPfColumn] = useState('preco_pf')
+  const [simproPmcColumn, setSimproPmcColumn] = useState('preco_pmc')
+  const [simproTaxPercentage, setSimproTaxPercentage] = useState('20')
+  const [brasIndiceTaxPercentage, setBrasIndiceTaxPercentage] = useState('20')
+  const [dateFromFile, setDateFromFile] = useState(false)
+  const [, setIsParsingFile] = useState(false)
+  const [, setCurrentBatchId] = useState<string | null>(null)
+  const [fileValidation, setFileValidation] = useState<{
+    isValid: boolean
+    rowCount: number
+    errorCount: number
+    fileSizeKb: number
+    estimatedDurationSeconds: number
+    message: string
+  } | null>(null)
+
+  const processImport = useProcessRefImport()
+
+  const handleFileSelected = useCallback(
+    async (selectedFile: File) => {
+      // Get valid extensions for this source
+      const validExtensions = getValidExtensions(source.code)
+      const hasValidExtension = validExtensions.some((ext) =>
+        selectedFile.name.toLowerCase().endsWith(ext)
+      )
+
+      // If doesn't have valid extension, reject it
+      if (!hasValidExtension) {
+        const formatName = getAcceptedFormat(source.code)
+        alert(`Formato de arquivo inválido. Use apenas ${formatName}.`)
+        return
+      }
+
+      setFile(selectedFile)
+      setIsParsingFile(true)
+
+      // Try to extract reference date from file
+      if (source.code === 'cmed') {
+        try {
+          const parseResult = await parseCmedFile(selectedFile)
+          if (parseResult.referenceDate) {
+            setReferenceDate(parseResult.referenceDate)
+            setDateFromFile(true)
+          }
+
+          // Validate file and get info
+          const validation = await validateCmedFile(selectedFile)
+          setFileValidation(validation)
+        } catch (error) {
+          console.warn('Could not extract date from file:', error)
+        }
+      } else if (source.code === 'simpro') {
+        try {
+          const parseResult = await parseSimproFile(selectedFile)
+          if (parseResult.referenceDate) {
+            setReferenceDate(parseResult.referenceDate)
+            setDateFromFile(true)
+          }
+
+          // Validate file and get info
+          const validation = await validateSimproFile(selectedFile)
+          setFileValidation(validation)
+        } catch (error) {
+          console.warn('Could not extract date from file:', error)
+        }
+      } else if (source.code === 'brasindice') {
+        // For BRASÍNDICE, validate using the brasindice parser
+        try {
+          const validation = await validateBrasindiceFile(selectedFile)
+          setFileValidation(validation)
+        } catch (error) {
+          console.warn('Could not validate BRASÍNDICE file:', error)
+          setFileValidation({
+            isValid: false,
+            rowCount: 0,
+            errorCount: 1,
+            fileSizeKb: Math.round(selectedFile.size / 1024),
+            estimatedDurationSeconds: 0,
+            message: 'Erro ao validar arquivo',
+          })
+        }
+      }
+
+      setIsParsingFile(false)
+      setStep('preview')
+    },
+    [source.code]
+  )
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
+
+      const droppedFile = e.dataTransfer.files[0]
+      if (droppedFile) {
+        handleFileSelected(droppedFile)
+      }
+    },
+    [handleFileSelected]
+  )
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile) {
+      handleFileSelected(selectedFile)
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleStartImport = async () => {
+    if (!file) return
+
+    setStep('processing')
+    setCurrentBatchId(null)
+
+    // Set the callback to receive batch ID when it's created
+    processImport.setOnBatchCreated?.((batchId: string) => {
+      setCurrentBatchId(batchId)
+    })
+
+    try {
+      const options: any = { referenceDate }
+
+      if (source.code === 'cmed') {
+        options.pfColumn = pfColumn
+        options.pmcColumn = pmcColumn
+      } else if (source.code === 'simpro') {
+        options.pfColumn = simproPfColumn
+        options.pmcColumn = simproPmcColumn
+        options.taxPercentage = parseFloat(simproTaxPercentage) || 18
+      } else if (source.code === 'brasindice') {
+        options.taxPercentage = parseFloat(brasIndiceTaxPercentage) || 18
+      }
+
+      const result = await processImport.mutateAsync({
+        sourceCode: source.code,
+        sourceId: source.id,
+        file,
+        options,
+      })
+
+      setCurrentBatchId(result.batch.id)
+      setStep('complete')
+    } catch {
+      // Error is handled by the mutation
+      setStep('preview')
+    }
+  }
+
+  const handleClose = () => {
+    setStep('upload')
+    setFile(null)
+    setDateFromFile(false)
+    setReferenceDate(format(new Date(), 'yyyy-MM-dd'))
+    onClose()
+  }
+
+  const handleComplete = () => {
+    handleClose()
+    onSuccess()
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog
+        as="div"
+        className="relative z-50"
+        onClose={() => {
+          // Only allow closing if not in processing or complete step
+          if (step !== 'processing' && step !== 'complete') {
+            handleClose()
+          }
+        }}
+      >
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-xl transform overflow-hidden rounded-2xl bg-white shadow-xl transition-all dark:bg-gray-800">
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-gray-200 p-6 dark:border-gray-700">
+                  <div>
+                    <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Importar {source.name}
+                    </Dialog.Title>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      {step === 'upload' && 'Selecione o arquivo para importação'}
+                      {step === 'preview' && 'Confirme os dados antes de importar'}
+                      {step === 'processing' && 'Processando importação...'}
+                      {step === 'complete' && 'Importação concluída'}
+                    </p>
+                  </div>
+                  <IconButton onClick={handleClose} disabled={step === 'processing'}>
+                    <X className="h-5 w-5" />
+                  </IconButton>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  {/* Upload Step */}
+                  {step === 'upload' && (
+                    <div
+                      className={`rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+                        isDragging
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                          : 'border-gray-300 hover:border-gray-400 dark:border-gray-600'
+                      }`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                    >
+                      <CloudUpload className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                      <p className="mb-2 text-gray-600 dark:text-gray-400">
+                        Arraste o arquivo aqui ou
+                      </p>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept={getAcceptAttribute(source.code)}
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
+                        Selecionar Arquivo
+                      </Button>
+                      <p className="mt-4 text-xs text-gray-500">
+                        Formato aceito: {getAcceptedFormat(source.code)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Preview Step */}
+                  {step === 'preview' && file && (
+                    <div className="space-y-4">
+                      {/* File Info */}
+                      <div className="flex items-center gap-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+                        <FileText className="h-10 w-10 text-gray-400" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-gray-900 dark:text-white">
+                            {file.name}
+                          </p>
+                          <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setFile(null)
+                            setStep('upload')
+                            setDateFromFile(false)
+                            setReferenceDate(format(new Date(), 'yyyy-MM-dd'))
+                            setFileValidation(null)
+                          }}
+                        >
+                          Trocar
+                        </Button>
+                      </div>
+
+                      {/* File Validation Info */}
+                      {fileValidation && (
+                        <div
+                          className={`rounded-lg p-4 ${
+                            fileValidation.isValid
+                              ? 'bg-blue-50 dark:bg-blue-900/30'
+                              : 'bg-yellow-50 dark:bg-yellow-900/30'
+                          }`}
+                        >
+                          <div className="flex gap-3">
+                            {fileValidation.isValid ? (
+                              <>
+                                <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                                <div className="flex-1">
+                                  <p className="font-medium text-blue-900 dark:text-blue-100">
+                                    {fileValidation.rowCount.toLocaleString('pt-BR')} produtos
+                                    encontrados
+                                  </p>
+                                  <p className="mt-1 text-sm text-blue-700 dark:text-blue-200">
+                                    Tempo estimado: ~
+                                    {formatDurationSeconds(fileValidation.estimatedDurationSeconds)}
+                                  </p>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-600 dark:text-yellow-400" />
+                                <div className="flex-1">
+                                  <p className="font-medium text-yellow-900 dark:text-yellow-100">
+                                    {fileValidation.errorCount} erro(s) encontrado(s)
+                                  </p>
+                                  <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-200">
+                                    {fileValidation.message}
+                                  </p>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Import Options */}
+                      <div className="space-y-4">
+                        <DatePicker
+                          label="Data de Referência"
+                          value={referenceDate}
+                          onChange={(value: string) => {
+                            setReferenceDate(value)
+                            setDateFromFile(false)
+                          }}
+                        />
+                        {dateFromFile ? (
+                          <p className="-mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            Data extraída automaticamente do arquivo
+                          </p>
+                        ) : (
+                          <p className="-mt-2 text-xs text-gray-500">Data de vigência dos preços</p>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                          {source.code === 'cmed' && (
+                            <>
+                              <div>
+                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Coluna PF
+                                </label>
+                                <select
+                                  value={pfColumn}
+                                  onChange={(e) => setPfColumn(e.target.value)}
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                >
+                                  {CMED_PF_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  Coluna de preço fábrica a ser utilizada
+                                </p>
+                              </div>
+
+                              <div>
+                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Coluna PMC
+                                </label>
+                                <select
+                                  value={pmcColumn}
+                                  onChange={(e) => setPmcColumn(e.target.value)}
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                >
+                                  {CMED_PMC_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  Coluna de preço máximo ao consumidor a ser utilizada
+                                </p>
+                              </div>
+                            </>
+                          )}
+
+                          {source.code === 'simpro' && (
+                            <>
+                              <div>
+                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Coluna PF
+                                </label>
+                                <select
+                                  value={simproPfColumn}
+                                  onChange={(e) => setSimproPfColumn(e.target.value)}
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                >
+                                  {SIMPRO_PRICE_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  Coluna de preço fábrica a ser utilizada
+                                </p>
+                              </div>
+
+                              <div>
+                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Coluna PMC
+                                </label>
+                                <select
+                                  value={simproPmcColumn}
+                                  onChange={(e) => setSimproPmcColumn(e.target.value)}
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                >
+                                  {SIMPRO_PRICE_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  Coluna de preço máximo ao consumidor a ser utilizada
+                                </p>
+                              </div>
+
+                              <div>
+                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Percentual de Imposto (%)
+                                </label>
+                                <select
+                                  value={simproTaxPercentage}
+                                  onChange={(e) => setSimproTaxPercentage(e.target.value)}
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                >
+                                  {Array.from({ length: 23 }, (_, i) => {
+                                    const value = 12 + i * 0.5
+                                    return (
+                                      <option key={value} value={value.toString()}>
+                                        {value}%
+                                      </option>
+                                    )
+                                  })}
+                                </select>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  Percentual de imposto a ser salvo nos metadados do preço
+                                </p>
+                              </div>
+                            </>
+                          )}
+
+                          {source.code === 'brasindice' && (
+                            <div className="col-span-2">
+                              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Percentual de Imposto (%)
+                              </label>
+                              <select
+                                value={brasIndiceTaxPercentage}
+                                onChange={(e) => setBrasIndiceTaxPercentage(e.target.value)}
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                              >
+                                {Array.from({ length: 23 }, (_, i) => {
+                                  const value = 12 + i * 0.5
+                                  return (
+                                    <option key={value} value={value.toString()}>
+                                      {value}%
+                                    </option>
+                                  )
+                                })}
+                              </select>
+                              <p className="mt-1 text-xs text-gray-500">
+                                Percentual de imposto a ser salvo nos metadados do preço (PF/PMC)
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Warning */}
+                      <div className="flex items-start gap-3 rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
+                        <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-600" />
+                        <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                          <p className="font-medium">Atenção</p>
+                          <p>
+                            A importação irá adicionar ou atualizar itens na tabela. Itens com
+                            códigos existentes terão seus preços atualizados.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Processing Step */}
+                  {step === 'processing' && (
+                    <div className="py-8">
+                      <div className="mb-6 text-center">
+                        <Loading size="lg" />
+                      </div>
+
+                      {/* Progress Info */}
+                      <div className="space-y-4">
+                        <div className="text-center">
+                          <p className="font-medium text-gray-600 dark:text-gray-400">
+                            {processImport.progress?.message || 'Iniciando processamento...'}
+                          </p>
+                        </div>
+
+                        {/* Percentage Display */}
+                        <div className="text-center">
+                          <span className="text-4xl font-bold text-primary-500">
+                            {processImport.progress?.percentage || 0}%
+                          </span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="relative pt-1">
+                          <div className="flex h-3 overflow-hidden rounded-full bg-gray-200 text-xs dark:bg-gray-700">
+                            <div
+                              style={{ width: `${processImport.progress?.percentage || 0}%` }}
+                              className="flex flex-col justify-center whitespace-nowrap bg-primary-500 text-center text-white shadow-none transition-all duration-300 ease-out"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Progress Stats */}
+                        {processImport.progress?.phase === 'processing' && (
+                          <div className="grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4 text-sm dark:bg-gray-700/50">
+                            <div className="text-center">
+                              <p className="text-xs text-gray-500">Processados</p>
+                              <p className="font-semibold text-gray-900 dark:text-white">
+                                {(processImport.progress?.current || 0).toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xs text-gray-500">Total</p>
+                              <p className="font-semibold text-gray-900 dark:text-white">
+                                {(processImport.progress?.total || 0).toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        <p className="text-center text-xs text-gray-500">
+                          Por favor, não feche esta janela durante o processamento.
+                        </p>
+
+                        {/* Abort Button */}
+                        <div className="mt-6 flex justify-center">
+                          <Button
+                            variant="secondary"
+                            onClick={() => {
+                              processImport.abortImport()
+                              setStep('preview')
+                              setCurrentBatchId(null)
+                            }}
+                            disabled={processImport.isAborting}
+                          >
+                            <X className="mr-1 h-4 w-4" />
+                            {processImport.isAborting ? 'Abortando...' : 'Abortar Importação'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Complete Step */}
+                  {step === 'complete' && (
+                    <div className="py-8 text-center">
+                      <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
+                      <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
+                        Importação Concluída!
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        O arquivo foi processado com sucesso.
+                      </p>
+                      {processImport.data && (
+                        <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm dark:bg-gray-700/50">
+                          <div className="grid grid-cols-4 gap-3">
+                            <div className="text-center">
+                              <p className="text-xs text-gray-500">Lidos</p>
+                              <p className="font-semibold text-gray-900 dark:text-white">
+                                {processImport.data.stats.read.toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xs text-gray-500">Inseridos</p>
+                              <p className="font-semibold text-green-600">
+                                {processImport.data.stats.inserted.toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xs text-gray-500">Atualizados</p>
+                              <p className="font-semibold text-blue-600">
+                                {processImport.data.stats.updated.toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xs text-gray-500">Inalterados</p>
+                              <p className="font-semibold text-gray-500">
+                                {processImport.data.stats.unchanged.toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                          {processImport.data.stats.errors > 0 && (
+                            <div className="mt-3 border-t border-gray-200 pt-3 dark:border-gray-600">
+                              <p className="text-yellow-600 dark:text-yellow-400">
+                                ⚠ {processImport.data.stats.errors.toLocaleString('pt-BR')}{' '}
+                                registros com erro
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-end gap-3 border-t border-gray-200 p-6 dark:border-gray-700">
+                  {step === 'upload' && (
+                    <Button variant="secondary" onClick={handleClose}>
+                      Cancelar
+                    </Button>
+                  )}
+
+                  {step === 'preview' && (
+                    <>
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setFile(null)
+                          setStep('upload')
+                        }}
+                      >
+                        Voltar
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={handleStartImport}
+                        isLoading={processImport.isPending}
+                      >
+                        <Upload className="h-4 w-4" />
+                        Iniciar Importação
+                      </Button>
+                    </>
+                  )}
+
+                  {step === 'complete' && (
+                    <Button variant="primary" onClick={handleComplete}>
+                      Concluir
+                    </Button>
+                  )}
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  )
+}

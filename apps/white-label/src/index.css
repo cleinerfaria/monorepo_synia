@@ -1,0 +1,382 @@
+﻿/* React Easy Crop styles */
+@import 'react-easy-crop/react-easy-crop.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================
+   ÃUREA CARE - Global Styles
+   ===================================================== */
+
+:root {
+  /* Primary color - Default Blue
+     ⚠️  NOTA: Essas cores são apenas PADRÃO/FALLBACK
+     
+     As cores reais são definidas dinamicamente no ThemeContext
+     baseado na escolha da empresa (company.primary_color)
+     
+     Se você quer mudar a cor primária:
+     1. Vá para a página de Administração > Cores
+     2. Escolha a cor desejada
+     3. O sistema aplicará automaticamente via CSS custom properties
+  */
+  --color-primary-50: 239 246 255;
+  --color-primary-100: 219 234 254;
+  --color-primary-200: 191 219 254;
+  --color-primary-300: 147 197 253;
+  --color-primary-400: 96 165 250;
+  --color-primary-500: 59 130 246;
+  --color-primary-600: 37 99 235;
+  --color-primary-700: 29 78 216;
+  --color-primary-800: 30 64 175;
+  --color-primary-900: 30 58 138;
+  --color-primary-950: 23 37 84;
+
+  /* Toast colors */
+  --toast-bg: #ffffff;
+  --toast-color: #1f2937;
+
+  /* Scrollbar */
+  --scrollbar-thumb: #d1d5db;
+  --scrollbar-track: #f3f4f6;
+  --scrollbar-thumb-hover: #9ca3af;
+}
+
+.dark {
+  --toast-bg: #1f2937;
+  --toast-color: #f9fafb;
+  --scrollbar-thumb: #4b5563;
+  --scrollbar-track: #1f2937;
+  --scrollbar-thumb-hover: #6b7280;
+}
+
+/* =====================================================
+   Base Styles
+   ===================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply font-sans antialiased;
+  @apply bg-gray-200 text-gray-900;
+  @apply dark:bg-gray-900 dark:text-gray-100;
+  min-height: 100vh;
+}
+
+/* =====================================================
+   Typography
+   ===================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-display;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* =====================================================
+   Scrollbar Styles
+   ===================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* =====================================================
+   Form Elements
+   ===================================================== */
+
+input,
+select,
+textarea {
+  @apply transition-colors duration-200;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  @apply outline-none ring-4 ring-primary-500/10;
+}
+
+input[type='checkbox']:checked,
+input[type='radio']:checked {
+  @apply border-primary-500 bg-primary-500;
+}
+
+/* Native Select Dropdown Styling */
+select option {
+  @apply px-4 py-3;
+  background-color: white;
+  color: #1f2937;
+}
+
+.dark select option {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
+select option:checked,
+select option:hover {
+  background: linear-gradient(rgb(var(--color-primary-500)), rgb(var(--color-primary-500)));
+  color: white;
+}
+
+/* =====================================================
+   Animations
+   ===================================================== */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes premium-float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+@keyframes premium-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+@keyframes premium-float-fast {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* =====================================================
+   Component Utilities
+   ===================================================== */
+
+@layer utilities {
+  .glass {
+    @apply bg-white/80 backdrop-blur-lg dark:bg-gray-800/80;
+  }
+
+  .card {
+    @apply rounded-2xl border border-gray-300 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-soft-lg;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-primary-500 px-4 py-2.5 font-medium text-white shadow-sm transition-all duration-200 hover:bg-primary-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary-500/50 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl bg-gray-200 px-4 py-2.5 font-medium text-gray-800 transition-all duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-700;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded-xl bg-red-500 px-4 py-2.5 font-medium text-white transition-all duration-200 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-gray-400 bg-white px-3 py-1.5 text-sm text-gray-900 transition-all duration-200 placeholder:text-gray-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-primary-500;
+  }
+
+  .label {
+    @apply mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300;
+  }
+
+  .link {
+    @apply text-primary-600 underline-offset-2 transition-colors duration-200 hover:text-primary-700 hover:underline dark:text-primary-400 dark:hover:text-primary-300;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400;
+  }
+
+  .badge-warning {
+    @apply bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400;
+  }
+
+  .badge-danger {
+    @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400;
+  }
+
+  .badge-info {
+    @apply bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400;
+  }
+
+  .badge-neutral {
+    @apply bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300;
+  }
+
+  .premium-float-slow {
+    animation: premium-float-slow 18s ease-in-out infinite;
+  }
+
+  .premium-float {
+    animation: premium-float 14s ease-in-out infinite;
+  }
+
+  .premium-float-fast {
+    animation: premium-float-fast 12s ease-in-out infinite;
+  }
+}
+
+/* =====================================================
+   Table Styles
+   ===================================================== */
+
+.table-container {
+  @apply overflow-x-auto rounded-xl border border-gray-400 shadow-sm dark:border-gray-700;
+}
+
+.table {
+  @apply w-full text-sm;
+}
+
+.table thead {
+  @apply bg-gray-200 dark:bg-gray-800/50;
+}
+
+.table th {
+  @apply px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-400;
+}
+
+.table td {
+  @apply border-t border-gray-300 px-4 py-2.5 text-gray-900 dark:border-gray-700/50 dark:text-gray-300;
+}
+
+.table tbody tr {
+  @apply bg-white transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700/50;
+}
+
+/* =====================================================
+   Sidebar Styles
+   ===================================================== */
+
+.sidebar-link {
+  @apply flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-gray-700 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-100;
+}
+
+.sidebar-link.active {
+  @apply bg-primary-100/20 font-medium text-primary-900 dark:bg-primary-900/20 dark:text-primary-400;
+}
+
+.sidebar-link svg {
+  @apply h-4 w-4;
+}
+
+/* =====================================================
+   Modal Overlay
+   ===================================================== */
+
+.modal-overlay {
+  @apply fixed inset-0 z-50 bg-black/50 backdrop-blur-sm;
+}
+
+.modal-content {
+  @apply fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-2xl bg-white shadow-2xl dark:bg-gray-800;
+}
+
+/* =====================================================
+   Empty State
+   ===================================================== */
+
+.empty-state {
+  @apply flex flex-col items-center justify-center py-12 text-center;
+}
+
+.empty-state-icon {
+  @apply mb-4 h-16 w-16 text-gray-300 dark:text-gray-600;
+}
+
+.empty-state-title {
+  @apply mb-2 text-lg font-medium text-gray-600 dark:text-gray-400;
+}
+
+.empty-state-description {
+  @apply max-w-sm text-sm text-gray-400 dark:text-gray-500;
+}

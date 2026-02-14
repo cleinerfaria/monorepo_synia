@@ -1,0 +1,16 @@
+{
+  "name": "monorepo-synia",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:aurea": "npm run dev -w aurea-care",
+    "dev:white-label": "npm run dev -w gestao",
+    "build": "npm run build --workspaces",
+    "test": "npm run test:run --workspaces",
+    "lint": "npm run lint --workspaces"
+  }
+}

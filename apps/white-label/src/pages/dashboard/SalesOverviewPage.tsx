@@ -1,0 +1,569 @@
+import { useMemo, lazy, Suspense } from 'react';
+import {
+  DollarSign,
+  Users,
+  Target,
+  RefreshCw,
+  ArrowUpRight,
+  ArrowDownRight,
+  Wine,
+} from 'lucide-react';
+import { SalesFiltersBar, PremiumTable, DualLineChart } from '@/components/sales';
+const BrazilMapChart = lazy(() => import('@/components/sales/BrazilMapChart'));
+import { useOverviewData, useRevenueByState } from '@/hooks/useSalesData';
+import { useSalesFilters } from '@/hooks/useSalesFilters';
+import { toNumber, toPercent, formatMonth } from '@/utils/metrics';
+import { NEUTRAL_COLORS } from '@/lib/themeConstants';
+
+/**
+ * Formata valor em reais
+ */
+function toBRL(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
+}
+
+/**
+ * Página de Visão Geral - Dashboard Executivo de Vendas
+ * FONTE ÚNICA: Todos os dados vêm de useOverviewData (query otimizada com CTEs)
+ *
+ * Comportamento:
+ * - Gráfico e tabela sempre mostram últimos 12 meses (fixos)
+ * - KPIs mudam instantaneamente com filtro de data (filtragem local)
+ * - Nova consulta ao banco apenas com filtros de filial/cliente/produto
+ */
+export default function SalesOverviewPage() {
+  const {
+    period,
+    startDate,
+    endDate,
+    filial,
+    filialTemp,
+    handlePeriodChange,
+    handleFilialChange,
+    handleApplyFilialFilter,
+    handleCancelFilialFilter,
+    hasFilialPendingChanges,
+    clientesTemp,
+    handleClientesTempChange,
+    handleApplyClientesFilter,
+    handleCancelClientesFilter,
+    hasClientesPendingChanges,
+    produto,
+    produtoTemp,
+    handleProdutoChange,
+    handleApplyProdutoFilter,
+    handleCancelProdutoFilter,
+    hasProdutoPendingChanges,
+    clearFilters,
+    queryFilters,
+  } = useSalesFilters();
+
+  // FONTE ÚNICA DE DADOS - Query otimizada com CTEs
+  // Só refaz consulta quando mudar filtros de filial/cliente/produto
+  const {
+    data: overviewData,
+    isLoading,
+    isFetching,
+    dataUpdatedAt,
+    refetch,
+  } = useOverviewData(queryFilters);
+
+  // Dados de faturamento por estado (UF) - últimos 12 meses
+  const {
+    data: revenueByStateData,
+    isLoading: isLoadingStateData,
+    isFetching: isFetchingStateData,
+  } = useRevenueByState(queryFilters);
+
+  // Período selecionado em formato YYYY-MM para comparação
+  const selectedPeriod = useMemo(() => {
+    const start = startDate.toISOString().slice(0, 7); // "2026-01"
+    const end = endDate.toISOString().slice(0, 7); // "2026-01"
+    return { start, end };
+  }, [startDate, endDate]);
+
+  // KPIs calculados a partir do período selecionado (filtragem LOCAL - instantânea)
+  const kpis = useMemo(() => {
+    if (!overviewData || overviewData.length === 0) {
+      return {
+        faturamento: 0,
+        faturamentoMoM: null as number | null,
+        faturamentoYoY: null as number | null,
+        volume: 0,
+        volumeMoM: null as number | null,
+        volumeYoY: null as number | null,
+        clientesAtivos: 0,
+        ticketMedio: 0,
+      };
+    }
+
+    // Filtrar dados pelo período selecionado
+    const dadosPeriodo = overviewData.filter(
+      (item) => item.mes >= selectedPeriod.start && item.mes <= selectedPeriod.end
+    );
+
+    if (dadosPeriodo.length === 0) {
+      // Se não houver dados no período, usar o último mês disponível
+      const ultimoMes = overviewData[overviewData.length - 1];
+      return {
+        faturamento: ultimoMes.faturamento,
+        faturamentoMoM: ultimoMes.crescimento_faturamento_mom_pct,
+        faturamentoYoY: ultimoMes.crescimento_faturamento_yoy_pct,
+        volume: ultimoMes.volume_litros,
+        volumeMoM: ultimoMes.crescimento_volume_mom_pct,
+        volumeYoY: ultimoMes.crescimento_volume_yoy_pct,
+        clientesAtivos: ultimoMes.clientes_ativos,
+        ticketMedio: ultimoMes.ticket_medio,
+      };
+    }
+
+    // Se for apenas um mês, usar direto
+    if (dadosPeriodo.length === 1) {
+      const mes = dadosPeriodo[0];
+      return {
+        faturamento: mes.faturamento,
+        faturamentoMoM: mes.crescimento_faturamento_mom_pct,
+        faturamentoYoY: mes.crescimento_faturamento_yoy_pct,
+        volume: mes.volume_litros,
+        volumeMoM: mes.crescimento_volume_mom_pct,
+        volumeYoY: mes.crescimento_volume_yoy_pct,
+        clientesAtivos: mes.clientes_ativos,
+        ticketMedio: mes.ticket_medio,
+      };
+    }
+
+    // Se for múltiplos meses, agregar
+    const faturamentoTotal = dadosPeriodo.reduce((sum, m) => sum + m.faturamento, 0);
+    const volumeTotal = dadosPeriodo.reduce((sum, m) => sum + m.volume_litros, 0);
+    const clientesMax = Math.max(...dadosPeriodo.map((m) => m.clientes_ativos));
+    const ticketMedio = clientesMax > 0 ? faturamentoTotal / clientesMax : 0;
+
+    // Usar crescimento do último mês do período
+    const ultimoMesPeriodo = dadosPeriodo[dadosPeriodo.length - 1];
+
+    return {
+      faturamento: faturamentoTotal,
+      faturamentoMoM: ultimoMesPeriodo.crescimento_faturamento_mom_pct,
+      faturamentoYoY: ultimoMesPeriodo.crescimento_faturamento_yoy_pct,
+      volume: volumeTotal,
+      volumeMoM: ultimoMesPeriodo.crescimento_volume_mom_pct,
+      volumeYoY: ultimoMesPeriodo.crescimento_volume_yoy_pct,
+      clientesAtivos: clientesMax,
+      ticketMedio,
+    };
+  }, [overviewData, selectedPeriod]);
+
+  // Dados para gráfico de faturamento por mês com comparação ano anterior
+  const revenueByMonth = useMemo(() => {
+    if (!overviewData || overviewData.length === 0) return [];
+
+    return overviewData.map((item) => ({
+      name: formatMonth(item.mes),
+      date: item.mes,
+      faturamento: item.faturamento,
+      meta: item.faturamento_ano_anterior || 0, // Usando ano anterior como "meta" para comparação
+    }));
+  }, [overviewData]);
+
+  // Última atualização formatada
+  const lastUpdate = useMemo(() => {
+    if (!dataUpdatedAt) return '-';
+    return new Date(dataUpdatedAt).toLocaleString('pt-BR');
+  }, [dataUpdatedAt]);
+
+  // Estado de loading
+  const isLoadingData = isLoading || isFetching;
+
+  // Colunas da tabela de detalhamento mensal
+  const tableColumns = useMemo(
+    () => [
+      {
+        key: 'mes',
+        header: 'Mês',
+        render: (value: unknown) => (
+          <span className="font-medium text-gray-900 dark:text-white">
+            {formatMonth(String(value))}
+          </span>
+        ),
+      },
+      {
+        key: 'faturamento',
+        header: 'Faturamento',
+        align: 'right' as const,
+        render: (value: unknown) => (
+          <span className="font-semibold text-primary-500">{toBRL(Number(value))}</span>
+        ),
+      },
+      {
+        key: 'faturamento_ano_anterior',
+        header: 'Ano Anterior',
+        align: 'right' as const,
+        render: (value: unknown) => {
+          const val = value as number | null;
+          if (val === null || val === 0) {
+            return <span className="text-gray-400">-</span>;
+          }
+          return <span className="text-gray-600 dark:text-gray-400">{toBRL(val)}</span>;
+        },
+      },
+      {
+        key: 'crescimento_faturamento_mom_pct',
+        header: 'Fat. MoM',
+        align: 'right' as const,
+        render: (value: unknown) => {
+          const pct = value as number | null;
+          if (pct === null) {
+            return <span className="text-gray-400">-</span>;
+          }
+          const isPositive = pct >= 0;
+          return (
+            <span
+              className={`inline-flex items-center gap-1 font-medium ${
+                isPositive
+                  ? 'text-primary-600 dark:text-primary-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
+              {isPositive ? (
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowDownRight className="h-3.5 w-3.5" />
+              )}
+              {toPercent(pct * 100)}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'crescimento_faturamento_yoy_pct',
+        header: 'Fat. YoY',
+        align: 'right' as const,
+        render: (value: unknown) => {
+          const pct = value as number | null;
+          if (pct === null) {
+            return <span className="text-gray-400">-</span>;
+          }
+          const isPositive = pct >= 0;
+          return (
+            <span
+              className={`inline-flex items-center gap-1 font-medium ${
+                isPositive
+                  ? 'text-primary-600 dark:text-primary-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
+              {isPositive ? (
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowDownRight className="h-3.5 w-3.5" />
+              )}
+              {toPercent(pct * 100)}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'volume_litros',
+        header: 'Volume (L)',
+        align: 'right' as const,
+        render: (value: unknown) => (
+          <span className="text-gray-700 dark:text-gray-300">{toNumber(Number(value))}</span>
+        ),
+      },
+      {
+        key: 'crescimento_volume_mom_pct',
+        header: 'Vol. MoM',
+        align: 'right' as const,
+        render: (value: unknown) => {
+          const pct = value as number | null;
+          if (pct === null) {
+            return <span className="text-gray-400">-</span>;
+          }
+          const isPositive = pct >= 0;
+          return (
+            <span
+              className={`inline-flex items-center gap-1 font-medium ${
+                isPositive
+                  ? 'text-primary-600 dark:text-primary-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
+              {isPositive ? (
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowDownRight className="h-3.5 w-3.5" />
+              )}
+              {toPercent(pct * 100)}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'crescimento_volume_yoy_pct',
+        header: 'Vol. YoY',
+        align: 'right' as const,
+        render: (value: unknown) => {
+          const pct = value as number | null;
+          if (pct === null) {
+            return <span className="text-gray-400">-</span>;
+          }
+          const isPositive = pct >= 0;
+          return (
+            <span
+              className={`inline-flex items-center gap-1 font-medium ${
+                isPositive
+                  ? 'text-primary-600 dark:text-primary-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
+              {isPositive ? (
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowDownRight className="h-3.5 w-3.5" />
+              )}
+              {toPercent(pct * 100)}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'clientes_ativos',
+        header: 'Clientes',
+        align: 'right' as const,
+        render: (value: unknown) => (
+          <span className="text-gray-700 dark:text-gray-300">{toNumber(Number(value))}</span>
+        ),
+      },
+      {
+        key: 'ticket_medio',
+        header: 'Ticket Médio',
+        align: 'right' as const,
+        render: (value: unknown) => (
+          <span className="text-gray-700 dark:text-gray-300">{toBRL(Number(value))}</span>
+        ),
+      },
+    ],
+    []
+  );
+
+  // Dados da tabela ordenados do mais recente para o mais antigo (sempre FIXO)
+  const tableData = useMemo(() => {
+    if (!overviewData) return [];
+    return [...overviewData].reverse();
+  }, [overviewData]);
+
+  // Renderiza badge de crescimento inline
+  const renderGrowthBadge = (value: number | null, label: string) => {
+    if (value === null) {
+      return <span className="text-xs text-gray-400">{label}: N/A</span>;
+    }
+    const isPositive = value >= 0;
+    return (
+      <span
+        className={`inline-flex items-center gap-0.5 text-xs font-medium ${
+          isPositive ? 'text-primary-600 dark:text-primary-400' : 'text-red-600 dark:text-red-400'
+        }`}
+      >
+        {isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+        {label}: {toPercent(value * 100)}
+      </span>
+    );
+  };
+
+  // Componente de Card KPI com design consistente
+  const KpiCardCustom = ({
+    label,
+    value,
+    icon: Icon,
+    isPrimary = false,
+    mom,
+    yoy,
+    isLoading: loading = false,
+  }: {
+    label: string;
+    value: string;
+    icon: React.ComponentType<{ className?: string }>;
+    isPrimary?: boolean;
+    mom?: number | null;
+    yoy?: number | null;
+    isLoading?: boolean;
+  }) => (
+    <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700/50 dark:bg-gray-800/50">
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-800/50">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
+        </div>
+      )}
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            {label}
+          </p>
+          <p
+            className={`mt-2 text-2xl font-bold ${
+              isPrimary ? 'text-primary-500' : 'text-gray-900 dark:text-white'
+            }`}
+          >
+            {value}
+          </p>
+          {(mom !== undefined || yoy !== undefined) && (
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              {mom !== undefined && renderGrowthBadge(mom, 'MoM')}
+              {yoy !== undefined && renderGrowthBadge(yoy, 'YoY')}
+            </div>
+          )}
+        </div>
+        <div
+          className={`flex h-10 w-10 items-center justify-center ${
+            isPrimary ? 'text-primary-500' : 'text-gray-400 dark:text-gray-500'
+          }`}
+        >
+          <Icon className="h-6 w-6" />
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white lg:text-3xl">
+            Visão Geral
+          </h1>
+        </div>
+        <button
+          onClick={() => refetch()}
+          disabled={isLoading || isFetching}
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+        >
+          <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+          Atualizar
+        </button>
+      </div>
+
+      {/* Filtros */}
+      <SalesFiltersBar
+        period={period}
+        onPeriodChange={handlePeriodChange}
+        filial={filial}
+        filialTemp={filialTemp}
+        onFilialChange={handleFilialChange}
+        onApplyFilialFilter={handleApplyFilialFilter}
+        onCancelFilialFilter={handleCancelFilialFilter}
+        hasFilialPendingChanges={hasFilialPendingChanges}
+        clientesTemp={clientesTemp}
+        onClientesTempChange={handleClientesTempChange}
+        onApplyClientesFilter={handleApplyClientesFilter}
+        onCancelClientesFilter={handleCancelClientesFilter}
+        hasClientesPendingChanges={hasClientesPendingChanges}
+        produto={produto}
+        produtoTemp={produtoTemp}
+        onProdutoChange={handleProdutoChange}
+        onApplyProdutoFilter={handleApplyProdutoFilter}
+        onCancelProdutoFilter={handleCancelProdutoFilter}
+        hasProdutoPendingChanges={hasProdutoPendingChanges}
+        onClearFilters={clearFilters}
+      />
+
+      {/* KPIs - 4 Cards com design consistente */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Faturamento */}
+        <KpiCardCustom
+          label="Faturamento Total"
+          value={toBRL(kpis.faturamento)}
+          icon={DollarSign}
+          isPrimary
+          mom={kpis.faturamentoMoM}
+          yoy={kpis.faturamentoYoY}
+          isLoading={isLoadingData}
+        />
+
+        {/* Volume */}
+        <KpiCardCustom
+          label="Volume (L)"
+          value={toNumber(kpis.volume)}
+          icon={Wine}
+          mom={kpis.volumeMoM}
+          yoy={kpis.volumeYoY}
+          isLoading={isLoadingData}
+        />
+
+        {/* Clientes Ativos */}
+        <KpiCardCustom
+          label="Clientes Ativos"
+          value={toNumber(kpis.clientesAtivos)}
+          icon={Users}
+          isLoading={isLoadingData}
+        />
+
+        {/* Ticket Médio */}
+        <KpiCardCustom
+          label="Ticket Médio"
+          value={toBRL(kpis.ticketMedio)}
+          icon={Target}
+          isPrimary
+          isLoading={isLoadingData}
+        />
+      </div>
+
+      {/* Gráfico de Faturamento (sempre últimos 12 meses - FIXO) */}
+      <div className="w-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700/50 dark:bg-gray-800/50">
+        <div className="mb-2">
+          <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+            Faturamento por Mês vs Ano Anterior
+          </h3>
+        </div>
+        <div className="w-full overflow-hidden">
+          <DualLineChart
+            data={revenueByMonth}
+            height={340}
+            isLoading={isLoadingData}
+            metaColor={NEUTRAL_COLORS.gray400}
+          />
+        </div>
+      </div>
+
+      {/* Mapa do Brasil - Faturamento por Estado (últimos 12 meses) */}
+      <Suspense
+        fallback={
+          <div className="flex h-96 items-center justify-center rounded-lg border border-gray-200 bg-white p-6">
+            <div className="text-center">
+              <RefreshCw className="mx-auto mb-2 h-8 w-8 animate-spin text-gray-400" />
+              <p className="text-sm text-gray-500">Carregando mapa do Brasil...</p>
+            </div>
+          </div>
+        }
+      >
+        <BrazilMapChart
+          data={revenueByStateData || []}
+          height={520}
+          isLoading={isLoadingStateData || isFetchingStateData}
+          title="Faturamento por Estado"
+          subtitle="Últimos 12 meses"
+        />
+      </Suspense>
+
+      {/* Tabela de Detalhamento Mensal (sempre últimos 12 meses - FIXO) */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Detalhamento Mensal</h2>
+
+        <PremiumTable
+          columns={tableColumns}
+          data={tableData}
+          emptyMessage="Nenhum dado encontrado"
+          isLoading={isLoadingData}
+        />
+      </div>
+
+      {/* Rodapé */}
+      <div className="flex items-center justify-end gap-2 text-xs text-gray-400 dark:text-gray-500">
+        <span>Última atualização: {lastUpdate}</span>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@synia/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "exports": {
+    "./eslint": "./eslint.base.cjs",
+    "./prettier": "./prettier.cjs",
+    "./tsconfig": "./tsconfig.base.json",
+    "./tailwind": "./tailwind.preset.cjs"
+  },
+  "scripts": {
+    "build": "echo \"@synia/config: no build step configured\"",
+    "lint": "echo \"@synia/config: no lint step configured\"",
+    "test:run": "echo \"@synia/config: no tests configured\""
+  }
+}

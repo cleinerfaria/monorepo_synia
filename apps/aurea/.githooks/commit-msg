@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+set -e
+
+message_file="$1"
+
+if [ -z "$message_file" ]; then
+  echo "commit-msg hook error: commit message file not provided."
+  exit 1
+fi
+
+node tools/validate-commit-msg.cjs "$message_file"

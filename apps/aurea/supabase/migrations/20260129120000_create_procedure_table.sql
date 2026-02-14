@@ -1,0 +1,53 @@
+-- =====================================================
+-- PROCEDURE (ajustada)
+-- - Categoria operacional via ENUM (visit/care/therapy/administration/evaluation)
+-- - unit_id -> unit_of_measure
+-- =====================================================
+
+-- 1) Enum de categoria (cria se não existir)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'procedure_category') THEN
+    CREATE TYPE public.procedure_category AS ENUM (
+      'visit',
+      'care',
+      'therapy',
+      'administration',
+      'evaluation'
+    );
+  END IF;
+END$$;
+
+-- 2) Tabela
+CREATE TABLE IF NOT EXISTS public.procedure (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL,
+  code text NULL,
+  name text NOT NULL,
+  category public.procedure_category NOT NULL,
+  unit_id uuid NULL,
+  description text NULL,
+  active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT procedure_pkey PRIMARY KEY (id),
+  CONSTRAINT procedure_company_id_fkey
+    FOREIGN KEY (company_id) REFERENCES public.company(id) ON DELETE CASCADE,
+  CONSTRAINT procedure_unit_id_fkey
+    FOREIGN KEY (unit_id) REFERENCES public.unit_of_measure(id) ON DELETE SET NULL,
+  CONSTRAINT procedure_code_unique UNIQUE (company_id, code)
+) TABLESPACE pg_default;
+
+-- 3) Índices
+CREATE INDEX IF NOT EXISTS idx_procedure_company
+  ON public.procedure USING btree (company_id) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS idx_procedure_company_category
+  ON public.procedure USING btree (company_id, category) TABLESPACE pg_default;
+
+--  4) Trigger updated_at
+DROP TRIGGER IF EXISTS update_procedure_updated_at ON public.procedure;
+CREATE TRIGGER update_procedure_updated_at
+BEFORE UPDATE ON public.procedure
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();

@@ -1,0 +1,134 @@
+name: Release
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      target_client:
+        description: 'Choose which client to deploy'
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - keplay
+          - synia
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}-${{ github.event.inputs.target_client || 'auto' }}
+  cancel-in-progress: false
+
+jobs:
+  quality_gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm run test:run
+
+      - name: Build
+        run: npm run build
+
+  migrate_keplay:
+    name: Migrate Keplay
+    if: github.event_name == 'push' || github.event.inputs.target_client == 'all' || github.event.inputs.target_client == 'keplay'
+    needs: quality_gate
+    runs-on: ubuntu-latest
+    environment: production-keplay
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate Keplay secrets
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION_KEPLAY }}
+        run: |
+          [ -n "$SUPABASE_ACCESS_TOKEN" ] || { echo "Missing SUPABASE_ACCESS_TOKEN"; exit 1; }
+          [ -n "$SUPABASE_DB_PASSWORD" ] || { echo "Missing SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY"; exit 1; }
+          [ -n "$SUPABASE_PROJECT_REF" ] || { echo "Missing SUPABASE_PROJECT_REF_PRODUCTION_KEPLAY"; exit 1; }
+
+      - name: Link Supabase project (Keplay)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION_KEPLAY }}
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Apply migrations (Keplay)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY }}
+        run: supabase db push
+
+  migrate_synia:
+    name: Migrate Synia
+    if: github.event_name == 'push' || github.event.inputs.target_client == 'all' || github.event.inputs.target_client == 'synia'
+    needs: quality_gate
+    runs-on: ubuntu-latest
+    environment: production-synia
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate Synia secrets
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION_SYNIA }}
+        run: |
+          [ -n "$SUPABASE_ACCESS_TOKEN" ] || { echo "Missing SUPABASE_ACCESS_TOKEN"; exit 1; }
+          [ -n "$SUPABASE_DB_PASSWORD" ] || { echo "Missing SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA"; exit 1; }
+          [ -n "$SUPABASE_PROJECT_REF" ] || { echo "Missing SUPABASE_PROJECT_REF_PRODUCTION_SYNIA"; exit 1; }
+
+      - name: Link Supabase project (Synia)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION_SYNIA }}
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Apply migrations (Synia)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA }}
+        run: supabase db push
