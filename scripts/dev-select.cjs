@@ -5,7 +5,7 @@ const { createInterface } = require("node:readline");
 const { stdin, stdout, argv, env, execPath } = require("node:process");
 
 const PROJECTS = [
-  { aliases: ["1", "aurea", "aurea-care"], label: "Aurea", script: "dev:aurea" },
+  { aliases: ["1", "aurea", "aurea"], label: "Aurea", script: "dev:aurea" },
   { aliases: ["2", "white-label", "white_label"], label: "White Label", script: "dev:wl" },
 ];
 
