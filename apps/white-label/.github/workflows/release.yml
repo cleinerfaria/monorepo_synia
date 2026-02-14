@@ -60,7 +60,8 @@ jobs:
     if: github.event_name == 'push' || github.event.inputs.target_client == 'all' || github.event.inputs.target_client == 'keplay'
     needs: quality_gate
     runs-on: ubuntu-latest
-    environment: production-keplay
+    environment:
+      name: ${{ vars.RELEASE_ENVIRONMENT_KEPLAY || 'production-keplay' }}
 
     steps:
       - name: Checkout code
@@ -73,9 +74,9 @@ jobs:
 
       - name: Validate Keplay secrets
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION_KEPLAY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets['SUPABASE_ACCESS_TOKEN'] }}
+          SUPABASE_DB_PASSWORD: ${{ secrets['SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY'] }}
+          SUPABASE_PROJECT_REF: ${{ secrets['SUPABASE_PROJECT_REF_PRODUCTION_KEPLAY'] }}
         run: |
           [ -n "$SUPABASE_ACCESS_TOKEN" ] || { echo "Missing SUPABASE_ACCESS_TOKEN"; exit 1; }
           [ -n "$SUPABASE_DB_PASSWORD" ] || { echo "Missing SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY"; exit 1; }
@@ -83,15 +84,15 @@ jobs:
 
       - name: Link Supabase project (Keplay)
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION_KEPLAY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets['SUPABASE_ACCESS_TOKEN'] }}
+          SUPABASE_DB_PASSWORD: ${{ secrets['SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY'] }}
+          SUPABASE_PROJECT_REF: ${{ secrets['SUPABASE_PROJECT_REF_PRODUCTION_KEPLAY'] }}
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Apply migrations (Keplay)
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets['SUPABASE_ACCESS_TOKEN'] }}
+          SUPABASE_DB_PASSWORD: ${{ secrets['SUPABASE_DB_PASSWORD_PRODUCTION_KEPLAY'] }}
         run: supabase db push
 
   migrate_synia:
@@ -99,7 +100,8 @@ jobs:
     if: github.event_name == 'push' || github.event.inputs.target_client == 'all' || github.event.inputs.target_client == 'synia'
     needs: quality_gate
     runs-on: ubuntu-latest
-    environment: production-synia
+    environment:
+      name: ${{ vars.RELEASE_ENVIRONMENT_SYNIA || 'production-synia' }}
 
     steps:
       - name: Checkout code
@@ -112,9 +114,9 @@ jobs:
 
       - name: Validate Synia secrets
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION_SYNIA }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets['SUPABASE_ACCESS_TOKEN'] }}
+          SUPABASE_DB_PASSWORD: ${{ secrets['SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA'] }}
+          SUPABASE_PROJECT_REF: ${{ secrets['SUPABASE_PROJECT_REF_PRODUCTION_SYNIA'] }}
         run: |
           [ -n "$SUPABASE_ACCESS_TOKEN" ] || { echo "Missing SUPABASE_ACCESS_TOKEN"; exit 1; }
           [ -n "$SUPABASE_DB_PASSWORD" ] || { echo "Missing SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA"; exit 1; }
@@ -122,13 +124,13 @@ jobs:
 
       - name: Link Supabase project (Synia)
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION_SYNIA }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets['SUPABASE_ACCESS_TOKEN'] }}
+          SUPABASE_DB_PASSWORD: ${{ secrets['SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA'] }}
+          SUPABASE_PROJECT_REF: ${{ secrets['SUPABASE_PROJECT_REF_PRODUCTION_SYNIA'] }}
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Apply migrations (Synia)
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets['SUPABASE_ACCESS_TOKEN'] }}
+          SUPABASE_DB_PASSWORD: ${{ secrets['SUPABASE_DB_PASSWORD_PRODUCTION_SYNIA'] }}
         run: supabase db push

@@ -17,7 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
-      name: development
+      name: ${{ vars.DEPLOY_ENVIRONMENT || 'development' }}
+    env:
+      DEPLOY_COMMAND: ${{ vars.DEPLOY_COMMAND }}
 
     steps:
       - name: Checkout
@@ -27,7 +29,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${{ vars.DEPLOY_COMMAND }}" ]; then
+          if [ -z "${DEPLOY_COMMAND:-}" ]; then
             echo "Environment variable DEPLOY_COMMAND is not configured for development."
             exit 1
           fi
@@ -36,4 +38,4 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          eval "${{ vars.DEPLOY_COMMAND }}"
+          eval "${DEPLOY_COMMAND}"

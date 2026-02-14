@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality
     environment:
-      name: development
+      name: ${{ vars.CI_ENVIRONMENT || 'development' }}
 
     steps:
       - name: Checkout code
@@ -64,19 +64,19 @@ jobs:
 
       - name: Create test user (if needed)
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL_DEV }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_DEV }}
-          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          SUPABASE_URL: ${{ secrets['SUPABASE_URL_DEV'] }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets['SUPABASE_SERVICE_ROLE_KEY_DEV'] }}
+          TEST_USER_EMAIL: ${{ secrets['TEST_USER_EMAIL'] }}
+          TEST_USER_PASSWORD: ${{ secrets['TEST_USER_PASSWORD'] }}
         run: npm run test:db:create-user
         continue-on-error: true
 
       - name: Run E2E tests
         env:
-          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL_DEV }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_DEV }}
-          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          VITE_SUPABASE_URL: ${{ secrets['SUPABASE_URL_DEV'] }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets['SUPABASE_ANON_KEY_DEV'] }}
+          TEST_USER_EMAIL: ${{ secrets['TEST_USER_EMAIL'] }}
+          TEST_USER_PASSWORD: ${{ secrets['TEST_USER_PASSWORD'] }}
         run: npx playwright test
         timeout-minutes: 15
 
