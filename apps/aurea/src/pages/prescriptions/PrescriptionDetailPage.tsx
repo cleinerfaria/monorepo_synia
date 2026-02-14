@@ -24,8 +24,8 @@ import {
   TabButton,
   Breadcrumbs,
   SwitchNew,
+  ColorBadge,
 } from '@/components/ui'
-import { ColorBadge } from '@/components/ui/ColorBadge'
 import { supabase } from '@/lib/supabase'
 import { buildLogDiff } from '@/lib/logging'
 import { useNavigationGuard } from '@/contexts/NavigationGuardContext'

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { Badge, StatusBadge } from '../Badge'
+import { Badge, StatusBadge } from '@synia/ui'
 
 describe('Badge', () => {
   describe('rendering', () => {

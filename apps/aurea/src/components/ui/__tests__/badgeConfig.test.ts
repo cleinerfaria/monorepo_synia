@@ -1,5 +1,5 @@
-ï»¿import { describe, it, expect } from 'vitest'
-import { getStatusBadgeConfig } from '../badgeConfig'
+import { describe, it, expect } from 'vitest'
+import { getStatusBadgeConfig } from '@synia/ui'
 
 describe('getStatusBadgeConfig', () => {
   describe('Prescription statuses', () => {
@@ -31,7 +31,7 @@ describe('getStatusBadgeConfig', () => {
   describe('Equipment statuses', () => {
     it('should return correct config for available status', () => {
       const config = getStatusBadgeConfig('available')
-      expect(config.label).toBe('DisponÃ­vel')
+      expect(config.label).toBe('Disponível')
       expect(config.variant).toBe('success')
     })
 
@@ -43,7 +43,7 @@ describe('getStatusBadgeConfig', () => {
 
     it('should return correct config for maintenance status', () => {
       const config = getStatusBadgeConfig('maintenance')
-      expect(config.label).toBe('ManutenÃ§Ã£o')
+      expect(config.label).toBe('Manutenção')
       expect(config.variant).toBe('warning')
     })
 
@@ -69,7 +69,7 @@ describe('getStatusBadgeConfig', () => {
 
     it('should return correct config for lancada status', () => {
       const config = getStatusBadgeConfig('lancada')
-      expect(config.label).toBe('LanÃ§ada')
+      expect(config.label).toBe('Lançada')
       expect(config.variant).toBe('success')
     })
   })
@@ -83,7 +83,7 @@ describe('getStatusBadgeConfig', () => {
 
     it('should return correct config for clinician role', () => {
       const config = getStatusBadgeConfig('clinician')
-      expect(config.label).toBe('ClÃ­nico')
+      expect(config.label).toBe('Clínico')
       expect(config.variant).toBe('teal')
     })
   })
@@ -117,7 +117,7 @@ describe('getStatusBadgeConfig', () => {
 
     it('should return correct config for OUT movement', () => {
       const config = getStatusBadgeConfig('OUT')
-      expect(config.label).toBe('SaÃ­da')
+      expect(config.label).toBe('Saída')
       expect(config.variant).toBe('danger')
     })
 
@@ -150,8 +150,8 @@ describe('getStatusBadgeConfig', () => {
     })
 
     it('should normalize accents and map aliases', () => {
-      const config = getStatusBadgeConfig('LanÃ§ada')
-      expect(config.label).toBe('LanÃ§ada')
+      const config = getStatusBadgeConfig('Lançada')
+      expect(config.label).toBe('Lançada')
       expect(config.variant).toBe('success')
     })
 
@@ -162,3 +162,4 @@ describe('getStatusBadgeConfig', () => {
     })
   })
 })
+

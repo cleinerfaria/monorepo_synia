@@ -17,8 +17,8 @@ import {
   FilterToggleButton,
   getStatusBadgeConfig,
   IconButton,
+  ColorBadge,
 } from '@/components/ui'
-import { ColorBadge } from '@/components/ui/ColorBadge'
 import {
   usePrescriptions,
   useCreatePrescription,

@@ -14,8 +14,8 @@ import {
   FilterToggleButton,
   type BadgeVariant,
   IconButton,
+  ColorBadge,
 } from '@/components/ui'
-import { ColorBadge } from '@/components/ui/ColorBadge'
 import { usePatientsPaginated, useUpdatePatient } from '@/hooks/usePatients'
 import { useClients } from '@/hooks/useClients'
 import { useListPageState } from '@/hooks/useListPageState'

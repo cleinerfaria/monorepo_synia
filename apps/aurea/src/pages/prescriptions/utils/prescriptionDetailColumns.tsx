@@ -1,9 +1,15 @@
 import { format } from 'date-fns'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Copy, Eye, Menu, Pencil, Power, PowerOff, Printer, Trash2 } from 'lucide-react'
-import { Badge, DropdownMenu, DropdownMenuItem, IconButton, StatusBadge } from '@/components/ui'
-import type { BadgeVariant } from '@/components/ui/Badge'
-import { getStatusBadgeConfig } from '@/components/ui/badgeConfig'
+import {
+  Badge,
+  DropdownMenu,
+  DropdownMenuItem,
+  IconButton,
+  StatusBadge,
+  getStatusBadgeConfig,
+  type BadgeVariant,
+} from '@/components/ui'
 import type { PrescriptionItem } from '@/types/database'
 import type { PrescriptionPrintAction } from '@/components/prescription/PrescriptionPrintModal'
 import type { PrescriptionPrintHistoryItem } from '@/types/prescriptionPrint'

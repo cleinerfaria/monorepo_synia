@@ -52,30 +52,50 @@ jobs:
         run: npm run build
 
   deploy:
-    name: Deploy
+    name: Apply Migrations
     needs: quality-gate
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment:
       name: ${{ github.event.inputs.target_environment || 'development' }}
-    env:
-      DEPLOY_COMMAND: ${{ vars.DEPLOY_COMMAND }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate deploy command
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate environment secrets
+        env:
+          AUREA_SUPABASE_DB_URL: ${{ secrets.AUREA_SUPABASE_DB_URL }}
+          WL_SUPABASE_DB_URL: ${{ secrets.WL_SUPABASE_DB_URL }}
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${DEPLOY_COMMAND:-}" ]; then
-            echo "Missing DEPLOY_COMMAND for this environment."
+          if [ -z "${AUREA_SUPABASE_DB_URL:-}" ]; then
+            echo "Missing AUREA_SUPABASE_DB_URL for this environment."
+            exit 1
+          fi
+          if [ -z "${WL_SUPABASE_DB_URL:-}" ]; then
+            echo "Missing WL_SUPABASE_DB_URL for this environment."
             exit 1
           fi
 
-      - name: Run deploy command
+      - name: Apply Aurea migrations
+        env:
+          AUREA_SUPABASE_DB_URL: ${{ secrets.AUREA_SUPABASE_DB_URL }}
         shell: bash
         run: |
           set -euo pipefail
-          eval "${DEPLOY_COMMAND}"
+          supabase db push --db-url "${AUREA_SUPABASE_DB_URL}" --include-all --yes
+
+      - name: Apply White Label migrations
+        env:
+          WL_SUPABASE_DB_URL: ${{ secrets.WL_SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push --db-url "${WL_SUPABASE_DB_URL}" --include-all --yes

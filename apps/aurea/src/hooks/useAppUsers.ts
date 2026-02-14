@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useLogAction } from '@/hooks/useLogs'
 import { buildLogDiff, buildLogSnapshot } from '@/lib/logging'
-import type { BadgeVariant } from '@/components/ui/badgeProfile'
+import type { BadgeVariant } from '@/components/ui'
 
 export type UserRole = 'admin' | 'manager' | 'clinician' | 'stock' | 'finance' | 'viewer'
 

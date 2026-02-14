@@ -101,7 +101,7 @@ const navigation: NavItem[] = [
   { name: 'Administração', href: '/admin', icon: ShieldCheck },
 ];
 
-const SIDEBAR_STORAGE_KEY = 'gestao-sidebar-pinned';
+const SIDEBAR_STORAGE_KEY = 'wl-sidebar-pinned';
 const APP_VERSION = packageJson.version;
 
 // Filter navigation based on enabled modules
@@ -334,7 +334,7 @@ export default function DashboardLayout() {
 
   const defaultLogoSrc = resolvedTheme === 'dark' ? '/logo_dark.png' : '/logo_light.png';
 
-  const defaultLogoAlt = company?.trade_name || company?.name || 'gestao';
+  const defaultLogoAlt = company?.trade_name || company?.name || 'sistema';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
