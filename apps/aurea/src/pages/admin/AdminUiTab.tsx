@@ -4,7 +4,10 @@ import { clsx } from 'clsx'
 import { Badge, ButtonNew, Card, CardContent, Input, SwitchNew } from '@/components/ui'
 import type { ButtonNewDropdownItem, ButtonNewProps } from '@/components/ui'
 
-type ButtonVariant = NonNullable<ButtonNewProps['variant']>
+type ButtonVariant = Extract<
+  NonNullable<ButtonNewProps['variant']>,
+  'solid' | 'soft' | 'outline' | 'neutral' | 'danger'
+>
 type ButtonSize = NonNullable<ButtonNewProps['size']>
 type IconOption = 'default' | 'sparkles' | 'file' | 'settings' | 'none'
 type WidthMode = 'auto' | 'full'

@@ -5,6 +5,7 @@ export { DatePicker } from './DatePicker'
 export { TimePicker } from './TimePicker'
 export { Textarea } from './Textarea'
 export { Button } from './Button'
+export { ButtonNew } from './ButtonNew'
 export { createButton } from './Button'
 export { IconButton } from './IconButton'
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card'
@@ -38,6 +39,7 @@ export type {
   ButtonVariant,
   SharedButtonProps,
 } from './Button'
+export type { ButtonNewDropdownItem, ButtonNewProps } from './ButtonNew'
 export type { IconButtonProps } from './IconButton'
 export type { BreadcrumbItem } from './Breadcrumbs'
 export type { AlertTone } from './Alert'

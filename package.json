@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "node scripts/dev-select.cjs",
     "dev:aurea": "npm run dev -w aurea-care",
     "dev:white-label": "npm run dev -w gestao",
     "build": "npm run build --workspaces",

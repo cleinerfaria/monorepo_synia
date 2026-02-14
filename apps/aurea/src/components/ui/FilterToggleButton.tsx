@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { clsx } from 'clsx'
-import { ButtonNew } from './ButtonNew'
-import type { ButtonNewProps } from './ButtonNew'
+import { ButtonNew } from '@synia/ui'
+import type { ButtonNewProps } from '@synia/ui'
 
 type FilterToggleState = 'active' | 'inactive'
 
