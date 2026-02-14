@@ -1,0 +1,14 @@
+# Default owner for all files
+* @cleinerfaria
+
+# Repository automation and governance
+.github/** @cleinerfaria
+.githooks/** @cleinerfaria
+scripts/** @cleinerfaria
+
+# Applications
+apps/aurea/** @cleinerfaria
+apps/white-label/** @cleinerfaria
+
+# Shared packages
+packages/** @cleinerfaria

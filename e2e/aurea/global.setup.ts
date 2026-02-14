@@ -2,7 +2,7 @@
 import path from 'node:path'
 
 export default async function globalSetup(): Promise<void> {
-  const repoRoot = path.resolve(__dirname, '../../..')
+  const repoRoot = path.resolve(__dirname, '../..')
   const env = {
     ...process.env,
     APP_ENV: process.env.APP_ENV || 'dev',

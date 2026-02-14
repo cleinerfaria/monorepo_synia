@@ -392,8 +392,8 @@ export function Dashboard({ pageId }: { pageId: string }) {
 
 ## Referências
 
-- Migration: [20260203000000_page_and_page_filter_tables.sql](../supabase/migrations/20260203000000_page_and_page_filter_tables.sql)
-- Migration: [20260204000000_associate_page_to_database.sql](../supabase/migrations/20260204000000_associate_page_to_database.sql)
+- Migration: [20260203000000_page_and_page_filter_tables.sql](../../../packages/db-white-label/supabase/migrations/20260203000000_page_and_page_filter_tables.sql)
+- Migration: [20260204000000_associate_page_to_database.sql](../../../packages/db-white-label/supabase/migrations/20260204000000_associate_page_to_database.sql)
 - Hooks: [src/hooks/usePageFilters.ts](../frontend/src/hooks/usePageFilters.ts)
 - Hooks: [src/hooks/useFilterOptions.ts](../frontend/src/hooks/useFilterOptions.ts)
 - Componente: [src/components/DynamicFilters.tsx](../frontend/src/components/DynamicFilters.tsx)

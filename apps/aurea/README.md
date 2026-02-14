@@ -57,9 +57,9 @@ Aurea/
 
 1. Crie um projeto no [Supabase](https://supabase.com)
 2. Execute os scripts SQL na seguinte ordem:
-   - `supabase/migrations/001_initial_schema.sql`
-   - `supabase/migrations/002_rls_policies.sql`
-   - `supabase/migrations/003_storage_buckets.sql`
+   - `../../packages/db-aurea/supabase/migrations/001_initial_schema.sql`
+   - `../../packages/db-aurea/supabase/migrations/002_rls_policies.sql`
+   - `../../packages/db-aurea/supabase/migrations/003_storage_buckets.sql`
 
 3. Copie as credenciais do projeto
 

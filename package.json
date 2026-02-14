@@ -23,6 +23,9 @@
     "precommit:check:aurea": "npm run precommit:check -w aurea",
     "precommit:check:wl": "npm run precommit:check -w white_label",
     "precommit:check:white-label": "npm run precommit:check:wl",
+    "commitmsg:check": "node scripts/validate-commit-msg.cjs",
+    "hooks:install": "node scripts/setup-git-hooks.cjs",
+    "prepare": "npm run hooks:install",
     "build": "npm run build --workspaces",
     "test": "npm run test:run --workspaces",
     "lint": "npm run lint --workspaces"
