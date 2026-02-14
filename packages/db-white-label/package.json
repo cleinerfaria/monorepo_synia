@@ -1,0 +1,12 @@
+﻿{
+  "name": "@synia/db-white-label",
+  "private": true,
+  "version": "0.1.0",
+  "type": "commonjs",
+  "scripts": {
+    "db:reset": "node scripts/db-reset.cjs",
+    "db:migrate": "node scripts/db-migrate.cjs",
+    "db:seed:dev": "node scripts/db-seed-dev.cjs",
+    "db:prepare:test": "node scripts/db-prepare-test.cjs"
+  }
+}

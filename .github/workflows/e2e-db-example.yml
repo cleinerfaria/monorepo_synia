@@ -1,0 +1,80 @@
+﻿name: E2E DB Example
+
+on:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Prepare Aurea DB
+        env:
+          APP_ENV: dev
+          AUREA_DB_URL: ${{ secrets.AUREA_DB_URL }}
+          AUREA_SUPABASE_URL: ${{ secrets.AUREA_SUPABASE_URL }}
+          AUREA_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.AUREA_SUPABASE_SERVICE_ROLE_KEY }}
+          AUREA_E2E_ADMIN_EMAIL: ${{ secrets.AUREA_E2E_ADMIN_EMAIL }}
+          AUREA_E2E_ADMIN_PASSWORD: ${{ secrets.AUREA_E2E_ADMIN_PASSWORD }}
+        run: npm run db:prepare:test:aurea
+
+      - name: Run Aurea E2E
+        env:
+          APP_ENV: dev
+          AUREA_DB_URL: ${{ secrets.AUREA_DB_URL }}
+          AUREA_SUPABASE_URL: ${{ secrets.AUREA_SUPABASE_URL }}
+          AUREA_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.AUREA_SUPABASE_SERVICE_ROLE_KEY }}
+          AUREA_E2E_ADMIN_EMAIL: ${{ secrets.AUREA_E2E_ADMIN_EMAIL }}
+          AUREA_E2E_ADMIN_PASSWORD: ${{ secrets.AUREA_E2E_ADMIN_PASSWORD }}
+        run: npm run test:e2e -w aurea
+
+      - name: Cleanup Aurea DB
+        if: always()
+        env:
+          APP_ENV: dev
+          AUREA_DB_URL: ${{ secrets.AUREA_DB_URL }}
+        run: npm run db:reset:aurea
+
+      - name: Prepare White Label DB
+        env:
+          APP_ENV: dev
+          WHITE_LABEL_DB_URL: ${{ secrets.WHITE_LABEL_DB_URL }}
+          WHITE_LABEL_SUPABASE_URL: ${{ secrets.WHITE_LABEL_SUPABASE_URL }}
+          WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY }}
+          WHITE_LABEL_E2E_ADMIN_EMAIL: ${{ secrets.WHITE_LABEL_E2E_ADMIN_EMAIL }}
+          WHITE_LABEL_E2E_ADMIN_PASSWORD: ${{ secrets.WHITE_LABEL_E2E_ADMIN_PASSWORD }}
+          TEST_USER_EMAIL: ${{ secrets.WHITE_LABEL_E2E_ADMIN_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.WHITE_LABEL_E2E_ADMIN_PASSWORD }}
+        run: npm run db:prepare:test:white-label
+
+      - name: Run White Label E2E
+        env:
+          APP_ENV: dev
+          WHITE_LABEL_DB_URL: ${{ secrets.WHITE_LABEL_DB_URL }}
+          WHITE_LABEL_SUPABASE_URL: ${{ secrets.WHITE_LABEL_SUPABASE_URL }}
+          WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY }}
+          TEST_USER_EMAIL: ${{ secrets.WHITE_LABEL_E2E_ADMIN_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.WHITE_LABEL_E2E_ADMIN_PASSWORD }}
+        run: npm run test:e2e -w white_label
+
+      - name: Cleanup White Label DB
+        if: always()
+        env:
+          APP_ENV: dev
+          WHITE_LABEL_DB_URL: ${{ secrets.WHITE_LABEL_DB_URL }}
+        run: npm run db:reset:white-label
