@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { Modal, Input, Button, Badge } from '@/components/ui';
+import { Modal, Input, Button, Badge } from '@synia/ui';
 import {
   AccessProfile,
   ModulePermission,

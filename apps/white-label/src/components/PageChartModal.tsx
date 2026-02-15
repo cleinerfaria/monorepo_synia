@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Button, Select } from '@/components/ui';
+import { Modal, Input, Button, Select } from '@synia/ui';
 import { usePageCharts } from '@/hooks/usePageCharts';
 import toast from 'react-hot-toast';
 import type { PageChart, PageChartType, PageChartYAxisConfig } from '../types/database';

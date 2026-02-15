@@ -1,16 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
-import {
-  Card,
-  DataTable,
-  Select,
-  Badge,
-  EmptyState,
-  Modal,
-  ModalFooter,
-  Button,
-} from '@/components/ui';
+import { Card, DataTable, Select, Badge, EmptyState, Modal, ModalFooter, Button } from '@synia/ui';
 import { useUserActionLogs } from '@/hooks/useLogs';
 import type { UserActionLog } from '@/types/logs';
 import { formatDistanceToNow } from 'date-fns';

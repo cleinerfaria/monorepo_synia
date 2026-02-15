@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Input, Button, Select } from '@/components/ui';
+import { Modal, Input, Button, Select } from '@synia/ui';
 import { Company } from '@/hooks/useCompanies';
 import { useLinkCurrentUser } from '@/hooks/useAppUsers';
 import { useAccessProfiles } from '@/hooks/useAccessProfiles';

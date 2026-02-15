@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Button } from '@/components/ui';
+import { Modal, Input, Button } from '@synia/ui';
 import {
   SystemUser,
   useCreateSystemUser,

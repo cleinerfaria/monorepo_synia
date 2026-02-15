@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Button, Input, Card } from '@/components/ui';
+import { Button, Input, Card } from '@synia/ui';
 import { supabase } from '@/lib/supabase';
 import { X } from 'lucide-react';
 

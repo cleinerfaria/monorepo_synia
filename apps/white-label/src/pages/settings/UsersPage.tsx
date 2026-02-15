@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Edit, Plus, Search, Users } from 'lucide-react';
-import { Card, Button, DataTable, EmptyState, Badge } from '@/components/ui';
+import { Card, Button, DataTable, EmptyState, Badge } from '@synia/ui';
 import { useAppUsers, AppUser } from '@/hooks/useAppUsers';
 import { useAccessProfiles } from '@/hooks/useAccessProfiles';
 import { useAuthStore } from '@/stores/authStore';

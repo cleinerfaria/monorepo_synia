@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Input, Button, Loading, Select, MultiSelect, SearchableSelect } from '@/components/ui';
+import { Input, Button, Loading, Select, MultiSelect, SearchableSelect } from '@synia/ui';
 import usePageFilters from '@/hooks/usePageFilters';
 import type { PageFilter } from '@/types/database';
 

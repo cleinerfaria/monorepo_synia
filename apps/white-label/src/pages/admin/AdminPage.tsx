@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Card, CardContent, Button, Input, Loading, EmptyState, Badge } from '@/components/ui';
+import { Card, CardContent, Button, Input, Loading, EmptyState, Badge } from '@synia/ui';
 import { useCompanies, Company, useUpdateCompany } from '@/hooks/useCompanies';
 import { PRESET_COLORS } from '@/lib/themeConstants';
 import { useAppUsers, AppUser } from '@/hooks/useAppUsers';

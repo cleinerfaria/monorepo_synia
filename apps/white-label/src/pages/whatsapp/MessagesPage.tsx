@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { FileText, Image, MessageSquare, RefreshCw, Search, Send } from 'lucide-react';
-import { Button, Card, EmptyState, Loading, Skeleton, Badge, Select } from '@/components/ui';
+import { Button, Card, EmptyState, Loading, Skeleton, Badge, Select } from '@synia/ui';
 import { useAuthStore } from '@/stores/authStore';
 import { useWhatsappInstances } from '@/hooks/useWhatsappInstances';
 import {

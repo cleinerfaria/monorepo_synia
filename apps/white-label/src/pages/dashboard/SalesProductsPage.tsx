@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Layers, TrendingUp, Crown, Search, RefreshCw } from 'lucide-react';
-import { Input } from '@/components/ui';
+import { Input } from '@synia/ui';
 import { KpiCard, SalesFiltersBar, SimpleChart, ChartCard, PremiumTable } from '@/components/sales';
 import { useSalesData } from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';

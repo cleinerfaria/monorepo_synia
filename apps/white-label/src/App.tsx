@@ -44,7 +44,7 @@ const SalesMetaPage = lazy(() => import('@/pages/dashboard/SalesMetaPage'));
 const DynamicPage = lazy(() => import('@/pages/dashboard/DynamicPage'));
 
 // Loading
-import { Loading } from '@/components/ui';
+import { Loading } from '@synia/ui';
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Card, CardContent, Loading, EmptyState, Button } from '@/components/ui';
+import { Card, CardContent, Loading, EmptyState, Button } from '@synia/ui';
 import { LayoutDashboard, RefreshCw } from 'lucide-react';
 import usePageFilters from '@/hooks/usePageFilters';
 import DynamicFilters from '../../components/DynamicFilters';

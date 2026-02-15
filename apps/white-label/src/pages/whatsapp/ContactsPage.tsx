@@ -1,16 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { CircleHelp, Download, RefreshCw, Search, User } from 'lucide-react';
-import {
-  Card,
-  DataTable,
-  EmptyState,
-  Badge,
-  Button,
-  Modal,
-  ModalFooter,
-  Select,
-} from '@/components/ui';
+import { Card, DataTable, EmptyState, Badge, Button, Modal, ModalFooter, Select } from '@synia/ui';
 import {
   useWhatsappContacts,
   resolveContactDisplayName,

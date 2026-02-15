@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ClipboardList, Edit, LayoutGrid, Plus, Trash } from 'lucide-react';
-import { Card, Button, DataTable, EmptyState, Badge } from '@/components/ui';
+import { Card, Button, DataTable, EmptyState, Badge } from '@synia/ui';
 import { useAuthStore } from '@/stores/authStore';
 import {
   useEvaluations,

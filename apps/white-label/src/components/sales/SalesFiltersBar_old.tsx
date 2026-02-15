@@ -1,4 +1,4 @@
-import { Select, SearchableSelect, MultiSelect } from '@/components/ui';
+import { Select, SearchableSelect, MultiSelect } from '@synia/ui';
 import { periodOptions } from '@/hooks/useSalesFilters';
 import { useClients } from '@/hooks/useSalesData';
 import { Calendar, Filter, X, Check, Clock } from 'lucide-react';

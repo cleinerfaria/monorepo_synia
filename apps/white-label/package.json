@@ -35,6 +35,7 @@
     "@floating-ui/react": "^0.27.16",
     "@headlessui/react": "^1.7.17",
     "@supabase/supabase-js": "^2.93.3",
+    "@synia/ui": "*",
     "@tanstack/react-query": "^5.17.0",
     "@tanstack/react-table": "^8.11.2",
     "clsx": "^2.1.0",

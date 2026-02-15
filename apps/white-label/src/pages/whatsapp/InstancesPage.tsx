@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Edit, LogOut, Plus, QrCode, RefreshCw, Smartphone, Trash, Loader2 } from 'lucide-react';
-import { Card, Button, DataTable, EmptyState, Badge, Modal } from '@/components/ui';
+import { Card, Button, DataTable, EmptyState, Badge, Modal } from '@synia/ui';
 import { useAuthStore } from '@/stores/authStore';
 import {
   WhatsappInstance,

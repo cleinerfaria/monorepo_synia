@@ -1,6 +1,6 @@
 import { createContext, useState, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, ModalFooter, Button } from '@/components/ui';
+import { Modal, ModalFooter, Button } from '@synia/ui';
 
 interface NavigationGuardContextType {
   /** Indica se há alterações não salvas */

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import { Point, Area } from 'react-easy-crop';
-import { Button, Modal, ModalFooter } from '@/components/ui';
+import { Button, Modal, ModalFooter } from '@synia/ui';
 
 interface ImageCropperProps {
   isOpen: boolean;

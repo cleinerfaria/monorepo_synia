@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ClipboardCheck, Eye, SlidersHorizontal } from 'lucide-react';
-import { Card, Button, DataTable, EmptyState, Badge } from '@/components/ui';
+import { Card, Button, DataTable, EmptyState, Badge } from '@synia/ui';
 import { useAuthStore } from '@/stores/authStore';
 import { useWhatsappPermissions } from '@/hooks/useWhatsappPermissions';
 import { useWhatsappSessions, WhatsappSession } from '@/hooks/useWhatsappSessions';

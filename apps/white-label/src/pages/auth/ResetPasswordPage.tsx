@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
-import { Button, Input, Card } from '@/components/ui';
+import { Button, Input, Card } from '@synia/ui';
 import PremiumHeroPanel from '@/components/auth/PremiumHeroPanel';
 
 interface ResetPasswordForm {

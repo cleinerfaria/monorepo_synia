@@ -1,6 +1,6 @@
 ﻿import { Link } from 'react-router-dom';
 import { Building2, Settings, ShieldCheck, Users } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardContent } from '@synia/ui';
 import { useAuthStore } from '@/stores/authStore';
 
 const shortcuts = [

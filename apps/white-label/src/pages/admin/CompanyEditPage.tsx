@@ -31,7 +31,7 @@ import {
   Badge,
   Modal,
   Select,
-} from '@/components/ui';
+} from '@synia/ui';
 import { CompanyLogos } from '@/components/CompanyLogos';
 import { useCompany, useUpdateCompany, useDeleteCompany } from '@/hooks/useCompanies';
 import { DEFAULT_COMPANY_COLOR, PRESET_COLORS } from '@/lib/themeConstants';
