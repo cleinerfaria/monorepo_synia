@@ -13,6 +13,25 @@ Antes de qualquer ação, o agente deve:
 
 Se qualquer regra não puder ser cumprida, **não executar mudanças**.
 
+## Configuração de Banco de Dados
+
+### Supabase - Ambiente Remoto Obrigatório
+- **Usar SEMPRE Supabase remoto** — nunca trabalhar com Supabase local
+- **Proibido** executar `supabase start` para desenvolvimento
+- **Proibido** rodar comandos `supabase db` diretamente da raiz do projeto
+- **Proibido** copiar migrations para `supabase/migrations/` na raiz
+
+### Migrations - Estrutura Monorepo
+- Cada projeto tem suas migrations isoladas:
+  - **Aurea**: `packages/db-aurea/supabase/migrations/` (fonte da verdade)
+  - **White Label**: `packages/db-white-label/supabase/migrations/` (fonte da verdade)
+- **Usar SEMPRE scripts npm** para aplicar migrations:
+  - `npm run db:migrate:aurea` — aplica migrations do Aurea no banco correto
+  - `npm run db:migrate:white-label` — aplica migrations do White Label no banco correto
+  - `npm run db:reset:aurea` — reseta banco do Aurea (destrutivo)
+  - `npm run db:reset:white-label` — reseta banco do White Label (destrutivo)
+- Os scripts usam `--workdir` e `--db-url` internamente, garantindo isolamento entre projetos
+
 ## Arquivos de Regras (carregar sob demanda)
 
 - `docs/agent/rules/rule-01-security-isolation.md` — Carregar ao criar/modificar código client-side que interaja com Supabase ou banco de dados.

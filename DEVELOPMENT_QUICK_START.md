@@ -2,16 +2,46 @@
 
 > **Tl;dr** - Copie e execute os comandos abaixo
 >
-> ✅ **Pré-requisito**: Node.js v22+ e npm v10+
+> ✅ **Pré-requisitos**:
+>
+> - Node.js v22+ e npm v10+
+> - **Supabase CLI** (v2.0+) — Necessário para conectar ao banco remoto
 
-## 🎬 Primeira Vez (5 minutos)
+### Instalar Supabase CLI
+
+```bash
+# Opção 1: Via Scoop (Windows)
+scoop install supabase
+
+# Opção 2: Via Chocolatey
+choco install supabase
+```
+
+**Verificar instalação:**
+
+```bash
+supabase --version
+```
+
+## 🔐 Autenticação Supabase (uma vez)
+
+```bash
+# 1. Fazer login no Supabase (abre navegador)
+supabase login
+
+# 2. Configurar link com banco remoto
+# Copie o project-ref do dashboard: https://app.supabase.com/projects
+supabase link --project-ref SEU_PROJECT_ID
+```
+
+## 🎬 Primeira Vez (2 minutos)
 
 ```bash
 # 1. Instalar dependências
 npm install
 
 # 2. Resetar banco de dados remoto para estado inicial
-supabase db reset --linked
+npm run db:reset:aurea
 
 # 3. Copiar config
 cp apps/aurea/.env.example apps/aurea/.env.local
@@ -39,7 +69,7 @@ Banco continua remoto. Se você ou seu colega precisar resetar:
 
 ```bash
 # ⚠️ Avise seus colegas primeiro!
-supabase db reset --linked
+npm run db:reset:aurea
 npm run dev:aurea
 ```
 
@@ -47,15 +77,34 @@ npm run dev:aurea
 
 ## 🔧 Comandos Úteis
 
+### Aurea
+
 | Comando                      | O que faz                                             |
 | ---------------------------- | ----------------------------------------------------- |
 | `npm run dev:aurea`          | Inicia desenvolvimento                                |
-| `npm run dev:wl`             | White Label                                           |
-| `supabase db reset --linked` | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
-| `npm run db:migrate:aurea`   | Aplica migrations (safe)                              |
+| `npm run db:migrate:aurea`   | Aplica migrations no banco remoto (safe)              |
+| `npm run db:reset:aurea`     | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
 | `npm run db:seed:dev:aurea`  | Popula dados de teste                                 |
-| `supabase projects list`     | Lista projetos configurados                           |
-| `npm run precommit:check`    | Testa antes de commit                                 |
+
+### White Label
+
+| Comando                            | O que faz                                             |
+| ---------------------------------- | ----------------------------------------------------- |
+| `npm run dev:wl`                   | Inicia desenvolvimento                                |
+| `npm run db:migrate:white-label`   | Aplica migrations no banco remoto (safe)              |
+| `npm run db:reset:white-label`     | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
+| `npm run db:seed:dev:white-label`  | Popula dados de teste                                 |
+
+### Geral
+
+| Comando                    | O que faz                      |
+| -------------------------- | ------------------------------ |
+| `supabase projects list`   | Lista projetos configurados    |
+| `npm run precommit:check`  | Testa antes de commit          |
+
+> ⚠️ **Nunca rode comandos `supabase db` diretamente da raiz do projeto.**
+> Use sempre os scripts npm acima — eles garantem que cada migration
+> vai para o banco correto (Aurea ou White Label).
 
 ---
 
@@ -64,7 +113,7 @@ npm run dev:aurea
 ### "Erro: Database link not found"
 
 ```bash
-# Você precisa configurar a connexão com o banco web
+# Você precisa configurar a conexão com o banco remoto
 supabase link --project-ref SEU_PROJECT_ID
 
 # Copie o project-ref do Supabase dashboard
@@ -76,19 +125,16 @@ supabase link --project-ref SEU_PROJECT_ID
 ```bash
 # Como o banco está remoto, você precisa de conectividade
 # Verifique sua conexão de rede
-
-# Se offline, não consegue usar o banco remoto
-# Considere usar Supabase local (com Docker) como alternativa
 ```
 
-### "Colega ressetou o banco e meus dados sumiram"
+### "Colega resetou o banco e meus dados sumiram"
 
 ```bash
 # Isso é esperado com banco compartilhado
 # Ressincronize:
-supabase db reset --linked
+npm run db:reset:aurea
 
-# Combine com seu colega próximo antes de fazer reset!
+# Combine com seu colega antes de fazer reset!
 ```
 
 ### "Erro ao fazer migrations"

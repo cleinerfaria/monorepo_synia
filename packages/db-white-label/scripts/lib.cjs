@@ -1,28 +1,31 @@
-﻿const { execFileSync } = require('node:child_process')
-const path = require('node:path')
+﻿// Load environment variables from root .env.local
+const { execFileSync } = require('node:child_process');
+const path = require('node:path');
 
-const PROJECT = 'white-label'
-const DB_URL_ENV = 'WHITE_LABEL_DB_URL'
-const SUPABASE_URL_ENV = 'WHITE_LABEL_SUPABASE_URL'
-const SERVICE_ROLE_ENV = 'WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY'
-const APP_DIR = path.resolve(__dirname, '..')
+require('dotenv').config({ path: path.resolve(__dirname, '../../../.env.local') });
+
+const PROJECT = 'white-label';
+const DB_URL_ENV = 'WHITE_LABEL_DB_URL';
+const SUPABASE_URL_ENV = 'WHITE_LABEL_SUPABASE_URL';
+const SERVICE_ROLE_ENV = 'WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY';
+const APP_DIR = path.resolve(__dirname, '..');
 
 function requireEnv(name) {
-  const value = process.env[name]
+  const value = process.env[name];
   if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`)
+    throw new Error(`Missing required environment variable: ${name}`);
   }
-  return value
+  return value;
 }
 
 function ensureDevEnv() {
-  const appEnv = process.env.APP_ENV
+  const appEnv = process.env.APP_ENV;
   if (!appEnv) {
-    throw new Error('Missing required environment variable: APP_ENV')
+    throw new Error('Missing required environment variable: APP_ENV');
   }
 
   if (appEnv !== 'dev') {
-    throw new Error(`Seed blocked: APP_ENV must be dev, got ${appEnv}`)
+    throw new Error(`Seed blocked: APP_ENV must be dev, got ${appEnv}`);
   }
 }
 
@@ -32,7 +35,7 @@ function run(command, args, options = {}) {
     stdio: 'inherit',
     env: options.env || process.env,
     timeout: options.timeout || 60_000,
-  })
+  });
 }
 
 async function requestJson(url, { method = 'GET', headers = {}, body } = {}) {
@@ -40,18 +43,18 @@ async function requestJson(url, { method = 'GET', headers = {}, body } = {}) {
     method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
-  })
+  });
 
   if (!response.ok) {
-    const responseText = await response.text()
-    throw new Error(`${method} ${url} failed: ${response.status} ${responseText}`)
+    const responseText = await response.text();
+    throw new Error(`${method} ${url} failed: ${response.status} ${responseText}`);
   }
 
   if (response.status === 204) {
-    return null
+    return null;
   }
 
-  return response.json()
+  return response.json();
 }
 
 function authHeaders(serviceRoleKey) {
@@ -59,43 +62,41 @@ function authHeaders(serviceRoleKey) {
     apikey: serviceRoleKey,
     Authorization: `Bearer ${serviceRoleKey}`,
     'Content-Type': 'application/json',
-  }
+  };
 }
 
 function postgrestHeaders(serviceRoleKey, prefer = 'return=representation') {
   return {
     ...authHeaders(serviceRoleKey),
     Prefer: prefer,
-  }
+  };
 }
 
 function getDbUrl() {
-  return requireEnv(DB_URL_ENV)
+  return requireEnv(DB_URL_ENV);
 }
 
 function getSupabaseConfig() {
   return {
     supabaseUrl: requireEnv(SUPABASE_URL_ENV),
     serviceRoleKey: requireEnv(SERVICE_ROLE_ENV),
-  }
+  };
 }
 
 function dbReset() {
-  const dbUrl = getDbUrl()
-  run(
-    'supabase',
-    ['db', 'reset', '--db-url', dbUrl, '--version', '0', '--no-seed', '--yes', '--workdir', APP_DIR],
-    { timeout: 180_000 }
-  )
+  const dbUrl = getDbUrl();
+  run('supabase', ['db', 'reset', '--db-url', dbUrl, '--no-seed', '--yes', '--workdir', APP_DIR], {
+    timeout: 180_000,
+  });
 }
 
 function dbMigrate() {
-  const dbUrl = getDbUrl()
+  const dbUrl = getDbUrl();
   run(
     'supabase',
     ['db', 'push', '--db-url', dbUrl, '--include-all', '--yes', '--workdir', APP_DIR],
     { timeout: 180_000 }
-  )
+  );
 }
 
 async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, name }) {
@@ -104,11 +105,11 @@ async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, na
     {
       headers: authHeaders(serviceRoleKey),
     }
-  )
+  );
 
   const existingUser = usersResponse?.users?.find(
     (user) => (user.email || '').toLowerCase() === email.toLowerCase()
-  )
+  );
 
   if (existingUser) {
     const updated = await requestJson(`${supabaseUrl}/auth/v1/admin/users/${existingUser.id}`, {
@@ -122,9 +123,9 @@ async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, na
           name,
         },
       },
-    })
+    });
 
-    return updated?.id || existingUser.id
+    return updated?.id || existingUser.id;
   }
 
   const created = await requestJson(`${supabaseUrl}/auth/v1/admin/users`, {
@@ -138,42 +139,54 @@ async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, na
         name,
       },
     },
-  })
+  });
 
   if (!created?.id) {
-    throw new Error('Could not create auth user for dev seed')
+    throw new Error('Could not create auth user for dev seed');
   }
 
-  return created.id
+  return created.id;
 }
 
 async function getSingleRow({ supabaseUrl, serviceRoleKey, path }) {
   const rows = await requestJson(`${supabaseUrl}/rest/v1/${path}`, {
     headers: postgrestHeaders(serviceRoleKey, 'return=representation'),
-  })
+  });
 
-  return Array.isArray(rows) ? rows[0] || null : rows
+  return Array.isArray(rows) ? rows[0] || null : rows;
 }
 
 async function upsertRows({ supabaseUrl, serviceRoleKey, table, rows, onConflict }) {
   if (!rows.length) {
-    return
+    return;
   }
 
-  await requestJson(`${supabaseUrl}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
-    method: 'POST',
-    headers: postgrestHeaders(serviceRoleKey, 'resolution=merge-duplicates,return=representation'),
-    body: rows,
-  })
+  await requestJson(
+    `${supabaseUrl}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`,
+    {
+      method: 'POST',
+      headers: postgrestHeaders(
+        serviceRoleKey,
+        'resolution=merge-duplicates,return=representation'
+      ),
+      body: rows,
+    }
+  );
 }
 
 async function seedWhiteLabelDev() {
-  ensureDevEnv()
+  ensureDevEnv();
 
-  const { supabaseUrl, serviceRoleKey } = getSupabaseConfig()
-  const companyDocument = '22.222.222/0001-22'
-  const adminEmail = process.env.WHITE_LABEL_E2E_ADMIN_EMAIL || process.env.TEST_USER_EMAIL || 'e2e.admin@whitelabel.local'
-  const adminPassword = process.env.WHITE_LABEL_E2E_ADMIN_PASSWORD || process.env.TEST_USER_PASSWORD || 'WhiteLabelE2E!123'
+  const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
+  const companyDocument = '22.222.222/0001-22';
+  const adminEmail =
+    process.env.WHITE_LABEL_E2E_ADMIN_EMAIL ||
+    process.env.TEST_USER_EMAIL ||
+    'e2e.admin@whitelabel.local';
+  const adminPassword =
+    process.env.WHITE_LABEL_E2E_ADMIN_PASSWORD ||
+    process.env.TEST_USER_PASSWORD ||
+    'WhiteLabelE2E!123';
 
   await upsertRows({
     supabaseUrl,
@@ -187,26 +200,26 @@ async function seedWhiteLabelDev() {
       },
     ],
     onConflict: 'document',
-  })
+  });
 
   const company = await getSingleRow({
     supabaseUrl,
     serviceRoleKey,
     path: `company?select=id,document&document=eq.${encodeURIComponent(companyDocument)}&limit=1`,
-  })
+  });
 
   if (!company?.id) {
-    throw new Error('Could not resolve White Label company for dev seed')
+    throw new Error('Could not resolve White Label company for dev seed');
   }
 
   const adminProfile = await getSingleRow({
     supabaseUrl,
     serviceRoleKey,
     path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.admin&limit=1`,
-  })
+  });
 
   if (!adminProfile?.id) {
-    throw new Error('Could not resolve White Label admin access profile for dev seed')
+    throw new Error('Could not resolve White Label admin access profile for dev seed');
   }
 
   const adminAuthId = await ensureAuthUser({
@@ -215,7 +228,7 @@ async function seedWhiteLabelDev() {
     email: adminEmail,
     password: adminPassword,
     name: 'E2E Admin White Label',
-  })
+  });
 
   await Promise.all([
     upsertRows({
@@ -248,9 +261,9 @@ async function seedWhiteLabelDev() {
       ],
       onConflict: 'auth_user_id',
     }),
-  ])
+  ]);
 
-  process.stdout.write(`White Label dev seed applied for company ${company.id}\n`)
+  process.stdout.write(`White Label dev seed applied for company ${company.id}\n`);
 }
 
 module.exports = {
@@ -259,4 +272,4 @@ module.exports = {
   dbMigrate,
   seedWhiteLabelDev,
   ensureDevEnv,
-}
+};

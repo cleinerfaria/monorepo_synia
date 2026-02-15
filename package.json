@@ -46,6 +46,7 @@
     "lint": "npm run lint --workspaces"
   },
   "devDependencies": {
+    "dotenv": "^17.3.1",
     "supabase": "^2.76.8"
   }
 }
