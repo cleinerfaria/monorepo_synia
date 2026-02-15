@@ -1,10 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
+﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Trash2, Truck, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   Modal,
@@ -51,7 +51,7 @@ interface SupplierFormData {
 
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
-// Função para formatar CNPJ/CPF
+// FunÃ§Ã£o para formatar CNPJ/CPF
 const formatCNPJCPF = (value: string | null | undefined): string => {
   if (!value) return '-';
 
@@ -349,7 +349,7 @@ export default function SuppliersPage() {
       },
       {
         accessorKey: 'location',
-        header: 'Localização',
+        header: 'LocalizaÃ§Ã£o',
         cell: ({ row }) => {
           const { city, state } = row.original;
           if (!city && !state) return '-';
@@ -418,7 +418,7 @@ export default function SuppliersPage() {
             Fornecedores
           </h1>
         </div>
-        <ButtonNew onClick={openCreateModal} variant="solid" label="Novo Fornecedor" />
+        <Button onClick={openCreateModal} variant="solid" label="Novo Fornecedor" />
       </div>
 
       {/* Table */}
@@ -436,7 +436,7 @@ export default function SuppliersPage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -460,7 +460,7 @@ export default function SuppliersPage() {
                 title="Nenhum fornecedor cadastrado"
                 description="Comece cadastrando seu primeiro fornecedor"
                 action={
-                  <ButtonNew
+                  <Button
                     onClick={openCreateModal}
                     size="sm"
                     variant="solid"
@@ -491,18 +491,18 @@ export default function SuppliersPage() {
         size="xl"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Dados Básicos */}
+          {/* Dados BÃ¡sicos */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Dados Básicos</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Dados BÃ¡sicos</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
               <div className="col-span-4">
-                <Input label="Código" placeholder="Código" {...register('code')} />
+                <Input label="CÃ³digo" placeholder="CÃ³digo" {...register('code')} />
               </div>
               <div className="col-span-12">
                 <Input
-                  label="Razão Social"
+                  label="RazÃ£o Social"
                   placeholder="Nome oficial da empresa"
-                  {...register('name', { required: 'Razão social é obrigatória' })}
+                  {...register('name', { required: 'RazÃ£o social Ã© obrigatÃ³ria' })}
                   error={errors.name?.message}
                   required
                 />
@@ -530,26 +530,26 @@ export default function SuppliersPage() {
                 }}
               />
               <Input
-                label="Inscrição Estadual"
-                placeholder="Número IE"
+                label="InscriÃ§Ã£o Estadual"
+                placeholder="NÃºmero IE"
                 {...register('state_registration')}
               />
               <Input
-                label="Inscrição Municipal"
-                placeholder="Número IM"
+                label="InscriÃ§Ã£o Municipal"
+                placeholder="NÃºmero IM"
                 {...register('municipal_registration')}
               />
             </div>
           </div>
 
-          {/* Endereço */}
+          {/* EndereÃ§o */}
           <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Endereço</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">EndereÃ§o</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
               <div className="md:col-span-10">
                 <Input
-                  label="Endereço"
-                  placeholder="Rua, número, complemento"
+                  label="EndereÃ§o"
+                  placeholder="Rua, nÃºmero, complemento"
                   {...register('address')}
                 />
               </div>
@@ -632,24 +632,24 @@ export default function SuppliersPage() {
             </div>
           </div>
 
-          {/* Observações */}
+          {/* ObservaÃ§Ãµes */}
           <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Informações Adicionais
+              InformaÃ§Ãµes Adicionais
             </h3>
             <div className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4">
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="Condições de Pagamento"
-                  placeholder="Ex: 30/60/90 dias, boleto bancário"
+                  label="CondiÃ§Ãµes de Pagamento"
+                  placeholder="Ex: 30/60/90 dias, boleto bancÃ¡rio"
                   rows={2}
                   {...register('payment_terms')}
                 />
               </div>
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="Observações"
-                  placeholder="Observações adicionais..."
+                  label="ObservaÃ§Ãµes"
+                  placeholder="ObservaÃ§Ãµes adicionais..."
                   rows={2}
                   {...register('notes')}
                 />
@@ -670,19 +670,19 @@ export default function SuppliersPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
               disabled={createSupplier.isPending || updateSupplier.isPending}
-              label={selectedSupplier ? 'Salvar Alterações' : 'Cadastrar'}
+              label={selectedSupplier ? 'Salvar AlteraÃ§Ãµes' : 'Cadastrar'}
             />
           </ModalFooter>
         </form>
@@ -698,11 +698,11 @@ export default function SuppliersPage() {
         <p className="text-gray-600 dark:text-gray-400">
           Tem certeza que deseja excluir o fornecedor{' '}
           <strong className="text-gray-900 dark:text-white">{selectedSupplier?.name}</strong>? Esta
-          ação não pode ser desfeita.
+          aÃ§Ã£o nÃ£o pode ser desfeita.
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}

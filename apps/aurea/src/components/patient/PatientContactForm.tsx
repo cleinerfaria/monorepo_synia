@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ButtonNew, Input, Select, Switch, Textarea } from '@/components/ui';
+﻿import { useState } from 'react';
+import { Button, Input, Select, Switch, Textarea } from '@/components/ui';
 import type { PatientContact, PatientContactType } from '@/types/database';
 import { Plus, Trash2, Phone } from 'lucide-react';
 interface PatientContactFormProps {
@@ -65,7 +65,7 @@ export default function PatientContactForm({
   const handleUpdateContact = (index: number, field: keyof PatientContact, value: any) => {
     const newContacts = [...contacts];
 
-    // Se marcando como primário, desmarcar os outros
+    // Se marcando como primÃ¡rio, desmarcar os outros
     if (field === 'is_primary' && value === true) {
       newContacts.forEach((contact, i) => {
         if (i !== index) {
@@ -99,7 +99,7 @@ export default function PatientContactForm({
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Contatos</h3>
         <div className="flex items-center gap-2">
           {patientId && onSave && contacts.length > 0 && (
-            <ButtonNew
+            <Button
               type="button"
               variant="solid"
               size="sm"
@@ -109,7 +109,7 @@ export default function PatientContactForm({
               label={isSaving ? 'Salvando...' : 'Salvar Contatos'}
             />
           )}
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             size="sm"
@@ -171,7 +171,7 @@ export default function PatientContactForm({
                 </div>
               </div>
             </div>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               size="sm"
@@ -203,7 +203,7 @@ export default function PatientContactForm({
                   }
                 />
                 <Input
-                  label={contact.type === 'email' ? 'E-mail' : 'Número/Contato'}
+                  label={contact.type === 'email' ? 'E-mail' : 'NÃºmero/Contato'}
                   placeholder={contact.type === 'email' ? 'email@exemplo.com' : '(00) 00000-0000'}
                   type={contact.type === 'email' ? 'email' : 'text'}
                   value={contact.value}
@@ -231,8 +231,8 @@ export default function PatientContactForm({
               </div>
 
               <Textarea
-                label="Observações"
-                placeholder="Informações adicionais sobre este contato"
+                label="ObservaÃ§Ãµes"
+                placeholder="InformaÃ§Ãµes adicionais sobre este contato"
                 value={contact.notes || ''}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   handleUpdateContact(index, 'notes', e.target.value)
@@ -249,7 +249,7 @@ export default function PatientContactForm({
                   }
                 />
                 <Switch
-                  label="Pode Receber Atualizações"
+                  label="Pode Receber AtualizaÃ§Ãµes"
                   checked={contact.can_receive_updates}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleUpdateContact(index, 'can_receive_updates', e.target.checked)

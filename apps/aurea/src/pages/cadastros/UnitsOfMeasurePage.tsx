@@ -4,7 +4,7 @@ import { Pencil, SlidersHorizontal, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   Modal,
@@ -260,7 +260,7 @@ export default function UnitsOfMeasurePage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <ButtonNew onClick={openCreateModal} variant="solid" label="Nova Unidade" />
+          <Button onClick={openCreateModal} variant="solid" label="Nova Unidade" />
         </div>
       </div>
 
@@ -279,7 +279,7 @@ export default function UnitsOfMeasurePage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -308,7 +308,7 @@ export default function UnitsOfMeasurePage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
@@ -454,14 +454,14 @@ export default function UnitsOfMeasurePage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}

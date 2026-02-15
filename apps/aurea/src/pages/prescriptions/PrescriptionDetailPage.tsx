@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+﻿import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import { useQuery } from '@tanstack/react-query';
@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-  ButtonNew,
+  Button,
   DataTable,
   ModalFooter,
   Input,
@@ -143,7 +143,7 @@ export default function PrescriptionDetailPage() {
   const { company } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Contexto de navegação protegida
+  // Contexto de navegaÃ§Ã£o protegida
   const { handleLinkClick: handleBreadcrumbNavigate } = useNavigationGuard();
 
   const prescriptionsListPath = useMemo(() => {
@@ -410,7 +410,7 @@ export default function PrescriptionDetailPage() {
     }
   }, [selectedItem, existingComponents, startDateValue, endDateValue, setValue]);
 
-  // Ref para focar no campo produto após "Salvar + Novo"
+  // Ref para focar no campo produto apÃ³s "Salvar + Novo"
   const productFieldRef = useRef<HTMLInputElement | null>(null);
 
   const itemTypeForSearch =
@@ -442,7 +442,7 @@ export default function PrescriptionDetailPage() {
     required: !isContinuousUse ? 'Data final e obrigatoria quando nao for uso continuo' : false,
   });
   const { ref: productIdFieldRef, ...productIdField } = register('product_id', {
-    required: 'Produto é obrigatório',
+    required: 'Produto Ã© obrigatÃ³rio',
   });
 
   const normalizeText = useCallback(
@@ -701,7 +701,7 @@ export default function PrescriptionDetailPage() {
     return hourUnit?.id || '';
   }, [unitsOfMeasure, normalizeText]);
 
-  // Atualizar defaultValues quando hourUnitId estiver disponível - apenas para novos itens
+  // Atualizar defaultValues quando hourUnitId estiver disponÃ­vel - apenas para novos itens
   useEffect(() => {
     if (hourUnitId && !selectedItem && isItemModalOpen && watch('times_unit') === '') {
       setValue('times_unit', hourUnitId);
@@ -714,7 +714,7 @@ export default function PrescriptionDetailPage() {
       const name = normalizeText(unit.name);
       const symbol = normalizeText(unit.symbol || '');
 
-      // Para modo "times_per", mostrar apenas dia, semana e mês
+      // Para modo "times_per", mostrar apenas dia, semana e mÃªs
       if (watchFrequencyMode === 'times_per') {
         return (
           code === 'd' ||
@@ -728,7 +728,7 @@ export default function PrescriptionDetailPage() {
           name.includes('day') ||
           name.includes('semana') ||
           name.includes('week') ||
-          name.includes('mês') ||
+          name.includes('mÃªs') ||
           name.includes('month')
         );
       }
@@ -796,7 +796,7 @@ export default function PrescriptionDetailPage() {
     return options;
   }, [unitsOfMeasure, normalizeText, watchFrequencyMode]);
 
-  // Verifica se a unidade selecionada é semana
+  // Verifica se a unidade selecionada Ã© semana
   const isWeekUnit = useMemo(() => {
     if (!watchTimesUnit) return false;
     const selectedUnit = unitsOfMeasure.find((unit) => unit.id === watchTimesUnit);
@@ -807,7 +807,7 @@ export default function PrescriptionDetailPage() {
     return code === 'sem' || code === 'week' || name.includes('semana') || name.includes('week');
   }, [watchTimesUnit, unitsOfMeasure, normalizeText]);
 
-  // Verifica se deve mostrar seleção de dias da semana
+  // Verifica se deve mostrar seleÃ§Ã£o de dias da semana
   const shouldShowWeekDays = watchFrequencyMode === 'times_per' && isWeekUnit && !watchIsPrn;
 
   const toggleWeekDay = (day: number) => {
@@ -817,10 +817,10 @@ export default function PrescriptionDetailPage() {
       const exists = current.includes(day);
       const next = exists ? current.filter((item) => item !== day) : [...current, day];
 
-      // Se estiver no modo "vezes por semana", limitar seleção ao número de vezes
+      // Se estiver no modo "vezes por semana", limitar seleÃ§Ã£o ao nÃºmero de vezes
       if (shouldShowWeekDays && watchTimesValue) {
         if (!exists && next.length > watchTimesValue) {
-          return current; // Não permite exceder o limite
+          return current; // NÃ£o permite exceder o limite
         }
       }
 
@@ -848,7 +848,7 @@ export default function PrescriptionDetailPage() {
       if (data.frequency_mode === 'every') {
         if (!data.times_value) return null;
 
-        // Detectar se é intervalo de horas pelo interval_minutes
+        // Detectar se Ã© intervalo de horas pelo interval_minutes
         const isHourlyInterval = data.interval_minutes && data.interval_minutes < 1440;
 
         if (isHourlyInterval) {
@@ -859,7 +859,7 @@ export default function PrescriptionDetailPage() {
         const unitLabel = getUnitLabel(data.times_unit);
         if (!unitLabel) return null;
 
-        // Formatação especial: usar "min" para minuto, "dia" para day/dia, etc.
+        // FormataÃ§Ã£o especial: usar "min" para minuto, "dia" para day/dia, etc.
         let displayUnit = unitLabel;
         if (unitLabel.toLowerCase().includes('minuto')) {
           displayUnit = 'min';
@@ -877,7 +877,7 @@ export default function PrescriptionDetailPage() {
       const unitLabel = getUnitLabel(data.times_unit);
       if (data.frequency_mode === 'times_per') {
         if (!data.times_value) return null;
-        // Verificar se a unidade é dia/day
+        // Verificar se a unidade Ã© dia/day
         const isDayUnit =
           data.times_unit === 'day' || (unitLabel && unitLabel.toLowerCase().includes('dia'));
         if (isDayUnit) {
@@ -925,7 +925,7 @@ export default function PrescriptionDetailPage() {
   const isTimesPerDay = watchFrequencyMode === 'times_per' && isDayUnit(watchTimesUnit);
   useEffect(() => {
     if (!isTimesPerDay) return;
-    // Garantir que apenas números inteiros sejam usados
+    // Garantir que apenas nÃºmeros inteiros sejam usados
     const rawValue = Number.isFinite(watchTimesValue) ? watchTimesValue : 0;
     const desired = Math.max(0, Math.floor(rawValue)); // Math.floor para garantir inteiro
     setTimeChecks((current) => {
@@ -943,7 +943,7 @@ export default function PrescriptionDetailPage() {
   // Resetar dias da semana quando shouldShowWeekDays mudar
   useEffect(() => {
     if (shouldShowWeekDays) {
-      // Quando ativa o modo semana, iniciar vazio para usuário escolher
+      // Quando ativa o modo semana, iniciar vazio para usuÃ¡rio escolher
       if (weekDaysSelected.length === 7) {
         setWeekDaysSelected([]);
       }
@@ -966,15 +966,15 @@ export default function PrescriptionDetailPage() {
     setSelectedItem(null);
     setTimeChecks([]);
     setSelectedShifts([]);
-    setWeekDaysSelected([]); // Iniciar vazio para usuário escolher
-    setWeekTimeSelected(''); // Reset do horário da semana
+    setWeekDaysSelected([]); // Iniciar vazio para usuÃ¡rio escolher
+    setWeekTimeSelected(''); // Reset do horÃ¡rio da semana
     setLocalComponents([]);
     setSelectedComponentProductId('');
     setSelectedComponentQuantity('');
     setEditingComponentIndex(null);
     setActiveModalTab('item');
 
-    // Reset completo do formulário
+    // Reset completo do formulÃ¡rio
     const resetData = {
       item_type: 'medication' as ItemFormData['item_type'],
       product_id: '',
@@ -993,7 +993,7 @@ export default function PrescriptionDetailPage() {
       start_date: '',
       end_date: '',
       is_prn: false,
-      is_continuous_use: true, // Padrão true para "uso contínuo"
+      is_continuous_use: true, // PadrÃ£o true para "uso contÃ­nuo"
       justification: '',
       instructions_use: '',
       instructions_pharmacy: '',
@@ -1023,7 +1023,7 @@ export default function PrescriptionDetailPage() {
       const resolvedMode = (item.frequency_mode || 'every') as ItemFormData['frequency_mode'];
       const isWeekUnitMode = resolvedMode === 'times_per' && item.times_unit === 'week';
 
-      // Extrair horário único para modo semana
+      // Extrair horÃ¡rio Ãºnico para modo semana
       const weekTime = isWeekUnitMode && parsedTimeChecks.length > 0 ? parsedTimeChecks[0] : '';
 
       setTimeChecks(resolvedMode === 'times_per' && !isWeekUnitMode ? parsedTimeChecks : []);
@@ -1127,19 +1127,19 @@ export default function PrescriptionDetailPage() {
           ? Math.round(Number(data.times_value) * minutesPerUnit)
           : null;
 
-      // Garantir que time_start não seja string vazia
+      // Garantir que time_start nÃ£o seja string vazia
       const timeStartValue =
         data.time_start && data.time_start.trim() !== '' ? data.time_start : null;
 
-      // Validação: time_start é obrigatório em modo 'every', exceto quando é 'se necessário'
+      // ValidaÃ§Ã£o: time_start Ã© obrigatÃ³rio em modo 'every', exceto quando Ã© 'se necessÃ¡rio'
       if (!timeStartValue && !data.is_prn) {
-        throw new Error('Campo obrigatório');
+        throw new Error('Campo obrigatÃ³rio');
       }
 
-      // Gerar time_checks automaticamente para modo 'every' (horários dentro de um dia)
+      // Gerar time_checks automaticamente para modo 'every' (horÃ¡rios dentro de um dia)
       let generatedTimeChecks: string[] | null = null;
       if (intervalMinutes && timeStartValue && intervalMinutes < 1440) {
-        // Se o intervalo é menor que 24 horas (1440 minutos), é um intervalo intra-dia
+        // Se o intervalo Ã© menor que 24 horas (1440 minutos), Ã© um intervalo intra-dia
         generatedTimeChecks = [];
         let currentMinutes = 0;
 
@@ -1147,7 +1147,7 @@ export default function PrescriptionDetailPage() {
         const [startHours, startMinutes] = timeStartValue.split(':').map(Number);
         const startTotalMinutes = (startHours || 0) * 60 + (startMinutes || 0);
 
-        // Gerar horários ao longo do dia
+        // Gerar horÃ¡rios ao longo do dia
         while (currentMinutes < 1440) {
           const totalMinutes = startTotalMinutes + currentMinutes;
           const dayMinutes = totalMinutes % 1440;
@@ -1196,7 +1196,7 @@ export default function PrescriptionDetailPage() {
       if (shouldUseTimeChecks) {
         resolvedTimeChecks = formatTimeChecks(timeChecks);
       } else if (isWeekMode && weekTimeSelected) {
-        // Para modo semana, salvar apenas o horário único
+        // Para modo semana, salvar apenas o horÃ¡rio Ãºnico
         resolvedTimeChecks = weekTimeSelected;
       }
 
@@ -1309,7 +1309,7 @@ export default function PrescriptionDetailPage() {
   const handleSavePeriod = async () => {
     if (!id) return;
     if (periodStartDate && periodEndDate && periodEndDate < periodStartDate) {
-      setPeriodModalError('Data final deve ser igual ou posterior à data inicial.');
+      setPeriodModalError('Data final deve ser igual ou posterior Ã  data inicial.');
       return;
     }
 
@@ -1466,7 +1466,7 @@ export default function PrescriptionDetailPage() {
     [isMedicationSuspendedByEndDate]
   );
 
-  // Calcular números de itens baseado na ordem das vias e no status efetivo
+  // Calcular nÃºmeros de itens baseado na ordem das vias e no status efetivo
   const itemNumbers = useMemo(() => {
     const sortedByRoute = sortPrescriptionItemsByRoute(items, administrationRoutes);
     const numbers = new Map<string, number>();
@@ -1482,10 +1482,10 @@ export default function PrescriptionDetailPage() {
     return numbers;
   }, [items, administrationRoutes, isItemEffectivelyActive]);
 
-  // Ordenar itens por via de administração e status efetivo
+  // Ordenar itens por via de administraÃ§Ã£o e status efetivo
   const sortedItems = useMemo(() => {
     const sorted = sortPrescriptionItemsByRoute(items, administrationRoutes);
-    // Itens ativos vêm primeiro, inativos por último
+    // Itens ativos vÃªm primeiro, inativos por Ãºltimo
     return sorted.sort((a, b) => {
       const aActive = isItemEffectivelyActive(a);
       const bActive = isItemEffectivelyActive(b);
@@ -1551,7 +1551,7 @@ export default function PrescriptionDetailPage() {
       openDeleteItemModal,
     ]
   );
-  // Garantir que o produto atualmente selecionado sempre apareça nas opções
+  // Garantir que o produto atualmente selecionado sempre apareÃ§a nas opÃ§Ãµes
   const currentProduct = watchProductId ? products.find((p) => p.id === watchProductId) : null;
   const productsForOptions =
     currentProduct && !products.find((p) => p.id === currentProduct.id)
@@ -1560,7 +1560,7 @@ export default function PrescriptionDetailPage() {
 
   const productOptions = productsForOptions.map((item) => {
     const productData = item as any;
-    // Priorizar symbol da unidade de prescrição, fallback para symbol da unidade base
+    // Priorizar symbol da unidade de prescriÃ§Ã£o, fallback para symbol da unidade base
     const unitSymbol =
       productData.unit_prescription?.symbol || productData.unit_stock?.symbol || 'UN';
     const concentration = item.concentration?.trim();
@@ -1572,7 +1572,7 @@ export default function PrescriptionDetailPage() {
     };
   });
 
-  // Opções de produtos para componentes de administração (sempre todos os produtos ativos)
+  // OpÃ§Ãµes de produtos para componentes de administraÃ§Ã£o (sempre todos os produtos ativos)
   const componentProductOptions = componentProducts
     .filter((item) => item.active)
     .map((item) => {
@@ -1587,7 +1587,7 @@ export default function PrescriptionDetailPage() {
       };
     });
 
-  // Garantir que o equipamento atualmente selecionado sempre apareça nas opções
+  // Garantir que o equipamento atualmente selecionado sempre apareÃ§a nas opÃ§Ãµes
   const watchEquipmentId = watch('equipment_id');
   const currentEquipment = watchEquipmentId
     ? equipment.find((e) => e.id === watchEquipmentId)
@@ -1603,7 +1603,7 @@ export default function PrescriptionDetailPage() {
     label: `${e.name} ${e.serial_number ? `(${e.serial_number})` : ''}`,
   }));
 
-  // Garantir que o procedimento atualmente selecionado sempre apareça nas opções
+  // Garantir que o procedimento atualmente selecionado sempre apareÃ§a nas opÃ§Ãµes
   const watchProcedureId = watch('procedure_id');
   const currentProcedure = watchProcedureId
     ? procedures.find((p) => p.id === watchProcedureId)
@@ -1624,20 +1624,20 @@ export default function PrescriptionDetailPage() {
       value: 'medication',
       label: 'Medicamento',
       icon: Pill,
-      description: 'Medicamentos e fármacos',
+      description: 'Medicamentos e fÃ¡rmacos',
     },
     { value: 'diet', label: 'Dieta', icon: Milk, description: 'Dietas enterais e suplementos' },
     {
       value: 'procedure',
       label: 'Procedimento',
       icon: Bandage,
-      description: 'Procedimentos médicos',
+      description: 'Procedimentos mÃ©dicos',
     },
     {
       value: 'equipment',
       label: 'Equipamento',
       icon: Stethoscope,
-      description: 'Equipamentos médicos',
+      description: 'Equipamentos mÃ©dicos',
     },
   ];
 
@@ -1645,7 +1645,7 @@ export default function PrescriptionDetailPage() {
     () => [
       { value: '', label: 'Selecione...' },
       { value: 'company', label: 'Empresa' },
-      { value: 'family', label: 'Família' },
+      { value: 'family', label: 'FamÃ­lia' },
       { value: 'government', label: 'Governo' },
       { value: 'other', label: 'Outros' },
     ],
@@ -1670,9 +1670,9 @@ export default function PrescriptionDetailPage() {
 
   const logActionOptions = [
     { value: 'all', label: 'Todas' },
-    { value: 'create', label: 'Criação' },
-    { value: 'update', label: 'Atualização' },
-    { value: 'delete', label: 'Exclusão' },
+    { value: 'create', label: 'CriaÃ§Ã£o' },
+    { value: 'update', label: 'AtualizaÃ§Ã£o' },
+    { value: 'delete', label: 'ExclusÃ£o' },
   ];
 
   const selectedProduct = useMemo(
@@ -1681,7 +1681,7 @@ export default function PrescriptionDetailPage() {
   );
   const prescriptionUnitSymbol = useMemo(() => {
     const productData = selectedProduct as any;
-    // Priorizar symbol da unidade de prescrição, fallback para symbol da unidade base
+    // Priorizar symbol da unidade de prescriÃ§Ã£o, fallback para symbol da unidade base
     const unitSymbol =
       productData?.unit_prescription?.symbol || productData?.unit_stock?.symbol || '';
     return unitSymbol;
@@ -1716,13 +1716,13 @@ export default function PrescriptionDetailPage() {
     [frequencyModeOptions]
   );
 
-  // Helper function para mapear tipo de prescrição
+  // Helper function para mapear tipo de prescriÃ§Ã£o
   const getPrescriptionTypeInfo = (type: string | null) => {
     switch (type) {
       case 'medical':
         return {
-          label: 'Prescrição Médica',
-          shortLabel: 'Médica',
+          label: 'PrescriÃ§Ã£o MÃ©dica',
+          shortLabel: 'MÃ©dica',
           icon: Activity,
           bgColor: 'bg-teal-50 dark:bg-teal-950',
           textColor: 'text-teal-700 dark:text-teal-300',
@@ -1730,7 +1730,7 @@ export default function PrescriptionDetailPage() {
         };
       case 'nursing':
         return {
-          label: 'Prescrição de Enfermagem',
+          label: 'PrescriÃ§Ã£o de Enfermagem',
           shortLabel: 'Enfermagem',
           icon: UserCheck,
           bgColor: 'bg-pink-50 dark:bg-pink-950',
@@ -1739,8 +1739,8 @@ export default function PrescriptionDetailPage() {
         };
       case 'nutrition':
         return {
-          label: 'Prescrição Nutricional',
-          shortLabel: 'Nutrição',
+          label: 'PrescriÃ§Ã£o Nutricional',
+          shortLabel: 'NutriÃ§Ã£o',
           icon: Milk,
           bgColor: 'bg-amber-50 dark:bg-amber-950',
           textColor: 'text-amber-700 dark:text-amber-300',
@@ -1748,7 +1748,7 @@ export default function PrescriptionDetailPage() {
         };
       default:
         return {
-          label: 'Prescrição',
+          label: 'PrescriÃ§Ã£o',
           shortLabel: 'Geral',
           icon: FileText,
           bgColor: 'bg-gray-50 dark:bg-gray-800',
@@ -1758,7 +1758,7 @@ export default function PrescriptionDetailPage() {
     }
   };
 
-  // Helper function para mapear status da prescrição
+  // Helper function para mapear status da prescriÃ§Ã£o
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'active':
@@ -1956,7 +1956,7 @@ export default function PrescriptionDetailPage() {
     { value: 7, label: 'Sab' },
   ];
 
-  // Opções de vias de administração vindas do banco ou fallback para lista padrão
+  // OpÃ§Ãµes de vias de administraÃ§Ã£o vindas do banco ou fallback para lista padrÃ£o
   const routeOptions =
     administrationRoutes.length > 0
       ? administrationRoutes
@@ -1965,18 +1965,18 @@ export default function PrescriptionDetailPage() {
             value: route.id,
             label: route.abbreviation ? `${route.name} (${route.abbreviation})` : route.name,
             description: route.description || undefined,
-            sortKey: route.name, // Para ordenação
+            sortKey: route.name, // Para ordenaÃ§Ã£o
           }))
-          .sort((a, b) => a.sortKey.localeCompare(b.sortKey)) // Ordenação alfabética
+          .sort((a, b) => a.sortKey.localeCompare(b.sortKey)) // OrdenaÃ§Ã£o alfabÃ©tica
       : [];
 
-  // Debug: Log para verificar as opções
+  // Debug: Log para verificar as opÃ§Ãµes
   // console.log('Route options:', routeOptions)
   // console.log('Administration routes:', administrationRoutes)
 
   // Breadcrumb items - sempre declarado antes dos early returns
   const breadcrumbItems = useMemo(
-    () => [{ label: 'Prescrições', href: prescriptionsListPath }, { label: 'Detalhes' }],
+    () => [{ label: 'PrescriÃ§Ãµes', href: prescriptionsListPath }, { label: 'Detalhes' }],
     [prescriptionsListPath]
   );
 
@@ -2002,10 +2002,10 @@ export default function PrescriptionDetailPage() {
   if (!prescription) {
     return (
       <EmptyState
-        title="Prescrição não encontrada"
-        description="A prescrição solicitada não existe ou foi removida"
+        title="PrescriÃ§Ã£o nÃ£o encontrada"
+        description="A prescriÃ§Ã£o solicitada nÃ£o existe ou foi removida"
         action={
-          <ButtonNew
+          <Button
             onClick={() => navigate('/prescricoes')}
             variant="outline"
             icon={<ArrowLeft className="h-4 w-4" />}
@@ -2020,7 +2020,7 @@ export default function PrescriptionDetailPage() {
   const canTogglePrescriptionStatus =
     prescription.status === 'draft' || prescription.status === 'active';
   const isDraftPrescription = prescription.status === 'draft';
-  const statusToggleLabel = isDraftPrescription ? 'Ativar prescrição' : 'Desativar prescrição';
+  const statusToggleLabel = isDraftPrescription ? 'Ativar prescriÃ§Ã£o' : 'Desativar prescriÃ§Ã£o';
   const StatusToggleIcon = canTogglePrescriptionStatus
     ? isDraftPrescription
       ? Power
@@ -2034,19 +2034,19 @@ export default function PrescriptionDetailPage() {
         <Breadcrumbs items={breadcrumbItems} onNavigate={handleBreadcrumbNavigate} />
       </div>
 
-      {/* Header Principal da Prescrição */}
+      {/* Header Principal da PrescriÃ§Ã£o */}
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div className="p-6">
-          {/* Grid principal - Informações vs Ações */}
+          {/* Grid principal - InformaÃ§Ãµes vs AÃ§Ãµes */}
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            {/* Seção de informações principais */}
+            {/* SeÃ§Ã£o de informaÃ§Ãµes principais */}
             <div className="min-w-0 flex-1">
               {/* Linha 1: Paciente + Status */}
               <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 items-center gap-2">
                     <h1 className="font-display truncate text-2xl font-bold text-gray-900 dark:text-white">
-                      {(prescription as any).patient?.name || 'Paciente não identificado'}
+                      {(prescription as any).patient?.name || 'Paciente nÃ£o identificado'}
                     </h1>{' '}
                     {patientOperatorName && (
                       <ColorBadge color={patientOperatorColor}>{patientOperatorName}</ColorBadge>
@@ -2068,7 +2068,7 @@ export default function PrescriptionDetailPage() {
                 </div>
               </div>
 
-              {/* Linha 2: Profissional, Tipo, Período e Documentos (mesma linha em desktop) */}
+              {/* Linha 2: Profissional, Tipo, PerÃ­odo e Documentos (mesma linha em desktop) */}
               <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800/50">
                   <div className="rounded-lg bg-white p-2 shadow-sm dark:bg-gray-800">
@@ -2094,7 +2094,7 @@ export default function PrescriptionDetailPage() {
                     <p
                       className={`text-xs font-medium ${prescriptionTypeInfo.textColor} opacity-75`}
                     >
-                      Tipo de Prescrição
+                      Tipo de PrescriÃ§Ã£o
                     </p>
                     <p className={`font-semibold ${prescriptionTypeInfo.textColor}`}>
                       {prescriptionTypeInfo.shortLabel}
@@ -2107,12 +2107,12 @@ export default function PrescriptionDetailPage() {
                     <CalendarDays className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Período</p>
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">PerÃ­odo</p>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
                       {prescription.start_date
                         ? format(parseDateOnly(prescription.start_date), 'dd/MM/yyyy')
                         : 'Sem data inicial'}
-                      {' → '}
+                      {' â†’ '}
                       {prescription.end_date
                         ? format(parseDateOnly(prescription.end_date), 'dd/MM/yyyy')
                         : 'Indeterminado'}
@@ -2146,14 +2146,14 @@ export default function PrescriptionDetailPage() {
               </div>
             </div>
 
-            {/* Seção de ações */}
+            {/* SeÃ§Ã£o de aÃ§Ãµes */}
             <div className="flex flex-col gap-3 lg:w-auto lg:min-w-0">
               <div className="mb-1 hidden text-xs font-medium uppercase tracking-wider text-gray-600 lg:block dark:text-gray-400">
-                Ações
+                AÃ§Ãµes
               </div>
 
               <div className="flex flex-row gap-2">
-                <ButtonNew
+                <Button
                   onClick={() => setIsPrintModalOpen(true)}
                   variant="outline"
                   icon={<Printer className="h-4 w-4" />}
@@ -2167,14 +2167,14 @@ export default function PrescriptionDetailPage() {
                       disabled: uploadAttachment.isPending,
                     },
                     {
-                      label: 'Alterar período',
+                      label: 'Alterar perÃ­odo',
                       icon: <CalendarDays className="h-4 w-4" />,
                       onClick: openPeriodModal,
                     },
                     {
                       label: canTogglePrescriptionStatus
                         ? statusToggleLabel
-                        : 'Ativar/Desativar indisponível',
+                        : 'Ativar/Desativar indisponÃ­vel',
                       icon: <StatusToggleIcon className="h-4 w-4" />,
                       onClick: () => {
                         if (!canTogglePrescriptionStatus) return;
@@ -2204,7 +2204,7 @@ export default function PrescriptionDetailPage() {
       {prescription.notes && (
         <Card>
           <CardHeader>
-            <CardTitle>Observações</CardTitle>
+            <CardTitle>ObservaÃ§Ãµes</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
@@ -2226,7 +2226,7 @@ export default function PrescriptionDetailPage() {
                 compact
                 hoverBorder
               >
-                Itens da Prescrição
+                Itens da PrescriÃ§Ã£o
               </TabButton>
               <TabButton
                 active={mainTab === 'printHistory'}
@@ -2235,7 +2235,7 @@ export default function PrescriptionDetailPage() {
                 compact
                 hoverBorder
               >
-                Histórico de Prescrições
+                HistÃ³rico de PrescriÃ§Ãµes
               </TabButton>
               <TabButton
                 active={mainTab === 'logs'}
@@ -2249,12 +2249,7 @@ export default function PrescriptionDetailPage() {
             </div>
 
             <div className="-mt-6 flex justify-center">
-              <ButtonNew
-                onClick={openAddItemModal}
-                size="md"
-                variant="solid"
-                label="Adicionar Item"
-              />
+              <Button onClick={openAddItemModal} size="md" variant="solid" label="Adicionar Item" />
             </div>
           </div>
         </div>
@@ -2269,10 +2264,10 @@ export default function PrescriptionDetailPage() {
               onRowClick={(row) => openEditItemModal(row)}
               emptyState={
                 <EmptyState
-                  title="Nenhum item na prescrição"
+                  title="Nenhum item na prescriÃ§Ã£o"
                   description="Adicione medicamentos, materiais, dietas ou equipamentos"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={openAddItemModal}
                       size="sm"
                       variant="solid"
@@ -2309,7 +2304,7 @@ export default function PrescriptionDetailPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Ação:
+                    AÃ§Ã£o:
                   </label>
                   <SearchableSelect
                     value={logActionFilter}
@@ -2322,7 +2317,7 @@ export default function PrescriptionDetailPage() {
                   />
                 </div>
                 {(logEntityFilter !== 'all' || logActionFilter !== 'all') && (
-                  <ButtonNew
+                  <Button
                     variant="outline"
                     size="sm"
                     onClick={() => {
@@ -2389,10 +2384,10 @@ export default function PrescriptionDetailPage() {
                               }`}
                             >
                               {log.action === 'create'
-                                ? 'Criação'
+                                ? 'CriaÃ§Ã£o'
                                 : log.action === 'update'
-                                  ? 'Atualização'
-                                  : 'Exclusão'}
+                                  ? 'AtualizaÃ§Ã£o'
+                                  : 'ExclusÃ£o'}
                             </div>
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
@@ -2483,7 +2478,7 @@ export default function PrescriptionDetailPage() {
                   </p>
                   <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                     {prescriptionLogs.length === 0
-                      ? 'As alterações na prescrição e seus itens aparecerão aqui'
+                      ? 'As alteraÃ§Ãµes na prescriÃ§Ã£o e seus itens aparecerÃ£o aqui'
                       : 'Tente alterar os filtros para ver mais logs'}
                   </p>
                 </div>
@@ -2501,20 +2496,20 @@ export default function PrescriptionDetailPage() {
               </div>
             ) : !canPrintPrescription ? (
               <EmptyState
-                title="Sem permissão para histórico"
-                description="Seu perfil não possui permissão para visualizar as prescrições impressas."
+                title="Sem permissÃ£o para histÃ³rico"
+                description="Seu perfil nÃ£o possui permissÃ£o para visualizar as prescriÃ§Ãµes impressas."
               />
             ) : (
               <DataTable
                 data={prescriptionPrintHistory}
                 columns={printHistoryColumns}
                 searchKeys={['print_number', 'created_by_name', 'period_start', 'period_end']}
-                searchPlaceholder="Buscar por número, usuário ou período..."
+                searchPlaceholder="Buscar por nÃºmero, usuÃ¡rio ou perÃ­odo..."
                 onRowClick={(row) => handleReprintPrescription(row.id)}
                 emptyState={
                   <EmptyState
-                    title="Nenhuma prescrição impressa"
-                    description="As impressões geradas aparecerão aqui para reimpressão."
+                    title="Nenhuma prescriÃ§Ã£o impressa"
+                    description="As impressÃµes geradas aparecerÃ£o aqui para reimpressÃ£o."
                   />
                 }
               />
@@ -2546,7 +2541,7 @@ export default function PrescriptionDetailPage() {
               compact
               hoverBorder
             >
-              Componentes de Administração
+              Componentes de AdministraÃ§Ã£o
             </TabButton>
             <TabButton
               active={activeModalTab === 'optionals'}
@@ -2586,7 +2581,7 @@ export default function PrescriptionDetailPage() {
                     searchPlaceholder="Buscar equipamento..."
                     value={watch('equipment_id')}
                     {...register('equipment_id', {
-                      required: 'Equipamento é obrigatório',
+                      required: 'Equipamento Ã© obrigatÃ³rio',
                     })}
                     error={errors.equipment_id?.message}
                     required
@@ -2599,7 +2594,7 @@ export default function PrescriptionDetailPage() {
                     searchPlaceholder="Buscar procedimento..."
                     value={watch('procedure_id')}
                     {...register('procedure_id', {
-                      required: 'Procedimento é obrigatório',
+                      required: 'Procedimento Ã© obrigatÃ³rio',
                     })}
                     error={errors.procedure_id?.message}
                     required
@@ -2609,7 +2604,7 @@ export default function PrescriptionDetailPage() {
                     label="Produto"
                     options={productOptions}
                     placeholder="Selecione um produto..."
-                    searchPlaceholder="Buscar por produto ou apresentação..."
+                    searchPlaceholder="Buscar por produto ou apresentaÃ§Ã£o..."
                     value={watchProductId}
                     {...productIdField}
                     ref={productIdFieldRef}
@@ -2626,7 +2621,7 @@ export default function PrescriptionDetailPage() {
                   />
                 )}
 
-                {/* Primeira linha: Quantidade + Unidade + Via de administração + Se necessário */}
+                {/* Primeira linha: Quantidade + Unidade + Via de administraÃ§Ã£o + Se necessÃ¡rio */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                   <div className="md:col-span-2">
                     <Input
@@ -2652,7 +2647,7 @@ export default function PrescriptionDetailPage() {
                   </div>
                   <div className="md:col-span-6">
                     <SearchableSelect
-                      label="Via de Administração"
+                      label="Via de AdministraÃ§Ã£o"
                       options={routeOptions}
                       placeholder={
                         watchItemType === 'medication'
@@ -2664,7 +2659,7 @@ export default function PrescriptionDetailPage() {
                       {...register('route_id', {
                         required:
                           watchItemType === 'medication'
-                            ? 'Via é obrigatória para medicamentos'
+                            ? 'Via Ã© obrigatÃ³ria para medicamentos'
                             : false,
                       })}
                       error={errors.route_id?.message}
@@ -2673,7 +2668,7 @@ export default function PrescriptionDetailPage() {
                   </div>
                   <div className="mt-0 flex md:col-span-2">
                     <SwitchNew
-                      label="Se necessário"
+                      label="Se necessÃ¡rio"
                       labelPosition="above"
                       checked={watchIsPrn || false}
                       onChange={(event) => handleToggleIsPrn(event.target.checked)}
@@ -2681,11 +2676,11 @@ export default function PrescriptionDetailPage() {
                   </div>
                 </div>
 
-                {/* Segunda linha: Frequência + Horário Inicial (se modo 'every') */}
+                {/* Segunda linha: FrequÃªncia + HorÃ¡rio Inicial (se modo 'every') */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                   <div className="md:col-span-3">
                     <SearchableSelect
-                      label="Modo de Frequência"
+                      label="Modo de FrequÃªncia"
                       options={frequencyModeOptions}
                       placeholder="Selecione..."
                       searchPlaceholder="Buscar..."
@@ -2708,15 +2703,15 @@ export default function PrescriptionDetailPage() {
                         valueAsNumber: true,
                         validate: (value) => {
                           if (!Number.isInteger(value)) {
-                            return 'Apenas números inteiros são permitidos';
+                            return 'Apenas nÃºmeros inteiros sÃ£o permitidos';
                           }
                           if (value < 1) {
                             return 'Valor deve ser maior que zero';
                           }
                           if (watchFrequencyMode === 'every' && value === 1) {
-                            return 'Para frequência "1", utilize "Vezes por" ao invés de "A cada"';
+                            return 'Para frequÃªncia "1", utilize "Vezes por" ao invÃ©s de "A cada"';
                           }
-                          // Validação especial para modo "every" com unidade "hora"
+                          // ValidaÃ§Ã£o especial para modo "every" com unidade "hora"
                           if (watchFrequencyMode === 'every') {
                             const selectedUnit = unitsOfMeasure.find(
                               (u) => u.id === watchTimesUnit
@@ -2741,7 +2736,7 @@ export default function PrescriptionDetailPage() {
                         // Remove valores decimais em tempo real
                         const target = e.target as HTMLInputElement;
                         let value = target.value;
-                        // Remove caracteres não numéricos exceto o primeiro dígito
+                        // Remove caracteres nÃ£o numÃ©ricos exceto o primeiro dÃ­gito
                         value = value.replace(/[^\d]/g, '');
                         target.value = value;
                       }}
@@ -2761,17 +2756,17 @@ export default function PrescriptionDetailPage() {
                       />
                     )}
                   </div>
-                  {/* Horário Inicial - apenas quando modo for 'every' e NÃO for 'se necessário' */}
+                  {/* HorÃ¡rio Inicial - apenas quando modo for 'every' e NÃƒO for 'se necessÃ¡rio' */}
                   {watchFrequencyMode === 'every' && !watchIsPrn && (
                     <div className="md:col-span-3">
                       <TimePicker
-                        label="Horário Inicial"
+                        label="HorÃ¡rio Inicial"
                         placeholder="--"
                         value={watch('time_start') || ''}
                         {...register('time_start', {
                           required:
                             watchFrequencyMode === 'every' && !watchIsPrn
-                              ? 'Campo obrigatório'
+                              ? 'Campo obrigatÃ³rio'
                               : false,
                         })}
                         error={errors.time_start?.message}
@@ -2791,7 +2786,7 @@ export default function PrescriptionDetailPage() {
                   </div>
                 )}
 
-                {/* Horários - apenas quando NÃO for "se necessário" */}
+                {/* HorÃ¡rios - apenas quando NÃƒO for "se necessÃ¡rio" */}
                 {!watchIsPrn && (
                   <>
                     {watchFrequencyMode === 'times_per' && (
@@ -2800,7 +2795,7 @@ export default function PrescriptionDetailPage() {
                           <div className="space-y-2">
                             <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                               Dias da Semana{' '}
-                              {watchTimesValue ? `(máximo ${watchTimesValue} dias)` : ''}
+                              {watchTimesValue ? `(mÃ¡ximo ${watchTimesValue} dias)` : ''}
                               {watchTimesValue && weekDaysSelected.length < watchTimesValue && (
                                 <span className="ml-2 text-amber-600 dark:text-amber-400">
                                   - Selecione {watchTimesValue - weekDaysSelected.length} dia
@@ -2831,10 +2826,10 @@ export default function PrescriptionDetailPage() {
                               })}
                             </div>
 
-                            {/* Campo de horário para modo semana */}
+                            {/* Campo de horÃ¡rio para modo semana */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                               <TimePicker
-                                label="Horário de Aplicação"
+                                label="HorÃ¡rio de AplicaÃ§Ã£o"
                                 placeholder="Ex: 09:30"
                                 value={weekTimeSelected}
                                 onChange={(e: any) => setWeekTimeSelected(e.target.value)}
@@ -2848,7 +2843,7 @@ export default function PrescriptionDetailPage() {
                               {timeChecks.map((value, index) => (
                                 <TimePicker
                                   key={`time-check-${index}`}
-                                  label={`Horário ${index + 1}`}
+                                  label={`HorÃ¡rio ${index + 1}`}
                                   value={value}
                                   onChange={(e: any) => {
                                     const next = [...timeChecks];
@@ -2867,7 +2862,7 @@ export default function PrescriptionDetailPage() {
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-6">
                           <Switch
-                            label="Manhã (M)"
+                            label="ManhÃ£ (M)"
                             checked={selectedShifts.includes('M')}
                             onChange={() => toggleShift('M')}
                           />
@@ -2890,12 +2885,12 @@ export default function PrescriptionDetailPage() {
                   </>
                 )}
 
-                {/* Datas e Uso contínuo na mesma linha */}
+                {/* Datas e Uso contÃ­nuo na mesma linha */}
                 <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-12">
                   <div className="flex md:col-span-2">
                     <div className="justify-left group relative mb-1.5">
                       <SwitchNew
-                        label="Uso contínuo"
+                        label="Uso contÃ­nuo"
                         labelPosition="above"
                         checked={isContinuousUse}
                         onChange={(event) =>
@@ -2936,20 +2931,20 @@ export default function PrescriptionDetailPage() {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <Textarea
-                    label="Instruções de Uso"
-                    placeholder="Como será administrado..."
+                    label="InstruÃ§Ãµes de Uso"
+                    placeholder="Como serÃ¡ administrado..."
                     {...register('instructions_use', {
                       validate: (value) =>
                         !watchIsPrn ||
                         (value && value.trim().length > 0) ||
-                        'Obrigatório instrução de como usar a medicação',
+                        'ObrigatÃ³rio instruÃ§Ã£o de como usar a medicaÃ§Ã£o',
                     })}
                     error={errors.instructions_use?.message}
                     required={watchIsPrn}
                   />
                   <Textarea
-                    label="Instruções para a Farmácia"
-                    placeholder="Observações para dispensação..."
+                    label="InstruÃ§Ãµes para a FarmÃ¡cia"
+                    placeholder="ObservaÃ§Ãµes para dispensaÃ§Ã£o..."
                     {...register('instructions_pharmacy')}
                   />
                 </div>
@@ -2957,7 +2952,7 @@ export default function PrescriptionDetailPage() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <Textarea
                     label="Justificativa"
-                    placeholder="Justificativa para a prescrição..."
+                    placeholder="Justificativa para a prescriÃ§Ã£o..."
                     {...register('justification')}
                   />
                   <SearchableSelect
@@ -2972,7 +2967,7 @@ export default function PrescriptionDetailPage() {
               </>
             )}
 
-            {/* Tab Content - Componentes de Administração */}
+            {/* Tab Content - Componentes de AdministraÃ§Ã£o */}
             <PrescriptionDetailModalComponentsTab
               activeModalTab={activeModalTab}
               componentProductOptions={componentProductOptions}
@@ -3047,7 +3042,7 @@ export default function PrescriptionDetailPage() {
           </div>
 
           <ModalFooter className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
-            <ButtonNew
+            <Button
               type="button"
               variant="neutral"
               label="Cancelar"
@@ -3055,19 +3050,19 @@ export default function PrescriptionDetailPage() {
               onClick={() => setIsItemModalOpen(false)}
             >
               Cancelar
-            </ButtonNew>
-            <ButtonNew
+            </Button>
+            <Button
               type="button"
               variant="neutral"
               label="Salvar e Adicionar Outro"
               showIcon={false}
               onClick={() => handleSubmit((data) => onSubmitItem(data, { addAnother: true }))()}
-            ></ButtonNew>
-            <ButtonNew
+            ></Button>
+            <Button
               type="submit"
               label={selectedItem ? 'Salvar' : 'Adicionar'}
               showIcon={false}
-            ></ButtonNew>
+            ></Button>
           </ModalFooter>
         </form>
       </PrescriptionDetailModal>

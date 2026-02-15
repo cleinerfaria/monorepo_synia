@@ -1,14 +1,14 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { Check, FilePlus2, Settings2, Sparkles } from 'lucide-react';
 import { clsx } from 'clsx';
-import { Badge, ButtonNew, Card, CardContent, Input, SwitchNew } from '@/components/ui';
-import type { ButtonNewDropdownItem, ButtonNewProps } from '@/components/ui';
+import { Badge, Button, Card, CardContent, Input, SwitchNew } from '@/components/ui';
+import type { ButtonDropdownItem, ButtonProps } from '@/components/ui';
 
 type ButtonVariant = Extract<
-  NonNullable<ButtonNewProps['variant']>,
+  NonNullable<ButtonProps['variant']>,
   'solid' | 'soft' | 'outline' | 'neutral' | 'danger'
 >;
-type ButtonSize = NonNullable<ButtonNewProps['size']>;
+type ButtonSize = NonNullable<ButtonProps['size']>;
 type IconOption = 'default' | 'sparkles' | 'file' | 'settings' | 'none';
 type WidthMode = 'auto' | 'full';
 
@@ -58,7 +58,7 @@ function UiPreviewPanel({
   title: string;
   subtitle: string;
   forceDark?: boolean;
-  previewProps: ButtonNewProps;
+  previewProps: ButtonProps;
 }) {
   return (
     <div className={clsx('border-border shadow-soft rounded-2xl border', forceDark && 'dark')}>
@@ -76,14 +76,14 @@ function UiPreviewPanel({
               <p className="text-content-muted text-xs font-semibold uppercase tracking-[0.08em]">
                 Principal
               </p>
-              <ButtonNew {...previewProps} />
+              <Button {...previewProps} />
             </div>
 
             <div className="space-y-3">
               <p className="text-content-muted text-xs font-semibold uppercase tracking-[0.08em]">
                 Disabled
               </p>
-              <ButtonNew {...previewProps} disabled />
+              <Button {...previewProps} disabled />
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
   const [switchDisabled, setSwitchDisabled] = useState(false);
   const [switchShowStatus, setSwitchShowStatus] = useState(true);
 
-  const dropdownItems = useMemo<ButtonNewDropdownItem[] | undefined>(() => {
+  const dropdownItems = useMemo<ButtonDropdownItem[] | undefined>(() => {
     if (!withDropdown) return undefined;
 
     return [
@@ -189,7 +189,7 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
     ];
   }, [withDropdown]);
 
-  const playgroundProps: ButtonNewProps = {
+  const playgroundProps: ButtonProps = {
     label,
     variant,
     size,
@@ -207,7 +207,7 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
         <CardContent className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="text-content-primary text-lg font-semibold">UI Lab - ButtonNew</h2>
+              <h2 className="text-content-primary text-lg font-semibold">UI Lab - Button</h2>
               <p className="text-content-muted text-sm">
                 Vitrine visual com modo light e dark em paralelo.
                 {companyName ? ` Tema atual: ${companyName}.` : ''}
@@ -455,25 +455,25 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
                         {sizeLabels[currentSize]}
                       </p>
                       <div className="space-y-3">
-                        <ButtonNew
+                        <Button
                           label={`${variantLabels[currentVariant]} ${sizeLabels[currentSize]}`}
                           variant={currentVariant}
                           size={currentSize}
                           showIcon
                         />
-                        <ButtonNew
+                        <Button
                           label="Sem icone"
                           variant={currentVariant}
                           size={currentSize}
                           showIcon={false}
                         />
-                        <ButtonNew
+                        <Button
                           label="Com dropdown"
                           variant={currentVariant}
                           size={currentSize}
                           dropdownItems={dropdownItems}
                         />
-                        <ButtonNew
+                        <Button
                           label="Disabled"
                           variant={currentVariant}
                           size={currentSize}

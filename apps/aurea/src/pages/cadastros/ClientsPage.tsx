@@ -11,7 +11,7 @@ import {
   Input,
   Select,
   Textarea,
-  ButtonNew,
+  Button,
   Badge,
   StatusBadge,
   EmptyState,
@@ -380,7 +380,7 @@ export default function ClientsPage() {
             Clientes
           </h1>
         </div>
-        <ButtonNew onClick={openCreateModal} size="md" variant="solid" label="Novo Cliente" />
+        <Button onClick={openCreateModal} size="md" variant="solid" label="Novo Cliente" />
       </div>
 
       {/* Table */}
@@ -398,7 +398,7 @@ export default function ClientsPage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -422,7 +422,7 @@ export default function ClientsPage() {
                 title="Nenhum cliente cadastrado"
                 description="Comece cadastrando seu primeiro cliente"
                 action={
-                  <ButtonNew
+                  <Button
                     onClick={openCreateModal}
                     size="sm"
                     variant="solid"
@@ -584,14 +584,14 @@ export default function ClientsPage() {
               />
 
               <ModalFooter>
-                <ButtonNew
+                <Button
                   type="button"
                   variant="outline"
                   showIcon={false}
                   onClick={() => setIsModalOpen(false)}
                   label="Cancelar"
                 />
-                <ButtonNew
+                <Button
                   type="submit"
                   variant="solid"
                   showIcon={false}
@@ -630,7 +630,7 @@ export default function ClientsPage() {
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}

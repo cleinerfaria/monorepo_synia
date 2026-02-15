@@ -1,4 +1,4 @@
-import { ButtonNew, DatePicker, Modal, ModalFooter } from '@/components/ui';
+﻿import { Button, DatePicker, Modal, ModalFooter } from '@/components/ui';
 import PrescriptionPrintModal, {
   type PrescriptionPrintAction,
 } from '@/components/prescription/PrescriptionPrintModal';
@@ -67,7 +67,7 @@ export function PrescriptionDetailAuxModals({
       <Modal
         isOpen={isPeriodModalOpen}
         onClose={() => setIsPeriodModalOpen(false)}
-        title="Alterar Período"
+        title="Alterar PerÃ­odo"
         size="md"
       >
         <div className="space-y-4">
@@ -92,7 +92,7 @@ export function PrescriptionDetailAuxModals({
             }}
           />
           <div>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               size="sm"
@@ -110,19 +110,19 @@ export function PrescriptionDetailAuxModals({
         </div>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="neutral"
             onClick={() => setIsPeriodModalOpen(false)}
             showIcon={false}
             label="Cancelar"
           />
-          <ButtonNew
+          <Button
             type="button"
             onClick={handleSavePeriod}
             disabled={updatePrescriptionIsPending}
             showIcon={false}
-            label={updatePrescriptionIsPending ? 'Salvando período...' : 'Salvar período'}
+            label={updatePrescriptionIsPending ? 'Salvando perÃ­odo...' : 'Salvar perÃ­odo'}
           />
         </ModalFooter>
       </Modal>
@@ -134,18 +134,18 @@ export function PrescriptionDetailAuxModals({
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja remover este item da prescrição?
+          Tem certeza que deseja remover este item da prescriÃ§Ã£o?
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="neutral"
             onClick={() => setIsDeleteItemModalOpen(false)}
             showIcon={false}
             label="Cancelar"
           />
-          <ButtonNew
+          <Button
             type="button"
             variant="danger"
             onClick={handleDeleteItem}
@@ -159,17 +159,17 @@ export function PrescriptionDetailAuxModals({
       <Modal
         isOpen={isSuspendItemModalOpen}
         onClose={() => setIsSuspendItemModalOpen(false)}
-        title="Suspender Medicação"
+        title="Suspender MedicaÃ§Ã£o"
         size="sm"
       >
         <div className="space-y-4">
           <p className="text-gray-600 dark:text-gray-400">
-            Informe a data final para suspender este item da prescrição.
+            Informe a data final para suspender este item da prescriÃ§Ã£o.
           </p>
 
           <div>
             <DatePicker
-              label="Data Final de Suspensão"
+              label="Data Final de SuspensÃ£o"
               value={suspensionEndDate}
               onChange={(event: any) => {
                 const nextValue = typeof event === 'string' ? event : event.target.value;
@@ -181,14 +181,14 @@ export function PrescriptionDetailAuxModals({
         </div>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="neutral"
             onClick={() => setIsSuspendItemModalOpen(false)}
             showIcon={false}
             label="Cancelar"
           />
-          <ButtonNew
+          <Button
             type="button"
             variant="neutral"
             onClick={handleSuspendItem}

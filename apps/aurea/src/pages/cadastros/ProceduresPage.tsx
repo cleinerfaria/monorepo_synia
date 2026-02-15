@@ -3,7 +3,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Pencil, ClipboardList, Search, FunnelX } from 'lucide-react';
 import {
   Card,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   Modal,
@@ -246,7 +246,7 @@ export default function ProceduresPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <ButtonNew onClick={openCreateModal} variant="solid" label="Novo Procedimento" />
+          <Button onClick={openCreateModal} variant="solid" label="Novo Procedimento" />
         </div>
       </div>
 
@@ -265,7 +265,7 @@ export default function ProceduresPage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -296,7 +296,7 @@ export default function ProceduresPage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
@@ -382,14 +382,14 @@ export default function ProceduresPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}

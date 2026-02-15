@@ -5,7 +5,7 @@ import { Plus, Pencil, Trash2, Package, Search, ExternalLink, FunnelX } from 'lu
 import {
   Card,
   Button,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   Modal,
@@ -493,7 +493,7 @@ export default function PresentationsPage() {
             <Search className="h-5 w-5" />
             Buscar nas Tabelas
           </Button>
-          <ButtonNew onClick={openCreateModal} variant="solid" label="Manual" />
+          <Button onClick={openCreateModal} variant="solid" label="Manual" />
         </div>
       </div>
 
@@ -513,7 +513,7 @@ export default function PresentationsPage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -549,12 +549,7 @@ export default function PresentationsPage() {
                         <Search className="h-4 w-4" />
                         Buscar nas Tabelas
                       </Button>
-                      <ButtonNew
-                        onClick={openCreateModal}
-                        size="sm"
-                        variant="solid"
-                        label="Manual"
-                      />
+                      <Button onClick={openCreateModal} size="sm" variant="solid" label="Manual" />
                     </div>
                   )
                 }
@@ -782,14 +777,14 @@ export default function PresentationsPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
@@ -814,7 +809,7 @@ export default function PresentationsPage() {
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
@@ -865,14 +860,14 @@ export default function PresentationsPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsNewManufacturerModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}

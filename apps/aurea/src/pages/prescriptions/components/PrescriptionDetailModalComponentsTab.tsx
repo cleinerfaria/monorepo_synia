@@ -1,4 +1,4 @@
-import { ButtonNew, Input, SearchableSelect } from '@/components/ui';
+﻿import { Button, Input, SearchableSelect } from '@/components/ui';
 import { Pencil, Pill, Trash2 } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 
@@ -53,7 +53,7 @@ export function PrescriptionDetailModalComponentsTab({
             label="Produto"
             options={componentProductOptions}
             placeholder="Buscar e selecionar produto..."
-            searchPlaceholder="Buscar por produto ou apresentação..."
+            searchPlaceholder="Buscar por produto ou apresentaÃ§Ã£o..."
             value={selectedComponentProductId}
             onChange={(e: any) => setSelectedComponentProductId(e.target.value)}
             onSearch={(term: string) => setComponentProductSearchTerm(term)}
@@ -96,7 +96,7 @@ export function PrescriptionDetailModalComponentsTab({
               />
             </div>
             <div className="col-span-5 flex items-end">
-              <ButtonNew
+              <Button
                 type="button"
                 onClick={() => {
                   if (!selectedComponentProductId) return;
@@ -173,7 +173,7 @@ export function PrescriptionDetailModalComponentsTab({
               const componentProductData = componentProduct as any;
               const localProductData = component.product as any;
               const productName =
-                componentProduct?.name || component.product?.name || 'Produto não encontrado';
+                componentProduct?.name || component.product?.name || 'Produto nÃ£o encontrado';
               const concentration =
                 componentProduct?.concentration || component.product?.concentration || '';
               const unitSymbol =

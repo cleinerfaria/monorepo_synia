@@ -1,6 +1,6 @@
-import { type ChangeEvent, useEffect, useMemo, useState } from 'react';
+﻿import { type ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { addDays, format } from 'date-fns';
-import { ButtonNew, DatePicker, Modal, ModalFooter, Select } from '@/components/ui';
+import { Button, DatePicker, Modal, ModalFooter, Select } from '@/components/ui';
 import { buildPrescriptionWeekColumns } from '@/lib/prescriptionPrintUtils';
 import type {
   PrescriptionPrintOrientation,
@@ -187,8 +187,8 @@ export function PrescriptionPrintModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Imprimir Prescrição"
-      description="Escolha período de 1 a 14 dias e a orientação da página."
+      title="Imprimir PrescriÃ§Ã£o"
+      description="Escolha perÃ­odo de 1 a 14 dias e a orientaÃ§Ã£o da pÃ¡gina."
       size="lg"
     >
       <div className="space-y-4">
@@ -220,7 +220,7 @@ export function PrescriptionPrintModal({
             }
           />
           <Select
-            label="Orientação"
+            label="OrientaÃ§Ã£o"
             value={orientation}
             options={ORIENTATION_OPTIONS}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -276,21 +276,21 @@ export function PrescriptionPrintModal({
           </div>
           {!canPrint && (
             <p className="text-feedback-danger-fg mt-3 text-sm">
-              Seu perfil não possui permissão para imprimir prescrições.
+              Seu perfil nÃ£o possui permissÃ£o para imprimir prescriÃ§Ãµes.
             </p>
           )}
         </div>
       </div>
 
       <ModalFooter>
-        <ButtonNew
+        <Button
           variant="neutral"
           onClick={onClose}
           label="Cancelar"
           size="md"
           showIcon={false}
-        ></ButtonNew>
-        <ButtonNew
+        ></Button>
+        <Button
           variant="neutral"
           label="Visualizar"
           size="md"
@@ -299,8 +299,8 @@ export function PrescriptionPrintModal({
           disabled={!canPrint || isGenerating || !periodInfo?.periodEnd}
         >
           Visualizar
-        </ButtonNew>
-        <ButtonNew
+        </Button>
+        <Button
           label="Imprimir"
           size="md"
           showIcon={false}
@@ -308,7 +308,7 @@ export function PrescriptionPrintModal({
           disabled={!canPrint || isGenerating || !periodInfo?.periodEnd}
         >
           Imprimir
-        </ButtonNew>
+        </Button>
       </ModalFooter>
     </Modal>
   );

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '@/stores/authStore';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { Input, Card } from '@/components/ui';
-import { ButtonNew } from '@/components/ui/ButtonNew';
+import { Button } from '@synia/ui';
 import PremiumHeroPanel from '@/components/auth/PremiumHeroPanel';
 import ForgotPasswordModal from '@/components/auth/ForgotPasswordModal';
 import { DEFAULT_COMPANY_COLOR } from '@/lib/themeConstants';
@@ -284,7 +284,7 @@ export default function LoginPage() {
               </div>
 
               <div style={loginPrimaryVars} className="[&>div]:w-full">
-                <ButtonNew
+                <Button
                   type="submit"
                   label={isSubmitting ? 'Entrando...' : 'Entrar'}
                   variant="solid"

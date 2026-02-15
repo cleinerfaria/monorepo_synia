@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ButtonNew, Input, Switch, Textarea, DatePicker, SearchableSelect } from '@/components/ui';
+﻿import { useState } from 'react';
+import { Button, Input, Switch, Textarea, DatePicker, SearchableSelect } from '@/components/ui';
 import type { PatientPayer, Client } from '@/types/database';
 import { Plus, Trash2, CreditCard } from 'lucide-react';
 import { formatDateOnly } from '@/lib/dateOnly';
@@ -50,7 +50,7 @@ export default function PatientPayerForm({
   const handleUpdatePayer = (index: number, field: keyof PatientPayer, value: any) => {
     const newPayers = [...payers];
 
-    // Se marcando como primário, desmarcar os outros
+    // Se marcando como primÃ¡rio, desmarcar os outros
     if (field === 'is_primary' && value === true) {
       newPayers.forEach((payer, i) => {
         if (i !== index) {
@@ -78,28 +78,28 @@ export default function PatientPayerForm({
 
   const getClientName = (clientId: string): string => {
     const client = clients.find((c) => c.id === clientId);
-    return client?.name || 'Cliente não encontrado';
+    return client?.name || 'Cliente nÃ£o encontrado';
   };
 
   const getClientType = (clientId: string): string => {
     const client = clients.find((c) => c.id === clientId);
-    if (!client?.type) return 'Não definido';
+    if (!client?.type) return 'NÃ£o definido';
 
     const typeLabels: Record<string, string> = {
-      pessoa_fisica: 'Pessoa Física',
-      pessoa_juridica: 'Pessoa Jurídica',
+      pessoa_fisica: 'Pessoa FÃ­sica',
+      pessoa_juridica: 'Pessoa JurÃ­dica',
       empresa: 'Empresa',
       operadora: 'Operadora',
-      plano_saude: 'Plano de Saúde',
+      plano_saude: 'Plano de SaÃºde',
       seguradora: 'Seguradora',
       insurer: 'Operadora',
-      pf: 'Pessoa Física',
-      pj: 'Pessoa Jurídica',
-      individual: 'Pessoa Física',
+      pf: 'Pessoa FÃ­sica',
+      pj: 'Pessoa JurÃ­dica',
+      individual: 'Pessoa FÃ­sica',
       corporate: 'Empresa',
       insurance: 'Operadora',
-      health_plan: 'Plano de Saúde',
-      government: 'Órgão Público',
+      health_plan: 'Plano de SaÃºde',
+      government: 'Ã“rgÃ£o PÃºblico',
     };
 
     return typeLabels[client.type.toLowerCase()] || client.type;
@@ -116,7 +116,7 @@ export default function PatientPayerForm({
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Fontes Pagadoras</h3>
         <div className="flex items-center gap-2">
           {patientId && onSave && payers.length > 0 && (
-            <ButtonNew
+            <Button
               type="button"
               variant="solid"
               size="sm"
@@ -126,7 +126,7 @@ export default function PatientPayerForm({
               label={isSaving ? 'Salvando...' : 'Salvar Fontes Pagadoras'}
             />
           )}
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             size="sm"
@@ -159,7 +159,9 @@ export default function PatientPayerForm({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {payer.client_id ? getClientName(payer.client_id) : 'Cliente não selecionado'}
+                      {payer.client_id
+                        ? getClientName(payer.client_id)
+                        : 'Cliente nÃ£o selecionado'}
                     </span>
                     {payer.is_primary && (
                       <span className="border-primary-500/30 bg-primary-500/10 text-primary-700 dark:bg-primary-400/20 dark:text-primary-300 rounded border px-2 py-0.5 text-xs font-semibold">
@@ -175,27 +177,27 @@ export default function PatientPayerForm({
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {payer.client_id ? getClientType(payer.client_id) : 'Tipo não definido'}
+                    {payer.client_id ? getClientType(payer.client_id) : 'Tipo nÃ£o definido'}
                   </p>
                 </div>
                 <div>
                   <div className="flex gap-1">
                     <span className="text-sm text-gray-600 dark:text-gray-300">Cobertura:</span>
                     <span className="w-10 text-right text-sm text-gray-600 dark:text-gray-300">
-                      {payer.coverage_percent !== null ? `${payer.coverage_percent}%` : '—'}
+                      {payer.coverage_percent !== null ? `${payer.coverage_percent}%` : 'â€”'}
                     </span>
                   </div>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     {payer.start_date
-                      ? `Início: ${formatDateOnly(payer.start_date)}`
-                      : 'Sem data de início'}
+                      ? `InÃ­cio: ${formatDateOnly(payer.start_date)}`
+                      : 'Sem data de inÃ­cio'}
                   </p>
                 </div>
               </div>
             </div>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               size="sm"
@@ -242,7 +244,7 @@ export default function PatientPayerForm({
                   }
                 />
                 <DatePicker
-                  label="Data de Início"
+                  label="Data de InÃ­cio"
                   value={payer.start_date || ''}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleUpdatePayer(index, 'start_date', e.target.value)
@@ -258,8 +260,8 @@ export default function PatientPayerForm({
               </div>
 
               <Textarea
-                label="Observações"
-                placeholder="Informações adicionais sobre esta fonte pagadora"
+                label="ObservaÃ§Ãµes"
+                placeholder="InformaÃ§Ãµes adicionais sobre esta fonte pagadora"
                 value={payer.notes || ''}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   handleUpdatePayer(index, 'notes', e.target.value)

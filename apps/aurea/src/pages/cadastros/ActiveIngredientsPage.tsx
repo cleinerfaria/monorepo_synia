@@ -4,7 +4,7 @@ import { Pencil, Beaker, Download, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   Modal,
@@ -207,7 +207,7 @@ export default function ActiveIngredientsPage() {
             <Download className="h-5 w-5" />
             Importar do CMED
           </Button>
-          <ButtonNew onClick={openCreateModal} variant="solid" label="Novo Princípio Ativo" />
+          <Button onClick={openCreateModal} variant="solid" label="Novo Princípio Ativo" />
         </div>
       </div>
 
@@ -226,7 +226,7 @@ export default function ActiveIngredientsPage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -257,7 +257,7 @@ export default function ActiveIngredientsPage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
@@ -332,14 +332,14 @@ export default function ActiveIngredientsPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}

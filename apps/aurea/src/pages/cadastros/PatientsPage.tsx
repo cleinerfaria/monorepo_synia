@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Users, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX } from 'lucide-react';
 import {
   Card,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   StatusBadge,
@@ -316,11 +316,7 @@ export default function PatientsPage() {
             Pacientes
           </h1>
         </div>
-        <ButtonNew
-          onClick={() => navigate('/pacientes/novo')}
-          variant="solid"
-          label="Novo Paciente"
-        />
+        <Button onClick={() => navigate('/pacientes/novo')} variant="solid" label="Novo Paciente" />
       </div>
 
       {/* Table */}
@@ -340,7 +336,7 @@ export default function PatientsPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <ButtonNew
+              <Button
                 onClick={handleSearch}
                 variant="outline"
                 size="md"
@@ -359,7 +355,7 @@ export default function PatientsPage() {
                 className="min-w-24 justify-center"
               />
               {hasActiveFilters && (
-                <ButtonNew
+                <Button
                   onClick={clearFilters}
                   variant="outline"
                   size="md"
@@ -450,7 +446,7 @@ export default function PatientsPage() {
                   title="Nenhum paciente encontrado"
                   description="Nenhum paciente corresponde aos filtros selecionados"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={clearFilters}
                       variant="solid"
                       size="sm"
@@ -465,7 +461,7 @@ export default function PatientsPage() {
                   title="Nenhum paciente cadastrado"
                   description="Cadastre pacientes para gerenciar suas informações"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={() => navigate('/pacientes/novo')}
                       variant="solid"
                       label="Novo Paciente"

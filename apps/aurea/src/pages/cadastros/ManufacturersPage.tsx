@@ -4,7 +4,6 @@ import { Pencil, Trash2, Building2, RefreshCw, Search, FunnelX } from 'lucide-re
 import {
   Card,
   Button,
-  ButtonNew,
   DataTable,
   ListPagination,
   Modal,
@@ -275,19 +274,19 @@ export default function ManufacturersPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button
-            variant="secondary"
+            variant="neutral"
             onClick={() => setIsSyncModalOpen(true)}
             disabled={!canSync}
+            icon={<RefreshCw className="h-4 w-4" />}
             title={
               !canSync
                 ? 'Importe CMED e Brasíndice nas Tabelas de Referência para habilitar'
                 : 'Sincronizar fabricantes das tabelas de referência'
             }
           >
-            <RefreshCw className="h-5 w-5" />
             Sincronizar de Referência
           </Button>
-          <ButtonNew onClick={openCreateModal} variant="solid" label="Novo Fabricante" />
+          <Button onClick={openCreateModal} variant="solid" label="Novo Fabricante" />
         </div>
       </div>
 
@@ -306,7 +305,7 @@ export default function ManufacturersPage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -335,7 +334,7 @@ export default function ManufacturersPage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
@@ -432,14 +431,14 @@ export default function ManufacturersPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
@@ -463,7 +462,7 @@ export default function ManufacturersPage() {
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
@@ -500,15 +499,19 @@ export default function ManufacturersPage() {
         </div>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
             onClick={() => setIsSyncModalOpen(false)}
             label="Cancelar"
           />
-          <Button type="button" onClick={handleSync} isLoading={syncManufacturers.isPending}>
-            <RefreshCw className="h-4 w-4" />
+          <Button
+            type="button"
+            icon={<RefreshCw className="h-4 w-4" />}
+            onClick={handleSync}
+            isLoading={syncManufacturers.isPending}
+          >
             Sincronizar
           </Button>
         </ModalFooter>

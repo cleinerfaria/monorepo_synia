@@ -3,7 +3,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Route, Search, FunnelX } from 'lucide-react';
 import {
   Badge,
-  ButtonNew,
+  Button,
   Card,
   DataTable,
   ListPagination,
@@ -232,7 +232,7 @@ export default function AdministrationRoutesPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <ButtonNew onClick={openCreateModal} variant="solid" label="Nova Via" />
+          <Button onClick={openCreateModal} variant="solid" label="Nova Via" />
         </div>
       </div>
 
@@ -251,7 +251,7 @@ export default function AdministrationRoutesPage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -281,7 +281,7 @@ export default function AdministrationRoutesPage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
@@ -357,14 +357,14 @@ export default function AdministrationRoutesPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}

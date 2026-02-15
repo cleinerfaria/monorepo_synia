@@ -1,7 +1,7 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+﻿import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { clsx } from 'clsx';
-import { ButtonNew } from './ButtonNew';
-import type { ButtonNewProps } from './ButtonNew';
+import { Button } from '@synia/ui';
+import type { ButtonProps } from '@synia/ui';
 
 type FilterToggleState = 'active' | 'inactive';
 
@@ -14,7 +14,7 @@ interface FilterToggleButtonProps extends ButtonHTMLAttributes<HTMLButtonElement
 
 const FILTER_TOGGLE_STATE_CONFIG: Record<
   FilterToggleState,
-  { buttonVariant: ButtonNewProps['variant']; buttonClassName: string; counterClassName: string }
+  { buttonVariant: ButtonProps['variant']; buttonClassName: string; counterClassName: string }
 > = {
   active: {
     buttonVariant: 'soft',
@@ -45,7 +45,7 @@ export function FilterToggleButton({
 
   return (
     <div className="relative inline-flex items-center">
-      <ButtonNew
+      <Button
         type={type}
         disabled={disabled}
         variant={config.buttonVariant}

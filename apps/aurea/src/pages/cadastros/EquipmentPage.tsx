@@ -4,7 +4,7 @@ import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX } fro
 import {
   Card,
   Button,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   Modal,
@@ -300,7 +300,7 @@ export default function EquipmentPage() {
             Equipamentos
           </h1>
         </div>
-        <ButtonNew onClick={openAddModal} variant="solid" label="Novo Equipamento" />
+        <Button onClick={openAddModal} variant="solid" label="Novo Equipamento" />
       </div>
       <Card padding="none">
         <div className="space-y-4 p-6">
@@ -316,7 +316,7 @@ export default function EquipmentPage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -346,7 +346,7 @@ export default function EquipmentPage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openAddModal}
                       size="sm"
                       variant="solid"
@@ -419,14 +419,14 @@ export default function EquipmentPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
@@ -464,7 +464,7 @@ export default function EquipmentPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
@@ -496,7 +496,7 @@ export default function EquipmentPage() {
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}

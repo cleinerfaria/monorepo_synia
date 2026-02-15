@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Archive, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX } from 'lucide-react';
 import {
   Card,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   StatusBadge,
@@ -408,7 +408,7 @@ export default function ProductsPage() {
             Produtos
           </h1>
         </div>
-        <ButtonNew onClick={() => navigate(newProductUrl)} variant="solid" label="Novo Produto" />
+        <Button onClick={() => navigate(newProductUrl)} variant="solid" label="Novo Produto" />
       </div>
 
       {/* Table */}
@@ -428,7 +428,7 @@ export default function ProductsPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <ButtonNew
+              <Button
                 onClick={handleSearch}
                 variant="outline"
                 size="md"
@@ -454,7 +454,7 @@ export default function ProductsPage() {
                 className="min-w-24 justify-center"
               />
               {hasActiveFilters && (
-                <ButtonNew
+                <Button
                   onClick={clearFilters}
                   variant="outline"
                   size="md"
@@ -582,7 +582,7 @@ export default function ProductsPage() {
                   title="Nenhum produto encontrado"
                   description="Nenhum produto corresponde aos filtros selecionados"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={clearFilters}
                       variant="solid"
                       size="sm"
@@ -597,7 +597,7 @@ export default function ProductsPage() {
                   title="Nenhum produto cadastrado"
                   description="Cadastre produtos para utilizar nas prescrições e no estoque"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={() => navigate(newProductUrl)}
                       variant="solid"
                       label="Novo Produto"

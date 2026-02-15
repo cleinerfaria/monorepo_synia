@@ -1,11 +1,11 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+﻿import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Trash2, Search, UserIcon, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   Modal,
@@ -202,7 +202,7 @@ export default function ProfessionalsPage() {
             Profissionais
           </h1>
         </div>
-        <ButtonNew
+        <Button
           onClick={() => navigate('/profissionais/novo')}
           variant="solid"
           label="Novo Profissional"
@@ -224,7 +224,7 @@ export default function ProfessionalsPage() {
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -248,7 +248,7 @@ export default function ProfessionalsPage() {
                 title="Nenhum profissional cadastrado"
                 description="Comece cadastrando seu primeiro profissional"
                 action={
-                  <ButtonNew
+                  <Button
                     onClick={() => navigate('/profissionais/novo')}
                     size="sm"
                     variant="solid"
@@ -281,11 +281,11 @@ export default function ProfessionalsPage() {
         <p className="text-gray-600 dark:text-gray-400">
           Tem certeza que deseja excluir o profissional{' '}
           <strong className="text-gray-900 dark:text-white">{selectedProfessional?.name}</strong>?
-          Esta ação não pode ser desfeita.
+          Esta aÃ§Ã£o nÃ£o pode ser desfeita.
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}

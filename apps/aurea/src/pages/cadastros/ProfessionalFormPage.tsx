@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import {
   Card,
-  ButtonNew,
+  Button,
   Input,
   Select,
   Loading,
@@ -74,24 +74,24 @@ const COUNCIL_OPTIONS = [
   { value: 'CRM', label: 'CRM - Medicina' },
   { value: 'COREN', label: 'COREN - Enfermagem' },
   { value: 'CREFITO', label: 'CREFITO - Fisioterapia' },
-  { value: 'CRN', label: 'CRN - Nutrição' },
-  { value: 'CRF', label: 'CRF - Farmácia' },
+  { value: 'CRN', label: 'CRN - NutriÃ§Ã£o' },
+  { value: 'CRF', label: 'CRF - FarmÃ¡cia' },
   { value: 'CRP', label: 'CRP - Psicologia' },
   { value: 'CREFONO', label: 'CREFONO - Fonoaudiologia' },
-  { value: 'CRESS', label: 'CRESS - Serviço Social' },
+  { value: 'CRESS', label: 'CRESS - ServiÃ§o Social' },
   { value: 'CRO', label: 'CRO - Odontologia' },
   { value: 'OUTRO', label: 'Outro' },
 ];
 
 const ROLE_OPTIONS = [
-  { value: 'Médico', label: 'Médico' },
+  { value: 'MÃ©dico', label: 'MÃ©dico' },
   { value: 'Enfermeiro', label: 'Enfermeiro' },
-  { value: 'Técnico de Enfermagem', label: 'Técnico de Enfermagem' },
+  { value: 'TÃ©cnico de Enfermagem', label: 'TÃ©cnico de Enfermagem' },
   { value: 'Fisioterapeuta', label: 'Fisioterapeuta' },
   { value: 'Nutricionista', label: 'Nutricionista' },
-  { value: 'Farmacêutico', label: 'Farmacêutico' },
-  { value: 'Psicólogo', label: 'Psicólogo' },
-  { value: 'Fonoaudiólogo', label: 'Fonoaudiólogo' },
+  { value: 'FarmacÃªutico', label: 'FarmacÃªutico' },
+  { value: 'PsicÃ³logo', label: 'PsicÃ³logo' },
+  { value: 'FonoaudiÃ³logo', label: 'FonoaudiÃ³logo' },
   { value: 'Assistente Social', label: 'Assistente Social' },
   { value: 'Cuidador', label: 'Cuidador' },
   { value: 'Outro', label: 'Outro' },
@@ -375,25 +375,25 @@ export default function ProfessionalFormPage() {
 
   return (
     <div className="space-y-4">
-      {/* Header com Breadcrumbs e Botões */}
+      {/* Header com Breadcrumbs e BotÃµes */}
       <div className="flex items-center justify-between px-4 lg:px-4">
         <Breadcrumbs items={breadcrumbItems} onNavigate={handleBreadcrumbNavigate} />
         <div className="flex items-center gap-3">
-          <ButtonNew
+          <Button
             onClick={handleBack}
             variant="outline"
             size="md"
             icon={<ArrowLeft className="h-4 w-4" />}
             label="Voltar"
           />
-          <ButtonNew
+          <Button
             onClick={handleSubmit(onSubmit)}
             variant="solid"
             showIcon={false}
             disabled={
               createProfessional.isPending || updateProfessional.isPending || isSavingSignature
             }
-            label={isEditing ? 'Salvar Alterações' : 'Cadastrar Profissional'}
+            label={isEditing ? 'Salvar AlteraÃ§Ãµes' : 'Cadastrar Profissional'}
           />
         </div>
       </div>
@@ -405,7 +405,7 @@ export default function ProfessionalFormPage() {
               Dados Cadastrais
             </TabButton>
             <TabButton active={activeTab === 'council'} onClick={() => setActiveTab('council')}>
-              Remuneração
+              RemuneraÃ§Ã£o
             </TabButton>
             <TabButton active={activeTab === 'contact'} onClick={() => setActiveTab('contact')}>
               Escala
@@ -419,19 +419,19 @@ export default function ProfessionalFormPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <Input
-                    label="Código Externo"
-                    placeholder="Código do sistema externo"
+                    label="CÃ³digo Externo"
+                    placeholder="CÃ³digo do sistema externo"
                     {...register('code')}
                   />
                   <Input
                     label="Nome Completo"
                     placeholder="Nome do profissional"
-                    {...register('name', { required: 'Nome é obrigatório' })}
+                    {...register('name', { required: 'Nome Ã© obrigatÃ³rio' })}
                     error={errors.name?.message}
                     required
                   />
                   <Select
-                    label="Função"
+                    label="FunÃ§Ã£o"
                     options={ROLE_OPTIONS}
                     placeholder="Selecione..."
                     value={roleValue}
@@ -447,7 +447,7 @@ export default function ProfessionalFormPage() {
                     value={councilTypeValue}
                     {...register('council_type')}
                   />
-                  <Input label="Número" placeholder="123456" {...register('council_number')} />
+                  <Input label="NÃºmero" placeholder="123456" {...register('council_number')} />
                   <Select
                     label="UF"
                     options={UF_OPTIONS}
@@ -516,7 +516,7 @@ export default function ProfessionalFormPage() {
                         accept="image/png"
                         onChange={handleSignatureFileChange}
                       />
-                      <ButtonNew
+                      <Button
                         type="button"
                         variant="outline"
                         size="sm"
@@ -524,7 +524,7 @@ export default function ProfessionalFormPage() {
                         onClick={() => signatureInputRef.current?.click()}
                         label="Selecionar PNG"
                       />
-                      <ButtonNew
+                      <Button
                         type="button"
                         variant="danger"
                         size="sm"

@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { MapContainer, TileLayer, Marker as LeafletMarker, useMapEvents } from 'react-leaflet';
-import { ButtonNew, Modal, ModalFooter } from '@/components/ui';
+import { Button, Modal, ModalFooter } from '@/components/ui';
 import { Input } from '@/components/ui';
 import { useGoogleMapsApiError } from '@/hooks/useGoogleMapsApiError';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix para os ícones padrão do Leaflet
+// Fix para os Ã­cones padrÃ£o do Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -56,7 +56,7 @@ function MapCenterUpdater({ center }: { center: [number, number] }) {
   return null;
 }
 
-// Função para buscar endereços usando Nominatim (OpenStreetMap - gratuito)
+// FunÃ§Ã£o para buscar endereÃ§os usando Nominatim (OpenStreetMap - gratuito)
 const searchAddressNominatim = async (
   query: string
 ): Promise<{ lat: number; lng: number; display_name: string } | null> => {
@@ -84,7 +84,7 @@ const searchAddressNominatim = async (
   }
 };
 
-// Função para geocodificar endereço usando Google Maps ou fallback
+// FunÃ§Ã£o para geocodificar endereÃ§o usando Google Maps ou fallback
 const geocodeAddress = async (
   address: string,
   hasApiKey: boolean
@@ -114,7 +114,7 @@ const geocodeAddress = async (
   }
 };
 
-// Função para comparar coordenadas com tolerância (4 casas decimais = ~11 metros de precisão)
+// FunÃ§Ã£o para comparar coordenadas com tolerÃ¢ncia (4 casas decimais = ~11 metros de precisÃ£o)
 const coordinatesAreEqual = (
   coord1: { lat: number; lng: number },
   coord2: { lat: number; lng: number },
@@ -125,7 +125,7 @@ const coordinatesAreEqual = (
   return latDiff <= tolerance && lngDiff <= tolerance;
 };
 
-// Função para reverse geocoding (coordenadas -> endereço) usando Nominatim
+// FunÃ§Ã£o para reverse geocoding (coordenadas -> endereÃ§o) usando Nominatim
 const reverseGeocodeNominatim = async (lat: number, lng: number): Promise<string | null> => {
   try {
     const response = await fetch(
@@ -145,7 +145,7 @@ const reverseGeocodeNominatim = async (lat: number, lng: number): Promise<string
   }
 };
 
-// Função para reverse geocoding usando Google Maps ou fallback
+// FunÃ§Ã£o para reverse geocoding usando Google Maps ou fallback
 const _reverseGeocode = async (
   lat: number,
   lng: number,
@@ -184,24 +184,24 @@ export default function AddressMapModal({
     lat: number;
     lng: number;
   }>(() => {
-    // Garantir que sempre temos coordenadas válidas na inicialização
+    // Garantir que sempre temos coordenadas vÃ¡lidas na inicializaÃ§Ã£o
     const initialLat = latitude && !isNaN(latitude) ? latitude : defaultCenter.lat;
     const initialLng = longitude && !isNaN(longitude) ? longitude : defaultCenter.lng;
     return { lat: initialLat, lng: initialLng };
   });
 
-  // Estado local para controlar se foi editado manualmente nesta sessão
+  // Estado local para controlar se foi editado manualmente nesta sessÃ£o
   const [isEditedInSession, setIsEditedInSession] = useState(false);
 
-  // Estado para forçar re-render do marcador
+  // Estado para forÃ§ar re-render do marcador
   const [markerKey, setMarkerKey] = useState(0);
 
-  // Estado para armazenar coordenadas do endereço (para comparação)
+  // Estado para armazenar coordenadas do endereÃ§o (para comparaÃ§Ã£o)
   const [addressCoordinates, setAddressCoordinates] = useState<{ lat: number; lng: number } | null>(
     null
   );
 
-  // Estado para controlar exibição do alerta de confirmação
+  // Estado para controlar exibiÃ§Ã£o do alerta de confirmaÃ§Ã£o
   const [showSearchConfirm, setShowSearchConfirm] = useState(false);
 
   const [searchAddress, setSearchAddress] = useState(address || '');
@@ -219,7 +219,7 @@ export default function AddressMapModal({
     apiKey && apiKey.trim() !== '' && apiKey !== 'your-google-maps-api-key-here'
   );
 
-  // Detectar erros específicos da Google Maps API
+  // Detectar erros especÃ­ficos da Google Maps API
   const googleMapsError = useGoogleMapsApiError();
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -252,20 +252,20 @@ export default function AddressMapModal({
     }
   };
 
-  // Função que verifica se precisa confirmar antes de buscar
+  // FunÃ§Ã£o que verifica se precisa confirmar antes de buscar
   const handleSearchWithConfirm = () => {
-    // Usar a mesma lógica da tag de "Editado Manualmente"
+    // Usar a mesma lÃ³gica da tag de "Editado Manualmente"
     const isShowingManualTag = (() => {
-      // Se foi editado nesta sessão, é manual
+      // Se foi editado nesta sessÃ£o, Ã© manual
       if (isEditedInSession) return true;
 
-      // Se já estava marcado como manual anteriormente e temos coordenadas do endereço para comparar
+      // Se jÃ¡ estava marcado como manual anteriormente e temos coordenadas do endereÃ§o para comparar
       if (isManuallyEdited && addressCoordinates) {
-        // Verificar se as coordenadas atuais ainda são diferentes das do endereço
+        // Verificar se as coordenadas atuais ainda sÃ£o diferentes das do endereÃ§o
         return !coordinatesAreEqual(markerPosition, addressCoordinates);
       }
 
-      // Se não foi marcado como manual anteriormente, é automático
+      // Se nÃ£o foi marcado como manual anteriormente, Ã© automÃ¡tico
       return false;
     })();
 
@@ -277,7 +277,7 @@ export default function AddressMapModal({
     handleSearch();
   };
 
-  // Função chamada quando o usuário confirma a busca
+  // FunÃ§Ã£o chamada quando o usuÃ¡rio confirma a busca
   const confirmSearch = () => {
     setShowSearchConfirm(false);
     handleSearch();
@@ -304,7 +304,7 @@ export default function AddressMapModal({
           setMarkerPosition(newPosition);
           setCenter(newPosition);
           setSearchResult(`Encontrado: ${result.results[0].formatted_address}`);
-          // Resetar edição manual pois é resultado de busca automática
+          // Resetar ediÃ§Ã£o manual pois Ã© resultado de busca automÃ¡tica
           setIsEditedInSession(false);
         } else {
           setSearchResult('Nenhum resultado encontrado');
@@ -321,14 +321,14 @@ export default function AddressMapModal({
           setMarkerPosition(newPosition);
           setCenter(newPosition);
           setSearchResult(`Encontrado: ${result.display_name}`);
-          // Resetar edição manual pois é resultado de busca automática
+          // Resetar ediÃ§Ã£o manual pois Ã© resultado de busca automÃ¡tica
           setIsEditedInSession(false);
         } else {
           setSearchResult('Nenhum resultado encontrado');
         }
       }
     } catch {
-      setSearchResult('Erro ao buscar endereço');
+      setSearchResult('Erro ao buscar endereÃ§o');
 
       // Se falhou com Google Maps, tentar fallback
       if (!shouldUseFallback) {
@@ -347,13 +347,13 @@ export default function AddressMapModal({
   };
 
   const handleConfirm = () => {
-    // Validar se os valores são números válidos
+    // Validar se os valores sÃ£o nÃºmeros vÃ¡lidos
     if (isNaN(markerPosition.lat) || isNaN(markerPosition.lng)) {
-      console.error('Coordenadas inválidas!', markerPosition);
+      console.error('Coordenadas invÃ¡lidas!', markerPosition);
       return;
     }
 
-    // Arredondar para 6 dígitos decimais
+    // Arredondar para 6 dÃ­gitos decimais
     const roundedLat = Math.round(markerPosition.lat * 1000000) / 1000000;
     const roundedLng = Math.round(markerPosition.lng * 1000000) / 1000000;
 
@@ -361,14 +361,14 @@ export default function AddressMapModal({
     onClose();
   };
 
-  // Verificar se as coordenadas atuais correspondem ao endereço ao abrir o modal
+  // Verificar se as coordenadas atuais correspondem ao endereÃ§o ao abrir o modal
   useEffect(() => {
     const checkAddressCoordinates = async () => {
       if (isOpen && address && address.trim() !== '' && latitude && longitude) {
         const coords = await geocodeAddress(address, hasApiKey);
         if (coords) {
           setAddressCoordinates(coords);
-          // Se as coordenadas atuais são similares às do endereço, não é edição manual
+          // If current coordinates are similar to the address coordinates, this is not manual editing
           const areEqual = coordinatesAreEqual({ lat: latitude, lng: longitude }, coords);
           if (areEqual) {
             setIsEditedInSession(false);
@@ -381,11 +381,11 @@ export default function AddressMapModal({
   }, [isOpen, address, latitude, longitude, hasApiKey]);
 
   useEffect(() => {
-    // Apenas atualizar se temos coordenadas válidas e diferentes das atuais
+    // Apenas atualizar se temos coordenadas vÃ¡lidas e diferentes das atuais
     if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
       const newPosition = { lat: latitude, lng: longitude };
 
-      // Verificar se é realmente diferente para evitar atualizações desnecessárias
+      // Verificar se Ã© realmente diferente para evitar atualizaÃ§Ãµes desnecessÃ¡rias
       if (
         Math.abs(newPosition.lat - markerPosition.lat) > 0.000001 ||
         Math.abs(newPosition.lng - markerPosition.lng) > 0.000001
@@ -395,20 +395,20 @@ export default function AddressMapModal({
       }
     }
 
-    // Resetar estado de edição quando modal abrir
+    // Resetar estado de ediÃ§Ã£o quando modal abrir
     if (isOpen) {
       setIsEditedInSession(false);
     }
   }, [latitude, longitude, isOpen, markerPosition.lat, markerPosition.lng]);
 
-  // Sincronizar centro do mapa com posição do marcador
+  // Sincronizar centro do mapa com posiÃ§Ã£o do marcador
   useEffect(() => {
     setCenter(markerPosition);
   }, [markerPosition]);
 
-  // Buscar endereço automaticamente quando o modal abrir com um endereço, mas SÓ se não houver coordenadas já definidas
+  // Buscar endereÃ§o automaticamente quando o modal abrir com um endereÃ§o, mas SÃ“ se nÃ£o houver coordenadas jÃ¡ definidas
   useEffect(() => {
-    // Só buscar automaticamente se não há coordenadas já definidas
+    // SÃ³ buscar automaticamente se nÃ£o hÃ¡ coordenadas jÃ¡ definidas
     if (isOpen && address && address.trim() !== '' && (!latitude || !longitude)) {
       const timer = setTimeout(() => {
         handleSearch();
@@ -418,7 +418,7 @@ export default function AddressMapModal({
   }, [isOpen, address, latitude, longitude, shouldUseFallback, isLoaded, hasApiKey, handleSearch]);
 
   // Executar busca para exibir marcador quando o modal abrir com coordenadas
-  // Posiciona nas coordenadas SALVAS e depois faz busca só para comparação
+  // Posiciona nas coordenadas SALVAS e depois faz busca sÃ³ para comparaÃ§Ã£o
   useEffect(() => {
     if (isOpen && latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
       const timer = setTimeout(async () => {
@@ -427,10 +427,10 @@ export default function AddressMapModal({
         setMarkerPosition(savedPosition);
         setCenter(savedPosition);
 
-        // Forçar re-render do marcador incrementando a key
+        // ForÃ§ar re-render do marcador incrementando a key
         setMarkerKey((prev) => prev + 1);
 
-        // Se tem endereço, buscar coordenadas do endereço para comparar (não para usar)
+        // Se tem endereÃ§o, buscar coordenadas do endereÃ§o para comparar (nÃ£o para usar)
         if (address && address.trim() !== '') {
           try {
             const coords = await geocodeAddress(address, hasApiKey);
@@ -440,7 +440,7 @@ export default function AddressMapModal({
               setIsEditedInSession(!areEqual);
             }
           } catch {
-            // Erro ao verificar endereço
+            // Erro ao verificar endereÃ§o
           }
         }
       }, 800);
@@ -456,7 +456,7 @@ export default function AddressMapModal({
       <div className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-lg dark:bg-gray-900">
         <div className="border-b border-gray-200 p-6 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Localizar Endereço no Mapa
+            Localizar EndereÃ§o no Mapa
           </h2>
         </div>
 
@@ -484,7 +484,7 @@ export default function AddressMapModal({
                       Usando mapa alternativo
                     </h3>
                     <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                      O Google Maps não está disponível. Usando OpenStreetMap como alternativa.
+                      O Google Maps nÃ£o estÃ¡ disponÃ­vel. Usando OpenStreetMap como alternativa.
                       {hasApiKey && (
                         <button
                           onClick={() => {
@@ -506,7 +506,7 @@ export default function AddressMapModal({
                 <div className="flex items-end gap-2">
                   <div className="flex-1">
                     <Input
-                      placeholder="Digite um endereço para buscar..."
+                      placeholder="Digite um endereÃ§o para buscar..."
                       value={searchAddress}
                       onChange={(e) => setSearchAddress(e.target.value)}
                       onKeyPress={(e) => {
@@ -516,7 +516,7 @@ export default function AddressMapModal({
                       }}
                     />
                   </div>
-                  <ButtonNew
+                  <Button
                     type="button"
                     onClick={handleSearchWithConfirm}
                     disabled={isSearching}
@@ -574,7 +574,7 @@ export default function AddressMapModal({
                 <div className="flex items-end gap-2">
                   <div className="flex-1">
                     <Input
-                      placeholder="Digite um endereço para buscar..."
+                      placeholder="Digite um endereÃ§o para buscar..."
                       value={searchAddress}
                       onChange={(e) => setSearchAddress(e.target.value)}
                       onKeyPress={(e) => {
@@ -584,7 +584,7 @@ export default function AddressMapModal({
                       }}
                     />
                   </div>
-                  <ButtonNew
+                  <Button
                     type="button"
                     onClick={handleSearchWithConfirm}
                     disabled={!isLoaded || isSearching}
@@ -597,7 +597,7 @@ export default function AddressMapModal({
                 {/* Dica */}
                 <div className="px-4 text-xs text-gray-600 dark:text-gray-400">
                   <strong>Dica:</strong> Clique no mapa para definir o ponto ou arraste o marcador
-                  para ajustar a posição.
+                  para ajustar a posiÃ§Ã£o.
                 </div>
               </div>
 
@@ -629,7 +629,7 @@ export default function AddressMapModal({
                       draggable={true}
                       onDragEnd={handleMarkerDragEnd}
                       onLoad={(marker) => {
-                        // Forçar visibilidade
+                        // ForÃ§ar visibilidade
                         marker.setVisible(true);
                       }}
                       visible={true}
@@ -643,10 +643,10 @@ export default function AddressMapModal({
           )}
         </div>
 
-        {/* Rodapé com coordenadas e botões */}
+        {/* RodapÃ© com coordenadas e botÃµes */}
         <div className="border-t border-gray-200 p-6 dark:border-gray-700">
           <div className="flex items-start justify-between gap-6">
-            {/* Coordenadas à esquerda com indicador de origem */}
+            {/* Coordinates on the left with source indicator */}
             <div className="flex items-start gap-8">
               <div>
                 <span className="font-xs text-gray-600 dark:text-gray-400">Latitude:</span>
@@ -664,16 +664,16 @@ export default function AddressMapModal({
               {/* Indicador de origem das coordenadas */}
               <div className="mt-3 flex items-center">
                 {(() => {
-                  // Se foi editado nesta sessão, é manual
+                  // Se foi editado nesta sessÃ£o, Ã© manual
                   if (isEditedInSession) return true;
 
-                  // Se já estava marcado como manual anteriormente e temos coordenadas do endereço para comparar
+                  // Se jÃ¡ estava marcado como manual anteriormente e temos coordenadas do endereÃ§o para comparar
                   if (isManuallyEdited && addressCoordinates) {
-                    // Verificar se as coordenadas atuais ainda são diferentes das do endereço
+                    // Verificar se as coordenadas atuais ainda sÃ£o diferentes das do endereÃ§o
                     return !coordinatesAreEqual(markerPosition, addressCoordinates);
                   }
 
-                  // Se não foi marcado como manual anteriormente, é automático
+                  // Se nÃ£o foi marcado como manual anteriormente, Ã© automÃ¡tico
                   return false;
                 })() ? (
                   <div
@@ -692,7 +692,7 @@ export default function AddressMapModal({
                 ) : (
                   <div
                     className="flex items-center rounded-md bg-green-50 px-2 py-1 text-green-600 dark:bg-green-900/20 dark:text-green-400"
-                    title="Coordenadas obtidas automaticamente do endereço"
+                    title="Coordenadas obtidas automaticamente do endereÃ§o"
                   >
                     <svg className="mr-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                       <path
@@ -701,54 +701,54 @@ export default function AddressMapModal({
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="text-xs font-medium">Localização Automática</span>
+                    <span className="text-xs font-medium">LocalizaÃ§Ã£o AutomÃ¡tica</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Botões à direita */}
+            {/* Buttons on the right */}
             <div className="flex gap-4">
-              <ButtonNew
+              <Button
                 type="button"
                 variant="neutral"
                 onClick={onClose}
                 showIcon={false}
                 label="Cancelar"
               />
-              <ButtonNew
+              <Button
                 type="button"
                 onClick={handleConfirm}
                 showIcon={false}
-                label="Confirmar Localização"
+                label="Confirmar LocalizaÃ§Ã£o"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal de Confirmação de Busca */}
+      {/* Modal de ConfirmaÃ§Ã£o de Busca */}
       <Modal
         isOpen={showSearchConfirm}
         onClose={() => setShowSearchConfirm(false)}
-        title="Localização Manual Detectada"
+        title="LocalizaÃ§Ã£o Manual Detectada"
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Você possui uma localização salva manualmente. Ao buscar o endereço, as coordenadas atuais
-          serão substituídas pelas novas coordenadas encontradas.
+          VocÃª possui uma localizaÃ§Ã£o salva manualmente. Ao buscar o endereÃ§o, as coordenadas
+          atuais serÃ£o substituÃ­das pelas novas coordenadas encontradas.
         </p>
         <p className="mt-2 text-gray-600 dark:text-gray-400">Deseja continuar com a busca?</p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="neutral"
             onClick={() => setShowSearchConfirm(false)}
             showIcon={false}
             label="Cancelar"
           />
-          <ButtonNew
+          <Button
             type="button"
             onClick={confirmSearch}
             showIcon={false}

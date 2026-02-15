@@ -1,10 +1,10 @@
-import { useState, useMemo, useCallback } from 'react';
+﻿import { useState, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import { format, parse } from 'date-fns';
 import {
   Card,
-  ButtonNew,
+  Button,
   DataTable,
   Modal,
   ModalFooter,
@@ -326,7 +326,7 @@ export default function PrescriptionsPage() {
       },
       {
         accessorKey: 'period',
-        header: 'Período',
+        header: 'PerÃ­odo',
         cell: ({ row }) => {
           const start = row.original.start_date;
           const end = row.original.end_date;
@@ -402,9 +402,9 @@ export default function PrescriptionsPage() {
   const prescriptionTypeOptions = [
     {
       value: 'medical',
-      label: 'Médica',
+      label: 'MÃ©dica',
       icon: ClipboardList,
-      description: 'Prescrição médica tradicional',
+      description: 'PrescriÃ§Ã£o mÃ©dica tradicional',
     },
     {
       value: 'nursing',
@@ -414,9 +414,9 @@ export default function PrescriptionsPage() {
     },
     {
       value: 'nutrition',
-      label: 'Nutrição',
+      label: 'NutriÃ§Ã£o',
       icon: FlaskConical,
-      description: 'Dietas e suplementação nutricional',
+      description: 'Dietas e suplementaÃ§Ã£o nutricional',
     },
   ];
 
@@ -426,10 +426,10 @@ export default function PrescriptionsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            Prescrições
+            PrescriÃ§Ãµes
           </h1>
         </div>
-        <ButtonNew onClick={openCreateModal} variant="solid" label="Nova Prescrição" />
+        <Button onClick={openCreateModal} variant="solid" label="Nova PrescriÃ§Ã£o" />
       </div>
 
       {/* Stats Cards */}
@@ -462,13 +462,13 @@ export default function PrescriptionsPage() {
       {/* Table */}
       <Card padding="none">
         <div className="space-y-4 p-6">
-          {/* Barra de pesquisa e botão de filtros */}
+          {/* Barra de pesquisa e botÃ£o de filtros */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por paciente, profissional ou observações..."
+                placeholder="Buscar por paciente, profissional ou observaÃ§Ãµes..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
@@ -476,7 +476,7 @@ export default function PrescriptionsPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <ButtonNew
+              <Button
                 onClick={handleSearch}
                 variant="outline"
                 size="md"
@@ -502,7 +502,7 @@ export default function PrescriptionsPage() {
                 className="min-w-24 justify-center"
               />
               {hasActiveFilters && (
-                <ButtonNew
+                <Button
                   onClick={clearFilters}
                   variant="outline"
                   size="md"
@@ -525,9 +525,9 @@ export default function PrescriptionsPage() {
                   label="Tipo"
                   options={[
                     { value: '', label: 'Todos' },
-                    { value: 'medical', label: 'Médica' },
+                    { value: 'medical', label: 'MÃ©dica' },
                     { value: 'nursing', label: 'Enfermagem' },
-                    { value: 'nutrition', label: 'Nutrição' },
+                    { value: 'nutrition', label: 'NutriÃ§Ã£o' },
                   ]}
                   placeholder="Selecione..."
                   searchPlaceholder="Buscar tipo..."
@@ -560,7 +560,7 @@ export default function PrescriptionsPage() {
                 />
 
                 <DatePicker
-                  label="Período (de)"
+                  label="PerÃ­odo (de)"
                   value={periodStartFilter}
                   onChange={(value: any) => {
                     const nextValue =
@@ -570,7 +570,7 @@ export default function PrescriptionsPage() {
                 />
 
                 <DatePicker
-                  label="Período (até)"
+                  label="PerÃ­odo (atÃ©)"
                   value={periodEndFilter}
                   onChange={(value: any) => {
                     const nextValue =
@@ -591,10 +591,10 @@ export default function PrescriptionsPage() {
               hasActiveFilters ? (
                 <EmptyState
                   icon={<Funnel className="h-12 w-12 text-gray-400" />}
-                  title="Nenhuma prescrição encontrada"
-                  description="Nenhuma prescrição corresponde aos filtros selecionados"
+                  title="Nenhuma prescriÃ§Ã£o encontrada"
+                  description="Nenhuma prescriÃ§Ã£o corresponde aos filtros selecionados"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={clearFilters}
                       variant="solid"
                       size="sm"
@@ -605,14 +605,14 @@ export default function PrescriptionsPage() {
                 />
               ) : (
                 <EmptyState
-                  title="Nenhuma prescrição encontrada"
-                  description="Crie uma nova prescrição para começar"
+                  title="Nenhuma prescriÃ§Ã£o encontrada"
+                  description="Crie uma nova prescriÃ§Ã£o para comeÃ§ar"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
-                      label="Nova Prescrição"
+                      label="Nova PrescriÃ§Ã£o"
                     />
                   }
                 />
@@ -626,12 +626,12 @@ export default function PrescriptionsPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeFormModal}
-        title={editingPrescription ? 'Editar Prescrição' : 'Nova Prescrição'}
+        title={editingPrescription ? 'Editar PrescriÃ§Ã£o' : 'Nova PrescriÃ§Ã£o'}
         size="lg"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Select
-            label="Tipo de Prescrição"
+            label="Tipo de PrescriÃ§Ã£o"
             options={prescriptionTypeOptions}
             value={watchType}
             {...register('type')}
@@ -644,7 +644,7 @@ export default function PrescriptionsPage() {
             placeholder="Selecione o paciente..."
             searchPlaceholder="Buscar paciente..."
             value={watchPatientId || ''}
-            {...register('patient_id', { required: 'Paciente é obrigatório' })}
+            {...register('patient_id', { required: 'Paciente Ã© obrigatÃ³rio' })}
             error={errors.patient_id?.message}
             required
           />
@@ -655,38 +655,38 @@ export default function PrescriptionsPage() {
             placeholder="Selecione o profissional..."
             searchPlaceholder="Buscar profissional..."
             value={watchProfessionalId || ''}
-            {...register('professional_id', { required: 'Profissional é obrigatório' })}
+            {...register('professional_id', { required: 'Profissional Ã© obrigatÃ³rio' })}
             error={errors.professional_id?.message}
             required
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <DatePicker label="Data de Início" {...startDateField} ref={startDateRef} />
-            <DatePicker label="Data de Término" {...endDateField} ref={endDateRef} />
+            <DatePicker label="Data de InÃ­cio" {...startDateField} ref={startDateRef} />
+            <DatePicker label="Data de TÃ©rmino" {...endDateField} ref={endDateRef} />
           </div>
 
           <Select label="Status" options={statusOptions} {...register('status')} />
 
           <Textarea
-            label="Observações"
-            placeholder="Observações gerais sobre a prescrição..."
+            label="ObservaÃ§Ãµes"
+            placeholder="ObservaÃ§Ãµes gerais sobre a prescriÃ§Ã£o..."
             {...register('notes')}
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={closeFormModal}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
               disabled={createPrescription.isPending || updatePrescription.isPending}
-              label={editingPrescription ? 'Salvar Alterações' : 'Criar e Adicionar Itens'}
+              label={editingPrescription ? 'Salvar AlteraÃ§Ãµes' : 'Criar e Adicionar Itens'}
             />
           </ModalFooter>
         </form>
@@ -696,23 +696,23 @@ export default function PrescriptionsPage() {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Excluir Prescrição"
+        title="Excluir PrescriÃ§Ã£o"
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja excluir esta prescrição? Todos os itens também serão removidos.
-          Esta ação não pode ser desfeita.
+          Tem certeza que deseja excluir esta prescriÃ§Ã£o? Todos os itens tambÃ©m serÃ£o removidos.
+          Esta aÃ§Ã£o nÃ£o pode ser desfeita.
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
             onClick={() => setIsDeleteModalOpen(false)}
             label="Cancelar"
           />
-          <ButtonNew
+          <Button
             type="button"
             variant="danger"
             onClick={handleDelete}
