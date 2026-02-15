@@ -38,7 +38,7 @@ npm run dev:aurea
 Banco continua remoto. Se você ou seu colega precisar resetar:
 
 ```bash
-# ⚠️ Avise seu colega primeiro!
+# ⚠️ Avise seus colegas primeiro!
 supabase db reset --linked
 npm run dev:aurea
 ```
@@ -51,7 +51,7 @@ npm run dev:aurea
 | ---------------------------- | ----------------------------------------------------- |
 | `npm run dev:aurea`          | Inicia desenvolvimento                                |
 | `npm run dev:wl`             | White Label                                           |
-| `supabase db reset --linked` | Apaga tudo, recria (⚠️ destrutivo, avise seu colega!) |
+| `supabase db reset --linked` | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
 | `npm run db:migrate:aurea`   | Aplica migrations (safe)                              |
 | `npm run db:seed:dev:aurea`  | Popula dados de teste                                 |
 | `supabase projects list`     | Lista projetos configurados                           |
