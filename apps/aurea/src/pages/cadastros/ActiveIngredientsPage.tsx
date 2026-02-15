@@ -202,8 +202,11 @@ export default function ActiveIngredientsPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={() => setIsImportModalOpen(true)}>
-            <Download className="h-5 w-5" />
+          <Button
+            variant="neutral"
+            icon={<Download className="mr-1 h-4 w-4" />}
+            onClick={() => setIsImportModalOpen(true)}
+          >
             Importar do CMED
           </Button>
           <Button onClick={openCreateModal} variant="solid" label="Novo Princípio Ativo" />

@@ -277,7 +277,7 @@ export default function ManufacturersPage() {
             variant="neutral"
             onClick={() => setIsSyncModalOpen(true)}
             disabled={!canSync}
-            icon={<RefreshCw className="h-4 w-4" />}
+            icon={<RefreshCw className="mr-1 h-4 w-4" />}
             title={
               !canSync
                 ? 'Importe CMED e Brasíndice nas Tabelas de Referência para habilitar'

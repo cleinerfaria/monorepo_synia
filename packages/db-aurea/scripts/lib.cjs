@@ -2,9 +2,9 @@
 const path = require('node:path')
 
 const PROJECT = 'aurea'
-const DB_URL_ENV = 'AUREA_DB_URL'
-const SUPABASE_URL_ENV = 'AUREA_SUPABASE_URL'
-const SERVICE_ROLE_ENV = 'AUREA_SUPABASE_SERVICE_ROLE_KEY'
+const DB_URL_ENV = 'DB_URL'
+const SUPABASE_URL_ENV = 'VITE_SUPABASE_URL'
+const SERVICE_ROLE_ENV = 'SUPABASE_SERVICE_ROLE_KEY'
 const APP_DIR = path.resolve(__dirname, '..')
 
 function requireEnv(name) {
@@ -172,12 +172,12 @@ async function seedAureaDev() {
 
   const { supabaseUrl, serviceRoleKey } = getSupabaseConfig()
   const companyDocument = '11.111.111/0001-11'
-  const adminEmail = process.env.AUREA_E2E_ADMIN_EMAIL || 'e2e.admin@aurea.local'
-  const adminPassword = process.env.AUREA_E2E_ADMIN_PASSWORD || 'AureaE2E!123'
-  const managerEmail = process.env.AUREA_E2E_MANAGER_EMAIL || 'e2e.manager@aurea.local'
-  const managerPassword = process.env.AUREA_E2E_MANAGER_PASSWORD || 'AureaE2E!123'
-  const userEmail = process.env.AUREA_E2E_USER_EMAIL || 'e2e.user@aurea.local'
-  const userPassword = process.env.AUREA_E2E_USER_PASSWORD || 'AureaE2E!123'
+  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'e2e.admin@aurea.local'
+  const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'AureaE2E!123'
+  const managerEmail = process.env.E2E_MANAGER_EMAIL || 'e2e.manager@aurea.local'
+  const managerPassword = process.env.E2E_MANAGER_PASSWORD || 'AureaE2E!123'
+  const userEmail = process.env.E2E_USER_EMAIL || 'e2e.user@aurea.local'
+  const userPassword = process.env.E2E_USER_PASSWORD || 'AureaE2E!123'
 
   await upsertRows({
     supabaseUrl,
