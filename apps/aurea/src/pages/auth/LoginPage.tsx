@@ -195,7 +195,14 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
+              <Button
+                type="submit"
+                variant="solid"
+                showIcon={false}
+                className="w-full"
+                size="lg"
+                isLoading={isSubmitting}
+              >
                 Entrar
               </Button>
             </form>

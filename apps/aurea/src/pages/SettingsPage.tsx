@@ -390,7 +390,7 @@ export default function SettingsPage() {
   ];
 
   const colorOptions = [
-    { name: 'Gold', value: '#D4AF37' },
+    { name: 'Azure', value: '#1aa2ff' },
     { name: 'Blue', value: '#3B82F6' },
     { name: 'Green', value: '#10B981' },
     { name: 'Purple', value: '#8B5CF6' },

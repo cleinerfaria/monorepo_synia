@@ -10,18 +10,19 @@
    ===================================================== */
 
 :root {
-  /* Primary color - Indigo Blue */
-  --color-primary-50: 238 242 255;
-  --color-primary-100: 224 231 255;
-  --color-primary-200: 199 210 254;
-  --color-primary-300: 165 180 252;
-  --color-primary-400: 129 140 248;
-  --color-primary-500: 99 102 241;
-  --color-primary-600: 79 70 229;
-  --color-primary-700: 67 56 202;
-  --color-primary-800: 55 48 163;
-  --color-primary-900: 49 46 129;
-  --color-primary-950: 30 27 75;
+  /* Primary color - Bright Blue (#1aa2ff) */
+  --color-primary-default: 26 162 255;
+  --color-primary-50: 240 248 255;
+  --color-primary-100: 219 240 255;
+  --color-primary-200: 179 224 255;
+  --color-primary-300: 140 209 255;
+  --color-primary-400: 87 188 255;
+  --color-primary-500: 26 162 255;
+  --color-primary-600: 0 147 241;
+  --color-primary-700: 0 118 204;
+  --color-primary-800: 0 88 153;
+  --color-primary-900: 0 59 102;
+  --color-primary-950: 0 35 61;
 
   /* Surface */
   --bg-canvas: 248 250 252;

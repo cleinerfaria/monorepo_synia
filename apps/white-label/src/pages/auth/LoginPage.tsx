@@ -284,7 +284,6 @@ export default function LoginPage() {
 
               <div style={loginPrimaryVars} className="[&>div]:w-full">
                 <Button
-                  type="submit"
                   label={isSubmitting ? 'Entrando...' : 'Entrar'}
                   variant="solid"
                   size="lg"
