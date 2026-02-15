@@ -1,5 +1,5 @@
 import { type ComponentPropsWithoutRef } from 'react'
-import { createButton } from '@synia/ui'
+import { createButton } from './Button'
 
 const baseStyles =
   'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -22,9 +22,9 @@ const sizes = {
   lg: 'px-6 py-3 text-base gap-2.5',
 } as const
 
-export const Button = createButton(
+export const ActionButton = createButton(
   { base: baseStyles, variants, sizes },
   { variant: 'primary', size: 'md' }
 )
 
-export type ButtonProps = ComponentPropsWithoutRef<typeof Button>
+export type ActionButtonProps = ComponentPropsWithoutRef<typeof ActionButton>

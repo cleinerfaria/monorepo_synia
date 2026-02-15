@@ -1,6 +1,6 @@
-﻿import { useState, useMemo, useEffect } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useEffect } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
@@ -15,67 +15,67 @@ import {
   StatusBadge,
   EmptyState,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useEquipment,
   useCreateEquipment,
   useUpdateEquipment,
   useDeleteEquipment,
   useAssignEquipment,
-} from '@/hooks/useEquipment'
-import { usePatients } from '@/hooks/usePatients'
-import { useForm } from 'react-hook-form'
-import type { Equipment } from '@/types/database'
+} from '@/hooks/useEquipment';
+import { usePatients } from '@/hooks/usePatients';
+import { useForm } from 'react-hook-form';
+import type { Equipment } from '@/types/database';
 
 interface EquipmentFormData {
-  code: string
-  name: string
-  serial_number: string
-  patrimony_code: string
-  description: string
-  status: 'available' | 'in_use' | 'maintenance' | 'inactive'
+  code: string;
+  name: string;
+  serial_number: string;
+  patrimony_code: string;
+  description: string;
+  status: 'available' | 'in_use' | 'maintenance' | 'inactive';
 }
 
 export default function EquipmentPage() {
-  const [searchInput, setSearchInput] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
-  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
-  const [selectedPatientId, setSelectedPatientId] = useState('')
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState('');
 
-  const { data: equipment = [], isLoading } = useEquipment()
-  const { data: patients = [] } = usePatients()
-  const createEquipment = useCreateEquipment()
-  const updateEquipment = useUpdateEquipment()
-  const deleteEquipment = useDeleteEquipment()
-  const assignEquipment = useAssignEquipment()
+  const { data: equipment = [], isLoading } = useEquipment();
+  const { data: patients = [] } = usePatients();
+  const createEquipment = useCreateEquipment();
+  const updateEquipment = useUpdateEquipment();
+  const deleteEquipment = useDeleteEquipment();
+  const assignEquipment = useAssignEquipment();
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<EquipmentFormData>()
+  } = useForm<EquipmentFormData>();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setSearchTerm(searchInput.trim())
-    }, 300)
+      setSearchTerm(searchInput.trim());
+    }, 300);
 
-    return () => clearTimeout(timeout)
-  }, [searchInput])
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
 
-  const hasActiveSearch = searchTerm.trim().length > 0
+  const hasActiveSearch = searchTerm.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-    setSearchTerm('')
-  }
+    setSearchInput('');
+    setSearchTerm('');
+  };
 
   const openAddModal = () => {
-    setSelectedEquipment(null)
+    setSelectedEquipment(null);
     reset({
       code: '',
       name: '',
@@ -83,12 +83,12 @@ export default function EquipmentPage() {
       patrimony_code: '',
       description: '',
       status: 'available',
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = (item: Equipment) => {
-    setSelectedEquipment(item)
+    setSelectedEquipment(item);
     reset({
       code: item.code || '',
       name: item.name,
@@ -96,20 +96,20 @@ export default function EquipmentPage() {
       patrimony_code: item.patrimony_code || '',
       description: item.description || '',
       status: item.status as EquipmentFormData['status'],
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openDeleteModal = (item: Equipment) => {
-    setSelectedEquipment(item)
-    setIsDeleteModalOpen(true)
-  }
+    setSelectedEquipment(item);
+    setIsDeleteModalOpen(true);
+  };
 
   const openAssignModal = (item: Equipment) => {
-    setSelectedEquipment(item)
-    setSelectedPatientId(item.assigned_patient_id || '')
-    setIsAssignModalOpen(true)
-  }
+    setSelectedEquipment(item);
+    setSelectedPatientId(item.assigned_patient_id || '');
+    setIsAssignModalOpen(true);
+  };
 
   const onSubmit = async (data: EquipmentFormData) => {
     const payload = {
@@ -119,43 +119,43 @@ export default function EquipmentPage() {
       patrimony_code: data.patrimony_code || null,
       description: data.description || null,
       status: data.status,
-    }
+    };
 
     if (selectedEquipment) {
       await updateEquipment.mutateAsync({
         id: selectedEquipment.id,
         ...payload,
-      })
+      });
     } else {
-      await createEquipment.mutateAsync(payload)
+      await createEquipment.mutateAsync(payload);
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const handleDelete = async () => {
     if (selectedEquipment) {
-      await deleteEquipment.mutateAsync(selectedEquipment.id)
-      setIsDeleteModalOpen(false)
+      await deleteEquipment.mutateAsync(selectedEquipment.id);
+      setIsDeleteModalOpen(false);
     }
-  }
+  };
 
   const handleAssign = async () => {
     if (selectedEquipment && selectedPatientId) {
       await assignEquipment.mutateAsync({
         id: selectedEquipment.id,
         patientId: selectedPatientId,
-      })
-      setIsAssignModalOpen(false)
+      });
+      setIsAssignModalOpen(false);
     }
-  }
+  };
 
   const handleUnassign = async (item: Equipment) => {
-    await assignEquipment.mutateAsync({ id: item.id, patientId: null })
-  }
+    await assignEquipment.mutateAsync({ id: item.id, patientId: null });
+  };
 
   const filteredEquipment = useMemo(() => {
-    if (!searchTerm) return equipment
-    const term = searchTerm.toLowerCase()
+    if (!searchTerm) return equipment;
+    const term = searchTerm.toLowerCase();
 
     return equipment.filter((item) => {
       const haystack = [
@@ -168,11 +168,11 @@ export default function EquipmentPage() {
       ]
         .filter(Boolean)
         .join(' ')
-        .toLowerCase()
+        .toLowerCase();
 
-      return haystack.includes(term)
-    })
-  }, [equipment, searchTerm])
+      return haystack.includes(term);
+    });
+  }, [equipment, searchTerm]);
 
   const columns: ColumnDef<any>[] = useMemo(
     () => [
@@ -256,19 +256,19 @@ export default function EquipmentPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   const statusOptions = [
     { value: 'available', label: 'Disponível' },
     { value: 'in_use', label: 'Em Uso' },
     { value: 'maintenance', label: 'Manutenção' },
     { value: 'inactive', label: 'Desativado' },
-  ]
+  ];
 
   const patientOptions = patients.map((p) => ({
     value: p.id,
     label: p.name,
-  }))
+  }));
 
   return (
     <div className="space-y-6">
@@ -281,7 +281,6 @@ export default function EquipmentPage() {
         </div>
         <ButtonNew onClick={openAddModal} variant="solid" label="Novo Equipamento" />
       </div>
-      \n {/* Table */}\r\n{' '}
       <Card padding="none">
         <div className="space-y-4 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -483,5 +482,5 @@ export default function EquipmentPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

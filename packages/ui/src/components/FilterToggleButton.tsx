@@ -1,11 +1,11 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { clsx } from 'clsx'
-import { ButtonNew } from '@synia/ui'
-import type { ButtonNewProps } from '@synia/ui'
+import { ButtonNew } from './ButtonNew'
+import type { ButtonNewProps } from './ButtonNew'
 
 type FilterToggleState = 'active' | 'inactive'
 
-interface FilterToggleButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface FilterToggleButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active: boolean
   count?: number
   icon: ReactNode

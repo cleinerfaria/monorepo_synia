@@ -1,7 +1,7 @@
 import { forwardRef, useState, useEffect, useCallback, useRef } from 'react'
 import { clsx } from 'clsx'
 
-interface SwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface SwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: string
   description?: string
   showStatus?: boolean

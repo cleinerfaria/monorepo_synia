@@ -13,7 +13,7 @@ interface BreadcrumbsProps {
   onNavigate?: (e: React.MouseEvent, href: string) => void
 }
 
-export function Breadcrumbs({ items, className, onNavigate }: BreadcrumbsProps) {
+export function RouterBreadcrumbs({ items, className, onNavigate }: BreadcrumbsProps) {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (onNavigate) {
       onNavigate(e, href)
