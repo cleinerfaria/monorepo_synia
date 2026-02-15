@@ -639,7 +639,7 @@ function CompanyDatabasesTab({ companyId, databases, isLoading }: CompanyDatabas
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium text-gray-900 dark:text-white">{db.name}</h4>
                         {db.is_default && (
-                          <Badge variant="primary" className="text-xs">
+                          <Badge variant="info" className="text-xs">
                             Padrão
                           </Badge>
                         )}

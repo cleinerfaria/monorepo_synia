@@ -884,11 +884,8 @@ function CompaniesTab({
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {companies.map((company) => (
-            <div key={company.id}>
-              <Card
-                className="h-full cursor-pointer transition-shadow hover:shadow-lg"
-                onClick={() => onEnter(company)}
-              >
+            <div key={company.id} onClick={() => onEnter(company)}>
+              <Card className="h-full cursor-pointer transition-shadow hover:shadow-lg">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">

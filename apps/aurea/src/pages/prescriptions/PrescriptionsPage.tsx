@@ -14,7 +14,6 @@ import {
   Textarea,
   StatusBadge,
   EmptyState,
-  FilterToggleButton,
   getStatusBadgeConfig,
   IconButton,
   ColorBadge,
@@ -485,7 +484,8 @@ export default function PrescriptionsPage() {
                 label=""
                 className="w-9 justify-center pr-3"
               />
-              <FilterToggleButton
+              <Button
+                variant="filter"
                 active={Boolean(showFilters || hasActiveFilters)}
                 onClick={() => setShowFilters(!showFilters)}
                 icon={<Funnel className="mr-1 h-4 w-4" />}

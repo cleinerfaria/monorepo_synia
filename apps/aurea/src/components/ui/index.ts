@@ -10,7 +10,6 @@ export { IconButton } from '@synia/ui';
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@synia/ui';
 export { Modal, ModalFooter } from '@synia/ui';
 export { Badge, ColorBadge, StatusBadge } from '@synia/ui';
-export { FilterToggleButton } from '@synia/ui';
 export { TabButton } from '@synia/ui';
 export { BADGE_COLOR_PROFILE, BADGE_VARIANTS } from '@synia/ui';
 export { getStatusBadgeConfig } from '@synia/ui';

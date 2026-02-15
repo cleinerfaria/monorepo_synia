@@ -4,7 +4,6 @@ import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX } fro
 import {
   Card,
   Button,
-  Button,
   DataTable,
   ListPagination,
   Modal,

@@ -5,7 +5,6 @@ import { Plus, Pencil, Trash2, Package, Search, ExternalLink, FunnelX } from 'lu
 import {
   Card,
   Button,
-  Button,
   DataTable,
   ListPagination,
   Modal,

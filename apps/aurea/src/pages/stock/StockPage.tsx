@@ -16,7 +16,6 @@ import {
   Badge,
   Alert,
   EmptyState,
-  FilterToggleButton,
   TabButton,
 } from '@/components/ui';
 import {
@@ -802,7 +801,8 @@ export default function StockPage() {
                   className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 />
               </div>
-              <FilterToggleButton
+              <Button
+                variant="filter"
                 active={Boolean(showFilters || hasActiveFilters)}
                 onClick={() => setShowFilters(!showFilters)}
                 icon={<Filter className="h-5 w-5" />}

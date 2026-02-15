@@ -5,7 +5,6 @@ import { Pencil, Trash2, Search, UserIcon, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  Button,
   DataTable,
   ListPagination,
   Modal,

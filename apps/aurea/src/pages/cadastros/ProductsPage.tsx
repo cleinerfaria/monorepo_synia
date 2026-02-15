@@ -10,7 +10,6 @@ import {
   StatusBadge,
   EmptyState,
   SearchableSelect,
-  FilterToggleButton,
   IconButton,
 } from '@/components/ui';
 import { useProductsPaginated, useUpdateProduct } from '@/hooks/useProducts';
@@ -437,7 +436,8 @@ export default function ProductsPage() {
                 label=""
                 className="w-9 justify-center pr-3"
               />
-              <FilterToggleButton
+              <Button
+                variant="filter"
                 active={Boolean(showFilters || hasActiveFilters)}
                 onClick={() => setShowFilters(!showFilters)}
                 icon={<Funnel className="mr-1 h-4 w-4" />}

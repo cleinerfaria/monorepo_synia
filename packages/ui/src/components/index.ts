@@ -30,7 +30,6 @@ export { Alert } from './Alert'
 export { ListPagination } from './ListPagination'
 export { DEFAULT_LIST_PAGE_SIZE } from './Pagination'
 export { ActionButton } from './ActionButton'
-export { FilterToggleButton } from './FilterToggleButton'
 
 // Re-export types
 export type { InputProps } from './Input'
@@ -54,5 +53,4 @@ export type { AlertTone } from './Alert'
 export type { BadgeVariant } from './badgeProfile'
 export type { SwitchProps } from './Switch'
 export type { ActionButtonProps } from './ActionButton'
-export type { FilterToggleButtonProps } from './FilterToggleButton'
 

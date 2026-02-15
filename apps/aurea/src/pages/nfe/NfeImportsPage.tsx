@@ -15,7 +15,6 @@ import {
   DatePicker,
   SearchableSelect,
   Badge,
-  FilterToggleButton,
   IconButton,
 } from '@/components/ui';
 import {
@@ -412,7 +411,8 @@ export default function NfeImportsPage() {
             <Button variant="secondary" onClick={handleSearch}>
               Buscar
             </Button>
-            <FilterToggleButton
+            <Button
+              variant="filter"
               active={Boolean(showFilters || hasActiveFilters)}
               onClick={() => setShowFilters(!showFilters)}
               icon={<Filter className="h-5 w-5" />}
