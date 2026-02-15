@@ -1,16 +1,21 @@
-import { useState, useEffect } from 'react'
-import { Modal, Input, Button, Switch } from '@/components/ui'
-import { Company, useCreateCompany, useUpdateCompany, useDeleteCompany } from '@/hooks/useCompanies'
-import { DEFAULT_PRIMARY_COLOR } from '@/design-system/theme/constants'
-import { AlertTriangle } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { Modal, Input, Button, Switch } from '@/components/ui';
+import {
+  Company,
+  useCreateCompany,
+  useUpdateCompany,
+  useDeleteCompany,
+} from '@/hooks/useCompanies';
+import { DEFAULT_PRIMARY_COLOR } from '@/design-system/theme/constants';
+import { AlertTriangle } from 'lucide-react';
 interface CompanyModalProps {
-  isOpen: boolean
-  onClose: () => void
-  company: Company | null
+  isOpen: boolean;
+  onClose: () => void;
+  company: Company | null;
 }
 
 export default function CompanyModal({ isOpen, onClose, company }: CompanyModalProps) {
-  const isEditing = !!company
+  const isEditing = !!company;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,28 +23,29 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
     document: '',
     primary_color: DEFAULT_PRIMARY_COLOR,
     is_active: true,
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const createMutation = useCreateCompany()
-  const updateMutation = useUpdateCompany()
-  const deleteMutation = useDeleteCompany()
+  const createMutation = useCreateCompany();
+  const updateMutation = useUpdateCompany();
+  const deleteMutation = useDeleteCompany();
 
-  const isLoading = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending
+  const isLoading =
+    createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   const formatCnpj = (value: string) => {
-    const digits = value.replace(/\D/g, '').slice(0, 14)
-    if (digits.length <= 2) return digits
-    if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`
+    const digits = value.replace(/\D/g, '').slice(0, 14);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
     if (digits.length <= 8) {
-      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`
+      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
     }
     if (digits.length <= 12) {
-      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`
+      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
     }
-    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`
-  }
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+  };
 
   useEffect(() => {
     if (company) {
@@ -49,7 +55,7 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
         document: formatCnpj(company.document || ''),
         primary_color: company.primary_color || DEFAULT_PRIMARY_COLOR,
         is_active: company.is_active ?? true,
-      })
+      });
     } else {
       setFormData({
         name: '',
@@ -57,27 +63,27 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
         document: '',
         primary_color: DEFAULT_PRIMARY_COLOR,
         is_active: true,
-      })
+      });
     }
-    setErrors({})
-    setShowDeleteConfirm(false)
-  }, [company, isOpen])
+    setErrors({});
+    setShowDeleteConfirm(false);
+  }, [company, isOpen]);
 
   const validate = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Nome é obrigatório'
+      newErrors.name = 'Nome é obrigatório';
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!validate()) return
+    if (!validate()) return;
 
     try {
       if (isEditing) {
@@ -88,7 +94,7 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
           document: formData.document || undefined,
           primary_color: formData.primary_color,
           is_active: formData.is_active,
-        })
+        });
       } else {
         await createMutation.mutateAsync({
           name: formData.name,
@@ -96,26 +102,26 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
           document: formData.document || undefined,
           primary_color: formData.primary_color,
           is_active: formData.is_active,
-        })
+        });
       }
-      onClose()
+      onClose();
     } catch (error: any) {
-      console.error('Erro ao salvar empresa:', error)
-      setErrors({ submit: error.message || 'Erro ao salvar empresa' })
+      console.error('Erro ao salvar empresa:', error);
+      setErrors({ submit: error.message || 'Erro ao salvar empresa' });
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!company) return
+    if (!company) return;
 
     try {
-      await deleteMutation.mutateAsync(company.id)
-      onClose()
+      await deleteMutation.mutateAsync(company.id);
+      onClose();
     } catch (error: any) {
-      console.error('Erro ao excluir empresa:', error)
-      setErrors({ submit: error.message || 'Erro ao excluir empresa' })
+      console.error('Erro ao excluir empresa:', error);
+      setErrors({ submit: error.message || 'Erro ao excluir empresa' });
     }
-  }
+  };
 
   return (
     <Modal
@@ -261,5 +267,5 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
         </div>
       </form>
     </Modal>
-  )
+  );
 }

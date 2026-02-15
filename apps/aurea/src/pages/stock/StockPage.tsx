@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { format } from 'date-fns'
+import { useState, useMemo } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -18,7 +18,7 @@ import {
   EmptyState,
   FilterToggleButton,
   TabButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useStockBalance,
   useStockMovements,
@@ -29,14 +29,14 @@ import {
   useCreateStockLocation,
   useUpdateStockLocation,
   useDeleteStockLocation,
-} from '@/hooks/useStock'
-import { useStockBatches, getBatchStatus } from '@/hooks/useStockBatches'
-import { useProducts } from '@/hooks/useProducts'
-import { useManufacturers } from '@/hooks/useManufacturers'
-import { useForm } from 'react-hook-form'
-import type { StockLocation } from '@/types/database'
-import type { StockBatchWithRelations } from '@/hooks/useStockBatches'
-import { formatDateOnly } from '@/lib/dateOnly'
+} from '@/hooks/useStock';
+import { useStockBatches, getBatchStatus } from '@/hooks/useStockBatches';
+import { useProducts } from '@/hooks/useProducts';
+import { useManufacturers } from '@/hooks/useManufacturers';
+import { useForm } from 'react-hook-form';
+import type { StockLocation } from '@/types/database';
+import type { StockBatchWithRelations } from '@/hooks/useStockBatches';
+import { formatDateOnly } from '@/lib/dateOnly';
 import {
   Box,
   AlertTriangle,
@@ -51,20 +51,20 @@ import {
   Filter,
   Search,
   X,
-} from 'lucide-react'
-type ActiveTab = 'balance' | 'batches' | 'movements' | 'locations' | 'low-stock'
+} from 'lucide-react';
+type ActiveTab = 'balance' | 'batches' | 'movements' | 'locations' | 'low-stock';
 
 interface MovementFormData {
-  movement_type: 'in' | 'out' | 'adjustment' | 'consumption' | 'return'
-  product_id: string
-  stock_location_id: string
-  qty: number
-  unit_cost: number
-  reason: string
+  movement_type: 'in' | 'out' | 'adjustment' | 'consumption' | 'return';
+  product_id: string;
+  stock_location_id: string;
+  qty: number;
+  unit_cost: number;
+  reason: string;
 }
 
 interface LocationFormData {
-  name: string
+  name: string;
 }
 
 // Map form movement types to database movement types
@@ -72,93 +72,93 @@ const mapMovementType = (type: MovementFormData['movement_type']): 'IN' | 'OUT' 
   switch (type) {
     case 'in':
     case 'return':
-      return 'IN'
+      return 'IN';
     case 'out':
     case 'consumption':
-      return 'OUT'
+      return 'OUT';
     case 'adjustment':
-      return 'ADJUST'
+      return 'ADJUST';
   }
-}
+};
 
 export default function StockPage() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('balance')
-  const [selectedLocationId, setSelectedLocationId] = useState<string>('')
-  const [isMovementModalOpen, setIsMovementModalOpen] = useState(false)
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false)
-  const [isDeleteLocationModalOpen, setIsDeleteLocationModalOpen] = useState(false)
-  const [selectedLocation, setSelectedLocation] = useState<StockLocation | null>(null)
-  const [movementType, setMovementType] = useState<'in' | 'out'>('in')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('balance');
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
+  const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isDeleteLocationModalOpen, setIsDeleteLocationModalOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<StockLocation | null>(null);
+  const [movementType, setMovementType] = useState<'in' | 'out'>('in');
 
   // Filtros
-  const [searchFilter, setSearchFilter] = useState('')
-  const [typeFilter, setTypeFilter] = useState('')
-  const [manufacturerFilter, setManufacturerFilter] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [searchFilter, setSearchFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [manufacturerFilter, setManufacturerFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
-  const { data: stats } = useStockStats()
+  const { data: stats } = useStockStats();
   const { data: balance = [], isLoading: loadingBalance } = useStockBalance(
     selectedLocationId || undefined
-  )
+  );
   const { data: movements = [], isLoading: loadingMovements } = useStockMovements(
     selectedLocationId || undefined
-  )
-  const { data: lowStockItems = [], isLoading: loadingLowStock } = useLowStockItems()
-  const { data: locations = [], isLoading: loadingLocations } = useStockLocations()
+  );
+  const { data: lowStockItems = [], isLoading: loadingLowStock } = useLowStockItems();
+  const { data: locations = [], isLoading: loadingLocations } = useStockLocations();
   const { data: batches = [], isLoading: loadingBatches } = useStockBatches({
     locationId: selectedLocationId || undefined,
-  })
-  const { data: products = [] } = useProducts()
-  const { data: manufacturers = [] } = useManufacturers()
+  });
+  const { data: products = [] } = useProducts();
+  const { data: manufacturers = [] } = useManufacturers();
 
   // Filtragem do saldo de estoque
   const filteredBalance = useMemo(() => {
     return balance.filter((item) => {
       // Filtro de busca (nome ou concentração)
       if (searchFilter) {
-        const search = searchFilter.toLowerCase()
-        const nameMatch = item.product?.name?.toLowerCase().includes(search)
-        const concentrationMatch = item.product?.concentration?.toLowerCase().includes(search)
+        const search = searchFilter.toLowerCase();
+        const nameMatch = item.product?.name?.toLowerCase().includes(search);
+        const concentrationMatch = item.product?.concentration?.toLowerCase().includes(search);
         const manufacturerMatch = item.product?.manufacturer_rel?.name
           ?.toLowerCase()
-          .includes(search)
-        if (!nameMatch && !concentrationMatch && !manufacturerMatch) return false
+          .includes(search);
+        if (!nameMatch && !concentrationMatch && !manufacturerMatch) return false;
       }
 
       // Filtro por tipo
-      if (typeFilter && item.product?.item_type !== typeFilter) return false
+      if (typeFilter && item.product?.item_type !== typeFilter) return false;
 
       // Filtro por fabricante
       if (manufacturerFilter && item.product?.manufacturer_rel?.id !== manufacturerFilter)
-        return false
+        return false;
 
-      return true
-    })
-  }, [balance, searchFilter, typeFilter, manufacturerFilter])
+      return true;
+    });
+  }, [balance, searchFilter, typeFilter, manufacturerFilter]);
 
   const clearFilters = () => {
-    setSearchFilter('')
-    setTypeFilter('')
-    setManufacturerFilter('')
-  }
+    setSearchFilter('');
+    setTypeFilter('');
+    setManufacturerFilter('');
+  };
 
-  const hasActiveFilters = searchFilter || typeFilter || manufacturerFilter
+  const hasActiveFilters = searchFilter || typeFilter || manufacturerFilter;
 
   // Count expiring batches (within 30 days)
   const expiringBatchesCount = useMemo(() => {
     return batches.filter((b) => {
-      const status = getBatchStatus(b.expiration_date)
-      return status.status === 'expiring_soon' || status.status === 'expired'
-    }).length
-  }, [batches])
+      const status = getBatchStatus(b.expiration_date);
+      return status.status === 'expiring_soon' || status.status === 'expired';
+    }).length;
+  }, [batches]);
 
-  const createMovement = useCreateStockMovement()
-  const createLocation = useCreateStockLocation()
-  const updateLocation = useUpdateStockLocation()
-  const deleteLocation = useDeleteStockLocation()
+  const createMovement = useCreateStockMovement();
+  const createLocation = useCreateStockLocation();
+  const updateLocation = useUpdateStockLocation();
+  const deleteLocation = useDeleteStockLocation();
 
-  const movementForm = useForm<MovementFormData>()
-  const locationForm = useForm<LocationFormData>()
+  const movementForm = useForm<MovementFormData>();
+  const locationForm = useForm<LocationFormData>();
 
   const tabs = [
     { id: 'balance' as const, name: 'Saldo', icon: Box },
@@ -176,10 +176,10 @@ export default function StockPage() {
       icon: AlertTriangle,
       count: stats?.lowStockCount,
     },
-  ]
+  ];
 
   const openMovementModal = (type: 'in' | 'out') => {
-    setMovementType(type)
+    setMovementType(type);
     movementForm.reset({
       movement_type: type === 'in' ? 'in' : 'consumption',
       product_id: '',
@@ -187,28 +187,28 @@ export default function StockPage() {
       qty: 0,
       unit_cost: 0,
       reason: '',
-    })
-    setIsMovementModalOpen(true)
-  }
+    });
+    setIsMovementModalOpen(true);
+  };
 
   const openAddLocationModal = () => {
-    setSelectedLocation(null)
-    locationForm.reset({ name: '' })
-    setIsLocationModalOpen(true)
-  }
+    setSelectedLocation(null);
+    locationForm.reset({ name: '' });
+    setIsLocationModalOpen(true);
+  };
 
   const openEditLocationModal = (location: StockLocation) => {
-    setSelectedLocation(location)
+    setSelectedLocation(location);
     locationForm.reset({
       name: location.name,
-    })
-    setIsLocationModalOpen(true)
-  }
+    });
+    setIsLocationModalOpen(true);
+  };
 
   const openDeleteLocationModal = (location: StockLocation) => {
-    setSelectedLocation(location)
-    setIsDeleteLocationModalOpen(true)
-  }
+    setSelectedLocation(location);
+    setIsDeleteLocationModalOpen(true);
+  };
 
   const onSubmitMovement = async (data: MovementFormData) => {
     await createMovement.mutateAsync({
@@ -225,31 +225,31 @@ export default function StockPage() {
       presentation_id: null,
       batch_id: null,
       presentation_qty: null,
-    })
-    setIsMovementModalOpen(false)
-  }
+    });
+    setIsMovementModalOpen(false);
+  };
 
   const onSubmitLocation = async (data: LocationFormData) => {
     if (selectedLocation) {
       await updateLocation.mutateAsync({
         id: selectedLocation.id,
         name: data.name,
-      })
+      });
     } else {
       await createLocation.mutateAsync({
         name: data.name,
         active: true,
-      })
+      });
     }
-    setIsLocationModalOpen(false)
-  }
+    setIsLocationModalOpen(false);
+  };
 
   const handleDeleteLocation = async () => {
     if (selectedLocation) {
-      await deleteLocation.mutateAsync(selectedLocation.id)
-      setIsDeleteLocationModalOpen(false)
+      await deleteLocation.mutateAsync(selectedLocation.id);
+      setIsDeleteLocationModalOpen(false);
     }
-  }
+  };
 
   // Balance columns
   const balanceColumns: ColumnDef<any>[] = useMemo(
@@ -258,7 +258,7 @@ export default function StockPage() {
         accessorKey: 'product.name',
         header: 'Nome',
         cell: ({ row }) => {
-          const product = row.original.product
+          const product = row.original.product;
           return (
             <div>
               <p className="font-medium text-gray-900 dark:text-white">
@@ -270,7 +270,7 @@ export default function StockPage() {
                 )}
               </p>
             </div>
-          )
+          );
         },
       },
       {
@@ -293,17 +293,17 @@ export default function StockPage() {
               label: 'Dieta',
               variant: 'success',
             },
-          }
-          const itemType = row.original.product?.item_type
+          };
+          const itemType = row.original.product?.item_type;
           const type = typeLabels[itemType] || {
             label: itemType || '-',
             variant: 'neutral' as const,
-          }
+          };
           return (
             <div className="text-center">
               <Badge variant={type.variant}>{type.label}</Badge>
             </div>
-          )
+          );
         },
       },
       {
@@ -328,9 +328,9 @@ export default function StockPage() {
         accessorKey: 'qty_on_hand',
         header: 'Quantidade',
         cell: ({ row }) => {
-          const qty = row.original.qty_on_hand
-          const min = row.original.product?.min_stock
-          const isLow = min && qty < min
+          const qty = row.original.qty_on_hand;
+          const min = row.original.product?.min_stock;
+          const isLow = min && qty < min;
           return (
             <div className="flex items-center gap-2">
               <span
@@ -342,7 +342,7 @@ export default function StockPage() {
               </span>
               {isLow && <AlertTriangle className="text-feedback-danger-fg h-4 w-4" />}
             </div>
-          )
+          );
         },
       },
       {
@@ -363,7 +363,7 @@ export default function StockPage() {
         id: 'total',
         header: 'Valor Total',
         cell: ({ row }) => {
-          const total = (row.original.qty_on_hand || 0) * (row.original.avg_cost || 0)
+          const total = (row.original.qty_on_hand || 0) * (row.original.avg_cost || 0);
           return (
             <span className="font-medium text-gray-900 dark:text-white">
               {new Intl.NumberFormat('pt-BR', {
@@ -371,12 +371,12 @@ export default function StockPage() {
                 currency: 'BRL',
               }).format(total)}
             </span>
-          )
+          );
         },
       },
     ],
     []
-  )
+  );
 
   // Movement columns
   const movementColumns: ColumnDef<any>[] = useMemo(
@@ -408,7 +408,7 @@ export default function StockPage() {
         accessorKey: 'qty',
         header: 'Qtd',
         cell: ({ row }) => {
-          const isIn = ['in', 'return'].includes(row.original.movement_type)
+          const isIn = ['in', 'return'].includes(row.original.movement_type);
           return (
             <span
               className={`font-medium ${isIn ? 'text-feedback-success-fg' : 'text-feedback-danger-fg'}`}
@@ -416,7 +416,7 @@ export default function StockPage() {
               {isIn ? '+' : '-'}
               {row.original.qty} {row.original.product?.unit_stock?.code}
             </span>
-          )
+          );
         },
       },
       {
@@ -439,7 +439,7 @@ export default function StockPage() {
       },
     ],
     []
-  )
+  );
 
   // Location columns
   const locationColumns: ColumnDef<StockLocation>[] = useMemo(
@@ -473,7 +473,7 @@ export default function StockPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   // Low stock columns
   const lowStockColumns: ColumnDef<any>[] = useMemo(
@@ -521,17 +521,17 @@ export default function StockPage() {
         id: 'deficit',
         header: 'Déficit',
         cell: ({ row }) => {
-          const deficit = row.original.product?.min_stock - row.original.qty_on_hand
+          const deficit = row.original.product?.min_stock - row.original.qty_on_hand;
           return (
             <span className="text-feedback-danger-fg font-medium">
               {deficit} {row.original.product?.unit_stock?.code}
             </span>
-          )
+          );
         },
       },
     ],
     []
-  )
+  );
 
   // Batch columns
   const batchColumns: ColumnDef<StockBatchWithRelations>[] = useMemo(
@@ -584,13 +584,13 @@ export default function StockPage() {
         accessorKey: 'expiration_date',
         header: 'Validade',
         cell: ({ row }) => {
-          const status = getBatchStatus(row.original.expiration_date)
+          const status = getBatchStatus(row.original.expiration_date);
           const statusVariant = {
             valid: 'success',
             expiring_soon: 'warning',
             expired: 'danger',
             no_expiry: 'neutral',
-          } as const
+          } as const;
           return (
             <div className="flex flex-col gap-1">
               {row.original.expiration_date ? (
@@ -607,7 +607,7 @@ export default function StockPage() {
                 <span className="italic text-gray-500">Sem validade</span>
               )}
             </div>
-          )
+          );
         },
       },
       {
@@ -621,19 +621,19 @@ export default function StockPage() {
       },
     ],
     []
-  )
+  );
 
   const productOptions = products
     .filter((item) => item.active)
     .map((item) => ({
       value: item.id,
       label: `${item.name} (${item.unit_stock?.code || 'UN'})`,
-    }))
+    }));
 
   const locationOptions = locations.map((loc) => ({
     value: loc.id,
     label: loc.name,
-  }))
+  }));
 
   const movementTypeOptions =
     movementType === 'in'
@@ -645,7 +645,7 @@ export default function StockPage() {
           { value: 'out', label: 'Saída' },
           { value: 'consumption', label: 'Consumo' },
           { value: 'adjustment', label: 'Ajuste' },
-        ]
+        ];
 
   return (
     <div className="space-y-6">
@@ -1214,5 +1214,5 @@ export default function StockPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

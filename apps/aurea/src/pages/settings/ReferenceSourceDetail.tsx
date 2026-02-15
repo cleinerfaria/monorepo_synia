@@ -1,9 +1,9 @@
-import { useState, Fragment } from 'react'
-import { createPortal } from 'react-dom'
-import { Dialog, Transition, Tab } from '@headlessui/react'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { ColumnDef } from '@tanstack/react-table'
+import { useState, Fragment } from 'react';
+import { createPortal } from 'react-dom';
+import { Dialog, Transition, Tab } from '@headlessui/react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Button,
   DataTable,
@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   RefSourceWithStats,
   useRefImportBatches,
@@ -22,10 +22,10 @@ import {
   useRefCategories,
   useResetStuckImports,
   useDeleteImportBatch,
-} from '@/hooks/useReferenceTables'
-import type { RefItemWithPrices } from '@/hooks/useReferenceTables'
-import type { RefImportBatch } from '@/types/database'
-import ReferenceItemDetail from './ReferenceItemDetail'
+} from '@/hooks/useReferenceTables';
+import type { RefItemWithPrices } from '@/hooks/useReferenceTables';
+import type { RefImportBatch } from '@/types/database';
+import ReferenceItemDetail from './ReferenceItemDetail';
 import {
   X,
   Clock,
@@ -37,32 +37,32 @@ import {
   Search,
   Trash2,
   Ban,
-} from 'lucide-react'
+} from 'lucide-react';
 interface ReferenceSourceDetailProps {
-  source: RefSourceWithStats
-  isOpen: boolean
-  onClose: () => void
-  onImport: () => void
+  source: RefSourceWithStats;
+  isOpen: boolean;
+  onClose: () => void;
+  onImport: () => void;
 }
 
 function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
 // Helper function to format seconds to HH:MM:SS
 function formatDurationSeconds(seconds: number): string {
   if (seconds < 60) {
-    return `${seconds}s`
+    return `${seconds}s`;
   }
 
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
 
   if (hours > 0) {
-    return `${hours}h ${minutes}m ${secs}s`
+    return `${hours}h ${minutes}m ${secs}s`;
   }
-  return `${minutes}m ${secs}s`
+  return `${minutes}m ${secs}s`;
 }
 
 export default function ReferenceSourceDetail({
@@ -71,51 +71,51 @@ export default function ReferenceSourceDetail({
   onClose,
   onImport,
 }: ReferenceSourceDetailProps) {
-  const [selectedTab, setSelectedTab] = useState(0)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
-  const [selectedItem, setSelectedItem] = useState<RefItemWithPrices | null>(null)
-  const [deletingBatchId, setDeletingBatchId] = useState<string | null>(null)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [batchToDelete, setBatchToDelete] = useState<RefImportBatch | null>(null)
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedItem, setSelectedItem] = useState<RefItemWithPrices | null>(null);
+  const [deletingBatchId, setDeletingBatchId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [batchToDelete, setBatchToDelete] = useState<RefImportBatch | null>(null);
 
-  const { data: batches = [], isLoading: loadingBatches } = useRefImportBatches(source.id)
+  const { data: batches = [], isLoading: loadingBatches } = useRefImportBatches(source.id);
   const { data: items = [], isLoading: loadingItems } = useRefItems(source.id, {
     search: searchTerm || undefined,
     category: selectedCategory || undefined,
     isActive: true,
-  })
-  const { data: categories = [] } = useRefCategories(source.id)
-  const resetStuckImports = useResetStuckImports()
-  const deleteImportBatch = useDeleteImportBatch()
+  });
+  const { data: categories = [] } = useRefCategories(source.id);
+  const resetStuckImports = useResetStuckImports();
+  const deleteImportBatch = useDeleteImportBatch();
 
-  const hasStuckImports = batches.some((b) => b.status === 'running')
+  const hasStuckImports = batches.some((b) => b.status === 'running');
 
   const handleDeleteBatch = (batch: RefImportBatch) => {
-    setBatchToDelete(batch)
-    setShowDeleteConfirm(true)
-  }
+    setBatchToDelete(batch);
+    setShowDeleteConfirm(true);
+  };
 
   const confirmDelete = async () => {
-    if (!batchToDelete) return
+    if (!batchToDelete) return;
 
-    setDeletingBatchId(batchToDelete.id)
+    setDeletingBatchId(batchToDelete.id);
     try {
-      await deleteImportBatch.mutateAsync(batchToDelete.id)
-      setShowDeleteConfirm(false)
-      setBatchToDelete(null)
+      await deleteImportBatch.mutateAsync(batchToDelete.id);
+      setShowDeleteConfirm(false);
+      setBatchToDelete(null);
     } catch {
       // Erro tratado pelo toast no hook
     } finally {
-      setDeletingBatchId(null)
+      setDeletingBatchId(null);
     }
-  }
+  };
 
   const tabs = [
     { name: 'Importações', icon: Clock },
     { name: 'Itens / Preços', icon: Table },
     { name: 'Configuração', icon: Settings },
-  ]
+  ];
 
   // Import batch columns
   const batchColumns: ColumnDef<RefImportBatch>[] = [
@@ -148,7 +148,7 @@ export default function ReferenceSourceDetail({
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => {
-        const status = row.original.status
+        const status = row.original.status;
         const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
           success: {
             color: 'text-green-600 bg-green-100 dark:bg-green-900/30',
@@ -180,9 +180,9 @@ export default function ReferenceSourceDetail({
             icon: Ban,
             label: 'Cancelada',
           },
-        }
-        const config = statusConfig[status] || statusConfig.pending
-        const Icon = config.icon
+        };
+        const config = statusConfig[status] || statusConfig.pending;
+        const Icon = config.icon;
 
         return (
           <span
@@ -191,7 +191,7 @@ export default function ReferenceSourceDetail({
             <Icon className="h-3 w-3" />
             {config.label}
           </span>
-        )
+        );
       },
     },
     {
@@ -232,30 +232,30 @@ export default function ReferenceSourceDetail({
       id: 'duration',
       header: 'Duração',
       cell: ({ row }) => {
-        if (!row.original.started_at || !row.original.finished_at) return '-'
-        const start = new Date(row.original.started_at).getTime()
-        const end = new Date(row.original.finished_at).getTime()
-        const duration = Math.round((end - start) / 1000)
-        return <span className="text-sm">{formatDurationSeconds(duration)}</span>
+        if (!row.original.started_at || !row.original.finished_at) return '-';
+        const start = new Date(row.original.started_at).getTime();
+        const end = new Date(row.original.finished_at).getTime();
+        const duration = Math.round((end - start) / 1000);
+        return <span className="text-sm">{formatDurationSeconds(duration)}</span>;
       },
     },
     {
       id: 'actions',
       header: '',
       cell: ({ row }) => {
-        const batch = row.original
+        const batch = row.original;
         // Only show delete button for success or partial imports that haven't been cancelled or failed
-        const canDelete = batch.status === 'success' || batch.status === 'partial'
-        const isDeleting = deletingBatchId === batch.id
+        const canDelete = batch.status === 'success' || batch.status === 'partial';
+        const isDeleting = deletingBatchId === batch.id;
 
         // Don't show button if status doesn't allow deletion
-        if (!canDelete) return null
+        if (!canDelete) return null;
 
         return (
           <button
             onClick={(e) => {
-              e.stopPropagation()
-              handleDeleteBatch(batch)
+              e.stopPropagation();
+              handleDeleteBatch(batch);
             }}
             disabled={isDeleting}
             className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-red-900/30 dark:hover:text-red-400"
@@ -263,10 +263,10 @@ export default function ReferenceSourceDetail({
           >
             <Trash2 className={`h-4 w-4 ${isDeleting ? 'animate-pulse' : ''}`} />
           </button>
-        )
+        );
       },
     },
-  ]
+  ];
 
   // Item columns
   const itemColumns: ColumnDef<RefItemWithPrices>[] = [
@@ -315,12 +315,12 @@ export default function ReferenceSourceDetail({
       accessorKey: 'pf',
       header: 'PF',
       cell: ({ row }) => {
-        const prices = row.original.current_prices
+        const prices = row.original.current_prices;
         const pfPrice = prices?.find(
           (p: any) => p.price_type === 'PF' || p.price_type === 'pf' || p.price_type?.includes('PF')
-        )
+        );
         if (!pfPrice) {
-          return <span className="text-sm text-gray-500">-</span>
+          return <span className="text-sm text-gray-500">-</span>;
         }
         return (
           <span className="font-mono text-sm font-medium">
@@ -329,20 +329,20 @@ export default function ReferenceSourceDetail({
               currency: pfPrice.currency || 'BRL',
             }).format(pfPrice.price_value)}
           </span>
-        )
+        );
       },
     },
     {
       accessorKey: 'pmc',
       header: 'PMC',
       cell: ({ row }) => {
-        const prices = row.original.current_prices
+        const prices = row.original.current_prices;
         const pmcPrice = prices?.find(
           (p: any) =>
             p.price_type === 'PMC' || p.price_type === 'pmc' || p.price_type?.includes('PMC')
-        )
+        );
         if (!pmcPrice) {
-          return <span className="text-sm text-gray-500">-</span>
+          return <span className="text-sm text-gray-500">-</span>;
         }
         return (
           <span className="font-mono text-sm font-medium">
@@ -351,10 +351,10 @@ export default function ReferenceSourceDetail({
               currency: pmcPrice.currency || 'BRL',
             }).format(pmcPrice.price_value)}
           </span>
-        )
+        );
       },
     },
-  ]
+  ];
 
   return (
     <>
@@ -612,10 +612,10 @@ export default function ReferenceSourceDetail({
             <div
               className="fixed inset-0 bg-black/50 backdrop-blur-sm"
               onClick={(e) => {
-                e.stopPropagation()
+                e.stopPropagation();
                 if (deletingBatchId !== batchToDelete.id) {
-                  setShowDeleteConfirm(false)
-                  setBatchToDelete(null)
+                  setShowDeleteConfirm(false);
+                  setBatchToDelete(null);
                 }
               }}
             />
@@ -688,8 +688,8 @@ export default function ReferenceSourceDetail({
                             type="button"
                             className="rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                             onClick={() => {
-                              setShowDeleteConfirm(false)
-                              setBatchToDelete(null)
+                              setShowDeleteConfirm(false);
+                              setBatchToDelete(null);
                             }}
                           >
                             Cancelar
@@ -721,5 +721,5 @@ export default function ReferenceSourceDetail({
         />
       )}
     </>
-  )
+  );
 }

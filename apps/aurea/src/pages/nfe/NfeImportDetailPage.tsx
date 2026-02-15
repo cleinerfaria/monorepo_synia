@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ColumnDef } from '@tanstack/react-table'
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Card,
   Button,
@@ -16,9 +16,9 @@ import {
   Loading,
   LoadingOverlay,
   Breadcrumbs,
-} from '@/components/ui'
-import ProductModal from '@/components/product/ProductModal'
-import CmedSuggestionModal from '@/components/nfe/CmedSuggestionModal'
+} from '@/components/ui';
+import ProductModal from '@/components/product/ProductModal';
+import CmedSuggestionModal from '@/components/nfe/CmedSuggestionModal';
 import {
   useNfeImport,
   useNfeImportItems,
@@ -26,19 +26,19 @@ import {
   useUpdateNfeImport,
   useProcessNfeImport,
   useLinkNfeToSupplier,
-} from '@/hooks/useNfeImport'
-import { useProducts } from '@/hooks/useProducts'
-import { usePresentations, useCreatePresentation } from '@/hooks/usePresentations'
-import { useStockLocations } from '@/hooks/useStock'
-import { useSuppliers, useSupplierByDocument, useCreateSupplier } from '@/hooks/useSuppliers'
-import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure'
-import { useManufacturers, useCreateManufacturer } from '@/hooks/useManufacturers'
-import { fetchRefItemUnifiedByEan, fetchRefItemsBatchByEans } from '@/hooks/useReferenceTables'
-import { useNavigationGuard } from '@/contexts/NavigationGuardContext'
-import type { NfeImportItem, Product, RefItemUnified } from '@/types/database'
-import { useForm } from 'react-hook-form'
-import toast from 'react-hot-toast'
-import { formatDateOnly } from '@/lib/dateOnly'
+} from '@/hooks/useNfeImport';
+import { useProducts } from '@/hooks/useProducts';
+import { usePresentations, useCreatePresentation } from '@/hooks/usePresentations';
+import { useStockLocations } from '@/hooks/useStock';
+import { useSuppliers, useSupplierByDocument, useCreateSupplier } from '@/hooks/useSuppliers';
+import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure';
+import { useManufacturers, useCreateManufacturer } from '@/hooks/useManufacturers';
+import { fetchRefItemUnifiedByEan, fetchRefItemsBatchByEans } from '@/hooks/useReferenceTables';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
+import type { NfeImportItem, Product, RefItemUnified } from '@/types/database';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { formatDateOnly } from '@/lib/dateOnly';
 import {
   ArrowLeft,
   CheckCircle,
@@ -59,228 +59,232 @@ import {
   Hash,
   Pencil,
   Search,
-} from 'lucide-react'
+} from 'lucide-react';
 interface NewPresentationFormData {
-  name: string
-  barcode: string
-  conversion_factor: number
-  unit: string
-  manufacturer_id: string
+  name: string;
+  barcode: string;
+  conversion_factor: number;
+  unit: string;
+  manufacturer_id: string;
 }
 
 interface NewSupplierFormData {
-  name: string
-  trade_name: string
-  document: string
-  email: string
-  phone: string
-  address: string
-  city: string
-  state: string
-  zip_code: string
+  name: string;
+  trade_name: string;
+  document: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
 }
 
 interface NewManufacturerFormData {
-  name: string
-  trade_name: string
-  document: string
+  name: string;
+  trade_name: string;
+  document: string;
 }
 
 const formatCnpjCpfInput = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 14)
+  const digits = value.replace(/\D/g, '').slice(0, 14);
 
   if (digits.length <= 11) {
-    if (digits.length <= 3) return digits
-    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
     if (digits.length <= 9) {
-      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`
+      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
     }
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
   }
 
-  if (digits.length <= 2) return digits
-  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
   if (digits.length <= 8) {
-    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
   }
   if (digits.length <= 12) {
-    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
   }
-  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`
-}
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+};
 
 const getFirstWord = (value?: string | null): string => {
-  const trimmed = value?.trim() || ''
-  if (!trimmed) return ''
-  return trimmed.split(/\s+/)[0] || ''
-}
+  const trimmed = value?.trim() || '';
+  if (!trimmed) return '';
+  return trimmed.split(/\s+/)[0] || '';
+};
 
 const formatPhoneInput = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
-  if (digits.length <= 2) return digits
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   if (digits.length <= 10) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   }
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
-}
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
 
 const formatCepInput = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 8)
-  if (digits.length <= 5) return digits
-  return `${digits.slice(0, 5)}-${digits.slice(5)}`
-}
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+};
 
 export default function NfeImportDetailPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
-  const { data: nfe, isLoading: loadingNfe } = useNfeImport(id)
-  const { data: items = [], isLoading: loadingItems, refetch: refetchItems } = useNfeImportItems(id)
-  const { data: products = [] } = useProducts()
-  const { data: locations = [] } = useStockLocations()
-  const { data: suppliers = [] } = useSuppliers()
-  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure()
-  const { data: manufacturers = [] } = useManufacturers()
+  const { data: nfe, isLoading: loadingNfe } = useNfeImport(id);
+  const {
+    data: items = [],
+    isLoading: loadingItems,
+    refetch: refetchItems,
+  } = useNfeImportItems(id);
+  const { data: products = [] } = useProducts();
+  const { data: locations = [] } = useStockLocations();
+  const { data: suppliers = [] } = useSuppliers();
+  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure();
+  const { data: manufacturers = [] } = useManufacturers();
 
   // Check if supplier already exists by document
   const { data: existingSupplier, isLoading: _loadingSupplier } = useSupplierByDocument(
     nfe?.issuer_document ?? undefined
-  )
+  );
 
-  const createPresentation = useCreatePresentation()
-  const createSupplier = useCreateSupplier()
-  const createManufacturer = useCreateManufacturer()
-  const linkNfeToSupplier = useLinkNfeToSupplier()
+  const createPresentation = useCreatePresentation();
+  const createSupplier = useCreateSupplier();
+  const createManufacturer = useCreateManufacturer();
+  const linkNfeToSupplier = useLinkNfeToSupplier();
 
-  const updateItem = useUpdateNfeImportItem()
-  const updateNfe = useUpdateNfeImport()
-  const processNfe = useProcessNfeImport()
+  const updateItem = useUpdateNfeImportItem();
+  const updateNfe = useUpdateNfeImport();
+  const processNfe = useProcessNfeImport();
 
-  const [isMappingModalOpen, setIsMappingModalOpen] = useState(false)
-  const [isProcessModalOpen, setIsProcessModalOpen] = useState(false)
-  const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false)
-  const [isNewPresentationModalOpen, setIsNewPresentationModalOpen] = useState(false)
-  const [isNewSupplierModalOpen, setIsNewSupplierModalOpen] = useState(false)
-  const [isLinkSupplierModalOpen, setIsLinkSupplierModalOpen] = useState(false)
-  const [isCmedSuggestionModalOpen, setIsCmedSuggestionModalOpen] = useState(false)
+  const [isMappingModalOpen, setIsMappingModalOpen] = useState(false);
+  const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
+  const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
+  const [isNewPresentationModalOpen, setIsNewPresentationModalOpen] = useState(false);
+  const [isNewSupplierModalOpen, setIsNewSupplierModalOpen] = useState(false);
+  const [isLinkSupplierModalOpen, setIsLinkSupplierModalOpen] = useState(false);
+  const [isCmedSuggestionModalOpen, setIsCmedSuggestionModalOpen] = useState(false);
 
   // New presentation workflow states
-  const [isProductExistsModalOpen, setIsProductExistsModalOpen] = useState(false)
+  const [isProductExistsModalOpen, setIsProductExistsModalOpen] = useState(false);
   const [isSelectProductForPresentationModalOpen, setIsSelectProductForPresentationModalOpen] =
-    useState(false)
-  const [isNewManufacturerModalOpen, setIsNewManufacturerModalOpen] = useState(false)
-  const [productForNewPresentation, setProductForNewPresentation] = useState<Product | null>(null)
+    useState(false);
+  const [isNewManufacturerModalOpen, setIsNewManufacturerModalOpen] = useState(false);
+  const [productForNewPresentation, setProductForNewPresentation] = useState<Product | null>(null);
   const [refItemDataForPresentation, setRefItemDataForPresentation] =
-    useState<RefItemUnified | null>(null)
-  const [isLoadingRefData, setIsLoadingRefData] = useState(false)
-  const [selectedPresentationUnit, setSelectedPresentationUnit] = useState('')
-  const [selectedPresentationManufacturerId, setSelectedPresentationManufacturerId] = useState('')
+    useState<RefItemUnified | null>(null);
+  const [isLoadingRefData, setIsLoadingRefData] = useState(false);
+  const [selectedPresentationUnit, setSelectedPresentationUnit] = useState('');
+  const [selectedPresentationManufacturerId, setSelectedPresentationManufacturerId] = useState('');
   const [suggestedManufacturer, setSuggestedManufacturer] = useState<{
-    name: string
-    cnpj: string
-  } | null>(null)
+    name: string;
+    cnpj: string;
+  } | null>(null);
 
-  const [selectedItem, setSelectedItem] = useState<NfeImportItem | null>(null)
-  const [selectedProductId, setSelectedProductId] = useState('')
-  const [selectedPresentationId, setSelectedPresentationId] = useState('')
-  const [productSearchQuery, setProductSearchQuery] = useState('')
-  const [ignoredItemIds, setIgnoredItemIds] = useState<Set<string>>(new Set())
-  const [selectedLocationId, setSelectedLocationId] = useState('')
-  const [selectedSupplierId, setSelectedSupplierId] = useState('')
-  const [newSupplierDocumentValue, setNewSupplierDocumentValue] = useState('')
-  const [newSupplierPhoneValue, setNewSupplierPhoneValue] = useState('')
-  const [newSupplierZipValue, setNewSupplierZipValue] = useState('')
-  const [batchNumber, setBatchNumber] = useState('')
-  const [expirationDate, setExpirationDate] = useState('')
-  const [manufactureDate, setManufactureDate] = useState('')
+  const [selectedItem, setSelectedItem] = useState<NfeImportItem | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [selectedPresentationId, setSelectedPresentationId] = useState('');
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  const [ignoredItemIds, setIgnoredItemIds] = useState<Set<string>>(new Set());
+  const [selectedLocationId, setSelectedLocationId] = useState('');
+  const [selectedSupplierId, setSelectedSupplierId] = useState('');
+  const [newSupplierDocumentValue, setNewSupplierDocumentValue] = useState('');
+  const [newSupplierPhoneValue, setNewSupplierPhoneValue] = useState('');
+  const [newSupplierZipValue, setNewSupplierZipValue] = useState('');
+  const [batchNumber, setBatchNumber] = useState('');
+  const [expirationDate, setExpirationDate] = useState('');
+  const [manufactureDate, setManufactureDate] = useState('');
 
   // Contexto de navegação protegida
-  const { handleLinkClick: handleBreadcrumbNavigate } = useNavigationGuard()
+  const { handleLinkClick: handleBreadcrumbNavigate } = useNavigationGuard();
 
   // Reference item data for all items with EAN (for price lookup fallback)
-  const [refItemDataMap, setRefItemDataMap] = useState<Map<string, RefItemUnified>>(new Map())
-  const [isLoadingRefItems, setIsLoadingRefItems] = useState(false)
+  const [refItemDataMap, setRefItemDataMap] = useState<Map<string, RefItemUnified>>(new Map());
+  const [isLoadingRefItems, setIsLoadingRefItems] = useState(false);
   const [loadingEanProgress, setLoadingEanProgress] = useState<{
-    current: number
-    total: number
-  } | null>(null)
-  const [processedEans, setProcessedEans] = useState<Set<string>>(new Set())
+    current: number;
+    total: number;
+  } | null>(null);
+  const [processedEans, setProcessedEans] = useState<Set<string>>(new Set());
 
   // Create a stable key for ALL EANs (not just unmapped) for price reference lookup
   const allEansKey = items
     .filter((item) => item.ean)
     .map((item) => item.ean as string)
     .sort()
-    .join(',')
+    .join(',');
 
   // Create a stable key for mapped product IDs
   const _mappedProductIdsKey = items
     .filter((item) => item.product_id)
     .map((item) => item.product_id as string)
     .sort()
-    .join(',')
+    .join(',');
 
   // Breadcrumb items
   const breadcrumbItems = [
     { label: 'NFes', href: '/nfe' },
     { label: nfe ? `NFe ${nfe.number}` : 'Carregando...' },
-  ]
+  ];
 
   // Fetch reference item data for all items with EAN (for price reference)
   useEffect(() => {
     // Wait for data to be ready
     if (loadingNfe || loadingItems) {
-      return
+      return;
     }
 
     // Get company_id from nfe
-    const companyId = nfe?.company_id
+    const companyId = nfe?.company_id;
     if (!companyId) {
-      setRefItemDataMap(new Map())
-      return
+      setRefItemDataMap(new Map());
+      return;
     }
 
     // Parse EANs from the stable key
-    const eans = allEansKey ? allEansKey.split(',').filter(Boolean) : []
+    const eans = allEansKey ? allEansKey.split(',').filter(Boolean) : [];
 
     if (eans.length === 0) {
-      setRefItemDataMap(new Map())
-      return
+      setRefItemDataMap(new Map());
+      return;
     }
 
-    let cancelled = false
+    let cancelled = false;
 
     const fetchRefItemData = async () => {
-      setIsLoadingRefItems(true)
-      setLoadingEanProgress({ current: 0, total: eans.length })
-      setProcessedEans(new Set())
+      setIsLoadingRefItems(true);
+      setLoadingEanProgress({ current: 0, total: eans.length });
+      setProcessedEans(new Set());
 
       try {
         // Use optimized batch function instead of individual queries
-        const batchResult = await fetchRefItemsBatchByEans(eans, companyId)
+        const batchResult = await fetchRefItemsBatchByEans(eans, companyId);
 
         if (!cancelled) {
-          setRefItemDataMap(batchResult)
-          setProcessedEans(new Set(eans))
-          setLoadingEanProgress({ current: eans.length, total: eans.length })
+          setRefItemDataMap(batchResult);
+          setProcessedEans(new Set(eans));
+          setLoadingEanProgress({ current: eans.length, total: eans.length });
         }
       } catch (error) {
-        console.error('Erro ao buscar dados unificados em lote:', error)
+        console.error('Erro ao buscar dados unificados em lote:', error);
       } finally {
         if (!cancelled) {
-          setIsLoadingRefItems(false)
-          setLoadingEanProgress(null)
+          setIsLoadingRefItems(false);
+          setLoadingEanProgress(null);
         }
       }
-    }
+    };
 
-    fetchRefItemData()
+    fetchRefItemData();
 
     return () => {
-      cancelled = true
-    }
-  }, [allEansKey, nfe?.company_id, loadingNfe, loadingItems])
+      cancelled = true;
+    };
+  }, [allEansKey, nfe?.company_id, loadingNfe, loadingItems]);
 
   // Fetch ref item individually for selected item (fallback when not in batch map)
   // Removed useRefItemByEan hook as it may conflict with the unified view data
@@ -289,17 +293,17 @@ export default function NfeImportDetailPage() {
   // Reference item data for current selected item (for modal) - try map first, then individual query
   const selectedItemRefData = selectedItem?.ean
     ? refItemDataMap.get(selectedItem.ean) || undefined
-    : undefined
+    : undefined;
 
   // Presentations for selected product
-  const { data: selectedItemPresentations = [] } = usePresentations(selectedProductId || undefined)
+  const { data: selectedItemPresentations = [] } = usePresentations(selectedProductId || undefined);
 
   const {
     register: registerNewPresentation,
     handleSubmit: handleSubmitNewPresentation,
     reset: resetNewPresentation,
     formState: { errors: newPresentationErrors },
-  } = useForm<NewPresentationFormData>()
+  } = useForm<NewPresentationFormData>();
 
   const {
     register: registerNewSupplier,
@@ -307,105 +311,105 @@ export default function NfeImportDetailPage() {
     reset: resetNewSupplier,
     setValue: setNewSupplierValue,
     formState: { errors: newSupplierErrors },
-  } = useForm<NewSupplierFormData>()
+  } = useForm<NewSupplierFormData>();
 
   const {
     register: registerNewManufacturer,
     handleSubmit: handleSubmitNewManufacturer,
     reset: resetNewManufacturer,
     formState: { errors: newManufacturerErrors },
-  } = useForm<NewManufacturerFormData>()
+  } = useForm<NewManufacturerFormData>();
 
   // Unit options for presentation form
   const unitOptions = unitsOfMeasure.map((u) => ({
     value: u.id,
     label: `${u.name} (${u.code})`,
-  }))
+  }));
 
   /**
    * Open product selection modal directly when user clicks to register presentation
    */
   const openProductSelectionModal = useCallback((item: NfeImportItem) => {
-    setSelectedItem(item)
-    setBatchNumber(item.batch_number || '')
-    setExpirationDate(item.expiration_date || '')
-    setManufactureDate(item.manufacture_date || '')
-    setSelectedProductId('') // Limpar seleção anterior
-    setIsSelectProductForPresentationModalOpen(true)
-  }, [])
+    setSelectedItem(item);
+    setBatchNumber(item.batch_number || '');
+    setExpirationDate(item.expiration_date || '');
+    setManufactureDate(item.manufacture_date || '');
+    setSelectedProductId(''); // Limpar seleção anterior
+    setIsSelectProductForPresentationModalOpen(true);
+  }, []);
 
   /**
    * User selected "Yes, product exists" - open product selection modal
    */
   const handleProductExists = () => {
-    setIsProductExistsModalOpen(false)
-    setSelectedProductId('') // Limpar seleção anterior
-    setIsSelectProductForPresentationModalOpen(true)
-  }
+    setIsProductExistsModalOpen(false);
+    setSelectedProductId(''); // Limpar seleção anterior
+    setIsSelectProductForPresentationModalOpen(true);
+  };
 
   /**
    * User selected "No, create new product" - open product creation modal
    */
   const handleProductDoesNotExist = () => {
-    setIsProductExistsModalOpen(false)
-    setIsNewProductModalOpen(true)
-  }
+    setIsProductExistsModalOpen(false);
+    setIsNewProductModalOpen(true);
+  };
 
   /**
    * User selected a product - fetch ref item data and open presentation modal
    */
   const handleSelectProductForPresentation = async () => {
-    if (!selectedProductId || !selectedItem) return
+    if (!selectedProductId || !selectedItem) return;
 
-    const product = products.find((p) => p.id === selectedProductId)
-    if (!product) return
+    const product = products.find((p) => p.id === selectedProductId);
+    if (!product) return;
 
-    setProductForNewPresentation(product)
-    setIsSelectProductForPresentationModalOpen(false)
-    setProductSearchQuery('')
+    setProductForNewPresentation(product);
+    setIsSelectProductForPresentationModalOpen(false);
+    setProductSearchQuery('');
 
     // Abrir modal de apresentação IMEDIATAMENTE com loading
-    setIsLoadingRefData(true)
-    setIsNewPresentationModalOpen(true)
+    setIsLoadingRefData(true);
+    setIsNewPresentationModalOpen(true);
 
     // Fetch ref item data from vw_ref_item_unified if EAN exists
     if (selectedItem.ean) {
       try {
-        const unifiedData = await fetchRefItemUnifiedByEan(selectedItem.ean, nfe?.company_id)
+        const unifiedData = await fetchRefItemUnifiedByEan(selectedItem.ean, nfe?.company_id);
         if (unifiedData) {
-          setRefItemDataForPresentation(unifiedData)
+          setRefItemDataForPresentation(unifiedData);
           // Preencher formulário com dados da referência
-          fillPresentationFormWithRefData(unifiedData, product)
+          fillPresentationFormWithRefData(unifiedData, product);
         } else {
           // No ref item found, preencher com dados básicos
-          fillPresentationFormWithBasicData(product)
+          fillPresentationFormWithBasicData(product);
         }
       } catch (error) {
-        console.error('Erro ao buscar dados da view unificada:', error)
-        fillPresentationFormWithBasicData(product)
+        console.error('Erro ao buscar dados da view unificada:', error);
+        fillPresentationFormWithBasicData(product);
       } finally {
-        setIsLoadingRefData(false)
+        setIsLoadingRefData(false);
       }
     } else {
-      fillPresentationFormWithBasicData(product)
-      setIsLoadingRefData(false)
+      fillPresentationFormWithBasicData(product);
+      setIsLoadingRefData(false);
     }
-  }
+  };
 
   /**
    * Fill presentation form with ref item data (without opening modal)
    */
   const fillPresentationFormWithRefData = (item: RefItemUnified, _product: Product) => {
     // Determinar a unidade de entrada baseado na unidade do item
-    let unitId = ''
-    const itemUnidade = item.unit?.toLowerCase() || ''
+    let unitId = '';
+    const itemUnidade = item.unit?.toLowerCase() || '';
 
     if (itemUnidade === 'ml') {
       const frascoUnit = unitsOfMeasure.find(
         (u) => u.code.toLowerCase() === 'fr' || u.name.toLowerCase() === 'frasco'
-      )
+      );
       if (frascoUnit) {
-        unitId = frascoUnit.id
+        unitId = frascoUnit.id;
       }
     }
 
@@ -413,14 +417,14 @@ export default function NfeImportDetailPage() {
     if (!unitId) {
       const caixaUnit = unitsOfMeasure.find(
         (u) => u.code.toLowerCase() === 'cx' || u.name.toLowerCase() === 'caixa'
-      )
+      );
       if (caixaUnit) {
-        unitId = caixaUnit.id
+        unitId = caixaUnit.id;
       }
     }
 
     // Tentar vincular fabricante pelo CNPJ
-    let manufacturerId = ''
+    let manufacturerId = '';
     // Busca por CNPJ removida pois não existe fabricante_cnpj em item
 
     // Se não encontrou pelo CNPJ, tentar pelo nome
@@ -429,9 +433,9 @@ export default function NfeImportDetailPage() {
         (m) =>
           m.trade_name?.toLowerCase() === item.manufacturer?.toLowerCase() ||
           m.name.toLowerCase() === item.manufacturer?.toLowerCase()
-      )
+      );
       if (matchedManufacturer) {
-        manufacturerId = matchedManufacturer.id
+        manufacturerId = matchedManufacturer.id;
       }
     }
 
@@ -440,53 +444,53 @@ export default function NfeImportDetailPage() {
       setSuggestedManufacturer({
         name: item.manufacturer,
         cnpj: '',
-      })
+      });
     } else {
-      setSuggestedManufacturer(null)
+      setSuggestedManufacturer(null);
     }
 
     // Determinar o nome da apresentação - priorizar nome completo se disponível
-    let presentationName = selectedItem?.raw_description || ''
+    let presentationName = selectedItem?.raw_description || '';
     if (item.name) {
-      presentationName = item.name
+      presentationName = item.name;
     } else if (item.substance) {
-      presentationName = item.substance
+      presentationName = item.substance;
     }
 
     // Preencher o formulário de apresentação
-    setSelectedPresentationUnit(unitId)
-    setSelectedPresentationManufacturerId(manufacturerId)
+    setSelectedPresentationUnit(unitId);
+    setSelectedPresentationManufacturerId(manufacturerId);
     resetNewPresentation({
       name: presentationName,
       barcode: item.ean || selectedItem?.ean || '',
       conversion_factor: item.quantity || 1,
       unit: unitId,
       manufacturer_id: manufacturerId,
-    })
-  }
+    });
+  };
 
   /**
    * Fill presentation form with basic data (without opening modal)
    */
   const fillPresentationFormWithBasicData = (_product: Product) => {
-    setSelectedPresentationUnit('')
-    setSelectedPresentationManufacturerId('')
-    setSuggestedManufacturer(null)
+    setSelectedPresentationUnit('');
+    setSelectedPresentationManufacturerId('');
+    setSuggestedManufacturer(null);
 
-    let presentationName = selectedItem?.raw_description || ''
-    let conversionFactor = 1
+    let presentationName = selectedItem?.raw_description || '';
+    let conversionFactor = 1;
 
     // Se tem EAN, tentar buscar dados de referência para obter nome completo e quantidade
     if (selectedItem?.ean) {
-      const refData = refItemDataMap.get(selectedItem.ean)
+      const refData = refItemDataMap.get(selectedItem.ean);
       if (refData) {
         if (refData.name) {
-          presentationName = refData.name
+          presentationName = refData.name;
         } else if (refData.substance) {
-          presentationName = refData.substance
+          presentationName = refData.substance;
         }
         if (refData.quantity) {
-          conversionFactor = refData.quantity
+          conversionFactor = refData.quantity;
         }
       }
     }
@@ -497,39 +501,39 @@ export default function NfeImportDetailPage() {
       conversion_factor: conversionFactor,
       unit: '',
       manufacturer_id: '',
-    })
-  }
+    });
+  };
 
   /**
    * Open presentation modal with basic data (when no ref item found)
    */
   const _openPresentationModalWithBasicData = async (_product: Product) => {
-    setSelectedPresentationUnit('')
-    setSelectedPresentationManufacturerId('')
-    setSuggestedManufacturer(null)
+    setSelectedPresentationUnit('');
+    setSelectedPresentationManufacturerId('');
+    setSuggestedManufacturer(null);
 
-    let presentationName = selectedItem?.raw_description || ''
-    let conversionFactor = 1
+    let presentationName = selectedItem?.raw_description || '';
+    let conversionFactor = 1;
 
     // Se tem EAN, tentar buscar dados de referência para obter nome completo e quantidade
     if (selectedItem?.ean) {
       try {
-        const refData = refItemDataMap.get(selectedItem.ean)
+        const refData = refItemDataMap.get(selectedItem.ean);
         if (refData) {
           if (refData.name) {
             // Se encontrou nome completo, usar como nome
-            presentationName = refData.name
+            presentationName = refData.name;
           } else if (refData.substance) {
             // Se não tem nome, usar substância como fallback
-            presentationName = refData.substance
+            presentationName = refData.substance;
           }
           // Usar quantidade da tabela de referência
           if (refData.quantity) {
-            conversionFactor = refData.quantity
+            conversionFactor = refData.quantity;
           }
         }
       } catch (error) {
-        console.error('Erro ao buscar dados de referência:', error)
+        console.error('Erro ao buscar dados de referência:', error);
       }
     }
 
@@ -539,9 +543,9 @@ export default function NfeImportDetailPage() {
       conversion_factor: conversionFactor,
       unit: '',
       manufacturer_id: '',
-    })
-    setIsNewPresentationModalOpen(true)
-  }
+    });
+    setIsNewPresentationModalOpen(true);
+  };
 
   /**
    * Callback when a ref item is selected to fill presentation form
@@ -550,15 +554,15 @@ export default function NfeImportDetailPage() {
   const _handleSelectRefItemForPresentation = useCallback(
     (item: RefItemUnified, _product: Product) => {
       // Determinar a unidade de entrada baseado na unidade do item
-      let unitId = ''
-      const itemUnidade = item.unit?.toLowerCase() || ''
+      let unitId = '';
+      const itemUnidade = item.unit?.toLowerCase() || '';
 
       if (itemUnidade === 'ml') {
         const frascoUnit = unitsOfMeasure.find(
           (u) => u.code.toLowerCase() === 'fr' || u.name.toLowerCase() === 'frasco'
-        )
+        );
         if (frascoUnit) {
-          unitId = frascoUnit.id
+          unitId = frascoUnit.id;
         }
       }
 
@@ -566,14 +570,14 @@ export default function NfeImportDetailPage() {
       if (!unitId) {
         const caixaUnit = unitsOfMeasure.find(
           (u) => u.code.toLowerCase() === 'cx' || u.name.toLowerCase() === 'caixa'
-        )
+        );
         if (caixaUnit) {
-          unitId = caixaUnit.id
+          unitId = caixaUnit.id;
         }
       }
 
       // Tentar vincular fabricante pelo CNPJ
-      let manufacturerId = ''
+      let manufacturerId = '';
       // Busca por CNPJ removida pois não existe fabricante_cnpj em item
 
       // Se não encontrou pelo CNPJ, tentar pelo nome
@@ -582,9 +586,9 @@ export default function NfeImportDetailPage() {
           (m) =>
             m.trade_name?.toLowerCase() === item.manufacturer?.toLowerCase() ||
             m.name.toLowerCase() === item.manufacturer?.toLowerCase()
-        )
+        );
         if (matchedManufacturer) {
-          manufacturerId = matchedManufacturer.id
+          manufacturerId = matchedManufacturer.id;
         }
       }
 
@@ -593,51 +597,51 @@ export default function NfeImportDetailPage() {
         setSuggestedManufacturer({
           name: item.manufacturer,
           cnpj: '',
-        })
+        });
       } else {
-        setSuggestedManufacturer(null)
+        setSuggestedManufacturer(null);
       }
 
       // Determinar o nome da apresentação - priorizar nome completo se disponível
-      let presentationName = selectedItem?.raw_description || ''
+      let presentationName = selectedItem?.raw_description || '';
       if (item.name) {
-        presentationName = item.name
+        presentationName = item.name;
       } else if (item.substance) {
-        presentationName = item.substance
+        presentationName = item.substance;
       }
 
       // Preencher o formulário de apresentação
-      setSelectedPresentationUnit(unitId)
-      setSelectedPresentationManufacturerId(manufacturerId)
+      setSelectedPresentationUnit(unitId);
+      setSelectedPresentationManufacturerId(manufacturerId);
       resetNewPresentation({
         name: presentationName,
         barcode: item.ean || selectedItem?.ean || '',
         conversion_factor: item.quantity || 1, // Usar quantidade da tabela de referência
         unit: unitId,
         manufacturer_id: manufacturerId,
-      })
+      });
 
       // Abrir o modal de edição
-      setIsNewPresentationModalOpen(true)
+      setIsNewPresentationModalOpen(true);
     },
     [unitsOfMeasure, manufacturers, resetNewPresentation, selectedItem]
-  )
+  );
 
   /**
    * Handle creating a new manufacturer from the presentation form
    */
   const openNewManufacturerModal = (prefillData?: {
-    name?: string
-    trade_name?: string
-    document?: string
+    name?: string;
+    trade_name?: string;
+    document?: string;
   }) => {
     resetNewManufacturer({
       name: prefillData?.name || '',
       trade_name: prefillData?.trade_name || '',
       document: prefillData?.document || '',
-    })
-    setIsNewManufacturerModalOpen(true)
-  }
+    });
+    setIsNewManufacturerModalOpen(true);
+  };
 
   const handleCreateManufacturer = async (data: NewManufacturerFormData) => {
     try {
@@ -646,44 +650,44 @@ export default function NfeImportDetailPage() {
         trade_name: data.trade_name || null,
         document: data.document || null,
         active: true,
-      })
-      setSelectedPresentationManufacturerId(newManufacturer.id)
-      setSuggestedManufacturer(null)
-      setIsNewManufacturerModalOpen(false)
-      toast.success('Fabricante cadastrado com sucesso!')
+      });
+      setSelectedPresentationManufacturerId(newManufacturer.id);
+      setSuggestedManufacturer(null);
+      setIsNewManufacturerModalOpen(false);
+      toast.success('Fabricante cadastrado com sucesso!');
     } catch (error) {
-      console.error('Erro ao cadastrar fabricante:', error)
-      toast.error('Erro ao cadastrar fabricante')
+      console.error('Erro ao cadastrar fabricante:', error);
+      toast.error('Erro ao cadastrar fabricante');
     }
-  }
+  };
 
   const _openNewProductModal = () => {
-    setIsNewProductModalOpen(true)
-  }
+    setIsNewProductModalOpen(true);
+  };
 
   // Handle when product is created from the modal
   const handleProductCreated = async (newProduct: Product) => {
     // Auto-select the newly created product
-    setSelectedProductId(newProduct.id)
+    setSelectedProductId(newProduct.id);
 
     // If item has EAN, create presentation automatically
     if (selectedItem?.ean) {
-      const refData = refItemDataMap.get(selectedItem.ean)
+      const refData = refItemDataMap.get(selectedItem.ean);
       const newPresentation = await createPresentation.mutateAsync({
         product_id: newProduct.id,
         name: selectedItem.raw_description || newProduct.name,
         barcode: selectedItem.ean,
         conversion_factor: refData?.quantity || 1, // Usar quantidade da tabela de referência
-      })
-      setSelectedPresentationId(newPresentation.id)
+      });
+      setSelectedPresentationId(newPresentation.id);
     }
-  }
+  };
 
   // Handle when product is created from CMED suggestion
   const handleCmedProductCreated = async (newProduct: Product, presentationId: string) => {
-    setSelectedProductId(newProduct.id)
-    setSelectedPresentationId(presentationId)
-    setIsCmedSuggestionModalOpen(false)
+    setSelectedProductId(newProduct.id);
+    setSelectedPresentationId(presentationId);
+    setIsCmedSuggestionModalOpen(false);
 
     // Auto-save the mapping
     if (selectedItem && id) {
@@ -695,35 +699,35 @@ export default function NfeImportDetailPage() {
         batch_number: batchNumber || selectedItem.batch_number || null,
         expiration_date: expirationDate || selectedItem.expiration_date || null,
         manufacture_date: manufactureDate || selectedItem.manufacture_date || null,
-      })
-      await refetchItems()
-      await ensurePendingStatus()
-      setIsMappingModalOpen(false)
+      });
+      await refetchItems();
+      await ensurePendingStatus();
+      setIsMappingModalOpen(false);
     }
-  }
+  };
 
   const openCmedSuggestionModal = () => {
-    setIsCmedSuggestionModalOpen(true)
-  }
+    setIsCmedSuggestionModalOpen(true);
+  };
 
   const _openNewPresentationModal = () => {
-    let presentationName = selectedItem?.raw_description || ''
-    let conversionFactor = 1
+    let presentationName = selectedItem?.raw_description || '';
+    let conversionFactor = 1;
 
     // Se tem EAN, tentar buscar dados de referência para obter nome completo e quantidade
     if (selectedItem?.ean) {
-      const refData = refItemDataMap.get(selectedItem.ean)
+      const refData = refItemDataMap.get(selectedItem.ean);
       if (refData) {
         if (refData.name) {
           // Se encontrou nome completo, usar como nome
-          presentationName = refData.name
+          presentationName = refData.name;
         } else if (refData.substance) {
           // Se não tem nome, usar substância como fallback
-          presentationName = refData.substance
+          presentationName = refData.substance;
         }
         // Usar quantidade da tabela de referência
         if (refData.quantity) {
-          conversionFactor = refData.quantity
+          conversionFactor = refData.quantity;
         }
       }
     }
@@ -733,14 +737,14 @@ export default function NfeImportDetailPage() {
       name: presentationName,
       barcode: selectedItem?.ean || '',
       conversion_factor: conversionFactor,
-    })
-    setIsNewPresentationModalOpen(true)
-  }
+    });
+    setIsNewPresentationModalOpen(true);
+  };
 
   const openNewSupplierModal = () => {
     // Pre-fill with data from NFe issuer
-    const formattedDocument = formatCnpjCpfInput(nfe?.issuer_document || '')
-    const issuerName = nfe?.issuer_name || ''
+    const formattedDocument = formatCnpjCpfInput(nfe?.issuer_document || '');
+    const issuerName = nfe?.issuer_name || '';
     resetNewSupplier({
       name: issuerName,
       trade_name: getFirstWord(issuerName),
@@ -751,30 +755,30 @@ export default function NfeImportDetailPage() {
       city: '',
       state: '',
       zip_code: '',
-    })
-    setNewSupplierDocumentValue(formattedDocument)
-    setNewSupplierPhoneValue('')
-    setNewSupplierZipValue('')
-    setIsNewSupplierModalOpen(true)
-  }
+    });
+    setNewSupplierDocumentValue(formattedDocument);
+    setNewSupplierPhoneValue('');
+    setNewSupplierZipValue('');
+    setIsNewSupplierModalOpen(true);
+  };
 
   const openLinkSupplierModal = () => {
-    setSelectedSupplierId('')
-    setIsLinkSupplierModalOpen(true)
-  }
+    setSelectedSupplierId('');
+    setIsLinkSupplierModalOpen(true);
+  };
 
   const ensurePendingStatus = async () => {
-    if (!id || !nfe || nfe.status !== 'importada') return
+    if (!id || !nfe || nfe.status !== 'importada') return;
     await updateNfe.mutateAsync({
       id,
       status: 'pendente',
-    } as any)
-  }
+    } as any);
+  };
 
   const handleCreatePresentation = async (data: NewPresentationFormData) => {
     // Use productForNewPresentation if set (from new workflow), otherwise use selectedProductId
-    const productId = productForNewPresentation?.id || selectedProductId
-    if (!productId) return
+    const productId = productForNewPresentation?.id || selectedProductId;
+    if (!productId) return;
 
     // Find the unit symbol from the selected unit ID
     const newPresentation = await createPresentation.mutateAsync({
@@ -784,11 +788,11 @@ export default function NfeImportDetailPage() {
       conversion_factor: data.conversion_factor || 1,
       unit: selectedPresentationUnit,
       manufacturer_id: selectedPresentationManufacturerId || null,
-    })
+    });
 
-    setSelectedPresentationId(newPresentation.id)
-    setSelectedProductId(productId)
-    setIsNewPresentationModalOpen(false)
+    setSelectedPresentationId(newPresentation.id);
+    setSelectedProductId(productId);
+    setIsNewPresentationModalOpen(false);
 
     // Auto-save the mapping if we have a selected item from NFe
     if (selectedItem && id) {
@@ -800,23 +804,23 @@ export default function NfeImportDetailPage() {
         batch_number: batchNumber || selectedItem.batch_number || null,
         expiration_date: expirationDate || selectedItem.expiration_date || null,
         manufacture_date: manufactureDate || selectedItem.manufacture_date || null,
-      })
-      await refetchItems()
-      await ensurePendingStatus()
+      });
+      await refetchItems();
+      await ensurePendingStatus();
 
       // Reset states
-      setProductForNewPresentation(null)
-      setRefItemDataForPresentation(null)
-      setSuggestedManufacturer(null)
-      setSelectedPresentationUnit('')
-      setSelectedPresentationManufacturerId('')
+      setProductForNewPresentation(null);
+      setRefItemDataForPresentation(null);
+      setSuggestedManufacturer(null);
+      setSelectedPresentationUnit('');
+      setSelectedPresentationManufacturerId('');
 
-      toast.success('Apresentação cadastrada e item mapeado com sucesso!')
+      toast.success('Apresentação cadastrada e item mapeado com sucesso!');
     }
-  }
+  };
 
   const handleCreateSupplier = async (data: NewSupplierFormData) => {
-    if (!id) return
+    if (!id) return;
 
     const newSupplier = await createSupplier.mutateAsync({
       name: data.name,
@@ -829,37 +833,37 @@ export default function NfeImportDetailPage() {
       state: data.state || null,
       zip_code: data.zip_code || null,
       active: true,
-    })
+    });
 
     // Link the new supplier to this NFe
     await linkNfeToSupplier.mutateAsync({
       nfeImportId: id,
       supplierId: newSupplier.id,
-    })
+    });
 
-    setIsNewSupplierModalOpen(false)
-  }
+    setIsNewSupplierModalOpen(false);
+  };
 
   const handleLinkSupplier = async () => {
-    if (!id || !selectedSupplierId) return
+    if (!id || !selectedSupplierId) return;
 
     await linkNfeToSupplier.mutateAsync({
       nfeImportId: id,
       supplierId: selectedSupplierId,
-    })
+    });
 
-    setIsLinkSupplierModalOpen(false)
-  }
+    setIsLinkSupplierModalOpen(false);
+  };
 
   const openMappingModal = (item: NfeImportItem) => {
-    setSelectedItem(item)
-    setSelectedProductId(item.product_id || '')
-    setSelectedPresentationId((item as any).presentation_id || '')
-    setBatchNumber(item.batch_number || '')
-    setExpirationDate(item.expiration_date || '')
-    setManufactureDate(item.manufacture_date || '')
-    setIsMappingModalOpen(true)
-  }
+    setSelectedItem(item);
+    setSelectedProductId(item.product_id || '');
+    setSelectedPresentationId((item as any).presentation_id || '');
+    setBatchNumber(item.batch_number || '');
+    setExpirationDate(item.expiration_date || '');
+    setManufactureDate(item.manufacture_date || '');
+    setIsMappingModalOpen(true);
+  };
 
   const handleMapItem = async () => {
     if (selectedItem && id) {
@@ -872,23 +876,23 @@ export default function NfeImportDetailPage() {
         batch_number: batchNumber || null,
         expiration_date: expirationDate || null,
         manufacture_date: manufactureDate || null,
-      })
+      });
       // Força atualização da lista
-      await refetchItems()
-      await ensurePendingStatus()
-      setIsMappingModalOpen(false)
+      await refetchItems();
+      await ensurePendingStatus();
+      setIsMappingModalOpen(false);
     }
-  }
+  };
 
   const handleProcess = async () => {
     // Check if all items are either mapped or marked as ignored
-    const unmappedItems = items.filter((item) => !item.product_id && !ignoredItemIds.has(item.id))
+    const unmappedItems = items.filter((item) => !item.product_id && !ignoredItemIds.has(item.id));
 
     if (unmappedItems.length > 0) {
       toast.error(
         `${unmappedItems.length} item(s) não mapeado(s). Mapeie todos os itens ou marque-os como ignorados.`
-      )
-      return
+      );
+      return;
     }
 
     // Check if all mapped items have batch_number and expiration_date
@@ -897,7 +901,7 @@ export default function NfeImportDetailPage() {
         item.product_id &&
         !ignoredItemIds.has(item.id) &&
         (!item.batch_number || !item.expiration_date)
-    )
+    );
 
     if (itemsWithoutBatchOrValidity.length > 0) {
       const itemsList = itemsWithoutBatchOrValidity
@@ -905,26 +909,26 @@ export default function NfeImportDetailPage() {
           (item) =>
             `${item.raw_description}${!item.batch_number ? ' (sem lote)' : ''}${!item.expiration_date ? ' (sem validade)' : ''}`
         )
-        .join('\n')
+        .join('\n');
       toast.error(
         `${itemsWithoutBatchOrValidity.length} item(s) sem lote e/ou validade. Estes dados são obrigatórios para dar entrada:\n\n${itemsList}`
-      )
-      return
+      );
+      return;
     }
 
     if (id && selectedLocationId) {
       await processNfe.mutateAsync({
         nfeImportId: id,
         stockLocationId: selectedLocationId,
-      })
-      setIsProcessModalOpen(false)
-      navigate('/nfe')
+      });
+      setIsProcessModalOpen(false);
+      navigate('/nfe');
     }
-  }
+  };
 
-  const mappedCount = items.filter((item) => item.product_id || item.presentation_id).length
-  const ignoredCount = ignoredItemIds.size
-  const totalProcessed = mappedCount + ignoredCount
+  const mappedCount = items.filter((item) => item.product_id || item.presentation_id).length;
+  const ignoredCount = ignoredItemIds.size;
+  const totalProcessed = mappedCount + ignoredCount;
 
   // Verificar se há itens sem lote/validade
   const itemsWithoutBatchOrValidity = items.filter(
@@ -932,14 +936,14 @@ export default function NfeImportDetailPage() {
       item.product_id &&
       !ignoredItemIds.has(item.id) &&
       (!item.batch_number || !item.expiration_date)
-  )
+  );
 
-  const allItemsMapped = totalProcessed === items.length
+  const allItemsMapped = totalProcessed === items.length;
   const validStatus =
-    nfe?.status === 'importada' || nfe?.status === 'pendente' || nfe?.status === 'parsed'
-  const hasValidBatchData = itemsWithoutBatchOrValidity.length === 0
+    nfe?.status === 'importada' || nfe?.status === 'pendente' || nfe?.status === 'parsed';
+  const hasValidBatchData = itemsWithoutBatchOrValidity.length === 0;
 
-  const canProcess = allItemsMapped && validStatus && hasValidBatchData
+  const canProcess = allItemsMapped && validStatus && hasValidBatchData;
 
   // Debug logs temporários
   console.warn('Debug canProcess:', {
@@ -949,23 +953,23 @@ export default function NfeImportDetailPage() {
     totalProcessed,
     nfeStatus: nfe?.status,
     canProcess,
-  })
-  const isProcessed = nfe?.status === 'posted'
+  });
+  const isProcessed = nfe?.status === 'posted';
 
   // Supplier linked to this NFe (either via supplier_id or found by document)
   const linkedSupplier = useMemo(() => {
     if (nfe?.supplier_id) {
-      return suppliers.find((s) => s.id === nfe.supplier_id)
+      return suppliers.find((s) => s.id === nfe.supplier_id);
     }
-    return existingSupplier
-  }, [nfe?.supplier_id, suppliers, existingSupplier])
+    return existingSupplier;
+  }, [nfe?.supplier_id, suppliers, existingSupplier]);
 
   const supplierOptions = suppliers
     .filter((s) => s.active)
     .map((s) => ({
       value: s.id,
       label: s.trade_name ? `${s.name} (${s.trade_name})` : s.name,
-    }))
+    }));
 
   const columns: ColumnDef<any>[] = useMemo(
     () => [
@@ -1003,14 +1007,14 @@ export default function NfeImportDetailPage() {
         accessorKey: 'unit_price',
         header: 'Valor Unit.',
         cell: ({ row }) => {
-          const unitPrice = row.original.unit_price || 0
+          const unitPrice = row.original.unit_price || 0;
 
           // Get reference price from EAN lookup
-          let pfPrice: number | null = null
-          let pfLabel: string | null = null
+          let pfPrice: number | null = null;
+          let pfLabel: string | null = null;
 
           if (row.original.ean) {
-            const itemRefData = refItemDataMap.get(row.original.ean)
+            const itemRefData = refItemDataMap.get(row.original.ean);
 
             // Debug log to check if reference data is available
             if (itemRefData) {
@@ -1021,39 +1025,39 @@ export default function NfeImportDetailPage() {
                 cmed_pf: itemRefData.cmed_pf,
                 brasindice_pf: itemRefData.brasindice_pf,
                 simpro_pf: itemRefData.simpro_pf,
-              })
+              });
             } else {
-              console.warn(`No reference data found for EAN ${row.original.ean}`)
+              console.warn(`No reference data found for EAN ${row.original.ean}`);
             }
 
             // First try the optimized best_pf from the materialized view
             if (itemRefData?.best_pf) {
-              pfPrice = itemRefData.best_pf
+              pfPrice = itemRefData.best_pf;
               pfLabel =
                 itemRefData.best_pf_label ||
-                `${itemRefData.price_source?.toUpperCase() || 'REF'} PF`
+                `${itemRefData.price_source?.toUpperCase() || 'REF'} PF`;
             }
             // Fallback to individual source fields for backward compatibility
             else if (itemRefData?.cmed_pf) {
-              pfPrice = itemRefData.cmed_pf
-              pfLabel = itemRefData.cmed_pf_label || 'CMED PF'
+              pfPrice = itemRefData.cmed_pf;
+              pfLabel = itemRefData.cmed_pf_label || 'CMED PF';
             } else if (itemRefData?.brasindice_pf) {
-              pfPrice = itemRefData.brasindice_pf
-              pfLabel = itemRefData.brasindice_pf_label || 'BrasÍndice PF'
+              pfPrice = itemRefData.brasindice_pf;
+              pfLabel = itemRefData.brasindice_pf_label || 'BrasÍndice PF';
             } else if (itemRefData?.simpro_pf) {
-              pfPrice = itemRefData.simpro_pf
-              pfLabel = itemRefData.simpro_pf_label || 'SIMPRO PF'
+              pfPrice = itemRefData.simpro_pf;
+              pfLabel = itemRefData.simpro_pf_label || 'SIMPRO PF';
             }
           }
 
           // Calculate price comparison
           const priceComparison =
-            pfPrice && unitPrice > 0 ? ((unitPrice - pfPrice) / pfPrice) * 100 : null
-          const isGoodPrice = priceComparison !== null && priceComparison < 0
-          const isBadPrice = priceComparison !== null && priceComparison > 0
+            pfPrice && unitPrice > 0 ? ((unitPrice - pfPrice) / pfPrice) * 100 : null;
+          const isGoodPrice = priceComparison !== null && priceComparison < 0;
+          const isBadPrice = priceComparison !== null && priceComparison > 0;
 
           const formatCurrency = (value: number) =>
-            new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+            new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
           return (
             <div className="flex flex-col">
@@ -1085,7 +1089,7 @@ export default function NfeImportDetailPage() {
                 </span>
               )}
             </div>
-          )
+          );
         },
       },
       {
@@ -1104,17 +1108,17 @@ export default function NfeImportDetailPage() {
         accessorKey: 'product',
         header: 'Mapeado Para',
         cell: ({ row }) => {
-          const product = row.original.product
-          const presentation = row.original.presentation
-          const wasAutoLinked = row.original.ean && presentation?.barcode === row.original.ean
-          const itemRefData = row.original.ean ? refItemDataMap.get(row.original.ean) : null
+          const product = row.original.product;
+          const presentation = row.original.presentation;
+          const wasAutoLinked = row.original.ean && presentation?.barcode === row.original.ean;
+          const itemRefData = row.original.ean ? refItemDataMap.get(row.original.ean) : null;
 
           if (product) {
             const productDisplay = product.concentration
               ? `${product.name} ${product.concentration}`
-              : product.name
+              : product.name;
             const manufacturerName =
-              presentation?.manufacturer?.trade_name || presentation?.manufacturer?.name
+              presentation?.manufacturer?.trade_name || presentation?.manufacturer?.name;
 
             return (
               <div className="flex flex-col gap-1">
@@ -1147,13 +1151,13 @@ export default function NfeImportDetailPage() {
                   </div>
                 )}
               </div>
-            )
+            );
           }
 
           // Show buttons for items with EAN
           if (row.original.ean) {
-            const isEanProcessed = processedEans.has(row.original.ean)
-            const isLoadingThisEan = isLoadingRefItems && !isEanProcessed
+            const isEanProcessed = processedEans.has(row.original.ean);
+            const isLoadingThisEan = isLoadingRefItems && !isEanProcessed;
 
             return (
               <div className="flex flex-col gap-2">
@@ -1179,11 +1183,11 @@ export default function NfeImportDetailPage() {
                       </button>
                       <button
                         onClick={() => {
-                          setSelectedItem(row.original)
-                          setBatchNumber(row.original.batch_number || '')
-                          setExpirationDate(row.original.expiration_date || '')
-                          setManufactureDate(row.original.manufacture_date || '')
-                          setIsCmedSuggestionModalOpen(true)
+                          setSelectedItem(row.original);
+                          setBatchNumber(row.original.batch_number || '');
+                          setExpirationDate(row.original.expiration_date || '');
+                          setManufactureDate(row.original.manufacture_date || '');
+                          setIsCmedSuggestionModalOpen(true);
                         }}
                         className="border-feedback-accent-border/40 bg-feedback-accent-bg text-feedback-accent-fg hover:bg-feedback-accent-border/30 inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-medium transition-colors"
                       >
@@ -1211,7 +1215,7 @@ export default function NfeImportDetailPage() {
                   <span className="italic text-gray-400">Item com EAN</span>
                 )}
               </div>
-            )
+            );
           }
 
           return (
@@ -1227,29 +1231,29 @@ export default function NfeImportDetailPage() {
                 </button>
               </div>
             </div>
-          )
+          );
         },
       },
       {
         accessorKey: 'conversion',
         header: 'Conversão',
         cell: ({ row }) => {
-          const presentation = row.original.presentation
-          const product = row.original.product
+          const presentation = row.original.presentation;
+          const product = row.original.product;
 
           if (!presentation || !product) {
-            return <span className="text-gray-400">-</span>
+            return <span className="text-gray-400">-</span>;
           }
 
-          const factor = presentation.conversion_factor || 1
+          const factor = presentation.conversion_factor || 1;
           // Buscar o símbolo da unidade pelo id, se for um UUID
-          const presUnitValue = presentation.unit || 'CX'
+          const presUnitValue = presentation.unit || 'CX';
           const presUnitObj = unitsOfMeasure.find(
             (u) => u.id === presUnitValue || u.code === presUnitValue
-          )
-          const presUnit = presUnitObj?.symbol || presUnitValue
+          );
+          const presUnit = presUnitObj?.symbol || presUnitValue;
 
-          const prodUnit = product.unit_stock?.symbol || 'UN'
+          const prodUnit = product.unit_stock?.symbol || 'UN';
 
           return (
             <span className="inline-flex items-center rounded bg-gray-200 px-2 py-1 text-xs font-medium dark:bg-gray-700">
@@ -1259,29 +1263,29 @@ export default function NfeImportDetailPage() {
                 {factor} {prodUnit}
               </span>
             </span>
-          )
+          );
         },
       },
       {
         accessorKey: 'total_converted',
         header: 'Total',
         cell: ({ row }) => {
-          const presentation = row.original.presentation
-          const product = row.original.product
-          const qty = row.original.qty || 0
+          const presentation = row.original.presentation;
+          const product = row.original.product;
+          const qty = row.original.qty || 0;
 
           if (!presentation || !product) {
-            return <span className="text-gray-400">-</span>
+            return <span className="text-gray-400">-</span>;
           }
 
-          const factor = presentation.conversion_factor || 1
-          const presUnitValue = presentation.unit || 'CX'
+          const factor = presentation.conversion_factor || 1;
+          const presUnitValue = presentation.unit || 'CX';
           const presUnitObj = unitsOfMeasure.find(
             (u) => u.id === presUnitValue || u.code === presUnitValue
-          )
-          const _presUnit = presUnitObj?.symbol || presUnitValue
-          const prodUnit = product.unit_stock?.symbol || 'UN'
-          const totalConverted = qty * factor
+          );
+          const _presUnit = presUnitObj?.symbol || presUnitValue;
+          const prodUnit = product.unit_stock?.symbol || 'UN';
+          const totalConverted = qty * factor;
 
           return (
             <span className="border-feedback-info-border/40 bg-feedback-info-bg text-feedback-info-fg inline-flex items-center rounded border px-2 py-1 text-xs font-medium">
@@ -1293,18 +1297,18 @@ export default function NfeImportDetailPage() {
               </span>
               <span className="text-feedback-info-fg/80 mx-1">{prodUnit}</span>
             </span>
-          )
+          );
         },
       },
       {
         accessorKey: 'batch_number',
         header: 'Lote / Val.',
         cell: ({ row }) => {
-          const batch = row.original.batch_number
-          const expDate = row.original.expiration_date
-          const hasProduct = row.original.product_id
-          const isIgnored = ignoredItemIds.has(row.original.id)
-          const missingData = hasProduct && !isIgnored && (!batch || !expDate)
+          const batch = row.original.batch_number;
+          const expDate = row.original.expiration_date;
+          const hasProduct = row.original.product_id;
+          const isIgnored = ignoredItemIds.has(row.original.id);
+          const missingData = hasProduct && !isIgnored && (!batch || !expDate);
 
           if (!batch && !expDate) {
             return (
@@ -1318,7 +1322,7 @@ export default function NfeImportDetailPage() {
                   <span className="italic text-gray-400">-</span>
                 )}
               </div>
-            )
+            );
           }
 
           return (
@@ -1339,18 +1343,18 @@ export default function NfeImportDetailPage() {
                 />
               )}
             </div>
-          )
+          );
         },
       },
       {
         id: 'ignore_actions',
         header: 'Ações',
         cell: ({ row }) => {
-          const isIgnored = ignoredItemIds.has(row.original.id)
-          const isProcessed = nfe?.status === 'lancada'
-          const hasProduct = row.original.product_id
+          const isIgnored = ignoredItemIds.has(row.original.id);
+          const isProcessed = nfe?.status === 'lancada';
+          const hasProduct = row.original.product_id;
 
-          if (isProcessed) return <span className="text-gray-400">-</span>
+          if (isProcessed) return <span className="text-gray-400">-</span>;
 
           // Se já tem produto associado, mostra apenas botão de editar
           if (hasProduct) {
@@ -1363,7 +1367,7 @@ export default function NfeImportDetailPage() {
               >
                 <Pencil className="h-4 w-4" />
               </Button>
-            )
+            );
           }
 
           // Senão, mostra botão Ignorar/Reativar
@@ -1372,13 +1376,13 @@ export default function NfeImportDetailPage() {
               size="sm"
               variant="ghost"
               onClick={() => {
-                const newIgnoredItems = new Set(ignoredItemIds)
+                const newIgnoredItems = new Set(ignoredItemIds);
                 if (isIgnored) {
-                  newIgnoredItems.delete(row.original.id)
+                  newIgnoredItems.delete(row.original.id);
                 } else {
-                  newIgnoredItems.add(row.original.id)
+                  newIgnoredItems.add(row.original.id);
                 }
-                setIgnoredItemIds(newIgnoredItems)
+                setIgnoredItemIds(newIgnoredItems);
               }}
               title={isIgnored ? 'Reativar item' : 'Ignorar item'}
             >
@@ -1386,7 +1390,7 @@ export default function NfeImportDetailPage() {
                 className={`h-4 w-4 ${isIgnored ? 'text-feedback-danger-fg' : 'text-gray-500'}`}
               />
             </Button>
-          )
+          );
         },
       },
     ],
@@ -1399,37 +1403,37 @@ export default function NfeImportDetailPage() {
       isLoadingRefItems,
       processedEans,
     ]
-  )
+  );
 
   const productOptions = products
     .filter((item) => item.active)
     .map((item) => {
       // Build label: Name + Concentration + Unit + Manufacturer
-      const parts = [item.name]
+      const parts = [item.name];
       if (item.concentration) {
-        parts.push(item.concentration)
+        parts.push(item.concentration);
       }
-      parts.push(`(${(item as any).unit_stock?.symbol || 'UN'})`)
+      parts.push(`(${(item as any).unit_stock?.symbol || 'UN'})`);
       if ((item as any).manufacturer_rel?.name) {
-        parts.push(`- ${(item as any).manufacturer_rel.name}`)
+        parts.push(`- ${(item as any).manufacturer_rel.name}`);
       }
       return {
         value: item.id,
         label: parts.join(' '),
-      }
-    })
+      };
+    });
 
   const locationOptions = locations.map((loc) => ({
     value: loc.id,
     label: loc.name,
-  }))
+  }));
 
   if (loadingNfe) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loading size="lg" />
       </div>
-    )
+    );
   }
 
   if (!nfe) {
@@ -1444,24 +1448,24 @@ export default function NfeImportDetailPage() {
           </Button>
         }
       />
-    )
+    );
   }
 
   // Helper para copiar chave de acesso
   const handleCopyAccessKey = () => {
     if (nfe.access_key) {
-      navigator.clipboard.writeText(nfe.access_key)
-      toast.success('Chave copiada!')
+      navigator.clipboard.writeText(nfe.access_key);
+      toast.success('Chave copiada!');
     }
-  }
+  };
 
   // Formatar CNPJ
   const formatCNPJ = (cnpj: string | null) => {
-    if (!cnpj) return '-'
-    const cleaned = cnpj.replace(/\D/g, '')
-    if (cleaned.length !== 14) return cnpj
-    return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
-  }
+    if (!cnpj) return '-';
+    const cleaned = cnpj.replace(/\D/g, '');
+    if (cleaned.length !== 14) return cnpj;
+    return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  };
 
   return (
     <div className="space-y-4">
@@ -1478,19 +1482,19 @@ export default function NfeImportDetailPage() {
               onClick={(e) => {
                 // Verificar se a URL é válida antes de tentar abrir
                 if (!nfe.xml_url?.includes('supabase.co/storage')) {
-                  e.preventDefault()
-                  toast.error('Arquivo XML não disponível')
-                  return
+                  e.preventDefault();
+                  toast.error('Arquivo XML não disponível');
+                  return;
                 }
                 // Adicionar tratamento de erro para URL do storage
                 try {
-                  const url = new URL(nfe.xml_url)
+                  const url = new URL(nfe.xml_url);
                   if (url.pathname.includes('/nfe-xml/')) {
                     // URL parece válida, mas pode dar erro 404 se bucket não existir
                     // O erro será tratado pelo navegador
                   }
                 } catch (error) {
-                  console.error('Erro ao validar URL do XML:', error)
+                  console.error('Erro ao validar URL do XML:', error);
                 }
               }}
             >
@@ -1702,14 +1706,14 @@ export default function NfeImportDetailPage() {
                       item.product_id &&
                       !ignoredItemIds.has(item.id) &&
                       (!item.batch_number || !item.expiration_date)
-                  )
+                  );
                   return missingBatchItems.length > 0 ? (
                     <div className="border-feedback-danger-border/40 bg-feedback-danger-bg text-feedback-danger-fg flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium">
                       <AlertTriangle className="h-3 w-3" />
                       {missingBatchItems.length} {missingBatchItems.length === 1 ? 'item' : 'itens'}{' '}
                       sem lote/validade
                     </div>
-                  ) : null
+                  ) : null;
                 })()}
               </div>
               {loadingEanProgress && (
@@ -1831,8 +1835,8 @@ export default function NfeImportDetailPage() {
             options={[{ value: '', label: 'Não vincular' }, ...productOptions]}
             value={selectedProductId}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setSelectedProductId(e.target.value)
-              setSelectedPresentationId('') // Reset presentation when product changes
+              setSelectedProductId(e.target.value);
+              setSelectedPresentationId(''); // Reset presentation when product changes
             }}
             placeholder="Selecione um produto..."
             searchPlaceholder="Buscar por nome ou código..."
@@ -1866,13 +1870,13 @@ export default function NfeImportDetailPage() {
                     (() => {
                       const selectedPresentation = selectedItemPresentations.find(
                         (p) => p.id === selectedPresentationId
-                      )
-                      const selectedProduct = products.find((p) => p.id === selectedProductId)
+                      );
+                      const selectedProduct = products.find((p) => p.id === selectedProductId);
 
                       if (selectedPresentation && selectedProduct) {
-                        const factor = selectedPresentation.conversion_factor || 1
-                        const presUnit = selectedPresentation.unit || 'CX'
-                        const prodUnit = (selectedProduct as any).unit_stock?.symbol || 'UN'
+                        const factor = selectedPresentation.conversion_factor || 1;
+                        const presUnit = selectedPresentation.unit || 'CX';
+                        const prodUnit = (selectedProduct as any).unit_stock?.symbol || 'UN';
 
                         return (
                           <Alert tone="info">
@@ -1915,9 +1919,9 @@ export default function NfeImportDetailPage() {
                               </div>
                             </div>
                           </Alert>
-                        )
+                        );
                       }
-                      return null
+                      return null;
                     })()}
                 </div>
               ) : (
@@ -1942,7 +1946,7 @@ export default function NfeImportDetailPage() {
                   value={selectedItem?.qty || ''}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     if (selectedItem) {
-                      setSelectedItem({ ...selectedItem, qty: parseFloat(e.target.value) || 0 })
+                      setSelectedItem({ ...selectedItem, qty: parseFloat(e.target.value) || 0 });
                     }
                   }}
                   placeholder="Quantidade"
@@ -1964,8 +1968,8 @@ export default function NfeImportDetailPage() {
                   label="Data de Validade"
                   value={expirationDate}
                   onChange={(event: any) => {
-                    const nextValue = typeof event === 'string' ? event : event.target.value
-                    setExpirationDate(nextValue)
+                    const nextValue = typeof event === 'string' ? event : event.target.value;
+                    setExpirationDate(nextValue);
                   }}
                 />
               </div>
@@ -1991,10 +1995,10 @@ export default function NfeImportDetailPage() {
                         batch_number: batchNumber || null,
                         expiration_date: expirationDate || null,
                         manufacture_date: manufactureDate || null,
-                      })
-                      await ensurePendingStatus()
-                      setIsMappingModalOpen(false)
-                      toast.success('Vínculo removido com sucesso!')
+                      });
+                      await ensurePendingStatus();
+                      setIsMappingModalOpen(false);
+                      toast.success('Vínculo removido com sucesso!');
                     }
                   }}
                   isLoading={updateItem.isPending}
@@ -2067,12 +2071,12 @@ export default function NfeImportDetailPage() {
       <Modal
         isOpen={isNewPresentationModalOpen}
         onClose={() => {
-          setIsNewPresentationModalOpen(false)
-          setProductForNewPresentation(null)
-          setRefItemDataForPresentation(null)
-          setSuggestedManufacturer(null)
-          setSelectedPresentationUnit('')
-          setSelectedPresentationManufacturerId('')
+          setIsNewPresentationModalOpen(false);
+          setProductForNewPresentation(null);
+          setRefItemDataForPresentation(null);
+          setSuggestedManufacturer(null);
+          setSelectedPresentationUnit('');
+          setSelectedPresentationManufacturerId('');
         }}
         title={productForNewPresentation ? 'Nova Apresentação' : 'Cadastrar Nova Apresentação'}
         size="lg"
@@ -2170,7 +2174,7 @@ export default function NfeImportDetailPage() {
                       name: suggestedManufacturer.name,
                       trade_name: suggestedManufacturer.name,
                       document: suggestedManufacturer.cnpj,
-                    })
+                    });
                   }}
                   disabled={createManufacturer.isPending}
                   className="bg-primary-600 text-content-inverse hover:bg-primary-700 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
@@ -2286,12 +2290,12 @@ export default function NfeImportDetailPage() {
                 type="button"
                 variant="secondary"
                 onClick={() => {
-                  setIsNewPresentationModalOpen(false)
-                  setProductForNewPresentation(null)
-                  setRefItemDataForPresentation(null)
-                  setSuggestedManufacturer(null)
-                  setSelectedPresentationUnit('')
-                  setSelectedPresentationManufacturerId('')
+                  setIsNewPresentationModalOpen(false);
+                  setProductForNewPresentation(null);
+                  setRefItemDataForPresentation(null);
+                  setSuggestedManufacturer(null);
+                  setSelectedPresentationUnit('');
+                  setSelectedPresentationManufacturerId('');
                 }}
               >
                 Cancelar
@@ -2394,9 +2398,9 @@ export default function NfeImportDetailPage() {
             {...registerNewSupplier('document', { required: 'CNPJ é obrigatório' })}
             value={newSupplierDocumentValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const formatted = formatCnpjCpfInput(e.target.value)
-              setNewSupplierDocumentValue(formatted)
-              setNewSupplierValue('document', formatted, { shouldDirty: true })
+              const formatted = formatCnpjCpfInput(e.target.value);
+              setNewSupplierDocumentValue(formatted);
+              setNewSupplierValue('document', formatted, { shouldDirty: true });
             }}
             error={newSupplierErrors.document?.message}
             required
@@ -2416,9 +2420,9 @@ export default function NfeImportDetailPage() {
               {...registerNewSupplier('phone')}
               value={newSupplierPhoneValue}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const formatted = formatPhoneInput(e.target.value)
-                setNewSupplierPhoneValue(formatted)
-                setNewSupplierValue('phone', formatted, { shouldDirty: true })
+                const formatted = formatPhoneInput(e.target.value);
+                setNewSupplierPhoneValue(formatted);
+                setNewSupplierValue('phone', formatted, { shouldDirty: true });
               }}
             />
           </div>
@@ -2439,9 +2443,9 @@ export default function NfeImportDetailPage() {
               {...registerNewSupplier('zip_code')}
               value={newSupplierZipValue}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const formatted = formatCepInput(e.target.value)
-                setNewSupplierZipValue(formatted)
-                setNewSupplierValue('zip_code', formatted, { shouldDirty: true })
+                const formatted = formatCepInput(e.target.value);
+                setNewSupplierZipValue(formatted);
+                setNewSupplierValue('zip_code', formatted, { shouldDirty: true });
               }}
             />
           </div>
@@ -2568,9 +2572,9 @@ export default function NfeImportDetailPage() {
       <Modal
         isOpen={isSelectProductForPresentationModalOpen}
         onClose={() => {
-          setIsSelectProductForPresentationModalOpen(false)
-          setSelectedProductId('')
-          setProductSearchQuery('')
+          setIsSelectProductForPresentationModalOpen(false);
+          setSelectedProductId('');
+          setProductSearchQuery('');
         }}
         title="Selecionar Produto"
         size="xl"
@@ -2599,8 +2603,8 @@ export default function NfeImportDetailPage() {
           {/* Reference Item Data Display - Layout Premium Compacto */}
           {selectedItem?.ean &&
             (() => {
-              const refData = refItemDataMap.get(selectedItem.ean)
-              if (!refData) return null
+              const refData = refItemDataMap.get(selectedItem.ean);
+              if (!refData) return null;
 
               return (
                 <div className="border-feedback-accent-border/40 overflow-hidden rounded-lg border">
@@ -2722,7 +2726,7 @@ export default function NfeImportDetailPage() {
                     )}
                   </div>
                 </div>
-              )
+              );
             })()}
 
           <SearchableSelect
@@ -2745,10 +2749,10 @@ export default function NfeImportDetailPage() {
               type="button"
               variant="ghost"
               onClick={() => {
-                setIsSelectProductForPresentationModalOpen(false)
-                setSelectedProductId('')
-                setProductSearchQuery('')
-                setIsNewProductModalOpen(true)
+                setIsSelectProductForPresentationModalOpen(false);
+                setSelectedProductId('');
+                setProductSearchQuery('');
+                setIsNewProductModalOpen(true);
               }}
               className="border-feedback-accent-border !text-feedback-accent-fg hover:!bg-feedback-accent-bg border"
             >
@@ -2760,9 +2764,9 @@ export default function NfeImportDetailPage() {
                 type="button"
                 variant="secondary"
                 onClick={() => {
-                  setIsSelectProductForPresentationModalOpen(false)
-                  setSelectedProductId('')
-                  setProductSearchQuery('')
+                  setIsSelectProductForPresentationModalOpen(false);
+                  setSelectedProductId('');
+                  setProductSearchQuery('');
                 }}
               >
                 Cancelar
@@ -2792,5 +2796,5 @@ export default function NfeImportDetailPage() {
         />
       )}
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
-import { useAuthStore } from '@/stores/authStore'
-import { Users, FileText, Archive, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react'
+import { Link } from 'react-router-dom';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { useAuthStore } from '@/stores/authStore';
+import { Users, FileText, Archive, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
 // Simulated stats for MVP
 const stats = [
   {
@@ -36,7 +36,7 @@ const stats = [
     icon: AlertTriangle,
     href: '/estoque/saldos',
   },
-]
+];
 
 const recentActivities = [
   {
@@ -69,17 +69,17 @@ const recentActivities = [
     description: 'Equipamento alocado: Concentrador O2 para Ana Lima',
     time: 'Há 5 horas',
   },
-]
+];
 
 const lowStockItems = [
   { name: 'Dipirona 500mg', current: 15, minimum: 50, unit: 'UN' },
   { name: 'Seringa 10ml', current: 20, minimum: 100, unit: 'UN' },
   { name: 'Dieta Enteral Padrão', current: 5, minimum: 20, unit: 'L' },
   { name: 'Gaze Estéril', current: 30, minimum: 100, unit: 'PCT' },
-]
+];
 
 export default function DashboardPage() {
-  const { appUser, company } = useAuthStore()
+  const { appUser, company } = useAuthStore();
 
   return (
     <div className="space-y-8">
@@ -177,7 +177,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-4">
               {lowStockItems.map((item) => {
-                const percentage = (item.current / item.minimum) * 100
+                const percentage = (item.current / item.minimum) * 100;
                 return (
                   <div key={item.name} className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -201,7 +201,7 @@ export default function DashboardPage() {
                       />
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </CardContent>
@@ -255,5 +255,5 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

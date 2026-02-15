@@ -1,25 +1,25 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Modal, Button, Input, Loading, EmptyState, ListPagination } from '@/components/ui'
-import { supabase } from '@/lib/supabase'
-import type { RefItemUnified, ProductPresentation } from '@/types/database'
-import toast from 'react-hot-toast'
-import { useListPageState } from '@/hooks/useListPageState'
-import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination'
-import { Search, Link, X, Filter, Check } from 'lucide-react'
-const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Modal, Button, Input, Loading, EmptyState, ListPagination } from '@/components/ui';
+import { supabase } from '@/lib/supabase';
+import type { RefItemUnified, ProductPresentation } from '@/types/database';
+import toast from 'react-hot-toast';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { Search, Link, X, Filter, Check } from 'lucide-react';
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 interface SearchFilters {
-  nome: string
-  fabricante: string
-  concentration: string
-  substance: string
-  tiss: string
-  tuss: string
-  ggrem: string
-  brasindice: string
-  simpro: string
-  ean: string
+  nome: string;
+  fabricante: string;
+  concentration: string;
+  substance: string;
+  tiss: string;
+  tuss: string;
+  ggrem: string;
+  brasindice: string;
+  simpro: string;
+  ean: string;
 }
 
 const emptyFilters: SearchFilters = {
@@ -33,16 +33,16 @@ const emptyFilters: SearchFilters = {
   brasindice: '',
   simpro: '',
   ean: '',
-}
+};
 
 interface PresentationSearchModalProps {
-  isOpen: boolean
-  onClose: () => void
-  productId: string
-  productName: string
-  productConcentration?: string
-  existingPresentations: ProductPresentation[]
-  onSelectItem: (item: RefItemUnified) => void
+  isOpen: boolean;
+  onClose: () => void;
+  productId: string;
+  productName: string;
+  productConcentration?: string;
+  existingPresentations: ProductPresentation[];
+  onSelectItem: (item: RefItemUnified) => void;
 }
 
 /**
@@ -57,62 +57,62 @@ function useSearchRefItemsUnifiedAdvanced(
     queryKey: ['ref-items-unified-advanced', filters, page, pageSize],
     queryFn: async () => {
       // Check if at least one filter is active
-      const hasActiveFilter = Object.values(filters).some((v) => v.trim().length >= 2)
+      const hasActiveFilter = Object.values(filters).some((v) => v.trim().length >= 2);
       if (!hasActiveFilter) {
-        return { data: [], totalCount: 0 }
+        return { data: [], totalCount: 0 };
       }
 
-      let query = supabase.from('vw_ref_item_unified').select('*', { count: 'exact' })
+      let query = supabase.from('vw_ref_item_unified').select('*', { count: 'exact' });
 
       // Apply filters
       // O campo "name" busca também na substância (princípio ativo)
       if (filters.nome.trim().length >= 2) {
-        const searchTerm = filters.nome.trim()
-        query = query.or(`name.ilike.%${searchTerm}%,substance.ilike.%${searchTerm}%`)
+        const searchTerm = filters.nome.trim();
+        query = query.or(`name.ilike.%${searchTerm}%,substance.ilike.%${searchTerm}%`);
       }
       if (filters.fabricante.trim().length >= 2) {
-        query = query.ilike('manufacturer', `%${filters.fabricante.trim()}%`)
+        query = query.ilike('manufacturer', `%${filters.fabricante.trim()}%`);
       }
       if (filters.concentration.trim().length >= 1) {
-        query = query.ilike('concentration', `%${filters.concentration.trim()}%`)
+        query = query.ilike('concentration', `%${filters.concentration.trim()}%`);
       }
       if (filters.substance.trim().length >= 2) {
-        query = query.ilike('substance', `%${filters.substance.trim()}%`)
+        query = query.ilike('substance', `%${filters.substance.trim()}%`);
       }
       if (filters.tiss.trim()) {
-        query = query.ilike('tiss', `%${filters.tiss.trim()}%`)
+        query = query.ilike('tiss', `%${filters.tiss.trim()}%`);
       }
       if (filters.tuss.trim()) {
-        query = query.ilike('tuss', `%${filters.tuss.trim()}%`)
+        query = query.ilike('tuss', `%${filters.tuss.trim()}%`);
       }
       if (filters.ggrem.trim()) {
-        query = query.ilike('ggrem_code', `%${filters.ggrem.trim()}%`)
+        query = query.ilike('ggrem_code', `%${filters.ggrem.trim()}%`);
       }
       if (filters.brasindice.trim()) {
-        query = query.ilike('brasindice_code', `%${filters.brasindice.trim()}%`)
+        query = query.ilike('brasindice_code', `%${filters.brasindice.trim()}%`);
       }
       if (filters.simpro.trim()) {
-        query = query.ilike('simpro_code', `%${filters.simpro.trim()}%`)
+        query = query.ilike('simpro_code', `%${filters.simpro.trim()}%`);
       }
       if (filters.ean.trim()) {
-        query = query.ilike('ean', `%${filters.ean.trim()}%`)
+        query = query.ilike('ean', `%${filters.ean.trim()}%`);
       }
 
       // Pagination
-      const from = (page - 1) * pageSize
-      const to = from + pageSize - 1
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
 
-      const { data, error, count } = await query.order('name').range(from, to)
+      const { data, error, count } = await query.order('name').range(from, to);
 
-      if (error) throw error
+      if (error) throw error;
       return {
         data: data as RefItemUnified[],
         totalCount: count || 0,
-      }
+      };
     },
     enabled: Object.values(filters).some((v) => v.trim().length >= 2),
     staleTime: 30000,
-  })
+  });
 }
 
 export default function PresentationSearchModal({
@@ -124,12 +124,12 @@ export default function PresentationSearchModal({
   existingPresentations,
   onSelectItem,
 }: PresentationSearchModalProps) {
-  const [filters, setFilters] = useState<SearchFilters>(emptyFilters)
-  const [debouncedFilters, setDebouncedFilters] = useState<SearchFilters>(emptyFilters)
+  const [filters, setFilters] = useState<SearchFilters>(emptyFilters);
+  const [debouncedFilters, setDebouncedFilters] = useState<SearchFilters>(emptyFilters);
   const [currentPage, setCurrentPage] = useListPageState({
     storageKey: 'presentation-search-modal-page',
-  })
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  });
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Função para remover acentos e ç
   const removeAccents = (text: string): string => {
@@ -137,38 +137,38 @@ export default function PresentationSearchModal({
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Remove diacríticos
       .replace(/ç/g, 'c')
-      .replace(/Ç/g, 'C')
-  }
+      .replace(/Ç/g, 'C');
+  };
 
   // Debounce filters
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedFilters(filters)
-      setCurrentPage(1)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [filters, setCurrentPage])
+      setDebouncedFilters(filters);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [filters, setCurrentPage]);
 
   // Reset filters when modal opens
   useEffect(() => {
     if (isOpen) {
-      const cleanedProductName = removeAccents(productName)
-      setFilters({ ...emptyFilters, nome: cleanedProductName })
-      setDebouncedFilters({ ...emptyFilters, nome: cleanedProductName })
-      setCurrentPage(1)
-      setShowAdvancedFilters(false)
+      const cleanedProductName = removeAccents(productName);
+      setFilters({ ...emptyFilters, nome: cleanedProductName });
+      setDebouncedFilters({ ...emptyFilters, nome: cleanedProductName });
+      setCurrentPage(1);
+      setShowAdvancedFilters(false);
     }
-  }, [isOpen, productName, setCurrentPage])
+  }, [isOpen, productName, setCurrentPage]);
 
   const { data: searchResult, isLoading } = useSearchRefItemsUnifiedAdvanced(
     debouncedFilters,
     currentPage,
     PAGE_SIZE
-  )
+  );
 
-  const items = searchResult?.data ?? []
-  const totalCount = searchResult?.totalCount ?? 0
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+  const items = searchResult?.data ?? [];
+  const totalCount = searchResult?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   // Check if EAN already exists in presentations
   const existingEans = useMemo(() => {
@@ -176,26 +176,26 @@ export default function PresentationSearchModal({
       existingPresentations
         .map((p) => p.barcode)
         .filter((barcode): barcode is string => Boolean(barcode))
-    )
-  }, [existingPresentations])
+    );
+  }, [existingPresentations]);
 
   const handleFilterChange = useCallback((field: keyof SearchFilters, value: string) => {
-    setFilters((prev) => ({ ...prev, [field]: value }))
-  }, [])
+    setFilters((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const clearFilters = useCallback(() => {
-    setFilters(emptyFilters)
-  }, [])
+    setFilters(emptyFilters);
+  }, []);
 
-  const hasActiveFilters = Object.values(filters).some((v) => v.trim().length > 0)
+  const hasActiveFilters = Object.values(filters).some((v) => v.trim().length > 0);
 
   const handleSelectItem = useCallback(
     (item: RefItemUnified) => {
-      onSelectItem(item)
-      toast.success(`Apresentação selecionada: ${item.name}`)
+      onSelectItem(item);
+      toast.success(`Apresentação selecionada: ${item.name}`);
     },
     [onSelectItem]
-  )
+  );
 
   return (
     <Modal
@@ -375,7 +375,7 @@ export default function PresentationSearchModal({
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
                 {items.map((item) => {
-                  const alreadyLinked = item.ean ? existingEans.has(item.ean) : false
+                  const alreadyLinked = item.ean ? existingEans.has(item.ean) : false;
                   return (
                     <tr
                       key={item.ean}
@@ -475,7 +475,7 @@ export default function PresentationSearchModal({
                         )}
                       </td>
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
@@ -497,5 +497,5 @@ export default function PresentationSearchModal({
         />
       </div>
     </Modal>
-  )
+  );
 }

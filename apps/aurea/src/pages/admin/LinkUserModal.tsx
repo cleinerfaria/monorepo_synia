@@ -1,32 +1,32 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Modal, Input, Button } from '@/components/ui'
-import { Company } from '@/hooks/useCompanies'
-import { UserRole, roleLabels, useLinkCurrentUser } from '@/hooks/useAppUsers'
-import { useAuthStore } from '@/stores/authStore'
-import { supabase } from '@/lib/supabase'
-import toast from 'react-hot-toast'
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Modal, Input, Button } from '@/components/ui';
+import { Company } from '@/hooks/useCompanies';
+import { UserRole, roleLabels, useLinkCurrentUser } from '@/hooks/useAppUsers';
+import { useAuthStore } from '@/stores/authStore';
+import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 
 interface LinkUserModalProps {
-  isOpen: boolean
-  onClose: () => void
-  companies: Company[]
+  isOpen: boolean;
+  onClose: () => void;
+  companies: Company[];
 }
 
-const roles: UserRole[] = ['admin', 'manager', 'clinician', 'stock', 'finance', 'viewer']
+const roles: UserRole[] = ['admin', 'manager', 'clinician', 'stock', 'finance', 'viewer'];
 
 export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserModalProps) {
-  const navigate = useNavigate()
-  const { user, setAppUser, setCompany } = useAuthStore()
+  const navigate = useNavigate();
+  const { user, setAppUser, setCompany } = useAuthStore();
 
   const [formData, setFormData] = useState({
     company_id: '',
     name: '',
     role: 'admin' as UserRole,
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const linkMutation = useLinkCurrentUser()
+  const linkMutation = useLinkCurrentUser();
 
   useEffect(() => {
     if (isOpen) {
@@ -34,62 +34,62 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
         company_id: companies.length > 0 ? companies[0].id : '',
         name: user?.user_metadata?.name || user?.email?.split('@')[0] || '',
         role: 'admin',
-      })
-      setErrors({})
+      });
+      setErrors({});
     }
-  }, [isOpen, companies, user])
+  }, [isOpen, companies, user]);
 
   const validate = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Nome é obrigatório'
+      newErrors.name = 'Nome é obrigatório';
     }
 
     if (!formData.company_id) {
-      newErrors.company_id = 'Empresa é obrigatória'
+      newErrors.company_id = 'Empresa é obrigatória';
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!validate()) return
+    if (!validate()) return;
 
     try {
       const appUser = await linkMutation.mutateAsync({
         company_id: formData.company_id,
         name: formData.name,
         role: formData.role,
-      })
+      });
 
       // Atualizar o estado global com o novo appUser e company
-      setAppUser(appUser)
+      setAppUser(appUser);
 
       // Buscar a empresa
       const { data: companyData } = await supabase
         .from('company')
         .select('*')
         .eq('id', formData.company_id)
-        .single()
+        .single();
 
       if (companyData) {
-        setCompany(companyData)
+        setCompany(companyData);
       }
 
-      toast.success('Conta vinculada com sucesso!')
-      onClose()
+      toast.success('Conta vinculada com sucesso!');
+      onClose();
 
       // Redirecionar para o dashboard
-      navigate('/')
+      navigate('/');
     } catch (error: any) {
-      console.error('Erro ao vincular conta:', error)
-      toast.error(error.message || 'Erro ao vincular conta')
+      console.error('Erro ao vincular conta:', error);
+      toast.error(error.message || 'Erro ao vincular conta');
     }
-  }
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Vincular Minha Conta" size="md">
@@ -164,5 +164,5 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
         </div>
       </form>
     </Modal>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-﻿import { Card, EmptyState } from '@/components/ui'
-import { ClipboardList } from 'lucide-react'
+﻿import { Card, EmptyState } from '@/components/ui';
+import { ClipboardList } from 'lucide-react';
 export default function CensoPage() {
   return (
     <div className="space-y-6">
@@ -17,5 +17,5 @@ export default function CensoPage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

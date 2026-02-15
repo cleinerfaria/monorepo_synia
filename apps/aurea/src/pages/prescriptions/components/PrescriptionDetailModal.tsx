@@ -1,11 +1,11 @@
-import { Modal } from '@/components/ui'
-import type { ReactNode } from 'react'
+import { Modal } from '@/components/ui';
+import type { ReactNode } from 'react';
 
 interface PrescriptionDetailModalProps {
-  isOpen: boolean
-  onClose: () => void
-  selectedItem: unknown
-  children: ReactNode
+  isOpen: boolean;
+  onClose: () => void;
+  selectedItem: unknown;
+  children: ReactNode;
 }
 
 export function PrescriptionDetailModal({
@@ -23,5 +23,5 @@ export function PrescriptionDetailModal({
     >
       {children}
     </Modal>
-  )
+  );
 }

@@ -1,19 +1,19 @@
-import { useMemo, useState } from 'react'
-import { Check, FilePlus2, Settings2, Sparkles } from 'lucide-react'
-import { clsx } from 'clsx'
-import { Badge, ButtonNew, Card, CardContent, Input, SwitchNew } from '@/components/ui'
-import type { ButtonNewDropdownItem, ButtonNewProps } from '@/components/ui'
+import { useMemo, useState } from 'react';
+import { Check, FilePlus2, Settings2, Sparkles } from 'lucide-react';
+import { clsx } from 'clsx';
+import { Badge, ButtonNew, Card, CardContent, Input, SwitchNew } from '@/components/ui';
+import type { ButtonNewDropdownItem, ButtonNewProps } from '@/components/ui';
 
 type ButtonVariant = Extract<
   NonNullable<ButtonNewProps['variant']>,
   'solid' | 'soft' | 'outline' | 'neutral' | 'danger'
->
-type ButtonSize = NonNullable<ButtonNewProps['size']>
-type IconOption = 'default' | 'sparkles' | 'file' | 'settings' | 'none'
-type WidthMode = 'auto' | 'full'
+>;
+type ButtonSize = NonNullable<ButtonNewProps['size']>;
+type IconOption = 'default' | 'sparkles' | 'file' | 'settings' | 'none';
+type WidthMode = 'auto' | 'full';
 
-const variants: ButtonVariant[] = ['solid', 'soft', 'outline']
-const sizes: ButtonSize[] = ['sm', 'md', 'lg']
+const variants: ButtonVariant[] = ['solid', 'soft', 'outline'];
+const sizes: ButtonSize[] = ['sm', 'md', 'lg'];
 
 const variantLabels: Record<ButtonVariant, string> = {
   solid: 'Solid',
@@ -21,13 +21,13 @@ const variantLabels: Record<ButtonVariant, string> = {
   outline: 'Outline',
   neutral: 'Neutral',
   danger: 'Danger',
-}
+};
 
 const sizeLabels: Record<ButtonSize, string> = {
   sm: 'Small',
   md: 'Medium',
   lg: 'Large',
-}
+};
 
 const iconLabels: Record<IconOption, string> = {
   default: 'Padrao',
@@ -35,18 +35,18 @@ const iconLabels: Record<IconOption, string> = {
   file: 'File Plus',
   settings: 'Settings',
   none: 'Sem icone',
-}
+};
 
 const widthLabels: Record<WidthMode, string> = {
   auto: 'Auto',
   full: 'Largura total',
-}
+};
 
 function resolveIcon(iconOption: IconOption) {
-  if (iconOption === 'none' || iconOption === 'default') return undefined
-  if (iconOption === 'sparkles') return <Sparkles className="h-4 w-4" />
-  if (iconOption === 'file') return <FilePlus2 className="h-4 w-4" />
-  return <Settings2 className="h-4 w-4" />
+  if (iconOption === 'none' || iconOption === 'default') return undefined;
+  if (iconOption === 'sparkles') return <Sparkles className="h-4 w-4" />;
+  if (iconOption === 'file') return <FilePlus2 className="h-4 w-4" />;
+  return <Settings2 className="h-4 w-4" />;
 }
 
 function UiPreviewPanel({
@@ -55,10 +55,10 @@ function UiPreviewPanel({
   forceDark = false,
   previewProps,
 }: {
-  title: string
-  subtitle: string
-  forceDark?: boolean
-  previewProps: ButtonNewProps
+  title: string;
+  subtitle: string;
+  forceDark?: boolean;
+  previewProps: ButtonNewProps;
 }) {
   return (
     <div className={clsx('border-border shadow-soft rounded-2xl border', forceDark && 'dark')}>
@@ -89,7 +89,7 @@ function UiPreviewPanel({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function SwitchPreviewPanel({
@@ -102,14 +102,14 @@ function SwitchPreviewPanel({
   showStatus,
   disabled,
 }: {
-  title: string
-  subtitle: string
-  forceDark?: boolean
-  checked: boolean
-  label: string
-  description?: string
-  showStatus: boolean
-  disabled: boolean
+  title: string;
+  subtitle: string;
+  forceDark?: boolean;
+  checked: boolean;
+  label: string;
+  description?: string;
+  showStatus: boolean;
+  disabled: boolean;
 }) {
   return (
     <div className={clsx('border-border shadow-soft rounded-2xl border', forceDark && 'dark')}>
@@ -154,40 +154,40 @@ function SwitchPreviewPanel({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 interface UiTabProps {
-  companyName?: string | null
+  companyName?: string | null;
 }
 
 export default function AdminUiTab({ companyName }: UiTabProps) {
-  const [label, setLabel] = useState('Novo Registro')
-  const [variant, setVariant] = useState<ButtonVariant>('solid')
-  const [size, setSize] = useState<ButtonSize>('md')
-  const [iconOption, setIconOption] = useState<IconOption>('default')
-  const [widthMode, setWidthMode] = useState<WidthMode>('auto')
-  const [showIcon, setShowIcon] = useState(true)
-  const [disabled, setDisabled] = useState(false)
-  const [withDropdown, setWithDropdown] = useState(true)
-  const [dropdownPortal, setDropdownPortal] = useState(false)
-  const [customClassName, setCustomClassName] = useState('')
-  const [switchLabel, setSwitchLabel] = useState('Status da Prescricao')
-  const [switchDescription, setSwitchDescription] = useState('Controla o status de liberacao')
-  const [switchChecked, setSwitchChecked] = useState(true)
-  const [switchDisabled, setSwitchDisabled] = useState(false)
-  const [switchShowStatus, setSwitchShowStatus] = useState(true)
+  const [label, setLabel] = useState('Novo Registro');
+  const [variant, setVariant] = useState<ButtonVariant>('solid');
+  const [size, setSize] = useState<ButtonSize>('md');
+  const [iconOption, setIconOption] = useState<IconOption>('default');
+  const [widthMode, setWidthMode] = useState<WidthMode>('auto');
+  const [showIcon, setShowIcon] = useState(true);
+  const [disabled, setDisabled] = useState(false);
+  const [withDropdown, setWithDropdown] = useState(true);
+  const [dropdownPortal, setDropdownPortal] = useState(false);
+  const [customClassName, setCustomClassName] = useState('');
+  const [switchLabel, setSwitchLabel] = useState('Status da Prescricao');
+  const [switchDescription, setSwitchDescription] = useState('Controla o status de liberacao');
+  const [switchChecked, setSwitchChecked] = useState(true);
+  const [switchDisabled, setSwitchDisabled] = useState(false);
+  const [switchShowStatus, setSwitchShowStatus] = useState(true);
 
   const dropdownItems = useMemo<ButtonNewDropdownItem[] | undefined>(() => {
-    if (!withDropdown) return undefined
+    if (!withDropdown) return undefined;
 
     return [
       { id: 'create', label: 'Criar agora', icon: <Check className="h-4 w-4" /> },
       { id: 'draft', label: 'Salvar como rascunho' },
       { id: 'import', label: 'Importar dados' },
       { id: 'scheduled', label: 'Agendar', disabled: true },
-    ]
-  }, [withDropdown])
+    ];
+  }, [withDropdown]);
 
   const playgroundProps: ButtonNewProps = {
     label,
@@ -199,7 +199,7 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
     dropdownItems,
     dropdownPortal,
     className: clsx(widthMode === 'full' && 'w-full', customClassName.trim()),
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -544,5 +544,5 @@ export default function AdminUiTab({ companyName }: UiTabProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

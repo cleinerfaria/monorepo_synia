@@ -1,45 +1,45 @@
 export type LogFieldFilter = {
-  include?: string[]
-  exclude?: string[]
-}
+  include?: string[];
+  exclude?: string[];
+};
 
 const isIncluded = (key: string, filter?: LogFieldFilter) => {
   if (filter?.include && !filter.include.includes(key)) {
-    return false
+    return false;
   }
   if (filter?.exclude && filter.exclude.includes(key)) {
-    return false
+    return false;
   }
-  return true
-}
+  return true;
+};
 
 const isEqualValue = (left: unknown, right: unknown) => {
-  if (left === right) return true
-  if (left == null && right == null) return true
-  if (typeof left !== 'object' || typeof right !== 'object') return false
+  if (left === right) return true;
+  if (left == null && right == null) return true;
+  if (typeof left !== 'object' || typeof right !== 'object') return false;
 
   try {
-    return JSON.stringify(left) === JSON.stringify(right)
+    return JSON.stringify(left) === JSON.stringify(right);
   } catch {
-    return false
+    return false;
   }
-}
+};
 
 export const buildLogSnapshot = <T extends Record<string, any>>(
   record?: T | null,
   filter?: LogFieldFilter
 ) => {
-  if (!record) return undefined
+  if (!record) return undefined;
 
-  const snapshot: Record<string, any> = {}
+  const snapshot: Record<string, any> = {};
   Object.keys(record).forEach((key) => {
-    if (!isIncluded(key, filter)) return
-    const value = record[key]
-    snapshot[key] = value === undefined ? null : value
-  })
+    if (!isIncluded(key, filter)) return;
+    const value = record[key];
+    snapshot[key] = value === undefined ? null : value;
+  });
 
-  return Object.keys(snapshot).length > 0 ? snapshot : undefined
-}
+  return Object.keys(snapshot).length > 0 ? snapshot : undefined;
+};
 
 export const buildLogDiff = <T extends Record<string, any>>(
   oldRecord?: T | null,
@@ -47,33 +47,33 @@ export const buildLogDiff = <T extends Record<string, any>>(
   filter?: LogFieldFilter
 ) => {
   if (!oldRecord && !newRecord) {
-    return { oldData: undefined, newData: undefined }
+    return { oldData: undefined, newData: undefined };
   }
 
-  const oldData: Record<string, any> = {}
-  const newData: Record<string, any> = {}
-  const keys = new Set<string>()
+  const oldData: Record<string, any> = {};
+  const newData: Record<string, any> = {};
+  const keys = new Set<string>();
 
   if (oldRecord) {
-    Object.keys(oldRecord).forEach((key) => keys.add(key))
+    Object.keys(oldRecord).forEach((key) => keys.add(key));
   }
   if (newRecord) {
-    Object.keys(newRecord).forEach((key) => keys.add(key))
+    Object.keys(newRecord).forEach((key) => keys.add(key));
   }
 
   keys.forEach((key) => {
-    if (!isIncluded(key, filter)) return
-    const oldValue = oldRecord ? oldRecord[key] : undefined
-    const newValue = newRecord ? newRecord[key] : undefined
+    if (!isIncluded(key, filter)) return;
+    const oldValue = oldRecord ? oldRecord[key] : undefined;
+    const newValue = newRecord ? newRecord[key] : undefined;
 
     if (!isEqualValue(oldValue, newValue)) {
-      oldData[key] = oldValue === undefined ? null : oldValue
-      newData[key] = newValue === undefined ? null : newValue
+      oldData[key] = oldValue === undefined ? null : oldValue;
+      newData[key] = newValue === undefined ? null : newValue;
     }
-  })
+  });
 
   return {
     oldData: Object.keys(oldData).length > 0 ? oldData : undefined,
     newData: Object.keys(newData).length > 0 ? newData : undefined,
-  }
-}
+  };
+};

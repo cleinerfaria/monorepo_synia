@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -7,13 +7,13 @@ import {
   Button,
   Loading,
   EmptyState,
-} from '@/components/ui'
-import { useRefSourcesWithStats, RefSourceWithStats } from '@/hooks/useReferenceTables'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import ReferenceSourceDetail from './ReferenceSourceDetail'
-import ReferenceImportModal from './ReferenceImportModal'
-import { Table, Upload, Clock, FileText, RefreshCw } from 'lucide-react'
+} from '@/components/ui';
+import { useRefSourcesWithStats, RefSourceWithStats } from '@/hooks/useReferenceTables';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import ReferenceSourceDetail from './ReferenceSourceDetail';
+import ReferenceImportModal from './ReferenceImportModal';
+import { Table, Upload, Clock, FileText, RefreshCw } from 'lucide-react';
 // Source icons and colors
 const sourceConfig: Record<string, { color: string; bgColor: string; description: string }> = {
   simpro: {
@@ -31,7 +31,7 @@ const sourceConfig: Record<string, { color: string; bgColor: string; description
     bgColor: 'bg-purple-100 dark:bg-purple-900/30',
     description: 'Preços regulados pela ANVISA',
   },
-}
+};
 
 function getStatusInfo(source: RefSourceWithStats) {
   if (!source.last_batch) {
@@ -39,7 +39,7 @@ function getStatusInfo(source: RefSourceWithStats) {
       label: 'Não importado',
       color: 'text-gray-500',
       bgColor: 'bg-gray-100 dark:bg-gray-700',
-    }
+    };
   }
 
   switch (source.last_batch.status) {
@@ -48,70 +48,70 @@ function getStatusInfo(source: RefSourceWithStats) {
         label: 'Atualizada',
         color: 'text-green-700 dark:text-green-300',
         bgColor: 'bg-green-100 dark:bg-green-900/30',
-      }
+      };
     case 'running':
       return {
         label: 'Importando...',
         color: 'text-blue-700 dark:text-blue-300',
         bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-      }
+      };
     case 'failed':
       return {
         label: 'Erro na importação',
         color: 'text-red-700 dark:text-red-300',
         bgColor: 'bg-red-100 dark:bg-red-900/30',
-      }
+      };
     case 'partial':
       return {
         label: 'Parcialmente importado',
         color: 'text-yellow-700 dark:text-yellow-300',
         bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
-      }
+      };
     default:
       return {
         label: 'Pendente',
         color: 'text-gray-700 dark:text-gray-300',
         bgColor: 'bg-gray-100 dark:bg-gray-700',
-      }
+      };
   }
 }
 
 export default function ReferenceTablesPage() {
-  const { data: sources = [], isLoading, refetch } = useRefSourcesWithStats()
+  const { data: sources = [], isLoading, refetch } = useRefSourcesWithStats();
 
-  const [selectedSource, setSelectedSource] = useState<RefSourceWithStats | null>(null)
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
-  const [importSource, setImportSource] = useState<RefSourceWithStats | null>(null)
+  const [selectedSource, setSelectedSource] = useState<RefSourceWithStats | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importSource, setImportSource] = useState<RefSourceWithStats | null>(null);
 
   const handleOpenDetail = (source: RefSourceWithStats) => {
-    setSelectedSource(source)
-  }
+    setSelectedSource(source);
+  };
 
   const handleCloseDetail = () => {
-    setSelectedSource(null)
-  }
+    setSelectedSource(null);
+  };
 
   const handleOpenImport = (source: RefSourceWithStats) => {
-    setImportSource(source)
-    setIsImportModalOpen(true)
-  }
+    setImportSource(source);
+    setIsImportModalOpen(true);
+  };
 
   const handleCloseImport = () => {
-    setIsImportModalOpen(false)
-    setImportSource(null)
-  }
+    setIsImportModalOpen(false);
+    setImportSource(null);
+  };
 
   const handleImportSuccess = () => {
-    refetch()
-    handleCloseImport()
-  }
+    refetch();
+    handleCloseImport();
+  };
 
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loading size="lg" />
       </div>
-    )
+    );
   }
 
   return (
@@ -146,8 +146,8 @@ export default function ReferenceTablesPage() {
               color: 'text-gray-600',
               bgColor: 'bg-gray-100',
               description: '',
-            }
-            const status = getStatusInfo(source)
+            };
+            const status = getStatusInfo(source);
 
             return (
               <div
@@ -230,8 +230,8 @@ export default function ReferenceTablesPage() {
                         size="sm"
                         className="flex-1"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          handleOpenImport(source)
+                          e.stopPropagation();
+                          handleOpenImport(source);
                         }}
                       >
                         <Upload className="h-4 w-4" />
@@ -241,8 +241,8 @@ export default function ReferenceTablesPage() {
                         variant="secondary"
                         size="sm"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          handleOpenDetail(source)
+                          e.stopPropagation();
+                          handleOpenDetail(source);
                         }}
                       >
                         <Clock className="h-4 w-4" />
@@ -252,7 +252,7 @@ export default function ReferenceTablesPage() {
                   </CardContent>
                 </Card>
               </div>
-            )
+            );
           })}
         </div>
       )}
@@ -315,5 +315,5 @@ export default function ReferenceTablesPage() {
         />
       )}
     </div>
-  )
+  );
 }

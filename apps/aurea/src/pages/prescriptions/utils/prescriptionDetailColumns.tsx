@@ -1,6 +1,6 @@
-import { format } from 'date-fns'
-import type { ColumnDef } from '@tanstack/react-table'
-import { Copy, Eye, Menu, Pencil, Power, PowerOff, Printer, Trash2 } from 'lucide-react'
+import { format } from 'date-fns';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Copy, Eye, Menu, Pencil, Power, PowerOff, Printer, Trash2 } from 'lucide-react';
 import {
   Badge,
   DropdownMenu,
@@ -9,38 +9,38 @@ import {
   StatusBadge,
   getStatusBadgeConfig,
   type BadgeVariant,
-} from '@/components/ui'
-import type { PrescriptionItem } from '@/types/database'
-import type { PrescriptionPrintAction } from '@/components/prescription/PrescriptionPrintModal'
-import type { PrescriptionPrintHistoryItem } from '@/types/prescriptionPrint'
-import { calculateInclusiveDays, parseDateOnly } from './prescriptionDetailFrequency'
+} from '@/components/ui';
+import type { PrescriptionItem } from '@/types/database';
+import type { PrescriptionPrintAction } from '@/components/prescription/PrescriptionPrintModal';
+import type { PrescriptionPrintHistoryItem } from '@/types/prescriptionPrint';
+import { calculateInclusiveDays, parseDateOnly } from './prescriptionDetailFrequency';
 
-type PrintRowAction = { id: string; action: PrescriptionPrintAction } | null
+type PrintRowAction = { id: string; action: PrescriptionPrintAction } | null;
 
 interface BuildPrintHistoryColumnsParams {
-  printHistoryActionInProgress: PrintRowAction
-  handlePrintHistoryAction: (id: string, action: 'preview' | 'print') => Promise<void> | void
-  deletingPrintId: string | null
-  handleDeletePrescriptionPrint: (item: PrescriptionPrintHistoryItem) => void
-  hasPrescriptionEditPermission: boolean
+  printHistoryActionInProgress: PrintRowAction;
+  handlePrintHistoryAction: (id: string, action: 'preview' | 'print') => Promise<void> | void;
+  deletingPrintId: string | null;
+  handleDeletePrescriptionPrint: (item: PrescriptionPrintHistoryItem) => void;
+  hasPrescriptionEditPermission: boolean;
 }
 
 interface BuildItemColumnsParams {
-  itemNumbers: Map<string, number>
-  products: any[]
-  equipment: any[]
-  procedures: any[]
-  administrationRoutes: any[]
-  formatFrequencyDisplay: (item: any) => string
-  isItemEffectivelyActive: (item: any) => boolean
-  isMedicationSuspendedByEndDate: (item: any) => boolean
-  openSuspendItemModal: (item: PrescriptionItem) => void
-  toggleItemActive: (payload: { id: string; is_active: boolean }) => void
-  openEditItemModal: (item: any) => void
-  prescriptionId?: string
-  items: PrescriptionItem[]
-  duplicateItem: (payload: { item: any; prescriptionId: string; components: any[] }) => void
-  openDeleteItemModal: (item: PrescriptionItem) => void
+  itemNumbers: Map<string, number>;
+  products: any[];
+  equipment: any[];
+  procedures: any[];
+  administrationRoutes: any[];
+  formatFrequencyDisplay: (item: any) => string;
+  isItemEffectivelyActive: (item: any) => boolean;
+  isMedicationSuspendedByEndDate: (item: any) => boolean;
+  openSuspendItemModal: (item: PrescriptionItem) => void;
+  toggleItemActive: (payload: { id: string; is_active: boolean }) => void;
+  openEditItemModal: (item: any) => void;
+  prescriptionId?: string;
+  items: PrescriptionItem[];
+  duplicateItem: (payload: { item: any; prescriptionId: string; components: any[] }) => void;
+  openDeleteItemModal: (item: PrescriptionItem) => void;
 }
 
 export function buildPrintHistoryColumns({
@@ -101,16 +101,17 @@ export function buildPrintHistoryColumns({
       id: 'actions',
       header: () => <div className="w-full text-right">Ações</div>,
       cell: ({ row }) => {
-        const rowAction = printHistoryActionInProgress
-        const isPreviewLoading = rowAction?.id === row.original.id && rowAction.action === 'preview'
-        const isPrintLoading = rowAction?.id === row.original.id && rowAction.action === 'print'
+        const rowAction = printHistoryActionInProgress;
+        const isPreviewLoading =
+          rowAction?.id === row.original.id && rowAction.action === 'preview';
+        const isPrintLoading = rowAction?.id === row.original.id && rowAction.action === 'print';
 
         return (
           <div className="flex w-full items-center justify-end gap-2">
             <IconButton
               onClick={(event) => {
-                event.stopPropagation()
-                void handlePrintHistoryAction(row.original.id, 'preview')
+                event.stopPropagation();
+                void handlePrintHistoryAction(row.original.id, 'preview');
               }}
               disabled={isPreviewLoading}
               title="Visualizar"
@@ -120,8 +121,8 @@ export function buildPrintHistoryColumns({
             </IconButton>
             <IconButton
               onClick={(event) => {
-                event.stopPropagation()
-                void handlePrintHistoryAction(row.original.id, 'print')
+                event.stopPropagation();
+                void handlePrintHistoryAction(row.original.id, 'print');
               }}
               disabled={isPrintLoading}
               title="Imprimir"
@@ -132,8 +133,8 @@ export function buildPrintHistoryColumns({
             <IconButton
               variant="danger"
               onClick={(event) => {
-                event.stopPropagation()
-                handleDeletePrescriptionPrint(row.original)
+                event.stopPropagation();
+                handleDeletePrescriptionPrint(row.original);
               }}
               disabled={!hasPrescriptionEditPermission || deletingPrintId === row.original.id}
               title="Excluir"
@@ -142,10 +143,10 @@ export function buildPrintHistoryColumns({
               <Trash2 className="h-4 w-4" />
             </IconButton>
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 }
 
 export function buildItemColumns({
@@ -171,26 +172,26 @@ export function buildItemColumns({
       header: 'Nº',
       size: 50,
       cell: ({ row }) => {
-        const itemNumber = itemNumbers.get(row.original.id)
+        const itemNumber = itemNumbers.get(row.original.id);
         return (
           <div className="bg-primary-100/10 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 flex items-center justify-center rounded-lg px-2 py-1 font-semibold">
             {itemNumber || '-'}
           </div>
-        )
+        );
       },
     },
     {
       accessorKey: 'item',
       header: 'Item',
       cell: ({ row }) => {
-        const item = row.original
-        const product = item.product_id ? products.find((p) => p.id === item.product_id) : null
+        const item = row.original;
+        const product = item.product_id ? products.find((p) => p.id === item.product_id) : null;
         const equipmentItem = item.equipment_id
           ? equipment.find((e) => e.id === item.equipment_id)
-          : null
+          : null;
         const procedureItem = item.procedure_id
           ? procedures.find((p) => p.id === item.procedure_id)
-          : null
+          : null;
         let name =
           product?.name ||
           equipmentItem?.name ||
@@ -198,22 +199,22 @@ export function buildItemColumns({
           item.product?.name ||
           item.equipment?.name ||
           (item as any).procedure?.name ||
-          '-'
-        const concentration = product?.concentration || item.product?.concentration
+          '-';
+        const concentration = product?.concentration || item.product?.concentration;
         if (concentration) {
-          name += ` ${concentration}`
+          name += ` ${concentration}`;
         }
 
-        const components = (item as any).components || []
-        const instructions = item.instructions_use
-        const quantity = item.quantity
-        const productData = product as any
+        const components = (item as any).components || [];
+        const instructions = item.instructions_use;
+        const quantity = item.quantity;
+        const productData = product as any;
         const unit =
           productData?.unit_prescription?.symbol ||
           productData?.unit_stock?.symbol ||
           item.product?.unit_prescription?.symbol ||
           item.product?.unit_stock?.symbol ||
-          'UN'
+          'UN';
 
         return (
           <div className="space-y-1" style={{ minWidth: '280px' }}>
@@ -233,14 +234,14 @@ export function buildItemColumns({
             {components.length > 0 && (
               <div className="border-primary-200 dark:border-primary-700 ml-3 space-y-0.5 border-l-2 pl-3">
                 {components.map((comp: any, idx: number) => {
-                  const compProduct = comp.product
-                  const compName = compProduct?.name || 'Produto'
-                  const compConcentration = compProduct?.concentration || ''
-                  const compQuantity = comp.quantity
+                  const compProduct = comp.product;
+                  const compName = compProduct?.name || 'Produto';
+                  const compConcentration = compProduct?.concentration || '';
+                  const compQuantity = comp.quantity;
                   const compUnit =
                     compProduct?.unit_prescription?.symbol ||
                     compProduct?.unit_stock?.symbol ||
-                    'UN'
+                    'UN';
 
                   return (
                     <p key={comp.id || idx} className="text-xs text-gray-500 dark:text-gray-400">
@@ -254,24 +255,24 @@ export function buildItemColumns({
                         </span>
                       )}
                     </p>
-                  )
+                  );
                 })}
               </div>
             )}
           </div>
-        )
+        );
       },
     },
     {
       accessorKey: 'route_id',
       header: 'Via',
       cell: ({ row }) => {
-        const route = administrationRoutes.find((r) => r.id === row.original.route_id)
+        const route = administrationRoutes.find((r) => r.id === row.original.route_id);
         return (
           <span className="text-gray-700 dark:text-gray-300">
             {route?.abbreviation || route?.name || '-'}
           </span>
-        )
+        );
       },
     },
     {
@@ -297,47 +298,47 @@ export function buildItemColumns({
         </div>
       ),
       cell: ({ row }) => {
-        const item = row.original
-        const timeChecks = item.time_checks
+        const item = row.original;
+        const timeChecks = item.time_checks;
 
         if (!timeChecks) {
           return (
             <div className="flex justify-center">
               <span className="text-gray-500">-</span>
             </div>
-          )
+          );
         }
 
         try {
           const times: string[] =
             typeof timeChecks === 'string'
               ? timeChecks.split(',').map((time) => time.trim())
-              : timeChecks
+              : timeChecks;
 
           const getTimeVariant = (time: string): BadgeVariant => {
-            const parts = time.split(':')
-            const hour = parseInt(parts[0], 10)
-            return hour >= 7 && hour < 19 ? 'info' : 'danger'
-          }
+            const parts = time.split(':');
+            const hour = parseInt(parts[0], 10);
+            return hour >= 7 && hour < 19 ? 'info' : 'danger';
+          };
 
           const formattedTimes = times.map((time) => {
-            let displayTime = time
+            let displayTime = time;
             if (time.endsWith(':00')) {
-              const withoutSeconds = time.slice(0, -3)
+              const withoutSeconds = time.slice(0, -3);
               displayTime = withoutSeconds.startsWith('0')
                 ? withoutSeconds.slice(1)
-                : withoutSeconds
+                : withoutSeconds;
             } else if (time.startsWith('0')) {
-              displayTime = time.slice(1)
+              displayTime = time.slice(1);
             }
 
-            const variant = getTimeVariant(time)
+            const variant = getTimeVariant(time);
             return (
               <Badge key={time} variant={variant} className="min-w-[54px] justify-center font-mono">
                 {displayTime}
               </Badge>
-            )
-          })
+            );
+          });
 
           return (
             <div
@@ -346,9 +347,9 @@ export function buildItemColumns({
             >
               {formattedTimes}
             </div>
-          )
+          );
         } catch {
-          return <span className="text-gray-500">-</span>
+          return <span className="text-gray-500">-</span>;
         }
       },
     },
@@ -369,11 +370,11 @@ export function buildItemColumns({
         </div>
       ),
       cell: ({ row }) => {
-        const item = row.original
-        const isPrn = item.is_prn
-        const isContinuousUse = item.is_continuous_use
-        const endDate = item.end_date
-        const startDate = item.start_date
+        const item = row.original;
+        const isPrn = item.is_prn;
+        const isContinuousUse = item.is_continuous_use;
+        const endDate = item.end_date;
+        const startDate = item.start_date;
 
         return (
           <div className="flex justify-center">
@@ -394,21 +395,21 @@ export function buildItemColumns({
               <span className="text-gray-500">-</span>
             )}
           </div>
-        )
+        );
       },
     },
     {
       accessorKey: 'supplier',
       header: () => <div className="w-full text-center">Fornecedor</div>,
       cell: ({ row }) => {
-        const supplierValue = row.original.supplier || 'company'
-        const config = getStatusBadgeConfig(supplierValue)
+        const supplierValue = row.original.supplier || 'company';
+        const config = getStatusBadgeConfig(supplierValue);
 
         return (
           <div className="flex justify-center">
             <Badge variant={config.variant}>{config.label}</Badge>
           </div>
-        )
+        );
       },
     },
     {
@@ -416,8 +417,8 @@ export function buildItemColumns({
       accessorKey: 'status',
       header: () => <div className="w-full text-center">Status</div>,
       cell: ({ row }) => {
-        const item = row.original
-        const isActive = isItemEffectivelyActive(item)
+        const item = row.original;
+        const isActive = isItemEffectivelyActive(item);
 
         return (
           <div className="flex justify-center">
@@ -425,30 +426,30 @@ export function buildItemColumns({
               {isActive ? 'Ativo' : 'Suspenso'}
             </Badge>
           </div>
-        )
+        );
       },
     },
     {
       id: 'actions',
       header: '',
       cell: ({ row }) => {
-        const isActive = isItemEffectivelyActive(row.original)
-        const isSuspendedByEndDate = isMedicationSuspendedByEndDate(row.original)
+        const isActive = isItemEffectivelyActive(row.original);
+        const isSuspendedByEndDate = isMedicationSuspendedByEndDate(row.original);
 
         return (
           <div className="flex items-center justify-end">
             <DropdownMenu trigger={<Menu className="h-4 w-4" />} portal>
               <DropdownMenuItem
                 onClick={() => {
-                  if (isSuspendedByEndDate) return
+                  if (isSuspendedByEndDate) return;
 
                   if (isActive) {
-                    openSuspendItemModal(row.original)
+                    openSuspendItemModal(row.original);
                   } else {
                     toggleItemActive({
                       id: row.original.id,
                       is_active: true,
-                    })
+                    });
                   }
                 }}
                 disabled={isSuspendedByEndDate}
@@ -488,19 +489,19 @@ export function buildItemColumns({
 
               <DropdownMenuItem
                 onClick={() => {
-                  if (!prescriptionId) return
+                  if (!prescriptionId) return;
 
-                  const itemComponents = items.find((i) => i.id === row.original.id)
+                  const itemComponents = items.find((i) => i.id === row.original.id);
                   const components =
                     itemComponents && (itemComponents as any).components
                       ? (itemComponents as any).components
-                      : []
+                      : [];
 
                   duplicateItem({
                     item: row.original,
                     prescriptionId,
                     components: components as any[],
-                  })
+                  });
                 }}
                 className="flex items-center gap-2"
               >
@@ -517,8 +518,8 @@ export function buildItemColumns({
               </DropdownMenuItem>
             </DropdownMenu>
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 }

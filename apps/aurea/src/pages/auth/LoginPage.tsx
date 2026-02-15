@@ -1,61 +1,61 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import toast from 'react-hot-toast'
-import { useAuthStore } from '@/stores/authStore'
-import { Button, Input, Card } from '@/components/ui'
-import PremiumHeroPanel from '@/components/auth/PremiumHeroPanel'
-import ForgotPasswordModal from '@/components/auth/ForgotPasswordModal'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useAuthStore } from '@/stores/authStore';
+import { Button, Input, Card } from '@/components/ui';
+import PremiumHeroPanel from '@/components/auth/PremiumHeroPanel';
+import ForgotPasswordModal from '@/components/auth/ForgotPasswordModal';
 
 interface LoginForm {
-  email: string
-  password: string
+  email: string;
+  password: string;
 }
 
 export default function LoginPage() {
-  const navigate = useNavigate()
-  const { signIn } = useAuthStore()
-  const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false)
-  const [isDark, setIsDark] = useState(false)
+  const navigate = useNavigate();
+  const { signIn } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return window.matchMedia('(min-width: 1024px)').matches
-  })
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(min-width: 1024px)').matches;
+  });
 
   useEffect(() => {
     // Detectar tema inicial
-    const isDarkMode = document.documentElement.classList.contains('dark')
-    setIsDark(isDarkMode)
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    setIsDark(isDarkMode);
 
     // Observar mudanças de tema
     const observer = new MutationObserver(() => {
-      const isDarkMode = document.documentElement.classList.contains('dark')
-      setIsDark(isDarkMode)
-    })
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      setIsDark(isDarkMode);
+    });
 
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class'],
-    })
+    });
 
-    return () => observer.disconnect()
-  }, [])
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 1024px)')
-    const update = () => setIsDesktop(mediaQuery.matches)
-    update()
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const update = () => setIsDesktop(mediaQuery.matches);
+    update();
 
     if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', update)
-      return () => mediaQuery.removeEventListener('change', update)
+      mediaQuery.addEventListener('change', update);
+      return () => mediaQuery.removeEventListener('change', update);
     }
 
-    mediaQuery.addListener(update)
-    return () => mediaQuery.removeListener(update)
-  }, [])
+    mediaQuery.addListener(update);
+    return () => mediaQuery.removeListener(update);
+  }, []);
 
   const {
     register,
@@ -66,32 +66,32 @@ export default function LoginPage() {
       email: '',
       password: '',
     },
-  })
+  });
 
   const onSubmit = async (data: LoginForm) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
-    const { error } = await signIn(data.email, data.password)
+    const { error } = await signIn(data.email, data.password);
 
     if (error) {
-      setIsSubmitting(false)
-      toast.error('Credenciais inválidas. Tente novamente.')
-      return
+      setIsSubmitting(false);
+      toast.error('Credenciais inválidas. Tente novamente.');
+      return;
     }
 
-    toast.success('Login realizado com sucesso!')
+    toast.success('Login realizado com sucesso!');
 
     // Se não tem app_user/empresa, redirecionar para admin
-    const { appUser: currentAppUser } = useAuthStore.getState()
+    const { appUser: currentAppUser } = useAuthStore.getState();
     if (!currentAppUser) {
-      toast('Configure sua empresa para começar', { icon: '⚙️' })
-      navigate('/admin')
+      toast('Configure sua empresa para começar', { icon: '⚙️' });
+      navigate('/admin');
     } else {
-      navigate('/')
+      navigate('/');
     }
 
-    setIsSubmitting(false)
-  }
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
@@ -213,5 +213,5 @@ export default function LoginPage() {
         onClose={() => setIsForgotPasswordModalOpen(false)}
       />
     </div>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
-import fs from 'node:fs'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import fs from 'node:fs';
 
-const packageJsonPath = path.resolve(__dirname, 'package.json')
-const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as { version?: string }
-const appVersion = packageJson.version ?? '0.0.0'
+const packageJsonPath = path.resolve(__dirname, 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as { version?: string };
+const appVersion = packageJson.version ?? '0.0.0';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -35,11 +35,11 @@ export default defineConfig({
             id.includes('node_modules/@react-google-maps') ||
             id.includes('node_modules/leaflet')
           ) {
-            return 'vendor-core'
+            return 'vendor-core';
           }
 
           if (id.includes('node_modules/@tanstack') || id.includes('node_modules/date-fns')) {
-            return 'vendor-data'
+            return 'vendor-data';
           }
 
           if (
@@ -47,37 +47,37 @@ export default defineConfig({
             id.includes('node_modules/@heroicons') ||
             id.includes('node_modules/recharts')
           ) {
-            return 'vendor-ui'
+            return 'vendor-ui';
           }
 
           if (
             id.includes('node_modules/react-hook-form') ||
             id.includes('node_modules/react-hot-toast')
           ) {
-            return 'vendor-forms'
+            return 'vendor-forms';
           }
 
           if (id.includes('node_modules/@supabase')) {
-            return 'vendor-supabase'
+            return 'vendor-supabase';
           }
 
           if (id.includes('node_modules/lucide-react')) {
-            return 'vendor-icons'
+            return 'vendor-icons';
           }
 
           if (id.includes('node_modules/exceljs') || id.includes('node_modules/fast-xml-parser')) {
-            return 'vendor-utils'
+            return 'vendor-utils';
           }
 
           // Agrupa TODAS as páginas em um chunk único
           // (evita circularidades entre páginas diferentes)
           if (id.includes('/pages/')) {
-            return 'pages'
+            return 'pages';
           }
 
           // Agrupa componentes UI
           if (id.includes('/components/ui/')) {
-            return 'components-ui'
+            return 'components-ui';
           }
 
           // Hooks e lib ficam distribuídos automaticamente
@@ -88,4 +88,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

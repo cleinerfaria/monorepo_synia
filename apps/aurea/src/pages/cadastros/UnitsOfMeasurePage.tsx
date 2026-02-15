@@ -1,6 +1,6 @@
-﻿import { useState, useMemo, useEffect } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, SlidersHorizontal, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useEffect } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Pencil, SlidersHorizontal, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
@@ -15,32 +15,32 @@ import {
   EmptyState,
   SwitchNew,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useUnitsOfMeasurePaginated,
   useCreateUnitOfMeasure,
   useUpdateUnitOfMeasure,
-} from '@/hooks/useUnitsOfMeasure'
-import { useListPageState } from '@/hooks/useListPageState'
-import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination'
-import { useForm } from 'react-hook-form'
-import type { UnitOfMeasure, UnitScope } from '@/hooks/useUnitsOfMeasure'
+} from '@/hooks/useUnitsOfMeasure';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { useForm } from 'react-hook-form';
+import type { UnitOfMeasure, UnitScope } from '@/hooks/useUnitsOfMeasure';
 
 interface UnitOfMeasureFormData {
-  code: string
-  name: string
-  symbol: string
-  description: string
-  allowed_scopes: UnitScope[]
-  active: boolean
+  code: string;
+  name: string;
+  symbol: string;
+  description: string;
+  allowed_scopes: UnitScope[];
+  active: boolean;
 }
 
-const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 const UNIT_SCOPE_OPTIONS: Array<{
-  value: UnitScope
-  label: string
-  description: string
+  value: UnitScope;
+  label: string;
+  description: string;
 }> = [
   {
     value: 'medication_base',
@@ -92,45 +92,45 @@ const UNIT_SCOPE_OPTIONS: Array<{
     label: 'Escala',
     description: 'Usada em escala/plantao',
   },
-]
+];
 
 export default function UnitsOfMeasurePage() {
-  const [currentPage, setCurrentPage] = useListPageState()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
+  const [currentPage, setCurrentPage] = useListPageState();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   const { data: paginatedData, isLoading } = useUnitsOfMeasurePaginated(
     currentPage,
     PAGE_SIZE,
     searchTerm
-  )
+  );
 
-  const units = paginatedData?.data ?? []
-  const totalCount = paginatedData?.totalCount ?? 0
-  const totalPages = paginatedData?.totalPages ?? 1
+  const units = paginatedData?.data ?? [];
+  const totalCount = paginatedData?.totalCount ?? 0;
+  const totalPages = paginatedData?.totalPages ?? 1;
 
-  const createUnit = useCreateUnitOfMeasure()
-  const updateUnit = useUpdateUnitOfMeasure()
+  const createUnit = useCreateUnitOfMeasure();
+  const updateUnit = useUpdateUnitOfMeasure();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setCurrentPage(1)
-      setSearchTerm(searchInput)
-    }, 300)
+      setCurrentPage(1);
+      setSearchTerm(searchInput);
+    }, 300);
 
-    return () => clearTimeout(timeout)
-  }, [searchInput, setCurrentPage])
+    return () => clearTimeout(timeout);
+  }, [searchInput, setCurrentPage]);
 
-  const hasActiveSearch = searchTerm.trim().length > 0
+  const hasActiveSearch = searchTerm.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-    setSearchTerm('')
-    setCurrentPage(1)
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedUnit, setSelectedUnit] = useState<UnitOfMeasure | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState<UnitOfMeasure | null>(null);
 
   const {
     register,
@@ -139,18 +139,18 @@ export default function UnitsOfMeasurePage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<UnitOfMeasureFormData>()
+  } = useForm<UnitOfMeasureFormData>();
 
-  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active')
-  const activeValue = watch('active')
-  const allowedScopes = watch('allowed_scopes') || []
+  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active');
+  const activeValue = watch('active');
+  const allowedScopes = watch('allowed_scopes') || [];
 
   useEffect(() => {
-    register('allowed_scopes')
-  }, [register])
+    register('allowed_scopes');
+  }, [register]);
 
   const openCreateModal = () => {
-    setSelectedUnit(null)
+    setSelectedUnit(null);
     reset({
       code: '',
       name: '',
@@ -158,12 +158,12 @@ export default function UnitsOfMeasurePage() {
       description: '',
       allowed_scopes: [],
       active: true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = (unit: UnitOfMeasure) => {
-    setSelectedUnit(unit)
+    setSelectedUnit(unit);
     reset({
       code: unit.code || '',
       name: unit.name,
@@ -171,27 +171,27 @@ export default function UnitsOfMeasurePage() {
       description: unit.description || '',
       allowed_scopes: unit.allowed_scopes || [],
       active: unit.active ?? true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const onSubmit = async (data: UnitOfMeasureFormData) => {
     const payload = {
       ...data,
       description: data.description || null,
       allowed_scopes: data.allowed_scopes || [],
-    }
+    };
 
     if (selectedUnit) {
       await updateUnit.mutateAsync({
         id: selectedUnit.id,
         ...payload,
-      })
+      });
     } else {
-      await createUnit.mutateAsync(payload)
+      await createUnit.mutateAsync(payload);
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const columns: ColumnDef<UnitOfMeasure>[] = useMemo(
     () => [
@@ -235,8 +235,8 @@ export default function UnitsOfMeasurePage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                openEditModal(row.original)
+                e.stopPropagation();
+                openEditModal(row.original);
               }}
               title="Editar unidade"
             >
@@ -248,7 +248,7 @@ export default function UnitsOfMeasurePage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -391,7 +391,7 @@ export default function UnitsOfMeasurePage() {
                       'allowed_scopes',
                       UNIT_SCOPE_OPTIONS.map((option) => option.value),
                       { shouldDirty: true }
-                    )
+                    );
                   }}
                 >
                   Selecionar todos
@@ -401,7 +401,7 @@ export default function UnitsOfMeasurePage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    setValue('allowed_scopes', [], { shouldDirty: true })
+                    setValue('allowed_scopes', [], { shouldDirty: true });
                   }}
                 >
                   Limpar
@@ -410,7 +410,7 @@ export default function UnitsOfMeasurePage() {
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {UNIT_SCOPE_OPTIONS.map((option) => {
-                const isChecked = allowedScopes.includes(option.value)
+                const isChecked = allowedScopes.includes(option.value);
                 return (
                   <label
                     key={option.value}
@@ -422,8 +422,8 @@ export default function UnitsOfMeasurePage() {
                       onChange={() => {
                         const nextScopes = isChecked
                           ? allowedScopes.filter((scope) => scope !== option.value)
-                          : [...allowedScopes, option.value]
-                        setValue('allowed_scopes', nextScopes, { shouldDirty: true })
+                          : [...allowedScopes, option.value];
+                        setValue('allowed_scopes', nextScopes, { shouldDirty: true });
                       }}
                       className="text-primary-600 focus:ring-primary-500 mt-0.5 h-4 w-4 rounded border-gray-300"
                     />
@@ -436,7 +436,7 @@ export default function UnitsOfMeasurePage() {
                       </span>
                     </span>
                   </label>
-                )
+                );
               })}
             </div>
           </div>
@@ -449,7 +449,7 @@ export default function UnitsOfMeasurePage() {
             onBlur={activeOnBlur}
             checked={!!activeValue}
             onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true })
+              setValue('active', e.target.checked, { shouldDirty: true });
             }}
           />
 
@@ -472,5 +472,5 @@ export default function UnitsOfMeasurePage() {
         </form>
       </Modal>
     </div>
-  )
+  );
 }

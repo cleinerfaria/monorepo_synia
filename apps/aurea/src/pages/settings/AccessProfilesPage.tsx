@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -8,62 +8,68 @@ import {
   EmptyState,
   Badge,
   Modal,
-} from '@/components/ui'
-import { useAccessProfiles, useDeleteAccessProfile, AccessProfile } from '@/hooks/useAccessProfiles'
-import { useAuthStore } from '@/stores/authStore'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import toast from 'react-hot-toast'
-import AccessProfileModal from '@/pages/admin/AccessProfileModal'
-import { ShieldCheck, Plus, Pencil, Trash2, Search } from 'lucide-react'
+} from '@/components/ui';
+import {
+  useAccessProfiles,
+  useDeleteAccessProfile,
+  AccessProfile,
+} from '@/hooks/useAccessProfiles';
+import { useAuthStore } from '@/stores/authStore';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import toast from 'react-hot-toast';
+import AccessProfileModal from '@/pages/admin/AccessProfileModal';
+import { ShieldCheck, Plus, Pencil, Trash2, Search } from 'lucide-react';
 export default function AccessProfilesPage() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
-  const [selectedProfile, setSelectedProfile] = useState<AccessProfile | null>(null)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [profileToDelete, setProfileToDelete] = useState<AccessProfile | null>(null)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<AccessProfile | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState<AccessProfile | null>(null);
 
-  const { company } = useAuthStore()
-  const { data: accessProfiles = [], isLoading: isLoadingProfiles } = useAccessProfiles(company?.id)
-  const deleteProfile = useDeleteAccessProfile()
+  const { company } = useAuthStore();
+  const { data: accessProfiles = [], isLoading: isLoadingProfiles } = useAccessProfiles(
+    company?.id
+  );
+  const deleteProfile = useDeleteAccessProfile();
 
   const filteredProfiles = accessProfiles.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.code.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  );
 
   const handleEditProfile = (profile: AccessProfile) => {
-    setSelectedProfile(profile)
-    setIsProfileModalOpen(true)
-  }
+    setSelectedProfile(profile);
+    setIsProfileModalOpen(true);
+  };
 
   const handleNewProfile = () => {
-    setSelectedProfile(null)
-    setIsProfileModalOpen(true)
-  }
+    setSelectedProfile(null);
+    setIsProfileModalOpen(true);
+  };
 
   const handleDeleteClick = (profile: AccessProfile) => {
     if (profile.is_system) {
-      toast.error('Não é possível excluir um perfil do sistema')
-      return
+      toast.error('Não é possível excluir um perfil do sistema');
+      return;
     }
-    setProfileToDelete(profile)
-    setIsDeleteModalOpen(true)
-  }
+    setProfileToDelete(profile);
+    setIsDeleteModalOpen(true);
+  };
 
   const handleConfirmDelete = async () => {
-    if (!profileToDelete) return
+    if (!profileToDelete) return;
 
     try {
-      await deleteProfile.mutateAsync(profileToDelete.id)
-      toast.success('Perfil excluído com sucesso')
-      setIsDeleteModalOpen(false)
-      setProfileToDelete(null)
+      await deleteProfile.mutateAsync(profileToDelete.id);
+      toast.success('Perfil excluído com sucesso');
+      setIsDeleteModalOpen(false);
+      setProfileToDelete(null);
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao excluir perfil')
+      toast.error(error.message || 'Erro ao excluir perfil');
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -180,8 +186,8 @@ export default function AccessProfilesPage() {
         <AccessProfileModal
           isOpen={isProfileModalOpen}
           onClose={() => {
-            setIsProfileModalOpen(false)
-            setSelectedProfile(null)
+            setIsProfileModalOpen(false);
+            setSelectedProfile(null);
           }}
           profile={selectedProfile}
           companyId={company.id}
@@ -192,8 +198,8 @@ export default function AccessProfilesPage() {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => {
-          setIsDeleteModalOpen(false)
-          setProfileToDelete(null)
+          setIsDeleteModalOpen(false);
+          setProfileToDelete(null);
         }}
         title="Confirmar Exclusão"
       >
@@ -210,8 +216,8 @@ export default function AccessProfilesPage() {
             <Button
               variant="secondary"
               onClick={() => {
-                setIsDeleteModalOpen(false)
-                setProfileToDelete(null)
+                setIsDeleteModalOpen(false);
+                setProfileToDelete(null);
               }}
             >
               Cancelar
@@ -227,5 +233,5 @@ export default function AccessProfilesPage() {
         </div>
       </Modal>
     </div>
-  )
+  );
 }

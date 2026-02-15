@@ -6,6 +6,7 @@ import {
   Button,
   ButtonNew,
   DataTable,
+  ListPagination,
   Modal,
   ModalFooter,
   Input,
@@ -24,6 +25,8 @@ import {
   useAssignEquipment,
 } from '@/hooks/useEquipment';
 import { usePatients } from '@/hooks/usePatients';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import { useForm } from 'react-hook-form';
 import type { Equipment } from '@/types/database';
 
@@ -36,7 +39,10 @@ interface EquipmentFormData {
   status: 'available' | 'in_use' | 'maintenance' | 'inactive';
 }
 
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
+
 export default function EquipmentPage() {
+  const [currentPage, setCurrentPage] = useListPageState();
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,16 +68,18 @@ export default function EquipmentPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setSearchTerm(searchInput.trim());
+      setCurrentPage(1);
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [searchInput]);
+  }, [searchInput, setCurrentPage]);
 
   const hasActiveSearch = searchTerm.trim().length > 0;
 
   const handleClearSearch = () => {
     setSearchInput('');
     setSearchTerm('');
+    setCurrentPage(1);
   };
 
   const openAddModal = () => {
@@ -173,6 +181,19 @@ export default function EquipmentPage() {
       return haystack.includes(term);
     });
   }, [equipment, searchTerm]);
+
+  const totalCount = filteredEquipment.length;
+  const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
+  const paginatedEquipment = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredEquipment.slice(start, start + PAGE_SIZE);
+  }, [filteredEquipment, currentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages, setCurrentPage]);
 
   const columns: ColumnDef<any>[] = useMemo(
     () => [
@@ -310,8 +331,9 @@ export default function EquipmentPage() {
           </div>
 
           <DataTable
-            data={filteredEquipment}
+            data={paginatedEquipment}
             columns={columns}
+            showPagination={false}
             isLoading={isLoading}
             emptyState={
               <EmptyState
@@ -334,6 +356,16 @@ export default function EquipmentPage() {
                 }
               />
             }
+          />
+          <ListPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            itemLabel="equipamentos"
+            onPreviousPage={() => setCurrentPage((page) => page - 1)}
+            onNextPage={() => setCurrentPage((page) => page + 1)}
+            isLoading={isLoading}
           />
         </div>
       </Card>

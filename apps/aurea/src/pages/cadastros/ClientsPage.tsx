@@ -1,10 +1,11 @@
-﻿import { useState, useMemo, useEffect } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useEffect } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Pencil, Trash2, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
   DataTable,
+  ListPagination,
   Modal,
   ModalFooter,
   Input,
@@ -17,55 +18,57 @@ import {
   SwitchNew,
   TabButton,
   IconButton,
-} from '@/components/ui'
-import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients'
-import { useClientContacts, useSaveClientContacts } from '@/hooks/useClientContacts'
-import { useForm } from 'react-hook-form'
-import type { Client, ClientContact } from '@/types/database'
-import ClientContactForm from '@/components/client/ClientContactForm'
-import { useAuthStore } from '@/stores/authStore'
+} from '@/components/ui';
+import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients';
+import { useClientContacts, useSaveClientContacts } from '@/hooks/useClientContacts';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { useForm } from 'react-hook-form';
+import type { Client, ClientContact } from '@/types/database';
+import ClientContactForm from '@/components/client/ClientContactForm';
+import { useAuthStore } from '@/stores/authStore';
 
 // Funções de formatação
 const formatDocument = (document: string): string => {
-  if (!document) return '-'
-  const cleanDoc = document.replace(/\D/g, '')
+  if (!document) return '-';
+  const cleanDoc = document.replace(/\D/g, '');
 
   if (cleanDoc.length === 11) {
     // CPF: 000.000.000-00
-    return cleanDoc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+    return cleanDoc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   } else if (cleanDoc.length === 14) {
     // CNPJ: 00.000.000/0000-00
-    return cleanDoc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+    return cleanDoc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
   }
 
-  return cleanDoc
-}
+  return cleanDoc;
+};
 
 const formatPhone = (phone: string): string => {
-  if (!phone) return '-'
-  const cleanPhone = phone.replace(/\D/g, '')
+  if (!phone) return '-';
+  const cleanPhone = phone.replace(/\D/g, '');
 
   if (cleanPhone.length === 10) {
     // Telefone fixo: (00) 0000-0000
-    return cleanPhone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+    return cleanPhone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
   } else if (cleanPhone.length === 11) {
     // Celular: (00) 00000-0000
-    return cleanPhone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+    return cleanPhone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   }
 
-  return cleanPhone
-}
+  return cleanPhone;
+};
 
 // Máscaras para inputs
 const applyDocumentMask = (value: string): string => {
-  const cleanValue = value.replace(/\D/g, '')
+  const cleanValue = value.replace(/\D/g, '');
 
   if (cleanValue.length <= 11) {
     // CPF
     return cleanValue
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{2})$/, '$1-$2')
+      .replace(/(\d{3})(\d{2})$/, '$1-$2');
   } else {
     // CNPJ
     return cleanValue
@@ -73,67 +76,70 @@ const applyDocumentMask = (value: string): string => {
       .replace(/(\d{2})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1/$2')
-      .replace(/(\d{4})(\d{2})$/, '$1-$2')
+      .replace(/(\d{4})(\d{2})$/, '$1-$2');
   }
-}
+};
 
 const applyPhoneMask = (value: string): string => {
-  const cleanValue = value.replace(/\D/g, '')
+  const cleanValue = value.replace(/\D/g, '');
 
   if (cleanValue.length <= 10) {
     // Telefone fixo
-    return cleanValue.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d{4})$/, '$1-$2')
+    return cleanValue.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d{4})$/, '$1-$2');
   } else {
     // Celular
     return cleanValue
       .slice(0, 11)
       .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d{4})$/, '$1-$2')
+      .replace(/(\d{5})(\d{4})$/, '$1-$2');
   }
-}
+};
 
 interface ClientFormData {
-  code: string
-  type: 'insurer' | 'company' | 'individual'
-  name: string
-  document: string
-  email: string
-  phone: string
-  address: string
-  ans_code: string
-  tiss: string
-  color: string
-  active: boolean
+  code: string;
+  type: 'insurer' | 'company' | 'individual';
+  name: string;
+  document: string;
+  email: string;
+  phone: string;
+  address: string;
+  ans_code: string;
+  tiss: string;
+  color: string;
+  active: boolean;
 }
 
-export default function ClientsPage() {
-  const { data: clients = [], isLoading } = useClients()
-  const createClient = useCreateClient()
-  const updateClient = useUpdateClient()
-  const deleteClient = useDeleteClient()
-  const saveContacts = useSaveClientContacts()
-  const { company } = useAuthStore()
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
-  const [activeTab, setActiveTab] = useState<'basic' | 'contact'>('basic')
-  const [contacts, setContacts] = useState<ClientContact[]>([])
-  const [searchInput, setSearchInput] = useState('')
+export default function ClientsPage() {
+  const { data: clients = [], isLoading } = useClients();
+  const createClient = useCreateClient();
+  const updateClient = useUpdateClient();
+  const deleteClient = useDeleteClient();
+  const saveContacts = useSaveClientContacts();
+  const { company } = useAuthStore();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [activeTab, setActiveTab] = useState<'basic' | 'contact'>('basic');
+  const [contacts, setContacts] = useState<ClientContact[]>([]);
+  const [searchInput, setSearchInput] = useState('');
+  const [currentPage, setCurrentPage] = useListPageState();
 
   // Hooks para carregar contatos (somente ao editar)
-  const { data: existingContactsData } = useClientContacts(selectedClient?.id)
+  const { data: existingContactsData } = useClientContacts(selectedClient?.id);
 
   // Sincroniza contatos locais com o servidor sem criar loop de render.
   useEffect(() => {
     if (!selectedClient) {
-      setContacts((prev) => (prev.length === 0 ? prev : []))
-      return
+      setContacts((prev) => (prev.length === 0 ? prev : []));
+      return;
     }
 
-    const nextContacts = existingContactsData ?? []
-    setContacts(nextContacts)
-  }, [selectedClient, existingContactsData])
+    const nextContacts = existingContactsData ?? [];
+    setContacts(nextContacts);
+  }, [selectedClient, existingContactsData]);
 
   const {
     register,
@@ -142,18 +148,18 @@ export default function ClientsPage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<ClientFormData>()
+  } = useForm<ClientFormData>();
 
   // Observar mudanças nos campos
-  const watchType = watch('type')
+  const watchType = watch('type');
 
-  const activeValue = watch('active')
-  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active')
+  const activeValue = watch('active');
+  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
 
   const openCreateModal = () => {
-    setSelectedClient(null)
-    setIsModalOpen(true)
-  }
+    setSelectedClient(null);
+    setIsModalOpen(true);
+  };
 
   // useEffect para controlar reset do formulário
   useEffect(() => {
@@ -172,7 +178,7 @@ export default function ClientsPage() {
           tiss: (selectedClient as any).tiss || '',
           color: (selectedClient as any).color || '',
           active: selectedClient.active ? true : false,
-        })
+        });
       } else {
         // Creating
         reset({
@@ -187,38 +193,38 @@ export default function ClientsPage() {
           tiss: '',
           color: '',
           active: true,
-        })
-        setContacts([])
+        });
+        setContacts([]);
       }
-      setActiveTab('basic')
+      setActiveTab('basic');
     }
-  }, [isModalOpen, selectedClient, reset])
+  }, [isModalOpen, selectedClient, reset]);
 
   const handleSaveContacts = async (contactsToSave: ClientContact[]) => {
     if (!selectedClient) {
-      alert('É necessário salvar o cliente primeiro')
-      return
+      alert('É necessário salvar o cliente primeiro');
+      return;
     }
 
     try {
       await saveContacts.mutateAsync({
         clientId: selectedClient.id,
         contacts: contactsToSave,
-      })
+      });
     } catch (error) {
-      console.error('Erro ao salvar contatos:', error)
+      console.error('Erro ao salvar contatos:', error);
     }
-  }
+  };
 
   const openEditModal = (client: Client) => {
-    setSelectedClient(client)
-    setIsModalOpen(true)
-  }
+    setSelectedClient(client);
+    setIsModalOpen(true);
+  };
 
   const openDeleteModal = (client: Client) => {
-    setSelectedClient(client)
-    setIsDeleteModalOpen(true)
-  }
+    setSelectedClient(client);
+    setIsDeleteModalOpen(true);
+  };
 
   const onSubmit = async (data: ClientFormData) => {
     const payload = {
@@ -228,21 +234,21 @@ export default function ClientsPage() {
       ans_code: data.ans_code || null,
       tiss: data.tiss || null,
       color: data.color || null,
-    }
+    };
     if (selectedClient) {
-      await updateClient.mutateAsync({ id: selectedClient.id, ...payload })
+      await updateClient.mutateAsync({ id: selectedClient.id, ...payload });
     } else {
-      await createClient.mutateAsync(payload)
+      await createClient.mutateAsync(payload);
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const handleDelete = async () => {
     if (selectedClient) {
-      await deleteClient.mutateAsync(selectedClient.id)
-      setIsDeleteModalOpen(false)
+      await deleteClient.mutateAsync(selectedClient.id);
+      setIsDeleteModalOpen(false);
     }
-  }
+  };
 
   const columns: ColumnDef<Client>[] = useMemo(
     () => [
@@ -271,7 +277,7 @@ export default function ClientsPage() {
         accessorKey: 'color',
         header: 'Cor',
         cell: ({ row }) => {
-          const client = row.original as any
+          const client = row.original as any;
           if (client.type === 'insurer' && client.color) {
             return (
               <div className="flex items-center gap-2">
@@ -281,9 +287,9 @@ export default function ClientsPage() {
                 />
                 <span className="text-xs text-gray-500 dark:text-gray-400">{client.color}</span>
               </div>
-            )
+            );
           }
-          return <span className="text-gray-400">-</span>
+          return <span className="text-gray-400">-</span>;
         },
       },
       {
@@ -323,29 +329,47 @@ export default function ClientsPage() {
       },
     ],
     []
-  )
+  );
 
   const typeOptions = [
     { value: 'insurer', label: 'Operadora de Saúde' },
     { value: 'company', label: 'Empresa' },
     { value: 'individual', label: 'Pessoa Física' },
-  ]
+  ];
 
   const filteredClients = useMemo(() => {
-    if (!searchInput.trim()) return clients
-    const query = searchInput.toLowerCase()
+    if (!searchInput.trim()) return clients;
+    const query = searchInput.toLowerCase();
     return clients.filter((client) => {
-      const name = client.name?.toLowerCase() || ''
-      const document = client.document?.toLowerCase() || ''
-      return name.includes(query) || document.includes(query)
-    })
-  }, [clients, searchInput])
+      const name = client.name?.toLowerCase() || '';
+      const document = client.document?.toLowerCase() || '';
+      return name.includes(query) || document.includes(query);
+    });
+  }, [clients, searchInput]);
 
-  const hasActiveSearch = searchInput.trim().length > 0
+  const totalCount = filteredClients.length;
+  const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
+  const paginatedClients = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredClients.slice(start, start + PAGE_SIZE);
+  }, [filteredClients, currentPage]);
+
+  const hasActiveSearch = searchInput.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-  }
+    setSearchInput('');
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchInput, setCurrentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages, setCurrentPage]);
 
   return (
     <div className="space-y-6">
@@ -388,8 +412,9 @@ export default function ClientsPage() {
             )}
           </div>
           <DataTable
-            data={filteredClients}
+            data={paginatedClients}
             columns={columns}
+            showPagination={false}
             isLoading={isLoading}
             onRowClick={openEditModal}
             emptyState={
@@ -406,6 +431,16 @@ export default function ClientsPage() {
                 }
               />
             }
+          />
+          <ListPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            itemLabel="clientes"
+            onPreviousPage={() => setCurrentPage((page) => page - 1)}
+            onNextPage={() => setCurrentPage((page) => page + 1)}
+            isLoading={isLoading}
           />
         </div>
       </Card>
@@ -459,10 +494,10 @@ export default function ClientsPage() {
                   error={errors.name?.message}
                   required
                   onBlur={(e) => {
-                    const value = e.target.value.toUpperCase()
+                    const value = e.target.value.toUpperCase();
                     if (value !== e.target.value) {
                       // Atualiza o valor do campo para caixa alta
-                      setValue('name', value)
+                      setValue('name', value);
                     }
                   }}
                 />
@@ -471,8 +506,8 @@ export default function ClientsPage() {
                   placeholder="Números..."
                   {...register('document')}
                   onChange={(e) => {
-                    const maskedValue = applyDocumentMask(e.target.value)
-                    setValue('document', maskedValue, { shouldDirty: true })
+                    const maskedValue = applyDocumentMask(e.target.value);
+                    setValue('document', maskedValue, { shouldDirty: true });
                   }}
                 />
               </div>
@@ -483,8 +518,8 @@ export default function ClientsPage() {
                   placeholder="(00) 00000-0000"
                   {...register('phone')}
                   onChange={(e) => {
-                    const maskedValue = applyPhoneMask(e.target.value)
-                    setValue('phone', maskedValue, { shouldDirty: true })
+                    const maskedValue = applyPhoneMask(e.target.value);
+                    setValue('phone', maskedValue, { shouldDirty: true });
                   }}
                 />
                 <Input
@@ -544,7 +579,7 @@ export default function ClientsPage() {
                 onBlur={activeOnBlur}
                 checked={!!activeValue}
                 onChange={(e) => {
-                  setValue('active', e.target.checked, { shouldDirty: true })
+                  setValue('active', e.target.checked, { shouldDirty: true });
                 }}
               />
 
@@ -613,5 +648,5 @@ export default function ClientsPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

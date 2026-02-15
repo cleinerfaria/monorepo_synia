@@ -1,7 +1,7 @@
-import { useState, useMemo, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ColumnDef } from '@tanstack/react-table'
-import { format, parse } from 'date-fns'
+import { useState, useMemo, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
+import { format, parse } from 'date-fns';
 import {
   Card,
   ButtonNew,
@@ -18,17 +18,17 @@ import {
   getStatusBadgeConfig,
   IconButton,
   ColorBadge,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   usePrescriptions,
   useCreatePrescription,
   useDeletePrescription,
   useUpdatePrescription,
-} from '@/hooks/usePrescriptions'
-import { usePatients } from '@/hooks/usePatients'
-import { useProfessionals } from '@/hooks/useProfessionals'
-import { useForm } from 'react-hook-form'
-import type { Prescription, Patient, Professional, PrescriptionType } from '@/types/database'
+} from '@/hooks/usePrescriptions';
+import { usePatients } from '@/hooks/usePatients';
+import { useProfessionals } from '@/hooks/useProfessionals';
+import { useForm } from 'react-hook-form';
+import type { Prescription, Patient, Professional, PrescriptionType } from '@/types/database';
 import {
   Pencil,
   Trash2,
@@ -40,45 +40,45 @@ import {
   Funnel,
   FunnelX,
   X,
-} from 'lucide-react'
+} from 'lucide-react';
 interface PrescriptionFormData {
-  patient_id: string
-  professional_id: string
-  status: 'draft' | 'active' | 'suspended' | 'finished'
-  type: PrescriptionType | ''
-  start_date: string
-  end_date: string
-  notes: string
+  patient_id: string;
+  professional_id: string;
+  status: 'draft' | 'active' | 'suspended' | 'finished';
+  type: PrescriptionType | '';
+  start_date: string;
+  end_date: string;
+  notes: string;
 }
 
 function parseDateOnly(value: string): Date {
-  return parse(value, 'yyyy-MM-dd', new Date())
+  return parse(value, 'yyyy-MM-dd', new Date());
 }
 
 export default function PrescriptionsPage() {
-  const navigate = useNavigate()
-  const { data: prescriptionsData = [], isLoading } = usePrescriptions()
-  const prescriptions = prescriptionsData as Prescription[]
-  const { data: patientsData = [] } = usePatients()
-  const patients = patientsData as Patient[]
-  const { data: professionalsData = [] } = useProfessionals()
-  const professionals = professionalsData as Professional[]
-  const createPrescription = useCreatePrescription()
-  const updatePrescription = useUpdatePrescription()
-  const deletePrescription = useDeletePrescription()
+  const navigate = useNavigate();
+  const { data: prescriptionsData = [], isLoading } = usePrescriptions();
+  const prescriptions = prescriptionsData as Prescription[];
+  const { data: patientsData = [] } = usePatients();
+  const patients = patientsData as Patient[];
+  const { data: professionalsData = [] } = useProfessionals();
+  const professionals = professionalsData as Professional[];
+  const createPrescription = useCreatePrescription();
+  const updatePrescription = useUpdatePrescription();
+  const deletePrescription = useDeletePrescription();
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null)
-  const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  const [typeFilter, setTypeFilter] = useState('')
-  const [professionalFilter, setProfessionalFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [periodStartFilter, setPeriodStartFilter] = useState('')
-  const [periodEndFilter, setPeriodEndFilter] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [typeFilter, setTypeFilter] = useState('');
+  const [professionalFilter, setProfessionalFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [periodStartFilter, setPeriodStartFilter] = useState('');
+  const [periodEndFilter, setPeriodEndFilter] = useState('');
 
   const {
     register,
@@ -86,27 +86,27 @@ export default function PrescriptionsPage() {
     reset,
     watch,
     formState: { errors },
-  } = useForm<PrescriptionFormData>()
+  } = useForm<PrescriptionFormData>();
 
-  const watchType = watch('type')
-  const watchPatientId = watch('patient_id')
-  const watchProfessionalId = watch('professional_id')
+  const watchType = watch('type');
+  const watchPatientId = watch('patient_id');
+  const watchProfessionalId = watch('professional_id');
 
   const {
     ref: startDateRef,
     min: _startDateMin,
     max: _startDateMax,
     ...startDateField
-  } = register('start_date')
+  } = register('start_date');
   const {
     ref: endDateRef,
     min: _endDateMin,
     max: _endDateMax,
     ...endDateField
-  } = register('end_date')
+  } = register('end_date');
 
   const openCreateModal = () => {
-    setEditingPrescription(null)
+    setEditingPrescription(null);
     reset({
       patient_id: '',
       professional_id: '',
@@ -115,13 +115,13 @@ export default function PrescriptionsPage() {
       start_date: format(new Date(), 'yyyy-MM-dd'),
       end_date: '',
       notes: '',
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = useCallback(
     (prescription: Prescription) => {
-      setEditingPrescription(prescription)
+      setEditingPrescription(prescription);
       reset({
         patient_id: prescription.patient_id || '',
         professional_id: prescription.professional_id || '',
@@ -130,21 +130,21 @@ export default function PrescriptionsPage() {
         start_date: prescription.start_date || '',
         end_date: prescription.end_date || '',
         notes: prescription.notes || '',
-      })
-      setIsModalOpen(true)
+      });
+      setIsModalOpen(true);
     },
     [reset]
-  )
+  );
 
   const openDeleteModal = (prescription: Prescription) => {
-    setSelectedPrescription(prescription)
-    setIsDeleteModalOpen(true)
-  }
+    setSelectedPrescription(prescription);
+    setIsDeleteModalOpen(true);
+  };
 
   const closeFormModal = () => {
-    setIsModalOpen(false)
-    setEditingPrescription(null)
-  }
+    setIsModalOpen(false);
+    setEditingPrescription(null);
+  };
 
   const onSubmit = async (data: PrescriptionFormData) => {
     if (editingPrescription) {
@@ -154,10 +154,10 @@ export default function PrescriptionsPage() {
         type: data.type || null,
         professional_id: data.professional_id || null,
         end_date: data.end_date || data.start_date,
-      })
-      setIsModalOpen(false)
-      setEditingPrescription(null)
-      return
+      });
+      setIsModalOpen(false);
+      setEditingPrescription(null);
+      return;
     }
 
     const result = await createPrescription.mutateAsync({
@@ -168,76 +168,76 @@ export default function PrescriptionsPage() {
       end_date: data.end_date || data.start_date,
       professional_id: data.professional_id || null,
       notes: data.notes || null,
-    })
-    setIsModalOpen(false)
+    });
+    setIsModalOpen(false);
     // Navigate to prescription detail to add items
     if (result?.id) {
-      navigate(`/prescricoes/${result.id}`)
+      navigate(`/prescricoes/${result.id}`);
     }
-  }
+  };
 
   const handleDelete = async () => {
     if (selectedPrescription) {
-      await deletePrescription.mutateAsync(selectedPrescription.id)
-      setIsDeleteModalOpen(false)
+      await deletePrescription.mutateAsync(selectedPrescription.id);
+      setIsDeleteModalOpen(false);
     }
-  }
+  };
 
   const handleSearch = useCallback(() => {
-    setSearchTerm(searchInput.trim())
-  }, [searchInput])
+    setSearchTerm(searchInput.trim());
+  }, [searchInput]);
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleSearch()
+      handleSearch();
     }
-  }
+  };
 
   const clearFilters = () => {
-    setSearchInput('')
-    setSearchTerm('')
-    setTypeFilter('')
-    setProfessionalFilter('')
-    setStatusFilter('')
-    setPeriodStartFilter('')
-    setPeriodEndFilter('')
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setTypeFilter('');
+    setProfessionalFilter('');
+    setStatusFilter('');
+    setPeriodStartFilter('');
+    setPeriodEndFilter('');
+  };
 
   const filteredPrescriptions = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase()
-    const filterStart = periodStartFilter ? parseDateOnly(periodStartFilter) : null
-    const filterEnd = periodEndFilter ? parseDateOnly(periodEndFilter) : null
+    const term = searchTerm.trim().toLowerCase();
+    const filterStart = periodStartFilter ? parseDateOnly(periodStartFilter) : null;
+    const filterEnd = periodEndFilter ? parseDateOnly(periodEndFilter) : null;
 
     return prescriptions.filter((prescription) => {
-      if (typeFilter && prescription.type !== typeFilter) return false
-      if (statusFilter && prescription.status !== statusFilter) return false
+      if (typeFilter && prescription.type !== typeFilter) return false;
+      if (statusFilter && prescription.status !== statusFilter) return false;
 
       if (professionalFilter) {
         const professionalId =
-          (prescription as any).professional?.id || (prescription as any).professional_id
-        if (professionalId !== professionalFilter) return false
+          (prescription as any).professional?.id || (prescription as any).professional_id;
+        if (professionalId !== professionalFilter) return false;
       }
 
       if (filterStart || filterEnd) {
-        const start = prescription.start_date ? parseDateOnly(prescription.start_date) : null
-        const end = prescription.end_date ? parseDateOnly(prescription.end_date) : null
+        const start = prescription.start_date ? parseDateOnly(prescription.start_date) : null;
+        const end = prescription.end_date ? parseDateOnly(prescription.end_date) : null;
 
-        if (filterStart && end && end < filterStart) return false
-        if (filterEnd && start && start > filterEnd) return false
+        if (filterStart && end && end < filterStart) return false;
+        if (filterEnd && start && start > filterEnd) return false;
       }
 
       if (term) {
-        const patientName = (prescription as any).patient?.name || ''
-        const professionalName = (prescription as any).professional?.name || ''
-        const notes = prescription.notes || ''
-        const typeLabel = prescription.type ? getStatusBadgeConfig(prescription.type).label : ''
+        const patientName = (prescription as any).patient?.name || '';
+        const professionalName = (prescription as any).professional?.name || '';
+        const notes = prescription.notes || '';
+        const typeLabel = prescription.type ? getStatusBadgeConfig(prescription.type).label : '';
 
-        const haystack = `${patientName} ${professionalName} ${notes} ${typeLabel}`.toLowerCase()
-        if (!haystack.includes(term)) return false
+        const haystack = `${patientName} ${professionalName} ${notes} ${typeLabel}`.toLowerCase();
+        if (!haystack.includes(term)) return false;
       }
 
-      return true
-    })
+      return true;
+    });
   }, [
     prescriptions,
     searchTerm,
@@ -246,7 +246,7 @@ export default function PrescriptionsPage() {
     statusFilter,
     periodStartFilter,
     periodEndFilter,
-  ])
+  ]);
 
   const hasActiveFilters =
     searchTerm ||
@@ -254,7 +254,7 @@ export default function PrescriptionsPage() {
     professionalFilter ||
     statusFilter ||
     periodStartFilter ||
-    periodEndFilter
+    periodEndFilter;
 
   const columns: ColumnDef<any>[] = useMemo(
     () => [
@@ -278,12 +278,12 @@ export default function PrescriptionsPage() {
         accessorKey: 'operadora',
         header: () => <span className="block w-full text-center">Operadora</span>,
         cell: ({ row }) => {
-          const patient = row.original.patient
+          const patient = row.original.patient;
           // Buscar o client da fonte pagadora principal
-          const primaryPayer = patient?.patient_payer?.find((payer: any) => payer.is_primary)
-          const client = primaryPayer?.client
-          const operatoraName = client?.name
-          const operatoraColor = client?.color
+          const primaryPayer = patient?.patient_payer?.find((payer: any) => payer.is_primary);
+          const client = primaryPayer?.client;
+          const operatoraName = client?.name;
+          const operatoraColor = client?.color;
 
           return (
             <div className="flex justify-center">
@@ -293,14 +293,14 @@ export default function PrescriptionsPage() {
                 <span className="text-gray-400 dark:text-gray-500">-</span>
               )}
             </div>
-          )
+          );
         },
       },
       {
         accessorKey: 'professional',
         header: 'Profissional',
         cell: ({ row }) => {
-          const prof = row.original.professional
+          const prof = row.original.professional;
           return prof ? (
             <div>
               <p className="text-gray-700 dark:text-gray-300">{prof.name}</p>
@@ -308,36 +308,36 @@ export default function PrescriptionsPage() {
             </div>
           ) : (
             '-'
-          )
+          );
         },
       },
       {
         accessorKey: 'type',
         header: () => <span className="block w-full text-center">Tipo</span>,
         cell: ({ row }) => {
-          const type = row.original.type
-          if (!type) return '-'
+          const type = row.original.type;
+          if (!type) return '-';
           return (
             <div className="text-center">
               <StatusBadge status={type} />
             </div>
-          )
+          );
         },
       },
       {
         accessorKey: 'period',
         header: 'Período',
         cell: ({ row }) => {
-          const start = row.original.start_date
-          const end = row.original.end_date
-          if (!start && !end) return '-'
+          const start = row.original.start_date;
+          const end = row.original.end_date;
+          if (!start && !end) return '-';
           return (
             <span className="text-gray-700 dark:text-gray-300">
               {start ? format(parseDateOnly(start), 'dd/MM/yyyy') : '...'}
               {' - '}
               {end ? format(parseDateOnly(end), 'dd/MM/yyyy') : 'Indeterminado'}
             </span>
-          )
+          );
         },
       },
       {
@@ -352,8 +352,8 @@ export default function PrescriptionsPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                openEditModal(row.original)
+                e.stopPropagation();
+                openEditModal(row.original);
               }}
               title="Editar"
             >
@@ -368,8 +368,8 @@ export default function PrescriptionsPage() {
             <IconButton
               variant="danger"
               onClick={(e) => {
-                e.stopPropagation()
-                openDeleteModal(row.original)
+                e.stopPropagation();
+                openDeleteModal(row.original);
               }}
             >
               <Trash2 className="h-4 w-4" />
@@ -379,25 +379,25 @@ export default function PrescriptionsPage() {
       },
     ],
     [openEditModal]
-  )
+  );
 
   const patientOptions = patients
     .filter((p) => p.active)
-    .map((p) => ({ value: p.id, label: p.name }))
+    .map((p) => ({ value: p.id, label: p.name }));
 
   const professionalOptions = professionals
     .filter((p) => p.active)
     .map((p) => ({
       value: p.id,
       label: `${p.name} (${p.role || 'Profissional'})`,
-    }))
+    }));
 
   const statusOptions = [
     { value: 'draft', label: 'Rascunho' },
     { value: 'active', label: 'Ativa' },
     { value: 'suspended', label: 'Suspensa' },
     { value: 'finished', label: 'Finalizada' },
-  ]
+  ];
 
   const prescriptionTypeOptions = [
     {
@@ -418,7 +418,7 @@ export default function PrescriptionsPage() {
       icon: FlaskConical,
       description: 'Dietas e suplementação nutricional',
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -533,7 +533,7 @@ export default function PrescriptionsPage() {
                   searchPlaceholder="Buscar tipo..."
                   value={typeFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setTypeFilter(e.target.value)
+                    setTypeFilter(e.target.value);
                   }}
                 />
 
@@ -544,7 +544,7 @@ export default function PrescriptionsPage() {
                   searchPlaceholder="Buscar profissional..."
                   value={professionalFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setProfessionalFilter(e.target.value)
+                    setProfessionalFilter(e.target.value);
                   }}
                 />
 
@@ -555,7 +555,7 @@ export default function PrescriptionsPage() {
                   searchPlaceholder="Buscar status..."
                   value={statusFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setStatusFilter(e.target.value)
+                    setStatusFilter(e.target.value);
                   }}
                 />
 
@@ -564,8 +564,8 @@ export default function PrescriptionsPage() {
                   value={periodStartFilter}
                   onChange={(value: any) => {
                     const nextValue =
-                      typeof value === 'string' ? value : (value as any)?.target?.value || ''
-                    setPeriodStartFilter(nextValue)
+                      typeof value === 'string' ? value : (value as any)?.target?.value || '';
+                    setPeriodStartFilter(nextValue);
                   }}
                 />
 
@@ -574,8 +574,8 @@ export default function PrescriptionsPage() {
                   value={periodEndFilter}
                   onChange={(value: any) => {
                     const nextValue =
-                      typeof value === 'string' ? value : (value as any)?.target?.value || ''
-                    setPeriodEndFilter(nextValue)
+                      typeof value === 'string' ? value : (value as any)?.target?.value || '';
+                    setPeriodEndFilter(nextValue);
                   }}
                 />
               </div>
@@ -723,5 +723,5 @@ export default function PrescriptionsPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

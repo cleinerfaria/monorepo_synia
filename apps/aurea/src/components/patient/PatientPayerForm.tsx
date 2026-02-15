@@ -1,16 +1,16 @@
-import { useState } from 'react'
-import { ButtonNew, Input, Switch, Textarea, DatePicker, SearchableSelect } from '@/components/ui'
-import type { PatientPayer, Client } from '@/types/database'
-import { Plus, Trash2, CreditCard } from 'lucide-react'
-import { formatDateOnly } from '@/lib/dateOnly'
+import { useState } from 'react';
+import { ButtonNew, Input, Switch, Textarea, DatePicker, SearchableSelect } from '@/components/ui';
+import type { PatientPayer, Client } from '@/types/database';
+import { Plus, Trash2, CreditCard } from 'lucide-react';
+import { formatDateOnly } from '@/lib/dateOnly';
 interface PatientPayerFormProps {
-  payers: PatientPayer[]
-  onChange: (payers: PatientPayer[]) => void
-  companyId: string
-  patientId?: string
-  clients: Client[]
-  onSave?: (payers: PatientPayer[]) => Promise<void>
-  isSaving?: boolean
+  payers: PatientPayer[];
+  onChange: (payers: PatientPayer[]) => void;
+  companyId: string;
+  patientId?: string;
+  clients: Client[];
+  onSave?: (payers: PatientPayer[]) => Promise<void>;
+  isSaving?: boolean;
 }
 
 export default function PatientPayerForm({
@@ -22,7 +22,7 @@ export default function PatientPayerForm({
   onSave,
   isSaving,
 }: PatientPayerFormProps) {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(payers.length > 0 ? 0 : null)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(payers.length > 0 ? 0 : null);
 
   const handleAddPayer = () => {
     const newPayer: Partial<PatientPayer> = {
@@ -34,56 +34,56 @@ export default function PatientPayerForm({
       active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    }
-    onChange([...payers, newPayer as PatientPayer])
-    setExpandedIndex(payers.length)
-  }
+    };
+    onChange([...payers, newPayer as PatientPayer]);
+    setExpandedIndex(payers.length);
+  };
 
   const handleRemovePayer = (index: number) => {
-    const newPayers = payers.filter((_, i) => i !== index)
-    onChange(newPayers)
+    const newPayers = payers.filter((_, i) => i !== index);
+    onChange(newPayers);
     if (expandedIndex === index) {
-      setExpandedIndex(null)
+      setExpandedIndex(null);
     }
-  }
+  };
 
   const handleUpdatePayer = (index: number, field: keyof PatientPayer, value: any) => {
-    const newPayers = [...payers]
+    const newPayers = [...payers];
 
     // Se marcando como primário, desmarcar os outros
     if (field === 'is_primary' && value === true) {
       newPayers.forEach((payer, i) => {
         if (i !== index) {
-          payer.is_primary = false
+          payer.is_primary = false;
         }
-      })
+      });
     }
 
     newPayers[index] = {
       ...newPayers[index],
       [field]: value,
       updated_at: new Date().toISOString(),
-    }
-    onChange(newPayers)
-  }
+    };
+    onChange(newPayers);
+  };
 
   const handleCoverageChange = (index: number, value: string) => {
-    const numValue = parseFloat(value)
+    const numValue = parseFloat(value);
     if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
-      handleUpdatePayer(index, 'coverage_percent', numValue)
+      handleUpdatePayer(index, 'coverage_percent', numValue);
     } else if (value === '' || value === null) {
-      handleUpdatePayer(index, 'coverage_percent', null)
+      handleUpdatePayer(index, 'coverage_percent', null);
     }
-  }
+  };
 
   const getClientName = (clientId: string): string => {
-    const client = clients.find((c) => c.id === clientId)
-    return client?.name || 'Cliente não encontrado'
-  }
+    const client = clients.find((c) => c.id === clientId);
+    return client?.name || 'Cliente não encontrado';
+  };
 
   const getClientType = (clientId: string): string => {
-    const client = clients.find((c) => c.id === clientId)
-    if (!client?.type) return 'Não definido'
+    const client = clients.find((c) => c.id === clientId);
+    if (!client?.type) return 'Não definido';
 
     const typeLabels: Record<string, string> = {
       pessoa_fisica: 'Pessoa Física',
@@ -100,15 +100,15 @@ export default function PatientPayerForm({
       insurance: 'Operadora',
       health_plan: 'Plano de Saúde',
       government: 'Órgão Público',
-    }
+    };
 
-    return typeLabels[client.type.toLowerCase()] || client.type
-  }
+    return typeLabels[client.type.toLowerCase()] || client.type;
+  };
 
   const clientOptions = [
     { value: '', label: 'Selecione um cliente...' },
     ...clients.filter((c) => c.active).map((c) => ({ value: c.id, label: c.name })),
-  ]
+  ];
 
   return (
     <div className="space-y-4">
@@ -200,8 +200,8 @@ export default function PatientPayerForm({
               variant="outline"
               size="sm"
               onClick={(e) => {
-                e.stopPropagation()
-                handleRemovePayer(index)
+                e.stopPropagation();
+                handleRemovePayer(index);
               }}
               icon={<Trash2 className="h-4 w-4" />}
               label=""
@@ -288,5 +288,5 @@ export default function PatientPayerForm({
         </div>
       ))}
     </div>
-  )
+  );
 }

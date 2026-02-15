@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import {
   Card,
   ButtonNew,
@@ -10,35 +10,35 @@ import {
   Breadcrumbs,
   SwitchNew,
   TabButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useProfessional,
   useCreateProfessional,
   useUpdateProfessional,
-} from '@/hooks/useProfessionals'
-import { useForm } from 'react-hook-form'
-import { useNavigationGuard } from '@/contexts/NavigationGuardContext'
-import { useAuthStore } from '@/stores/authStore'
+} from '@/hooks/useProfessionals';
+import { useForm } from 'react-hook-form';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
+import { useAuthStore } from '@/stores/authStore';
 import {
   getProfessionalSignatureSignedUrl,
   saveProfessionalSignature,
   validateProfessionalSignatureFile,
-} from '@/lib/professionalSignatureStorage'
-import toast from 'react-hot-toast'
+} from '@/lib/professionalSignatureStorage';
+import toast from 'react-hot-toast';
 
 interface ProfessionalFormData {
-  code: string
-  name: string
-  role: string
-  council_type: string
-  council_number: string
-  council_uf: string
-  phone: string
-  email: string
-  active: boolean
+  code: string;
+  name: string;
+  role: string;
+  council_type: string;
+  council_number: string;
+  council_uf: string;
+  phone: string;
+  email: string;
+  active: boolean;
 }
 
-type FormTab = 'basic' | 'council' | 'contact'
+type FormTab = 'basic' | 'council' | 'contact';
 
 const UF_OPTIONS = [
   'AC',
@@ -68,7 +68,7 @@ const UF_OPTIONS = [
   'SP',
   'SE',
   'TO',
-].map((uf) => ({ value: uf, label: uf }))
+].map((uf) => ({ value: uf, label: uf }));
 
 const COUNCIL_OPTIONS = [
   { value: 'CRM', label: 'CRM - Medicina' },
@@ -81,7 +81,7 @@ const COUNCIL_OPTIONS = [
   { value: 'CRESS', label: 'CRESS - Serviço Social' },
   { value: 'CRO', label: 'CRO - Odontologia' },
   { value: 'OUTRO', label: 'Outro' },
-]
+];
 
 const ROLE_OPTIONS = [
   { value: 'Médico', label: 'Médico' },
@@ -95,56 +95,56 @@ const ROLE_OPTIONS = [
   { value: 'Assistente Social', label: 'Assistente Social' },
   { value: 'Cuidador', label: 'Cuidador' },
   { value: 'Outro', label: 'Outro' },
-]
+];
 
 const formatPhoneInput = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
-  if (!digits) return ''
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (!digits) return '';
 
-  if (digits.length <= 2) return `(${digits}`
+  if (digits.length <= 2) return `(${digits}`;
 
-  const area = digits.slice(0, 2)
-  const rest = digits.slice(2)
+  const area = digits.slice(0, 2);
+  const rest = digits.slice(2);
 
-  if (digits.length <= 6) return `(${area}) ${rest}`
+  if (digits.length <= 6) return `(${area}) ${rest}`;
 
   if (digits.length <= 10) {
-    const prefix = rest.slice(0, 4)
-    const suffix = rest.slice(4)
-    return `(${area}) ${prefix}${suffix ? `-${suffix}` : ''}`
+    const prefix = rest.slice(0, 4);
+    const suffix = rest.slice(4);
+    return `(${area}) ${prefix}${suffix ? `-${suffix}` : ''}`;
   }
 
-  const prefix = rest.slice(0, 5)
-  const suffix = rest.slice(5)
-  return `(${area}) ${prefix}${suffix ? `-${suffix}` : ''}`
-}
+  const prefix = rest.slice(0, 5);
+  const suffix = rest.slice(5);
+  return `(${area}) ${prefix}${suffix ? `-${suffix}` : ''}`;
+};
 
 export default function ProfessionalFormPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const isEditing = id && id !== 'novo'
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const isEditing = id && id !== 'novo';
 
   const {
     setHasUnsavedChanges,
     safeNavigate,
     handleLinkClick: handleBreadcrumbNavigate,
-  } = useNavigationGuard()
+  } = useNavigationGuard();
 
-  const [activeTab, setActiveTab] = useState<FormTab>('basic')
-  const [phoneValue, setPhoneValue] = useState('')
-  const [signatureFile, setSignatureFile] = useState<File | null>(null)
-  const [signaturePreviewUrl, setSignaturePreviewUrl] = useState<string | null>(null)
-  const [signaturePath, setSignaturePath] = useState<string | null>(null)
-  const [removeSignatureOnSave, setRemoveSignatureOnSave] = useState(false)
-  const [isLoadingSignaturePreview, setIsLoadingSignaturePreview] = useState(false)
-  const [isSavingSignature, setIsSavingSignature] = useState(false)
-  const signatureInputRef = useRef<HTMLInputElement>(null)
-  const signatureObjectUrlRef = useRef<string | null>(null)
+  const [activeTab, setActiveTab] = useState<FormTab>('basic');
+  const [phoneValue, setPhoneValue] = useState('');
+  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [signaturePreviewUrl, setSignaturePreviewUrl] = useState<string | null>(null);
+  const [signaturePath, setSignaturePath] = useState<string | null>(null);
+  const [removeSignatureOnSave, setRemoveSignatureOnSave] = useState(false);
+  const [isLoadingSignaturePreview, setIsLoadingSignaturePreview] = useState(false);
+  const [isSavingSignature, setIsSavingSignature] = useState(false);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
+  const signatureObjectUrlRef = useRef<string | null>(null);
 
-  const { data: professional, isLoading } = useProfessional(isEditing ? id : undefined)
-  const createProfessional = useCreateProfessional()
-  const updateProfessional = useUpdateProfessional()
-  const { company } = useAuthStore()
+  const { data: professional, isLoading } = useProfessional(isEditing ? id : undefined);
+  const createProfessional = useCreateProfessional();
+  const updateProfessional = useUpdateProfessional();
+  const { company } = useAuthStore();
 
   const {
     register,
@@ -165,67 +165,67 @@ export default function ProfessionalFormPage() {
       email: '',
       active: true,
     },
-  })
+  });
 
-  const roleValue = watch('role')
-  const councilTypeValue = watch('council_type')
-  const councilUfValue = watch('council_uf')
-  const activeValue = watch('active')
-  const hasSignaturePendingChanges = Boolean(signatureFile) || removeSignatureOnSave
-  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active')
+  const roleValue = watch('role');
+  const councilTypeValue = watch('council_type');
+  const councilUfValue = watch('council_uf');
+  const activeValue = watch('active');
+  const hasSignaturePendingChanges = Boolean(signatureFile) || removeSignatureOnSave;
+  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
 
   const clearSignatureObjectUrl = useCallback(() => {
     if (signatureObjectUrlRef.current) {
-      URL.revokeObjectURL(signatureObjectUrlRef.current)
-      signatureObjectUrlRef.current = null
+      URL.revokeObjectURL(signatureObjectUrlRef.current);
+      signatureObjectUrlRef.current = null;
     }
-  }, [])
+  }, []);
 
   const loadSignaturePreview = useCallback(async (path: string) => {
-    setIsLoadingSignaturePreview(true)
+    setIsLoadingSignaturePreview(true);
     try {
-      const signedUrl = await getProfessionalSignatureSignedUrl(path)
-      setSignaturePreviewUrl(signedUrl)
+      const signedUrl = await getProfessionalSignatureSignedUrl(path);
+      setSignaturePreviewUrl(signedUrl);
     } catch (error) {
-      console.error('Error loading professional signature preview:', error)
-      setSignaturePreviewUrl(null)
-      toast.error('Nao foi possivel carregar a assinatura do profissional.')
+      console.error('Error loading professional signature preview:', error);
+      setSignaturePreviewUrl(null);
+      toast.error('Nao foi possivel carregar a assinatura do profissional.');
     } finally {
-      setIsLoadingSignaturePreview(false)
+      setIsLoadingSignaturePreview(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    setHasUnsavedChanges(isDirty || hasSignaturePendingChanges)
+    setHasUnsavedChanges(isDirty || hasSignaturePendingChanges);
     return () => {
-      setHasUnsavedChanges(false)
-    }
-  }, [isDirty, hasSignaturePendingChanges, setHasUnsavedChanges])
+      setHasUnsavedChanges(false);
+    };
+  }, [isDirty, hasSignaturePendingChanges, setHasUnsavedChanges]);
 
   useEffect(() => {
     return () => {
       if (signatureObjectUrlRef.current) {
-        URL.revokeObjectURL(signatureObjectUrlRef.current)
-        signatureObjectUrlRef.current = null
+        URL.revokeObjectURL(signatureObjectUrlRef.current);
+        signatureObjectUrlRef.current = null;
       }
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty || hasSignaturePendingChanges) {
-        e.preventDefault()
-        e.returnValue = ''
+        e.preventDefault();
+        e.returnValue = '';
       }
-    }
+    };
 
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isDirty, hasSignaturePendingChanges])
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty, hasSignaturePendingChanges]);
 
   useEffect(() => {
     if (isEditing && professional) {
-      const formattedPhone = formatPhoneInput(professional.phone || '')
+      const formattedPhone = formatPhoneInput(professional.phone || '');
       reset({
         code: professional.code || '',
         name: professional.name,
@@ -236,16 +236,16 @@ export default function ProfessionalFormPage() {
         phone: formattedPhone,
         email: professional.email || '',
         active: professional.active ?? true,
-      })
-      setPhoneValue(formattedPhone)
-      clearSignatureObjectUrl()
-      setSignatureFile(null)
-      setRemoveSignatureOnSave(false)
-      setSignaturePath(professional.signature_path || null)
+      });
+      setPhoneValue(formattedPhone);
+      clearSignatureObjectUrl();
+      setSignatureFile(null);
+      setRemoveSignatureOnSave(false);
+      setSignaturePath(professional.signature_path || null);
       if (professional.signature_path) {
-        void loadSignaturePreview(professional.signature_path)
+        void loadSignaturePreview(professional.signature_path);
       } else {
-        setSignaturePreviewUrl(null)
+        setSignaturePreviewUrl(null);
       }
     } else if (!isEditing) {
       reset({
@@ -258,43 +258,43 @@ export default function ProfessionalFormPage() {
         phone: '',
         email: '',
         active: true,
-      })
-      setPhoneValue('')
-      clearSignatureObjectUrl()
-      setSignatureFile(null)
-      setRemoveSignatureOnSave(false)
-      setSignaturePath(null)
-      setSignaturePreviewUrl(null)
+      });
+      setPhoneValue('');
+      clearSignatureObjectUrl();
+      setSignatureFile(null);
+      setRemoveSignatureOnSave(false);
+      setSignaturePath(null);
+      setSignaturePreviewUrl(null);
     }
-  }, [isEditing, professional, reset, clearSignatureObjectUrl, loadSignaturePreview])
+  }, [isEditing, professional, reset, clearSignatureObjectUrl, loadSignaturePreview]);
 
   const handleSignatureFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    const fileValidationError = validateProfessionalSignatureFile(file)
+    const fileValidationError = validateProfessionalSignatureFile(file);
     if (fileValidationError) {
-      toast.error(fileValidationError)
-      event.target.value = ''
-      return
+      toast.error(fileValidationError);
+      event.target.value = '';
+      return;
     }
 
-    clearSignatureObjectUrl()
-    const previewObjectUrl = URL.createObjectURL(file)
-    signatureObjectUrlRef.current = previewObjectUrl
+    clearSignatureObjectUrl();
+    const previewObjectUrl = URL.createObjectURL(file);
+    signatureObjectUrlRef.current = previewObjectUrl;
 
-    setSignatureFile(file)
-    setSignaturePreviewUrl(previewObjectUrl)
-    setRemoveSignatureOnSave(false)
-    event.target.value = ''
-  }
+    setSignatureFile(file);
+    setSignaturePreviewUrl(previewObjectUrl);
+    setRemoveSignatureOnSave(false);
+    event.target.value = '';
+  };
 
   const handleRemoveSignature = () => {
-    clearSignatureObjectUrl()
-    setSignatureFile(null)
-    setSignaturePreviewUrl(null)
-    setRemoveSignatureOnSave(!!signaturePath)
-  }
+    clearSignatureObjectUrl();
+    setSignatureFile(null);
+    setSignaturePreviewUrl(null);
+    setRemoveSignatureOnSave(!!signaturePath);
+  };
 
   const onSubmit = async (data: ProfessionalFormData) => {
     const payload = {
@@ -307,34 +307,34 @@ export default function ProfessionalFormPage() {
       phone: phoneValue || null,
       email: data.email || null,
       active: data.active,
-    }
+    };
 
-    let savedProfessional: { id: string; signature_path?: string | null } | null = null
+    let savedProfessional: { id: string; signature_path?: string | null } | null = null;
 
     try {
       if (isEditing && professional) {
         savedProfessional = await updateProfessional.mutateAsync({
           id: professional.id,
           ...payload,
-        })
+        });
       } else {
-        savedProfessional = await createProfessional.mutateAsync(payload)
+        savedProfessional = await createProfessional.mutateAsync(payload);
       }
     } catch {
-      return
+      return;
     }
 
-    if (!savedProfessional) return
+    if (!savedProfessional) return;
 
-    const hasSignatureChanges = Boolean(signatureFile) || removeSignatureOnSave
+    const hasSignatureChanges = Boolean(signatureFile) || removeSignatureOnSave;
 
     if (hasSignatureChanges) {
       if (!company?.id) {
-        toast.error('Nao foi possivel identificar a empresa para salvar a assinatura.')
-        return
+        toast.error('Nao foi possivel identificar a empresa para salvar a assinatura.');
+        return;
       }
 
-      setIsSavingSignature(true)
+      setIsSavingSignature(true);
       try {
         await saveProfessionalSignature({
           companyId: company.id,
@@ -342,35 +342,35 @@ export default function ProfessionalFormPage() {
           currentSignaturePath: signaturePath,
           signatureFile,
           removeCurrent: removeSignatureOnSave,
-        })
+        });
       } catch (error) {
-        console.error('Error saving professional signature:', error)
-        toast.error('Profissional salvo, mas houve erro ao salvar a assinatura.')
-        return
+        console.error('Error saving professional signature:', error);
+        toast.error('Profissional salvo, mas houve erro ao salvar a assinatura.');
+        return;
       } finally {
-        setIsSavingSignature(false)
+        setIsSavingSignature(false);
       }
     }
 
-    setHasUnsavedChanges(false)
-    navigate('/profissionais')
-  }
+    setHasUnsavedChanges(false);
+    navigate('/profissionais');
+  };
 
   const handleBack = () => {
-    safeNavigate('/profissionais')
-  }
+    safeNavigate('/profissionais');
+  };
 
   const breadcrumbItems = [
     { label: 'Profissionais', href: '/profissionais' },
     { label: isEditing ? professional?.name || 'Carregando...' : 'Novo Profissional' },
-  ]
+  ];
 
   if (isEditing && isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loading size="lg" />
       </div>
-    )
+    );
   }
 
   return (
@@ -465,9 +465,9 @@ export default function ProfessionalFormPage() {
                     inputMode="numeric"
                     value={phoneValue}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const formatted = formatPhoneInput(e.target.value)
-                      setPhoneValue(formatted)
-                      setValue('phone', formatted, { shouldDirty: true })
+                      const formatted = formatPhoneInput(e.target.value);
+                      setPhoneValue(formatted);
+                      setValue('phone', formatted, { shouldDirty: true });
                     }}
                   />
                   <Input
@@ -559,7 +559,7 @@ export default function ProfessionalFormPage() {
                     onBlur={activeOnBlur}
                     checked={!!activeValue}
                     onChange={(e) => {
-                      setValue('active', e.target.checked, { shouldDirty: true })
+                      setValue('active', e.target.checked, { shouldDirty: true });
                     }}
                   />
                 </div>
@@ -581,5 +581,5 @@ export default function ProfessionalFormPage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

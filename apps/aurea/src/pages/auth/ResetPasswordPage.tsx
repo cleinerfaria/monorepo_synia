@@ -1,51 +1,51 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase'
-import { Button, Input, Card } from '@/components/ui'
-import PremiumHeroPanel from '@/components/auth/PremiumHeroPanel'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
+import { Button, Input, Card } from '@/components/ui';
+import PremiumHeroPanel from '@/components/auth/PremiumHeroPanel';
 
 interface ResetPasswordForm {
-  password: string
-  confirmPassword: string
+  password: string;
+  confirmPassword: string;
 }
 
 export default function ResetPasswordPage() {
-  const navigate = useNavigate()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return window.matchMedia('(min-width: 1024px)').matches
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(min-width: 1024px)').matches;
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     // Verificar se o usuário tem uma sessão com recovery
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession()
+      const { data } = await supabase.auth.getSession();
 
       if (!data.session) {
-        toast.error('Link inválido ou expirado')
-        navigate('/login')
+        toast.error('Link inválido ou expirado');
+        navigate('/login');
       }
-    }
+    };
 
-    checkSession()
+    checkSession();
 
-    const mediaQuery = window.matchMedia('(min-width: 1024px)')
-    const update = () => setIsDesktop(mediaQuery.matches)
-    update()
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const update = () => setIsDesktop(mediaQuery.matches);
+    update();
 
     if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', update)
-      return () => mediaQuery.removeEventListener('change', update)
+      mediaQuery.addEventListener('change', update);
+      return () => mediaQuery.removeEventListener('change', update);
     }
 
-    mediaQuery.addListener(update)
-    return () => mediaQuery.removeListener(update)
-  }, [navigate])
+    mediaQuery.addListener(update);
+    return () => mediaQuery.removeListener(update);
+  }, [navigate]);
 
   const {
     register,
@@ -57,34 +57,34 @@ export default function ResetPasswordPage() {
       password: '',
       confirmPassword: '',
     },
-  })
+  });
 
   const onSubmit = async (data: ResetPasswordForm) => {
     if (data.password !== data.confirmPassword) {
-      toast.error('As senhas não conferem')
-      return
+      toast.error('As senhas não conferem');
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       const { error } = await supabase.auth.updateUser({
         password: data.password,
-      })
+      });
 
       if (error) {
-        throw error
+        throw error;
       }
 
-      toast.success('Senha alterada com sucesso!')
-      navigate('/login')
+      toast.success('Senha alterada com sucesso!');
+      navigate('/login');
     } catch (error) {
-      console.error('Erro ao alterar senha:', error)
-      toast.error('Erro ao alterar senha. Tente novamente.')
+      console.error('Erro ao alterar senha:', error);
+      toast.error('Erro ao alterar senha. Tente novamente.');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
@@ -177,8 +177,8 @@ export default function ResetPasswordPage() {
                   {...register('confirmPassword', {
                     required: 'Confirmação de senha é obrigatória',
                     validate: (value) => {
-                      const password = getValues('password')
-                      return value === password || 'As senhas não conferem'
+                      const password = getValues('password');
+                      return value === password || 'As senhas não conferem';
                     },
                   })}
                   error={errors.confirmPassword?.message}
@@ -229,5 +229,5 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

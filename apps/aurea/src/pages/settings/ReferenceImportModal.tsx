@@ -1,25 +1,25 @@
-import { useState, useRef, Fragment, useCallback } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import { format } from 'date-fns'
-import { Button, Loading, DatePicker, IconButton } from '@/components/ui'
-import { RefSourceWithStats, useProcessRefImport } from '@/hooks/useReferenceTables'
+import { useState, useRef, Fragment, useCallback } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { format } from 'date-fns';
+import { Button, Loading, DatePicker, IconButton } from '@/components/ui';
+import { RefSourceWithStats, useProcessRefImport } from '@/hooks/useReferenceTables';
 import {
   CMED_PF_OPTIONS,
   CMED_PMC_OPTIONS,
   parseCmedFile,
   validateCmedFile,
-} from '@/lib/cmedParser'
-import { SIMPRO_PRICE_OPTIONS, parseSimproFile, validateSimproFile } from '@/lib/simproParser'
-import { validateBrasindiceFile } from '@/lib/brasindiceParser'
-import { X, Upload, FileText, CheckCircle, AlertTriangle, CloudUpload } from 'lucide-react'
+} from '@/lib/cmedParser';
+import { SIMPRO_PRICE_OPTIONS, parseSimproFile, validateSimproFile } from '@/lib/simproParser';
+import { validateBrasindiceFile } from '@/lib/brasindiceParser';
+import { X, Upload, FileText, CheckCircle, AlertTriangle, CloudUpload } from 'lucide-react';
 interface ReferenceImportModalProps {
-  source: RefSourceWithStats
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
+  source: RefSourceWithStats;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-type ImportStep = 'upload' | 'preview' | 'processing' | 'complete'
+type ImportStep = 'upload' | 'preview' | 'processing' | 'complete';
 
 // Helper function to get accepted file format based on source code
 function getAcceptedFormat(sourceCode: string): string {
@@ -27,8 +27,8 @@ function getAcceptedFormat(sourceCode: string): string {
     cmed: 'XLSX',
     simpro: 'XML',
     brasindice: 'TXT',
-  }
-  return formatMap[sourceCode] || 'XLSX'
+  };
+  return formatMap[sourceCode] || 'XLSX';
 }
 
 // Helper function to get accept attribute for input based on source code
@@ -37,8 +37,8 @@ function getAcceptAttribute(sourceCode: string): string {
     cmed: '.xlsx',
     simpro: '.xml',
     brasindice: '.txt',
-  }
-  return acceptMap[sourceCode] || '.xlsx'
+  };
+  return acceptMap[sourceCode] || '.xlsx';
 }
 
 // Helper function to get valid extensions for a source
@@ -47,24 +47,24 @@ function getValidExtensions(sourceCode: string): string[] {
     cmed: ['.xlsx', '.xls'],
     simpro: ['.xml'],
     brasindice: ['.txt'],
-  }
-  return extensionsMap[sourceCode] || ['.xlsx']
+  };
+  return extensionsMap[sourceCode] || ['.xlsx'];
 }
 
 // Helper function to format seconds to HH:MM:SS
 function formatDurationSeconds(seconds: number): string {
   if (seconds < 60) {
-    return `${seconds}s`
+    return `${seconds}s`;
   }
 
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
 
   if (hours > 0) {
-    return `${hours}h ${minutes}m ${secs}s`
+    return `${hours}h ${minutes}m ${secs}s`;
   }
-  return `${minutes}m ${secs}s`
+  return `${minutes}m ${secs}s`;
 }
 
 export default function ReferenceImportModal({
@@ -73,85 +73,85 @@ export default function ReferenceImportModal({
   onClose,
   onSuccess,
 }: ReferenceImportModalProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [step, setStep] = useState<ImportStep>('upload')
-  const [file, setFile] = useState<File | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [referenceDate, setReferenceDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const [pfColumn, setPfColumn] = useState('pf_20')
-  const [pmcColumn, setPmcColumn] = useState('pmc_20')
-  const [simproPfColumn, setSimproPfColumn] = useState('preco_pf')
-  const [simproPmcColumn, setSimproPmcColumn] = useState('preco_pmc')
-  const [simproTaxPercentage, setSimproTaxPercentage] = useState('20')
-  const [brasIndiceTaxPercentage, setBrasIndiceTaxPercentage] = useState('20')
-  const [dateFromFile, setDateFromFile] = useState(false)
-  const [, setIsParsingFile] = useState(false)
-  const [, setCurrentBatchId] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [step, setStep] = useState<ImportStep>('upload');
+  const [file, setFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [referenceDate, setReferenceDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [pfColumn, setPfColumn] = useState('pf_20');
+  const [pmcColumn, setPmcColumn] = useState('pmc_20');
+  const [simproPfColumn, setSimproPfColumn] = useState('preco_pf');
+  const [simproPmcColumn, setSimproPmcColumn] = useState('preco_pmc');
+  const [simproTaxPercentage, setSimproTaxPercentage] = useState('20');
+  const [brasIndiceTaxPercentage, setBrasIndiceTaxPercentage] = useState('20');
+  const [dateFromFile, setDateFromFile] = useState(false);
+  const [, setIsParsingFile] = useState(false);
+  const [, setCurrentBatchId] = useState<string | null>(null);
   const [fileValidation, setFileValidation] = useState<{
-    isValid: boolean
-    rowCount: number
-    errorCount: number
-    fileSizeKb: number
-    estimatedDurationSeconds: number
-    message: string
-  } | null>(null)
+    isValid: boolean;
+    rowCount: number;
+    errorCount: number;
+    fileSizeKb: number;
+    estimatedDurationSeconds: number;
+    message: string;
+  } | null>(null);
 
-  const processImport = useProcessRefImport()
+  const processImport = useProcessRefImport();
 
   const handleFileSelected = useCallback(
     async (selectedFile: File) => {
       // Get valid extensions for this source
-      const validExtensions = getValidExtensions(source.code)
+      const validExtensions = getValidExtensions(source.code);
       const hasValidExtension = validExtensions.some((ext) =>
         selectedFile.name.toLowerCase().endsWith(ext)
-      )
+      );
 
       // If doesn't have valid extension, reject it
       if (!hasValidExtension) {
-        const formatName = getAcceptedFormat(source.code)
-        alert(`Formato de arquivo inválido. Use apenas ${formatName}.`)
-        return
+        const formatName = getAcceptedFormat(source.code);
+        alert(`Formato de arquivo inválido. Use apenas ${formatName}.`);
+        return;
       }
 
-      setFile(selectedFile)
-      setIsParsingFile(true)
+      setFile(selectedFile);
+      setIsParsingFile(true);
 
       // Try to extract reference date from file
       if (source.code === 'cmed') {
         try {
-          const parseResult = await parseCmedFile(selectedFile)
+          const parseResult = await parseCmedFile(selectedFile);
           if (parseResult.referenceDate) {
-            setReferenceDate(parseResult.referenceDate)
-            setDateFromFile(true)
+            setReferenceDate(parseResult.referenceDate);
+            setDateFromFile(true);
           }
 
           // Validate file and get info
-          const validation = await validateCmedFile(selectedFile)
-          setFileValidation(validation)
+          const validation = await validateCmedFile(selectedFile);
+          setFileValidation(validation);
         } catch (error) {
-          console.warn('Could not extract date from file:', error)
+          console.warn('Could not extract date from file:', error);
         }
       } else if (source.code === 'simpro') {
         try {
-          const parseResult = await parseSimproFile(selectedFile)
+          const parseResult = await parseSimproFile(selectedFile);
           if (parseResult.referenceDate) {
-            setReferenceDate(parseResult.referenceDate)
-            setDateFromFile(true)
+            setReferenceDate(parseResult.referenceDate);
+            setDateFromFile(true);
           }
 
           // Validate file and get info
-          const validation = await validateSimproFile(selectedFile)
-          setFileValidation(validation)
+          const validation = await validateSimproFile(selectedFile);
+          setFileValidation(validation);
         } catch (error) {
-          console.warn('Could not extract date from file:', error)
+          console.warn('Could not extract date from file:', error);
         }
       } else if (source.code === 'brasindice') {
         // For BRASÍNDICE, validate using the brasindice parser
         try {
-          const validation = await validateBrasindiceFile(selectedFile)
-          setFileValidation(validation)
+          const validation = await validateBrasindiceFile(selectedFile);
+          setFileValidation(validation);
         } catch (error) {
-          console.warn('Could not validate BRASÍNDICE file:', error)
+          console.warn('Could not validate BRASÍNDICE file:', error);
           setFileValidation({
             isValid: false,
             rowCount: 0,
@@ -159,73 +159,73 @@ export default function ReferenceImportModal({
             fileSizeKb: Math.round(selectedFile.size / 1024),
             estimatedDurationSeconds: 0,
             message: 'Erro ao validar arquivo',
-          })
+          });
         }
       }
 
-      setIsParsingFile(false)
-      setStep('preview')
+      setIsParsingFile(false);
+      setStep('preview');
     },
     [source.code]
-  )
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
+      e.preventDefault();
+      setIsDragging(false);
 
-      const droppedFile = e.dataTransfer.files[0]
+      const droppedFile = e.dataTransfer.files[0];
       if (droppedFile) {
-        handleFileSelected(droppedFile)
+        handleFileSelected(droppedFile);
       }
     },
     [handleFileSelected]
-  )
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
+    const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      handleFileSelected(selectedFile)
+      handleFileSelected(selectedFile);
     }
     // Reset input
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = '';
     }
-  }
+  };
 
   const handleStartImport = async () => {
-    if (!file) return
+    if (!file) return;
 
-    setStep('processing')
-    setCurrentBatchId(null)
+    setStep('processing');
+    setCurrentBatchId(null);
 
     // Set the callback to receive batch ID when it's created
     processImport.setOnBatchCreated?.((batchId: string) => {
-      setCurrentBatchId(batchId)
-    })
+      setCurrentBatchId(batchId);
+    });
 
     try {
-      const options: any = { referenceDate }
+      const options: any = { referenceDate };
 
       if (source.code === 'cmed') {
-        options.pfColumn = pfColumn
-        options.pmcColumn = pmcColumn
+        options.pfColumn = pfColumn;
+        options.pmcColumn = pmcColumn;
       } else if (source.code === 'simpro') {
-        options.pfColumn = simproPfColumn
-        options.pmcColumn = simproPmcColumn
-        options.taxPercentage = parseFloat(simproTaxPercentage) || 18
+        options.pfColumn = simproPfColumn;
+        options.pmcColumn = simproPmcColumn;
+        options.taxPercentage = parseFloat(simproTaxPercentage) || 18;
       } else if (source.code === 'brasindice') {
-        options.taxPercentage = parseFloat(brasIndiceTaxPercentage) || 18
+        options.taxPercentage = parseFloat(brasIndiceTaxPercentage) || 18;
       }
 
       const result = await processImport.mutateAsync({
@@ -233,34 +233,34 @@ export default function ReferenceImportModal({
         sourceId: source.id,
         file,
         options,
-      })
+      });
 
-      setCurrentBatchId(result.batch.id)
-      setStep('complete')
+      setCurrentBatchId(result.batch.id);
+      setStep('complete');
     } catch {
       // Error is handled by the mutation
-      setStep('preview')
+      setStep('preview');
     }
-  }
+  };
 
   const handleClose = () => {
-    setStep('upload')
-    setFile(null)
-    setDateFromFile(false)
-    setReferenceDate(format(new Date(), 'yyyy-MM-dd'))
-    onClose()
-  }
+    setStep('upload');
+    setFile(null);
+    setDateFromFile(false);
+    setReferenceDate(format(new Date(), 'yyyy-MM-dd'));
+    onClose();
+  };
 
   const handleComplete = () => {
-    handleClose()
-    onSuccess()
-  }
+    handleClose();
+    onSuccess();
+  };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -270,7 +270,7 @@ export default function ReferenceImportModal({
         onClose={() => {
           // Only allow closing if not in processing or complete step
           if (step !== 'processing' && step !== 'complete') {
-            handleClose()
+            handleClose();
           }
         }}
       >
@@ -366,11 +366,11 @@ export default function ReferenceImportModal({
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setFile(null)
-                            setStep('upload')
-                            setDateFromFile(false)
-                            setReferenceDate(format(new Date(), 'yyyy-MM-dd'))
-                            setFileValidation(null)
+                            setFile(null);
+                            setStep('upload');
+                            setDateFromFile(false);
+                            setReferenceDate(format(new Date(), 'yyyy-MM-dd'));
+                            setFileValidation(null);
                           }}
                         >
                           Trocar
@@ -424,8 +424,8 @@ export default function ReferenceImportModal({
                           label="Data de Referência"
                           value={referenceDate}
                           onChange={(value: string) => {
-                            setReferenceDate(value)
-                            setDateFromFile(false)
+                            setReferenceDate(value);
+                            setDateFromFile(false);
                           }}
                         />
                         {dateFromFile ? (
@@ -534,12 +534,12 @@ export default function ReferenceImportModal({
                                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 >
                                   {Array.from({ length: 23 }, (_, i) => {
-                                    const value = 12 + i * 0.5
+                                    const value = 12 + i * 0.5;
                                     return (
                                       <option key={value} value={value.toString()}>
                                         {value}%
                                       </option>
-                                    )
+                                    );
                                   })}
                                 </select>
                                 <p className="mt-1 text-xs text-gray-500">
@@ -560,12 +560,12 @@ export default function ReferenceImportModal({
                                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                               >
                                 {Array.from({ length: 23 }, (_, i) => {
-                                  const value = 12 + i * 0.5
+                                  const value = 12 + i * 0.5;
                                   return (
                                     <option key={value} value={value.toString()}>
                                       {value}%
                                     </option>
-                                  )
+                                  );
                                 })}
                               </select>
                               <p className="mt-1 text-xs text-gray-500">
@@ -649,9 +649,9 @@ export default function ReferenceImportModal({
                           <Button
                             variant="secondary"
                             onClick={() => {
-                              processImport.abortImport()
-                              setStep('preview')
-                              setCurrentBatchId(null)
+                              processImport.abortImport();
+                              setStep('preview');
+                              setCurrentBatchId(null);
                             }}
                             disabled={processImport.isAborting}
                           >
@@ -728,8 +728,8 @@ export default function ReferenceImportModal({
                       <Button
                         variant="secondary"
                         onClick={() => {
-                          setFile(null)
-                          setStep('upload')
+                          setFile(null);
+                          setStep('upload');
                         }}
                       >
                         Voltar
@@ -757,5 +757,5 @@ export default function ReferenceImportModal({
         </div>
       </Dialog>
     </Transition>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import { ButtonNew, Input, Select, Switch, Textarea } from '@/components/ui'
-import type { PatientContact, PatientContactType } from '@/types/database'
-import { Plus, Trash2, Phone } from 'lucide-react'
+import { useState } from 'react';
+import { ButtonNew, Input, Select, Switch, Textarea } from '@/components/ui';
+import type { PatientContact, PatientContactType } from '@/types/database';
+import { Plus, Trash2, Phone } from 'lucide-react';
 interface PatientContactFormProps {
-  contacts: PatientContact[]
-  onChange: (contacts: PatientContact[]) => void
-  companyId: string
-  patientId?: string
-  onSave?: (contacts: PatientContact[]) => Promise<void>
-  isSaving?: boolean
+  contacts: PatientContact[];
+  onChange: (contacts: PatientContact[]) => void;
+  companyId: string;
+  patientId?: string;
+  onSave?: (contacts: PatientContact[]) => Promise<void>;
+  isSaving?: boolean;
 }
 
 const CONTACT_TYPE_OPTIONS = [
@@ -16,15 +16,16 @@ const CONTACT_TYPE_OPTIONS = [
   { value: 'whatsapp' as PatientContactType, label: 'WhatsApp' },
   { value: 'email' as PatientContactType, label: 'E-mail' },
   { value: 'other' as PatientContactType, label: 'Outro' },
-]
+];
 
 const formatPhone = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
-  if (digits.length <= 2) return digits
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
-  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
-}
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10)
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
 
 export default function PatientContactForm({
   contacts,
@@ -34,7 +35,7 @@ export default function PatientContactForm({
   onSave,
   isSaving,
 }: PatientContactFormProps) {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(contacts.length > 0 ? 0 : null)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(contacts.length > 0 ? 0 : null);
 
   const handleAddContact = () => {
     const newContact: Partial<PatientContact> = {
@@ -48,49 +49,49 @@ export default function PatientContactForm({
       active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    }
-    onChange([...contacts, newContact as PatientContact])
-    setExpandedIndex(contacts.length)
-  }
+    };
+    onChange([...contacts, newContact as PatientContact]);
+    setExpandedIndex(contacts.length);
+  };
 
   const handleRemoveContact = (index: number) => {
-    const newContacts = contacts.filter((_, i) => i !== index)
-    onChange(newContacts)
+    const newContacts = contacts.filter((_, i) => i !== index);
+    onChange(newContacts);
     if (expandedIndex === index) {
-      setExpandedIndex(null)
+      setExpandedIndex(null);
     }
-  }
+  };
 
   const handleUpdateContact = (index: number, field: keyof PatientContact, value: any) => {
-    const newContacts = [...contacts]
+    const newContacts = [...contacts];
 
     // Se marcando como primário, desmarcar os outros
     if (field === 'is_primary' && value === true) {
       newContacts.forEach((contact, i) => {
         if (i !== index) {
-          contact.is_primary = false
+          contact.is_primary = false;
         }
-      })
+      });
     }
 
     newContacts[index] = {
       ...newContacts[index],
       [field]: value,
       updated_at: new Date().toISOString(),
-    }
-    onChange(newContacts)
-  }
+    };
+    onChange(newContacts);
+  };
 
   const handleValueChange = (index: number, value: string, type: PatientContactType) => {
-    let formattedValue = value
+    let formattedValue = value;
 
     // Formatar baseado no tipo
     if (type === 'phone' || type === 'whatsapp') {
-      formattedValue = formatPhone(value)
+      formattedValue = formatPhone(value);
     }
 
-    handleUpdateContact(index, 'value', formattedValue)
-  }
+    handleUpdateContact(index, 'value', formattedValue);
+  };
 
   return (
     <div className="space-y-4">
@@ -175,8 +176,8 @@ export default function PatientContactForm({
               variant="outline"
               size="sm"
               onClick={(e) => {
-                e.stopPropagation()
-                handleRemoveContact(index)
+                e.stopPropagation();
+                handleRemoveContact(index);
               }}
               icon={<Trash2 className="h-4 w-4" />}
               label=""
@@ -267,5 +268,5 @@ export default function PatientContactForm({
         </div>
       ))}
     </div>
-  )
+  );
 }

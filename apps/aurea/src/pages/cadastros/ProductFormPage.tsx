@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Plus,
   Pencil,
@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   Download,
   Info,
-} from 'lucide-react'
+} from 'lucide-react';
 import {
   Card,
   Button,
@@ -31,23 +31,23 @@ import {
   TabButton,
   IconButton,
   SwitchNew,
-} from '@/components/ui'
-import { useProduct, useCreateProduct, useUpdateProduct } from '@/hooks/useProducts'
+} from '@/components/ui';
+import { useProduct, useCreateProduct, useUpdateProduct } from '@/hooks/useProducts';
 import {
   usePresentations,
   useCreatePresentation,
   useUpdatePresentation,
   useDeletePresentation,
-} from '@/hooks/usePresentations'
+} from '@/hooks/usePresentations';
 import {
   useActiveIngredients,
   useActiveIngredient,
   useSearchActiveIngredients,
   useCreateActiveIngredient,
-} from '@/hooks/useActiveIngredients'
-import { useManufacturers, useCreateManufacturer } from '@/hooks/useManufacturers'
-import { useUnitsOfMeasure, useCreateUnitOfMeasure } from '@/hooks/useUnitsOfMeasure'
-import { useProductGroups, useCreateProductGroup } from '@/hooks/useProductGroups'
+} from '@/hooks/useActiveIngredients';
+import { useManufacturers, useCreateManufacturer } from '@/hooks/useManufacturers';
+import { useUnitsOfMeasure, useCreateUnitOfMeasure } from '@/hooks/useUnitsOfMeasure';
+import { useProductGroups, useCreateProductGroup } from '@/hooks/useProductGroups';
 import {
   useRefSources,
   useProductRefLinks,
@@ -56,163 +56,165 @@ import {
   useUnlinkProductFromRefItem,
   useSetPrimaryRefLink,
   fetchRefItemUnifiedByEan,
-} from '@/hooks/useReferenceTables'
-import { useForm } from 'react-hook-form'
-import toast from 'react-hot-toast'
-import type { ProductPresentation, RefSource, RefItemUnified } from '@/types/database'
-import PresentationSearchModal from '@/components/product/PresentationSearchModal'
-import { useNavigationGuard } from '@/contexts/NavigationGuardContext'
-import { DEFAULT_PRODUCT_GROUP_COLOR } from '@/design-system/theme/constants'
-import { formatDateOnly } from '@/lib/dateOnly'
+} from '@/hooks/useReferenceTables';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import type { ProductPresentation, RefSource, RefItemUnified } from '@/types/database';
+import PresentationSearchModal from '@/components/product/PresentationSearchModal';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
+import { DEFAULT_PRODUCT_GROUP_COLOR } from '@/design-system/theme/constants';
+import { formatDateOnly } from '@/lib/dateOnly';
 
-type FormTab = 'data' | 'presentations' | 'references'
+type FormTab = 'data' | 'presentations' | 'references';
 
 interface ProductFormData {
-  code: string
-  name: string
-  description: string
-  unit_stock_id: string
-  unit_prescription_id: string
-  unit_prescription_factor: number
-  item_type: 'medication' | 'material' | 'diet'
-  min_stock: number
-  active_ingredient_id: string
-  concentration: string
-  active: boolean
-  psychotropic: boolean
-  antibiotic: boolean
-  tuss_ref: string
-  tiss_ref: string
+  code: string;
+  name: string;
+  description: string;
+  unit_stock_id: string;
+  unit_prescription_id: string;
+  unit_prescription_factor: number;
+  item_type: 'medication' | 'material' | 'diet';
+  min_stock: number;
+  active_ingredient_id: string;
+  concentration: string;
+  active: boolean;
+  psychotropic: boolean;
+  antibiotic: boolean;
+  tuss_ref: string;
+  tiss_ref: string;
 }
 
 interface PresentationFormData {
-  name: string
-  barcode: string
-  conversion_factor: number
-  unit: string
-  manufacturer_id: string
+  name: string;
+  barcode: string;
+  conversion_factor: number;
+  unit: string;
+  manufacturer_id: string;
 }
 
 interface NewActiveIngredientFormData {
-  name: string
-  description: string
+  name: string;
+  description: string;
 }
 
 interface NewManufacturerFormData {
-  name: string
-  trade_name: string
-  document: string
+  name: string;
+  trade_name: string;
+  document: string;
 }
 
 interface NewGroupFormData {
-  code: string
-  name: string
-  color: string
+  code: string;
+  name: string;
+  color: string;
 }
 
 interface NewUnitFormData {
-  code: string
-  symbol: string
-  name: string
-  description: string
+  code: string;
+  symbol: string;
+  name: string;
+  description: string;
 }
 
 export default function ProductFormPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const isEditing = id && id !== 'novo'
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isEditing = id && id !== 'novo';
 
   const productsListPath = useMemo(() => {
-    return location.search ? `/produtos${location.search}` : '/produtos'
-  }, [location.search])
+    return location.search ? `/produtos${location.search}` : '/produtos';
+  }, [location.search]);
 
   // Contexto de navegação protegida
   const {
     setHasUnsavedChanges: setGlobalUnsavedChanges,
     safeNavigate,
     handleLinkClick: handleBreadcrumbNavigate,
-  } = useNavigationGuard()
+  } = useNavigationGuard();
 
-  const [activeTab, setActiveTab] = useState<FormTab>('data')
-  const [isPresentationModalOpen, setIsPresentationModalOpen] = useState(false)
-  const [isPresentationSearchModalOpen, setIsPresentationSearchModalOpen] = useState(false)
-  const [isPresentationLinkModalOpen, setIsPresentationLinkModalOpen] = useState(false)
-  const [isNewActiveIngredientModalOpen, setIsNewActiveIngredientModalOpen] = useState(false)
-  const [isNewManufacturerModalOpen, setIsNewManufacturerModalOpen] = useState(false)
-  const [isNewUnitModalOpen, setIsNewUnitModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<FormTab>('data');
+  const [isPresentationModalOpen, setIsPresentationModalOpen] = useState(false);
+  const [isPresentationSearchModalOpen, setIsPresentationSearchModalOpen] = useState(false);
+  const [isPresentationLinkModalOpen, setIsPresentationLinkModalOpen] = useState(false);
+  const [isNewActiveIngredientModalOpen, setIsNewActiveIngredientModalOpen] = useState(false);
+  const [isNewManufacturerModalOpen, setIsNewManufacturerModalOpen] = useState(false);
+  const [isNewUnitModalOpen, setIsNewUnitModalOpen] = useState(false);
 
-  const [isNewGroupModalOpen, setIsNewGroupModalOpen] = useState(false)
-  const [selectedPresentation, setSelectedPresentation] = useState<ProductPresentation | null>(null)
-  const [presentationLinkData, setPresentationLinkData] = useState<RefItemUnified | null>(null)
-  const [selectedActiveIngredientId, setSelectedActiveIngredientId] = useState('')
-  const [selectedStockUnitId, setSelectedStockUnitId] = useState('')
-  const [selectedPrescriptionUnitId, setSelectedPrescriptionUnitId] = useState('')
-  const [selectedPresentationUnit, setSelectedPresentationUnit] = useState('')
-  const [selectedPresentationManufacturerId, setSelectedPresentationManufacturerId] = useState('')
-  const [selectedGroupId, setSelectedGroupId] = useState('')
+  const [isNewGroupModalOpen, setIsNewGroupModalOpen] = useState(false);
+  const [selectedPresentation, setSelectedPresentation] = useState<ProductPresentation | null>(
+    null
+  );
+  const [presentationLinkData, setPresentationLinkData] = useState<RefItemUnified | null>(null);
+  const [selectedActiveIngredientId, setSelectedActiveIngredientId] = useState('');
+  const [selectedStockUnitId, setSelectedStockUnitId] = useState('');
+  const [selectedPrescriptionUnitId, setSelectedPrescriptionUnitId] = useState('');
+  const [selectedPresentationUnit, setSelectedPresentationUnit] = useState('');
+  const [selectedPresentationManufacturerId, setSelectedPresentationManufacturerId] = useState('');
+  const [selectedGroupId, setSelectedGroupId] = useState('');
 
   // Estado para sugestão de cadastro de fabricante
   const [suggestedManufacturer, setSuggestedManufacturer] = useState<{
-    name: string
-    cnpj: string
-  } | null>(null)
+    name: string;
+    cnpj: string;
+  } | null>(null);
   const [presentationForLinking, setPresentationForLinking] = useState<ProductPresentation | null>(
     null
-  )
+  );
 
   // Estado para controlar erros de validação manual
-  const [unitStockError, setUnitStockError] = useState(false)
-  const [unitPrescriptionError, setUnitPrescriptionError] = useState(false)
+  const [unitStockError, setUnitStockError] = useState(false);
+  const [unitPrescriptionError, setUnitPrescriptionError] = useState(false);
 
   // Estado para loading ao criar apresentação a partir da ref
-  const [isLoadingRefData, setIsLoadingRefData] = useState(false)
+  const [isLoadingRefData, setIsLoadingRefData] = useState(false);
 
   // Busca o produto se estiver editando
-  const { data: product, isLoading: isLoadingProduct } = useProduct(isEditing ? id : undefined)
+  const { data: product, isLoading: isLoadingProduct } = useProduct(isEditing ? id : undefined);
 
-  const createItem = useCreateProduct()
-  const updateItem = useUpdateProduct()
+  const createItem = useCreateProduct();
+  const updateItem = useUpdateProduct();
 
   // Active ingredients - busca server-side para dropdown (suporta +1000 registros)
-  const [activeIngredientSearchTerm, setActiveIngredientSearchTerm] = useState('')
+  const [activeIngredientSearchTerm, setActiveIngredientSearchTerm] = useState('');
   const { data: searchedActiveIngredients = [] } = useSearchActiveIngredients(
     activeIngredientSearchTerm
-  )
+  );
   // Busca o item selecionado especificamente (para garantir que apareça no dropdown)
   const { data: selectedActiveIngredient } = useActiveIngredient(
     selectedActiveIngredientId || undefined
-  )
+  );
   // Também busca lista completa para filtros (limitada a 1000, mas ok para filtros)
-  const { data: _activeIngredients = [] } = useActiveIngredients()
-  const createActiveIngredient = useCreateActiveIngredient()
-  const { data: manufacturers = [] } = useManufacturers()
-  const createManufacturer = useCreateManufacturer()
-  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure()
-  const createUnitOfMeasure = useCreateUnitOfMeasure()
-  const { data: productGroups = [] } = useProductGroups()
-  const createProductGroup = useCreateProductGroup()
+  const { data: _activeIngredients = [] } = useActiveIngredients();
+  const createActiveIngredient = useCreateActiveIngredient();
+  const { data: manufacturers = [] } = useManufacturers();
+  const createManufacturer = useCreateManufacturer();
+  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure();
+  const createUnitOfMeasure = useCreateUnitOfMeasure();
+  const { data: productGroups = [] } = useProductGroups();
+  const createProductGroup = useCreateProductGroup();
 
   // Reference tables
-  const [refSearchTerm, setRefSearchTerm] = useState('')
-  const { data: refSources = [] } = useRefSources()
+  const [refSearchTerm, setRefSearchTerm] = useState('');
+  const { data: refSources = [] } = useRefSources();
   const { data: productRefLinks = [], isLoading: isLoadingRefLinks } = useProductRefLinks(
     isEditing ? id : undefined
-  )
+  );
   const { data: searchResults = [], isLoading: isSearchingRefs } =
-    useSearchRefItemsUnified(refSearchTerm)
-  const linkToRef = useLinkProductToRefItem()
-  const unlinkFromRef = useUnlinkProductFromRefItem()
-  const setPrimaryRef = useSetPrimaryRefLink()
+    useSearchRefItemsUnified(refSearchTerm);
+  const linkToRef = useLinkProductToRefItem();
+  const unlinkFromRef = useUnlinkProductFromRefItem();
+  const setPrimaryRef = useSetPrimaryRefLink();
 
   // Presentations hooks
-  const { data: presentations = [] } = usePresentations(isEditing ? id : undefined)
-  const createPresentation = useCreatePresentation()
-  const updatePresentation = useUpdatePresentation()
-  const deletePresentation = useDeletePresentation()
+  const { data: presentations = [] } = usePresentations(isEditing ? id : undefined);
+  const createPresentation = useCreatePresentation();
+  const updatePresentation = useUpdatePresentation();
+  const deletePresentation = useDeletePresentation();
 
   // Estado local para rastrear mudanças não salvas (além do isDirty do formulário)
-  const [localUnsavedChanges, setLocalUnsavedChanges] = useState(false)
+  const [localUnsavedChanges, setLocalUnsavedChanges] = useState(false);
 
   const {
     register,
@@ -221,68 +223,68 @@ export default function ProductFormPage() {
     watch,
     setValue,
     formState: { errors, isDirty },
-  } = useForm<ProductFormData>()
+  } = useForm<ProductFormData>();
 
   // Sincronizar estado de mudanças não salvas com o contexto global
   useEffect(() => {
-    setGlobalUnsavedChanges(isDirty || localUnsavedChanges)
+    setGlobalUnsavedChanges(isDirty || localUnsavedChanges);
     return () => {
       // Limpar ao desmontar o componente
-      setGlobalUnsavedChanges(false)
-    }
-  }, [isDirty, localUnsavedChanges, setGlobalUnsavedChanges])
+      setGlobalUnsavedChanges(false);
+    };
+  }, [isDirty, localUnsavedChanges, setGlobalUnsavedChanges]);
 
   // Alerta do browser ao fechar/recarregar a página
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty || localUnsavedChanges) {
-        e.preventDefault()
-        e.returnValue = ''
+        e.preventDefault();
+        e.returnValue = '';
       }
-    }
+    };
 
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isDirty, localUnsavedChanges])
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty, localUnsavedChanges]);
 
   const {
     register: registerPresentation,
     handleSubmit: handleSubmitPresentation,
     reset: resetPresentation,
     formState: { errors: presentationErrors },
-  } = useForm<PresentationFormData>()
+  } = useForm<PresentationFormData>();
 
   const {
     register: registerNewActiveIngredient,
     handleSubmit: handleSubmitNewActiveIngredient,
     reset: resetNewActiveIngredient,
     formState: { errors: newActiveIngredientErrors },
-  } = useForm<NewActiveIngredientFormData>()
+  } = useForm<NewActiveIngredientFormData>();
 
   const {
     register: registerNewManufacturer,
     handleSubmit: handleSubmitNewManufacturer,
     reset: resetNewManufacturer,
     formState: { errors: newManufacturerErrors },
-  } = useForm<NewManufacturerFormData>()
+  } = useForm<NewManufacturerFormData>();
 
   const {
     register: registerNewGroup,
     handleSubmit: handleSubmitNewGroup,
     reset: resetNewGroup,
     formState: { errors: newGroupErrors },
-  } = useForm<NewGroupFormData>()
+  } = useForm<NewGroupFormData>();
 
   const {
     register: registerNewUnit,
     handleSubmit: handleSubmitNewUnit,
     reset: resetNewUnit,
     formState: { errors: newUnitErrors },
-  } = useForm<NewUnitFormData>()
+  } = useForm<NewUnitFormData>();
 
-  const watchItemType = watch('item_type')
-  const activeValue = watch('active')
-  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active')
+  const watchItemType = watch('item_type');
+  const activeValue = watch('active');
+  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
 
   // Inicializa o formulário quando o produto é carregado
   useEffect(() => {
@@ -303,11 +305,11 @@ export default function ProductFormPage() {
         antibiotic: product.antibiotic ?? false,
         tuss_ref: product.tuss_ref || '',
         tiss_ref: product.tiss_ref || '',
-      })
-      setSelectedActiveIngredientId(product.active_ingredient_id || '')
-      setSelectedStockUnitId(product.unit_stock_id || '')
-      setSelectedPrescriptionUnitId(product.unit_prescription_id || '')
-      setSelectedGroupId(product.group_id || '')
+      });
+      setSelectedActiveIngredientId(product.active_ingredient_id || '');
+      setSelectedStockUnitId(product.unit_stock_id || '');
+      setSelectedPrescriptionUnitId(product.unit_prescription_id || '');
+      setSelectedGroupId(product.group_id || '');
     } else if (!isEditing) {
       // Novo produto
       reset({
@@ -326,44 +328,44 @@ export default function ProductFormPage() {
         antibiotic: false,
         tuss_ref: '',
         tiss_ref: '',
-      })
-      setSelectedActiveIngredientId('')
-      setSelectedStockUnitId('')
-      setSelectedPrescriptionUnitId('')
-      setSelectedGroupId('')
+      });
+      setSelectedActiveIngredientId('');
+      setSelectedStockUnitId('');
+      setSelectedPrescriptionUnitId('');
+      setSelectedGroupId('');
     }
-  }, [isEditing, product, reset])
+  }, [isEditing, product, reset]);
 
   const openNewActiveIngredientModal = () => {
     resetNewActiveIngredient({
       name: '',
       description: '',
-    })
-    setIsNewActiveIngredientModalOpen(true)
-  }
+    });
+    setIsNewActiveIngredientModalOpen(true);
+  };
 
   const openNewManufacturerModal = (prefillData?: {
-    name?: string
-    trade_name?: string
-    document?: string
+    name?: string;
+    trade_name?: string;
+    document?: string;
   }) => {
     resetNewManufacturer({
       name: prefillData?.name || '',
       trade_name: prefillData?.trade_name || '',
       document: prefillData?.document || '',
-    })
-    setIsNewManufacturerModalOpen(true)
-  }
+    });
+    setIsNewManufacturerModalOpen(true);
+  };
 
   const handleCreateActiveIngredient = async (data: NewActiveIngredientFormData) => {
     const newActiveIngredient = await createActiveIngredient.mutateAsync({
       name: data.name.toUpperCase(),
       description: data.description || null,
       active: true,
-    })
-    setSelectedActiveIngredientId(newActiveIngredient.id)
-    setIsNewActiveIngredientModalOpen(false)
-  }
+    });
+    setSelectedActiveIngredientId(newActiveIngredient.id);
+    setIsNewActiveIngredientModalOpen(false);
+  };
 
   const handleCreateManufacturer = async (data: NewManufacturerFormData) => {
     const newManufacturer = await createManufacturer.mutateAsync({
@@ -371,20 +373,20 @@ export default function ProductFormPage() {
       trade_name: data.trade_name || null,
       document: data.document || null,
       active: true,
-    })
-    setSelectedPresentationManufacturerId(newManufacturer.id)
-    setSuggestedManufacturer(null)
-    setIsNewManufacturerModalOpen(false)
-  }
+    });
+    setSelectedPresentationManufacturerId(newManufacturer.id);
+    setSuggestedManufacturer(null);
+    setIsNewManufacturerModalOpen(false);
+  };
 
   const openNewGroupModal = () => {
     resetNewGroup({
       code: '',
       name: '',
       color: DEFAULT_PRODUCT_GROUP_COLOR,
-    })
-    setIsNewGroupModalOpen(true)
-  }
+    });
+    setIsNewGroupModalOpen(true);
+  };
 
   const handleCreateGroup = async (data: NewGroupFormData) => {
     const newGroup = await createProductGroup.mutateAsync({
@@ -396,10 +398,10 @@ export default function ProductFormPage() {
       icon: null,
       sort_order: null,
       active: true,
-    })
-    setSelectedGroupId(newGroup.id)
-    setIsNewGroupModalOpen(false)
-  }
+    });
+    setSelectedGroupId(newGroup.id);
+    setIsNewGroupModalOpen(false);
+  };
 
   const openNewUnitModal = () => {
     resetNewUnit({
@@ -407,9 +409,9 @@ export default function ProductFormPage() {
       symbol: '',
       name: '',
       description: '',
-    })
-    setIsNewUnitModalOpen(true)
-  }
+    });
+    setIsNewUnitModalOpen(true);
+  };
 
   const handleCreateUnit = async (data: NewUnitFormData) => {
     const newUnit = await createUnitOfMeasure.mutateAsync({
@@ -418,34 +420,34 @@ export default function ProductFormPage() {
       name: data.name,
       description: data.description || null,
       active: true,
-    })
+    });
     // Define a nova unidade como selecionada no campo de estoque
-    setSelectedStockUnitId(newUnit.id)
-    setIsNewUnitModalOpen(false)
-  }
+    setSelectedStockUnitId(newUnit.id);
+    setIsNewUnitModalOpen(false);
+  };
 
-  const normalizeUpper = (value: string) => value.toUpperCase()
+  const normalizeUpper = (value: string) => value.toUpperCase();
 
   const onSubmit = async (data: ProductFormData) => {
     // Validação manual da unidade já que estamos usando estado controlado
     if (!selectedStockUnitId) {
-      setUnitStockError(true)
-      toast.error('Preencha todos os campos obrigatórios')
-      return
+      setUnitStockError(true);
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
     }
-    setUnitStockError(false)
+    setUnitStockError(false);
 
     if (!selectedPrescriptionUnitId) {
-      setUnitPrescriptionError(true)
-      toast.error('Preencha todos os campos obrigatórios')
-      return
+      setUnitPrescriptionError(true);
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
     }
-    setUnitPrescriptionError(false)
+    setUnitPrescriptionError(false);
 
     const unitPrescriptionFactor =
       Number.isFinite(data.unit_prescription_factor) && data.unit_prescription_factor > 0
         ? data.unit_prescription_factor
-        : 1
+        : 1;
 
     const payload = {
       code: data.code || null,
@@ -464,39 +466,39 @@ export default function ProductFormPage() {
       antibiotic: data.antibiotic,
       tuss_ref: data.tuss_ref || null,
       tiss_ref: data.tiss_ref || null,
-    }
+    };
 
     if (isEditing && product) {
-      await updateItem.mutateAsync({ id: product.id, ...payload })
+      await updateItem.mutateAsync({ id: product.id, ...payload });
     } else {
-      await createItem.mutateAsync(payload)
+      await createItem.mutateAsync(payload);
     }
     // Resetar estados de alterações não salvas antes de navegar
-    setLocalUnsavedChanges(false)
-    navigate(productsListPath)
-  }
+    setLocalUnsavedChanges(false);
+    navigate(productsListPath);
+  };
 
   // Função para salvar sem sair da página
   const onSaveWithoutExit = async (data: ProductFormData) => {
     // Validação manual da unidade já que estamos usando estado controlado
     if (!selectedStockUnitId) {
-      setUnitStockError(true)
-      toast.error('Preencha todos os campos obrigatórios')
-      return
+      setUnitStockError(true);
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
     }
-    setUnitStockError(false)
+    setUnitStockError(false);
 
     if (!selectedPrescriptionUnitId) {
-      setUnitPrescriptionError(true)
-      toast.error('Preencha todos os campos obrigatórios')
-      return
+      setUnitPrescriptionError(true);
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
     }
-    setUnitPrescriptionError(false)
+    setUnitPrescriptionError(false);
 
     const unitPrescriptionFactor =
       Number.isFinite(data.unit_prescription_factor) && data.unit_prescription_factor > 0
         ? data.unit_prescription_factor
-        : 1
+        : 1;
 
     const payload = {
       code: data.code || null,
@@ -515,20 +517,20 @@ export default function ProductFormPage() {
       antibiotic: data.antibiotic,
       tuss_ref: data.tuss_ref || null,
       tiss_ref: data.tiss_ref || null,
-    }
+    };
 
     if (isEditing && product) {
-      await updateItem.mutateAsync({ id: product.id, ...payload })
+      await updateItem.mutateAsync({ id: product.id, ...payload });
     } else {
-      await createItem.mutateAsync(payload)
+      await createItem.mutateAsync(payload);
     }
     // Resetar estado de alterações não salvas mas permanecer na página
-    setLocalUnsavedChanges(false)
-    toast.success(isEditing ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!')
-  }
+    setLocalUnsavedChanges(false);
+    toast.success(isEditing ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!');
+  };
 
   const onSubmitPresentation = async (data: PresentationFormData) => {
-    if (!product) return
+    if (!product) return;
 
     const payload = {
       product_id: product.id,
@@ -537,29 +539,29 @@ export default function ProductFormPage() {
       conversion_factor: data.conversion_factor,
       unit: selectedPresentationUnit || null,
       manufacturer_id: selectedPresentationManufacturerId || null,
-    }
+    };
 
     if (selectedPresentation) {
       await updatePresentation.mutateAsync({
         id: selectedPresentation.id,
         ...payload,
-      })
+      });
     } else {
-      await createPresentation.mutateAsync(payload)
+      await createPresentation.mutateAsync(payload);
     }
-    setSelectedPresentation(null)
-    setSelectedPresentationManufacturerId('')
-    setIsPresentationModalOpen(false)
-    resetPresentation()
-  }
+    setSelectedPresentation(null);
+    setSelectedPresentationManufacturerId('');
+    setIsPresentationModalOpen(false);
+    resetPresentation();
+  };
 
   const handleDeletePresentation = async (presentation: ProductPresentation) => {
-    if (!product) return
+    if (!product) return;
     await deletePresentation.mutateAsync({
       id: presentation.id,
       productId: product.id,
-    })
-  }
+    });
+  };
 
   /**
    * Abre o modal para vincular uma apresentação com as tabelas de referência
@@ -567,61 +569,61 @@ export default function ProductFormPage() {
    */
   const openLinkPresentationModal = async (presentation: ProductPresentation) => {
     if (!presentation.barcode) {
-      toast.error('Esta apresentação não possui código de barras (EAN)')
-      return
+      toast.error('Esta apresentação não possui código de barras (EAN)');
+      return;
     }
 
     // Abrir modal imediatamente com loading
-    setPresentationForLinking(presentation)
-    setPresentationLinkData(null)
-    setIsPresentationLinkModalOpen(true)
-    setIsLoadingRefData(true)
+    setPresentationForLinking(presentation);
+    setPresentationLinkData(null);
+    setIsPresentationLinkModalOpen(true);
+    setIsLoadingRefData(true);
 
     try {
-      const unifiedData = await fetchRefItemUnifiedByEan(presentation.barcode)
+      const unifiedData = await fetchRefItemUnifiedByEan(presentation.barcode);
 
       if (!unifiedData) {
-        toast.error('Item não encontrado nas tabelas de referência')
-        setIsPresentationLinkModalOpen(false)
-        return
+        toast.error('Item não encontrado nas tabelas de referência');
+        setIsPresentationLinkModalOpen(false);
+        return;
       }
 
-      setPresentationLinkData(unifiedData)
+      setPresentationLinkData(unifiedData);
     } catch (error) {
-      console.error('Erro ao buscar item para vinculação:', error)
-      toast.error('Erro ao buscar item nas tabelas de referência')
-      setIsPresentationLinkModalOpen(false)
+      console.error('Erro ao buscar item para vinculação:', error);
+      toast.error('Erro ao buscar item nas tabelas de referência');
+      setIsPresentationLinkModalOpen(false);
     } finally {
-      setIsLoadingRefData(false)
+      setIsLoadingRefData(false);
     }
-  }
+  };
 
   /**
    * Abre o modal de apresentação pré-preenchido com dados da view vw_ref_item_unified
    * Busca pelo EAN vinculado e preenche: nome, quantidade (fator de conversão), EAN (barcode), unidade
    */
   const _openPresentationFromRefItem = async (refItemEan: string) => {
-    if (!product || !refItemEan) return
+    if (!product || !refItemEan) return;
 
-    setIsLoadingRefData(true)
+    setIsLoadingRefData(true);
     try {
-      const unifiedData = await fetchRefItemUnifiedByEan(refItemEan)
+      const unifiedData = await fetchRefItemUnifiedByEan(refItemEan);
 
-      console.warn('Dados da view unificada:', unifiedData)
+      console.warn('Dados da view unificada:', unifiedData);
 
       if (!unifiedData) {
-        toast.error('Dados não encontrados na view unificada')
-        return
+        toast.error('Dados não encontrados na view unificada');
+        return;
       }
 
-      handleSelectRefItemForPresentation(unifiedData)
+      handleSelectRefItemForPresentation(unifiedData);
     } catch (error) {
-      console.error('Erro ao buscar dados da view unificada:', error)
-      toast.error('Erro ao carregar dados da tabela de referência')
+      console.error('Erro ao buscar dados da view unificada:', error);
+      toast.error('Erro ao carregar dados da tabela de referência');
     } finally {
-      setIsLoadingRefData(false)
+      setIsLoadingRefData(false);
     }
-  }
+  };
 
   /**
    * Callback quando um item é selecionado no modal de busca de apresentações
@@ -629,19 +631,19 @@ export default function ProductFormPage() {
    */
   const handleSelectRefItemForPresentation = useCallback(
     (item: RefItemUnified) => {
-      if (!product) return
+      if (!product) return;
 
       // Determinar a unidade de entrada baseado na unidade do item
       // Se a unidade for "ml", usar "Frasco", senão usar "Caixa"
-      let unitId = ''
-      const itemUnidade = item.unit?.toLowerCase() || ''
+      let unitId = '';
+      const itemUnidade = item.unit?.toLowerCase() || '';
 
       if (itemUnidade === 'ml') {
         const frascoUnit = unitsOfMeasure.find(
           (u) => u.code.toLowerCase() === 'fr' || u.name.toLowerCase() === 'frasco'
-        )
+        );
         if (frascoUnit) {
-          unitId = frascoUnit.id
+          unitId = frascoUnit.id;
         }
       }
 
@@ -649,14 +651,14 @@ export default function ProductFormPage() {
       if (!unitId) {
         const caixaUnit = unitsOfMeasure.find(
           (u) => u.code.toLowerCase() === 'cx' || u.name.toLowerCase() === 'caixa'
-        )
+        );
         if (caixaUnit) {
-          unitId = caixaUnit.id
+          unitId = caixaUnit.id;
         }
       }
 
       // Busca por CNPJ removida pois não existe fabricante_cnpj em item
-      let manufacturerId = ''
+      let manufacturerId = '';
 
       // Se não encontrou pelo CNPJ, tentar pelo nome
       if (!manufacturerId && item.manufacturer) {
@@ -664,9 +666,9 @@ export default function ProductFormPage() {
           (m) =>
             m.trade_name?.toLowerCase() === item.manufacturer?.toLowerCase() ||
             m.name.toLowerCase() === item.manufacturer?.toLowerCase()
-        )
+        );
         if (matchedManufacturer) {
-          manufacturerId = matchedManufacturer.id
+          manufacturerId = matchedManufacturer.id;
         }
       }
 
@@ -675,39 +677,39 @@ export default function ProductFormPage() {
         setSuggestedManufacturer({
           name: item.manufacturer,
           cnpj: '',
-        })
+        });
       } else {
-        setSuggestedManufacturer(null)
+        setSuggestedManufacturer(null);
       }
 
       // Converter quantidade para número válido
-      const quantidade = item.quantity ? Number(item.quantity) : 1
+      const quantidade = item.quantity ? Number(item.quantity) : 1;
 
       // Fechar o modal de busca
-      setIsPresentationSearchModalOpen(false)
+      setIsPresentationSearchModalOpen(false);
 
       // Preencher o formulário de apresentação
-      setSelectedPresentation(null)
-      setSelectedPresentationUnit(unitId)
-      setSelectedPresentationManufacturerId(manufacturerId)
+      setSelectedPresentation(null);
+      setSelectedPresentationUnit(unitId);
+      setSelectedPresentationManufacturerId(manufacturerId);
       resetPresentation({
         name: item.name || '',
         barcode: item.ean || '',
         conversion_factor: quantidade > 0 ? quantidade : 1,
         unit: unitId,
         manufacturer_id: manufacturerId,
-      })
+      });
 
       // Abrir o modal de edição
-      setIsPresentationModalOpen(true)
+      setIsPresentationModalOpen(true);
     },
     [product, unitsOfMeasure, manufacturers, resetPresentation]
-  )
+  );
 
   const unitOptions = unitsOfMeasure.map((u) => ({
     value: u.id,
     label: `${u.name} (${u.symbol})`,
-  }))
+  }));
 
   const breadcrumbItems = useMemo(
     () => [
@@ -715,14 +717,14 @@ export default function ProductFormPage() {
       { label: isEditing ? product?.name || 'Carregando...' : 'Novo Produto' },
     ],
     [isEditing, product?.name, productsListPath]
-  )
+  );
 
   if (isEditing && isLoadingProduct) {
     return (
       <div className="flex h-96 items-center justify-center">
         <Loading size="lg" />
       </div>
-    )
+    );
   }
 
   return (
@@ -741,12 +743,12 @@ export default function ProductFormPage() {
           <ButtonNew
             onClick={handleSubmit(onSubmit, () => {
               if (!selectedStockUnitId) {
-                setUnitStockError(true)
+                setUnitStockError(true);
               }
               if (!selectedPrescriptionUnitId) {
-                setUnitPrescriptionError(true)
+                setUnitPrescriptionError(true);
               }
-              toast.error('Preencha todos os campos obrigatórios')
+              toast.error('Preencha todos os campos obrigatórios');
             })}
             variant="solid"
             showIcon={false}
@@ -803,12 +805,12 @@ export default function ProductFormPage() {
               type="button"
               onClick={handleSubmit(onSaveWithoutExit, () => {
                 if (!selectedStockUnitId) {
-                  setUnitStockError(true)
+                  setUnitStockError(true);
                 }
                 if (!selectedPrescriptionUnitId) {
-                  setUnitPrescriptionError(true)
+                  setUnitPrescriptionError(true);
                 }
-                toast.error('Preencha todos os campos obrigatórios')
+                toast.error('Preencha todos os campos obrigatórios');
               })}
               disabled={createItem.isPending || updateItem.isPending}
               className="border-primary-300/50 bg-primary-100/30 text-primary-800 hover:bg-primary-100/50 hover:text-primary-900 dark:border-primary-700/50 dark:bg-primary-900/40 dark:text-primary-300 dark:hover:bg-primary-900/60 flex h-8 w-8 items-center justify-center rounded-md border transition-colors disabled:cursor-not-allowed disabled:opacity-50"
@@ -872,9 +874,9 @@ export default function ProductFormPage() {
                   searchPlaceholder="Buscar unidade..."
                   value={selectedStockUnitId}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const newValue = e.target.value
-                    setSelectedStockUnitId(newValue)
-                    if (newValue) setUnitStockError(false)
+                    const newValue = e.target.value;
+                    setSelectedStockUnitId(newValue);
+                    if (newValue) setUnitStockError(false);
                   }}
                   error={unitStockError ? 'Obrigatória' : undefined}
                   required
@@ -888,9 +890,9 @@ export default function ProductFormPage() {
                   searchPlaceholder="Buscar unidade..."
                   value={selectedPrescriptionUnitId}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const newValue = e.target.value
-                    setSelectedPrescriptionUnitId(newValue)
-                    if (newValue) setUnitPrescriptionError(false)
+                    const newValue = e.target.value;
+                    setSelectedPrescriptionUnitId(newValue);
+                    if (newValue) setUnitPrescriptionError(false);
                   }}
                   error={unitPrescriptionError ? 'Obrigatória' : undefined}
                   required
@@ -948,22 +950,22 @@ export default function ProductFormPage() {
                       const searchOptions = searchedActiveIngredients.map((ai) => ({
                         value: ai.id,
                         label: ai.name,
-                      }))
+                      }));
 
                       // Se há um item selecionado que não está na busca, adiciona-o usando o hook dedicado
                       if (selectedActiveIngredientId && selectedActiveIngredient) {
                         const isInSearch = searchOptions.some(
                           (opt) => opt.value === selectedActiveIngredientId
-                        )
+                        );
                         if (!isInSearch) {
                           searchOptions.unshift({
                             value: selectedActiveIngredient.id,
                             label: selectedActiveIngredient.name,
-                          })
+                          });
                         }
                       }
 
-                      return [{ value: '', label: 'Digite para buscar...' }, ...searchOptions]
+                      return [{ value: '', label: 'Digite para buscar...' }, ...searchOptions];
                     })()}
                     placeholder="Selecione o princípio ativo..."
                     searchPlaceholder="Buscar princípio ativo..."
@@ -1017,7 +1019,7 @@ export default function ProductFormPage() {
                     onBlur={activeOnBlur}
                     checked={!!activeValue}
                     onChange={(e) => {
-                      setValue('active', e.target.checked, { shouldDirty: true })
+                      setValue('active', e.target.checked, { shouldDirty: true });
                     }}
                   />
                 </div>
@@ -1033,7 +1035,7 @@ export default function ProductFormPage() {
                   onBlur={activeOnBlur}
                   checked={!!activeValue}
                   onChange={(e) => {
-                    setValue('active', e.target.checked, { shouldDirty: true })
+                    setValue('active', e.target.checked, { shouldDirty: true });
                   }}
                 />
               )}
@@ -1061,17 +1063,17 @@ export default function ProductFormPage() {
                     <Button
                       size="sm"
                       onClick={() => {
-                        setSelectedPresentation(null)
-                        setSelectedPresentationUnit('')
-                        setSelectedPresentationManufacturerId('')
+                        setSelectedPresentation(null);
+                        setSelectedPresentationUnit('');
+                        setSelectedPresentationManufacturerId('');
                         resetPresentation({
                           name: '',
                           barcode: '',
                           conversion_factor: 1,
                           unit: '',
                           manufacturer_id: '',
-                        })
-                        setIsPresentationModalOpen(true)
+                        });
+                        setIsPresentationModalOpen(true);
                       }}
                     >
                       <Plus className="h-4 w-4" />
@@ -1107,8 +1109,8 @@ export default function ProductFormPage() {
                           // Buscar o símbolo da unidade pelo ID
                           const presentationUnit = p.unit
                             ? unitsOfMeasure.find((u) => u.id === p.unit)
-                            : null
-                          const unitSymbol = presentationUnit?.symbol || p.unit || p.name
+                            : null;
+                          const unitSymbol = presentationUnit?.symbol || p.unit || p.name;
 
                           return (
                             <tr
@@ -1152,17 +1154,19 @@ export default function ProductFormPage() {
                                   </IconButton>
                                   <IconButton
                                     onClick={() => {
-                                      setSelectedPresentation(p)
-                                      setSelectedPresentationUnit(p.unit || '')
-                                      setSelectedPresentationManufacturerId(p.manufacturer_id || '')
+                                      setSelectedPresentation(p);
+                                      setSelectedPresentationUnit(p.unit || '');
+                                      setSelectedPresentationManufacturerId(
+                                        p.manufacturer_id || ''
+                                      );
                                       resetPresentation({
                                         name: p.name,
                                         barcode: p.barcode || '',
                                         conversion_factor: p.conversion_factor,
                                         unit: p.unit || '',
                                         manufacturer_id: p.manufacturer_id || '',
-                                      })
-                                      setIsPresentationModalOpen(true)
+                                      });
+                                      setIsPresentationModalOpen(true);
                                     }}
                                   >
                                     <Pencil className="h-4 w-4" />
@@ -1176,7 +1180,7 @@ export default function ProductFormPage() {
                                 </div>
                               </td>
                             </tr>
-                          )
+                          );
                         })}
                       </tbody>
                     </table>
@@ -1199,17 +1203,17 @@ export default function ProductFormPage() {
                       <Button
                         variant="secondary"
                         onClick={() => {
-                          setSelectedPresentation(null)
-                          setSelectedPresentationUnit('')
-                          setSelectedPresentationManufacturerId('')
+                          setSelectedPresentation(null);
+                          setSelectedPresentationUnit('');
+                          setSelectedPresentationManufacturerId('');
                           resetPresentation({
                             name: '',
                             barcode: '',
                             conversion_factor: 1,
                             unit: '',
                             manufacturer_id: '',
-                          })
-                          setIsPresentationModalOpen(true)
+                          });
+                          setIsPresentationModalOpen(true);
                         }}
                       >
                         <Plus className="h-4 w-4" />
@@ -1248,23 +1252,23 @@ export default function ProductFormPage() {
                 ) : (
                   <div className="space-y-2">
                     {productRefLinks.map((link: any) => {
-                      const refItem = link.ref_item
-                      const source = link.source
+                      const refItem = link.ref_item;
+                      const source = link.source;
                       const pfPrice = refItem?.current_prices?.find(
                         (p: any) => p.price_type === 'pf'
-                      )
+                      );
                       const pmcPrice = refItem?.current_prices?.find(
                         (p: any) => p.price_type === 'pmc'
-                      )
-                      const latestPrice = pfPrice || pmcPrice
+                      );
+                      const latestPrice = pfPrice || pmcPrice;
                       // Parse date without timezone conversion (valid_from is a date string like "2026-01-08")
                       const lastUpdate = latestPrice?.valid_from
                         ? (() => {
-                            const dateStr = latestPrice.valid_from.split('T')[0] // Get just the date part
-                            const [year, month, day] = dateStr.split('-')
-                            return `${day}/${month}/${year}`
+                            const dateStr = latestPrice.valid_from.split('T')[0]; // Get just the date part
+                            const [year, month, day] = dateStr.split('-');
+                            return `${day}/${month}/${year}`;
                           })()
-                        : null
+                        : null;
 
                       return (
                         <div
@@ -1280,7 +1284,7 @@ export default function ProductFormPage() {
                                   setPrimaryRef.mutate({
                                     productId: product!.id,
                                     linkId: link.id,
-                                  })
+                                  });
                                 }
                               }}
                               disabled={link.is_primary || setPrimaryRef.isPending}
@@ -1389,7 +1393,7 @@ export default function ProductFormPage() {
                             </Button>
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                 )}
@@ -1426,18 +1430,18 @@ export default function ProductFormPage() {
                       <div className="divide-y divide-gray-200 dark:divide-gray-700">
                         {searchResults.map((item: RefItemUnified) => {
                           // Verifica quais fontes já estão vinculadas para este produto
-                          const linkedSourceIds = productRefLinks.map((l: any) => l.ref_item_id)
+                          const linkedSourceIds = productRefLinks.map((l: any) => l.ref_item_id);
                           const hasCmed =
-                            item.cmed_item_id && linkedSourceIds.includes(item.cmed_item_id)
+                            item.cmed_item_id && linkedSourceIds.includes(item.cmed_item_id);
                           const hasBrasindice =
                             item.brasindice_item_id &&
-                            linkedSourceIds.includes(item.brasindice_item_id)
+                            linkedSourceIds.includes(item.brasindice_item_id);
                           const hasSimpro =
-                            item.simpro_item_id && linkedSourceIds.includes(item.simpro_item_id)
+                            item.simpro_item_id && linkedSourceIds.includes(item.simpro_item_id);
                           const allLinked =
                             (!item.cmed_item_id || hasCmed) &&
                             (!item.brasindice_item_id || hasBrasindice) &&
-                            (!item.simpro_item_id || hasSimpro)
+                            (!item.simpro_item_id || hasSimpro);
 
                           return (
                             <div
@@ -1510,14 +1514,14 @@ export default function ProductFormPage() {
                                       // Buscar o source_id da CMED
                                       const cmedSource = refSources.find(
                                         (s: RefSource) => s.code === 'cmed'
-                                      )
+                                      );
                                       if (cmedSource) {
                                         linkToRef.mutate({
                                           productId: product!.id,
                                           refItemId: item.cmed_item_id!,
                                           sourceId: cmedSource.id,
                                           isPrimary: productRefLinks.length === 0,
-                                        })
+                                        });
                                       }
                                     }}
                                     isLoading={linkToRef.isPending}
@@ -1533,14 +1537,14 @@ export default function ProductFormPage() {
                                     onClick={() => {
                                       const brasindiceSource = refSources.find(
                                         (s: RefSource) => s.code === 'brasindice'
-                                      )
+                                      );
                                       if (brasindiceSource) {
                                         linkToRef.mutate({
                                           productId: product!.id,
                                           refItemId: item.brasindice_item_id!,
                                           sourceId: brasindiceSource.id,
                                           isPrimary: productRefLinks.length === 0,
-                                        })
+                                        });
                                       }
                                     }}
                                     isLoading={linkToRef.isPending}
@@ -1556,14 +1560,14 @@ export default function ProductFormPage() {
                                     onClick={() => {
                                       const simproSource = refSources.find(
                                         (s: RefSource) => s.code === 'simpro'
-                                      )
+                                      );
                                       if (simproSource) {
                                         linkToRef.mutate({
                                           productId: product!.id,
                                           refItemId: item.simpro_item_id!,
                                           sourceId: simproSource.id,
                                           isPrimary: productRefLinks.length === 0,
-                                        })
+                                        });
                                       }
                                     }}
                                     isLoading={linkToRef.isPending}
@@ -1579,7 +1583,7 @@ export default function ProductFormPage() {
                                 )}
                               </div>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     )}
@@ -1639,7 +1643,7 @@ export default function ProductFormPage() {
                     name: suggestedManufacturer.name,
                     trade_name: suggestedManufacturer.name,
                     document: suggestedManufacturer.cnpj,
-                  })
+                  });
                 }}
                 className="bg-primary-600 text-content-inverse hover:bg-primary-700 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
               >
@@ -1702,8 +1706,8 @@ export default function ProductFormPage() {
                   searchPlaceholder="Buscar unidade..."
                   value={selectedPresentationUnit}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const newValue = e.target.value
-                    setSelectedPresentationUnit(newValue)
+                    const newValue = e.target.value;
+                    setSelectedPresentationUnit(newValue);
                   }}
                   required
                   onCreateNew={openNewUnitModal}
@@ -1999,10 +2003,10 @@ export default function ProductFormPage() {
       <Modal
         isOpen={isPresentationLinkModalOpen}
         onClose={() => {
-          setIsPresentationLinkModalOpen(false)
-          setPresentationLinkData(null)
-          setPresentationForLinking(null)
-          setIsLoadingRefData(false)
+          setIsPresentationLinkModalOpen(false);
+          setPresentationLinkData(null);
+          setPresentationForLinking(null);
+          setIsLoadingRefData(false);
         }}
         title="Vincular Apresentação com Tabelas de Referência"
         size="lg"
@@ -2042,13 +2046,13 @@ export default function ProductFormPage() {
                             },
                             {
                               onSuccess: () => {
-                                toast.success('Vinculado com sucesso ao CMED!')
-                                setIsPresentationLinkModalOpen(false)
-                                setPresentationLinkData(null)
-                                setPresentationForLinking(null)
+                                toast.success('Vinculado com sucesso ao CMED!');
+                                setIsPresentationLinkModalOpen(false);
+                                setPresentationLinkData(null);
+                                setPresentationForLinking(null);
                               },
                             }
-                          )
+                          );
                         }
                       }}
                       isLoading={linkToRef.isPending}
@@ -2115,13 +2119,13 @@ export default function ProductFormPage() {
                             },
                             {
                               onSuccess: () => {
-                                toast.success('Vinculado com sucesso ao Brasíndice!')
-                                setIsPresentationLinkModalOpen(false)
-                                setPresentationLinkData(null)
-                                setPresentationForLinking(null)
+                                toast.success('Vinculado com sucesso ao Brasíndice!');
+                                setIsPresentationLinkModalOpen(false);
+                                setPresentationLinkData(null);
+                                setPresentationForLinking(null);
                               },
                             }
-                          )
+                          );
                         }
                       }}
                       isLoading={linkToRef.isPending}
@@ -2188,13 +2192,13 @@ export default function ProductFormPage() {
                             },
                             {
                               onSuccess: () => {
-                                toast.success('Vinculado com sucesso ao Simpro!')
-                                setIsPresentationLinkModalOpen(false)
-                                setPresentationLinkData(null)
-                                setPresentationForLinking(null)
+                                toast.success('Vinculado com sucesso ao Simpro!');
+                                setIsPresentationLinkModalOpen(false);
+                                setPresentationLinkData(null);
+                                setPresentationForLinking(null);
                               },
                             }
-                          )
+                          );
                         }
                       }}
                       isLoading={linkToRef.isPending}
@@ -2264,9 +2268,9 @@ export default function ProductFormPage() {
                 variant="outline"
                 showIcon={false}
                 onClick={() => {
-                  setIsPresentationLinkModalOpen(false)
-                  setPresentationLinkData(null)
-                  setPresentationForLinking(null)
+                  setIsPresentationLinkModalOpen(false);
+                  setPresentationLinkData(null);
+                  setPresentationForLinking(null);
                 }}
                 label="Cancelar"
               />
@@ -2282,9 +2286,9 @@ export default function ProductFormPage() {
                 type="button"
                 variant="secondary"
                 onClick={() => {
-                  setIsPresentationLinkModalOpen(false)
-                  setPresentationLinkData(null)
-                  setPresentationForLinking(null)
+                  setIsPresentationLinkModalOpen(false);
+                  setPresentationLinkData(null);
+                  setPresentationForLinking(null);
                 }}
               >
                 Fechar
@@ -2307,5 +2311,5 @@ export default function ProductFormPage() {
         />
       )}
     </div>
-  )
+  );
 }

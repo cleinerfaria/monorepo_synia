@@ -1,6 +1,6 @@
-﻿import { useState, useMemo, useEffect } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, ClipboardList, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useEffect } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Pencil, ClipboardList, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   ButtonNew,
@@ -15,28 +15,28 @@ import {
   SwitchNew,
   Select,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useProceduresPaginated,
   useCreateProcedure,
   useUpdateProcedure,
-} from '@/hooks/useProcedures'
-import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure'
-import { useListPageState } from '@/hooks/useListPageState'
-import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination'
-import { useForm } from 'react-hook-form'
-import type { Procedure } from '@/types/database'
+} from '@/hooks/useProcedures';
+import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { useForm } from 'react-hook-form';
+import type { Procedure } from '@/types/database';
 
 interface ProcedureFormData {
-  code: string
-  name: string
-  category: 'visit' | 'care' | 'therapy' | 'administration' | 'evaluation'
-  unit_id: string
-  description: string
-  active: boolean
+  code: string;
+  name: string;
+  category: 'visit' | 'care' | 'therapy' | 'administration' | 'evaluation';
+  unit_id: string;
+  description: string;
+  active: boolean;
 }
 
-const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 const PROCEDURE_CATEGORIES = [
   { value: 'visit', label: 'Visita' },
@@ -44,69 +44,69 @@ const PROCEDURE_CATEGORIES = [
   { value: 'therapy', label: 'Terapia' },
   { value: 'administration', label: 'Administração' },
   { value: 'evaluation', label: 'Avaliação' },
-] as const
+] as const;
 
 const getCategoryLabel = (category: string) => {
-  const found = PROCEDURE_CATEGORIES.find((cat) => cat.value === category)
-  return found?.label || category
-}
+  const found = PROCEDURE_CATEGORIES.find((cat) => cat.value === category);
+  return found?.label || category;
+};
 
 const getCategoryColor = (category: string): 'info' | 'success' | 'warning' | 'danger' | 'gold' => {
   switch (category) {
     case 'visit':
-      return 'info'
+      return 'info';
     case 'care':
-      return 'success'
+      return 'success';
     case 'therapy':
-      return 'warning'
+      return 'warning';
     case 'administration':
-      return 'gold'
+      return 'gold';
     case 'evaluation':
-      return 'danger'
+      return 'danger';
     default:
-      return 'info'
+      return 'info';
   }
-}
+};
 
 export default function ProceduresPage() {
-  const [currentPage, setCurrentPage] = useListPageState()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
+  const [currentPage, setCurrentPage] = useListPageState();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   const { data: paginatedData, isLoading } = useProceduresPaginated(
     currentPage,
     PAGE_SIZE,
     searchTerm
-  )
+  );
 
-  const procedures = paginatedData?.data ?? []
-  const totalCount = paginatedData?.totalCount ?? 0
-  const totalPages = paginatedData?.totalPages ?? 1
+  const procedures = paginatedData?.data ?? [];
+  const totalCount = paginatedData?.totalCount ?? 0;
+  const totalPages = paginatedData?.totalPages ?? 1;
 
-  const { data: unitsOfMeasure } = useUnitsOfMeasure()
+  const { data: unitsOfMeasure } = useUnitsOfMeasure();
 
-  const createProcedure = useCreateProcedure()
-  const updateProcedure = useUpdateProcedure()
+  const createProcedure = useCreateProcedure();
+  const updateProcedure = useUpdateProcedure();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setCurrentPage(1)
-      setSearchTerm(searchInput)
-    }, 300)
+      setCurrentPage(1);
+      setSearchTerm(searchInput);
+    }, 300);
 
-    return () => clearTimeout(timeout)
-  }, [searchInput, setCurrentPage])
+    return () => clearTimeout(timeout);
+  }, [searchInput, setCurrentPage]);
 
-  const hasActiveSearch = searchTerm.trim().length > 0
+  const hasActiveSearch = searchTerm.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-    setSearchTerm('')
-    setCurrentPage(1)
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
 
   const {
     register,
@@ -115,25 +115,25 @@ export default function ProceduresPage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<ProcedureFormData>()
+  } = useForm<ProcedureFormData>();
 
-  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active')
-  const activeValue = watch('active')
+  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active');
+  const activeValue = watch('active');
 
   const openCreateModal = () => {
-    setSelectedProcedure(null)
+    setSelectedProcedure(null);
     reset({
       code: '',
       name: '',
       category: 'visit',
       description: '',
       active: true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = (procedure: Procedure) => {
-    setSelectedProcedure(procedure)
+    setSelectedProcedure(procedure);
     reset({
       code: procedure.code || '',
       name: procedure.name,
@@ -141,9 +141,9 @@ export default function ProceduresPage() {
       unit_id: procedure.unit_id || undefined,
       description: procedure.description || '',
       active: procedure.active ?? true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const onSubmit = async (data: ProcedureFormData) => {
     const payload = {
@@ -151,18 +151,18 @@ export default function ProceduresPage() {
       code: data.code || null,
       unit_id: data.unit_id || null,
       description: data.description || null,
-    }
+    };
 
     if (selectedProcedure) {
       await updateProcedure.mutateAsync({
         id: selectedProcedure.id,
         ...payload,
-      })
+      });
     } else {
-      await createProcedure.mutateAsync(payload)
+      await createProcedure.mutateAsync(payload);
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const columns: ColumnDef<Procedure>[] = useMemo(
     () => [
@@ -196,14 +196,14 @@ export default function ProceduresPage() {
         accessorKey: 'unit_id',
         header: 'Unidade',
         cell: ({ row }) => {
-          if (!row.original.unit_id) return <span className="text-gray-500">-</span>
+          if (!row.original.unit_id) return <span className="text-gray-500">-</span>;
 
-          const unit = unitsOfMeasure?.find((u) => u.id === row.original.unit_id)
+          const unit = unitsOfMeasure?.find((u) => u.id === row.original.unit_id);
           return (
             <span className="text-gray-700 dark:text-gray-300">
               {unit ? `${unit.name} (${unit.symbol})` : row.original.unit_id}
             </span>
-          )
+          );
         },
       },
       {
@@ -222,8 +222,8 @@ export default function ProceduresPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                openEditModal(row.original)
+                e.stopPropagation();
+                openEditModal(row.original);
               }}
             >
               <Pencil className="h-4 w-4" />
@@ -234,7 +234,7 @@ export default function ProceduresPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [unitsOfMeasure]
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -377,7 +377,7 @@ export default function ProceduresPage() {
             onBlur={activeOnBlur}
             checked={!!activeValue}
             onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true })
+              setValue('active', e.target.checked, { shouldDirty: true });
             }}
           />
 
@@ -399,5 +399,5 @@ export default function ProceduresPage() {
         </form>
       </Modal>
     </div>
-  )
+  );
 }

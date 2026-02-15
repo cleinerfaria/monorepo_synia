@@ -1,56 +1,56 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'react-hot-toast'
-import { ThemeProvider } from '@/contexts/ThemeContext'
-import { NavigationGuardProvider } from '@/contexts/NavigationGuardContext'
-import { useAuthStore } from '@/stores/authStore'
-import { useEffect, useState, useRef, Suspense, lazy } from 'react'
-import { supabase } from '@/lib/supabase'
-import type { AppUser, Company } from '@/types/database'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { NavigationGuardProvider } from '@/contexts/NavigationGuardContext';
+import { useAuthStore } from '@/stores/authStore';
+import { useEffect, useState, useRef, Suspense, lazy } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { AppUser, Company } from '@/types/database';
 
 // Layouts
-import DashboardLayout from '@/layouts/DashboardLayout'
+import DashboardLayout from '@/layouts/DashboardLayout';
 
 // Auth Pages
-import LoginPage from '@/pages/auth/LoginPage'
-import ResetPasswordPage from '@/pages/auth/ResetPasswordPage'
+import LoginPage from '@/pages/auth/LoginPage';
+import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
 
 // Dashboard
-import DashboardPage from '@/pages/DashboardPage'
+import DashboardPage from '@/pages/DashboardPage';
 
 // Lazy-loaded pages
-const PatientsPage = lazy(() => import('@/pages/cadastros/PatientsPage'))
-const PatientFormPage = lazy(() => import('@/pages/cadastros/PatientFormPage'))
-const ClientsPage = lazy(() => import('@/pages/cadastros/ClientsPage'))
-const ProfessionalsPage = lazy(() => import('@/pages/cadastros/ProfessionalsPage'))
-const ProfessionalFormPage = lazy(() => import('@/pages/cadastros/ProfessionalFormPage'))
-const ProceduresPage = lazy(() => import('@/pages/cadastros/ProceduresPage'))
-const ProductsPage = lazy(() => import('@/pages/cadastros/ProductsPage'))
-const ProductFormPage = lazy(() => import('@/pages/cadastros/ProductFormPage'))
-const EquipmentPage = lazy(() => import('@/pages/cadastros/EquipmentPage'))
-const ActiveIngredientsPage = lazy(() => import('@/pages/cadastros/ActiveIngredientsPage'))
-const UnitsOfMeasurePage = lazy(() => import('@/pages/cadastros/UnitsOfMeasurePage'))
-const ManufacturersPage = lazy(() => import('@/pages/cadastros/ManufacturersPage'))
-const SuppliersPage = lazy(() => import('@/pages/cadastros/SuppliersPage'))
-const AdministrationRoutesPage = lazy(() => import('@/pages/cadastros/AdministrationRoutesPage'))
-const PresentationsPage = lazy(() => import('@/pages/cadastros/PresentationsPage'))
-const CensoPage = lazy(() => import('@/pages/prontuario/CensoPage'))
-const ProntuarioRelatoriosPage = lazy(() => import('@/pages/prontuario/RelatoriosPage'))
-const PadPage = lazy(() => import('@/pages/prontuario/PadPage'))
-const PrescriptionsPage = lazy(() => import('@/pages/prescriptions/PrescriptionsPage'))
-const PrescriptionDetailPage = lazy(() => import('@/pages/prescriptions/PrescriptionDetailPage'))
-const StockPage = lazy(() => import('@/pages/stock/StockPage'))
-const NfeImportsPage = lazy(() => import('@/pages/nfe/NfeImportsPage'))
-const NfeImportDetailPage = lazy(() => import('@/pages/nfe/NfeImportDetailPage'))
-const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
-const ReferenceTablesPage = lazy(() => import('@/pages/settings/ReferenceTablesPage'))
-const UsersSettingsPage = lazy(() => import('@/pages/settings/UsersPage'))
-const AccessProfilesPage = lazy(() => import('@/pages/settings/AccessProfilesPage'))
-const LogsPage = lazy(() => import('@/pages/settings/LogsPage'))
-const AdminPage = lazy(() => import('@/pages/admin/AdminPage'))
+const PatientsPage = lazy(() => import('@/pages/cadastros/PatientsPage'));
+const PatientFormPage = lazy(() => import('@/pages/cadastros/PatientFormPage'));
+const ClientsPage = lazy(() => import('@/pages/cadastros/ClientsPage'));
+const ProfessionalsPage = lazy(() => import('@/pages/cadastros/ProfessionalsPage'));
+const ProfessionalFormPage = lazy(() => import('@/pages/cadastros/ProfessionalFormPage'));
+const ProceduresPage = lazy(() => import('@/pages/cadastros/ProceduresPage'));
+const ProductsPage = lazy(() => import('@/pages/cadastros/ProductsPage'));
+const ProductFormPage = lazy(() => import('@/pages/cadastros/ProductFormPage'));
+const EquipmentPage = lazy(() => import('@/pages/cadastros/EquipmentPage'));
+const ActiveIngredientsPage = lazy(() => import('@/pages/cadastros/ActiveIngredientsPage'));
+const UnitsOfMeasurePage = lazy(() => import('@/pages/cadastros/UnitsOfMeasurePage'));
+const ManufacturersPage = lazy(() => import('@/pages/cadastros/ManufacturersPage'));
+const SuppliersPage = lazy(() => import('@/pages/cadastros/SuppliersPage'));
+const AdministrationRoutesPage = lazy(() => import('@/pages/cadastros/AdministrationRoutesPage'));
+const PresentationsPage = lazy(() => import('@/pages/cadastros/PresentationsPage'));
+const CensoPage = lazy(() => import('@/pages/prontuario/CensoPage'));
+const ProntuarioRelatoriosPage = lazy(() => import('@/pages/prontuario/RelatoriosPage'));
+const PadPage = lazy(() => import('@/pages/prontuario/PadPage'));
+const PrescriptionsPage = lazy(() => import('@/pages/prescriptions/PrescriptionsPage'));
+const PrescriptionDetailPage = lazy(() => import('@/pages/prescriptions/PrescriptionDetailPage'));
+const StockPage = lazy(() => import('@/pages/stock/StockPage'));
+const NfeImportsPage = lazy(() => import('@/pages/nfe/NfeImportsPage'));
+const NfeImportDetailPage = lazy(() => import('@/pages/nfe/NfeImportDetailPage'));
+const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
+const ReferenceTablesPage = lazy(() => import('@/pages/settings/ReferenceTablesPage'));
+const UsersSettingsPage = lazy(() => import('@/pages/settings/UsersPage'));
+const AccessProfilesPage = lazy(() => import('@/pages/settings/AccessProfilesPage'));
+const LogsPage = lazy(() => import('@/pages/settings/LogsPage'));
+const AdminPage = lazy(() => import('@/pages/admin/AdminPage'));
 
 // Loading
-import { Loading } from '@/components/ui'
+import { Loading } from '@/components/ui';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,7 +59,7 @@ const queryClient = new QueryClient({
       retry: 1,
     },
   },
-})
+});
 
 // Suspense fallback component
 function RouteLoader() {
@@ -67,84 +67,84 @@ function RouteLoader() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
       <Loading size="lg" />
     </div>
-  )
+  );
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, company } = useAuthStore()
+  const { session, isLoading, company } = useAuthStore();
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loading size="lg" />
       </div>
-    )
+    );
   }
 
   if (!session) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
   // Usuário sem empresa só pode acessar /admin
   if (!company) {
-    return <Navigate to="/admin" replace />
+    return <Navigate to="/admin" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 // Rota especial para admin - permite acesso sem empresa
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading } = useAuthStore()
+  const { session, isLoading } = useAuthStore();
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loading size="lg" />
       </div>
-    )
+    );
   }
 
   if (!session) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, appUser } = useAuthStore()
+  const { session, isLoading, appUser } = useAuthStore();
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loading size="lg" />
       </div>
-    )
+    );
   }
 
   if (session) {
     // Se tem sessão mas não tem empresa, vai para admin
     if (!appUser) {
-      return <Navigate to="/admin" replace />
+      return <Navigate to="/admin" replace />;
     }
-    return <Navigate to="/" replace />
+    return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setSession, setAppUser, setCompany, setLoading } = useAuthStore()
-  const [initialized, setInitialized] = useState(false)
-  const [authError, setAuthError] = useState<string | null>(null)
-  const initRef = useRef(false)
+  const { setSession, setAppUser, setCompany, setLoading } = useAuthStore();
+  const [initialized, setInitialized] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const initRef = useRef(false);
 
   const handleClearSession = async () => {
-    await supabase.auth.signOut()
-    localStorage.clear()
-    window.location.reload()
-  }
+    await supabase.auth.signOut();
+    localStorage.clear();
+    window.location.reload();
+  };
 
   const loadUserData = async (userId: string): Promise<boolean> => {
     try {
@@ -153,118 +153,118 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('app_user')
         .select('*')
         .eq('auth_user_id', userId)
-        .single()
+        .single();
 
       // Se não tem app_user, permite continuar (usuário admin sem empresa)
       if (userError || !userData) {
-        setAppUser(null)
-        setCompany(null)
-        return true // Permite continuar para página admin
+        setAppUser(null);
+        setCompany(null);
+        return true; // Permite continuar para página admin
       }
 
-      setAppUser(userData as AppUser)
+      setAppUser(userData as AppUser);
 
       // Fetch company
       const { data: companyData, error: companyError } = await supabase
         .from('company')
         .select('*')
         .eq('id', (userData as AppUser).company_id)
-        .single()
+        .single();
 
       // Se não tem empresa, permite continuar (usuário admin sem empresa)
       if (companyError || !companyData) {
-        setCompany(null)
-        return true // Permite continuar para página admin
+        setCompany(null);
+        return true; // Permite continuar para página admin
       }
 
-      setCompany(companyData as Company)
-      return true
+      setCompany(companyData as Company);
+      return true;
     } catch {
-      setAuthError('Erro ao carregar dados do usuário')
-      return false
+      setAuthError('Erro ao carregar dados do usuário');
+      return false;
     }
-  }
+  };
 
   useEffect(() => {
     // Prevent double initialization in StrictMode
-    if (initRef.current) return
-    initRef.current = true
+    if (initRef.current) return;
+    initRef.current = true;
 
     const initAuth = async () => {
       try {
         const {
           data: { session },
           error,
-        } = await supabase.auth.getSession()
+        } = await supabase.auth.getSession();
 
         if (error) {
-          setAuthError('Erro ao verificar sessão')
-          setLoading(false)
-          setInitialized(true)
-          return
+          setAuthError('Erro ao verificar sessão');
+          setLoading(false);
+          setInitialized(true);
+          return;
         }
 
-        setSession(session)
+        setSession(session);
 
         if (session?.user) {
-          const success = await loadUserData(session.user.id)
+          const success = await loadUserData(session.user.id);
 
           if (!success) {
-            setLoading(false)
-            setInitialized(true)
-            return
+            setLoading(false);
+            setInitialized(true);
+            return;
           }
         }
 
-        setLoading(false)
-        setInitialized(true)
+        setLoading(false);
+        setInitialized(true);
       } catch {
-        setAuthError('Erro inesperado na autenticação')
-        setLoading(false)
-        setInitialized(true)
+        setAuthError('Erro inesperado na autenticação');
+        setLoading(false);
+        setInitialized(true);
       }
-    }
+    };
 
-    initAuth()
+    initAuth();
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session)
-      setAuthError(null)
+      setSession(session);
+      setAuthError(null);
 
       if (event === 'SIGNED_OUT') {
-        setAppUser(null)
-        setCompany(null)
-        setLoading(false)
-        return
+        setAppUser(null);
+        setCompany(null);
+        setLoading(false);
+        return;
       }
 
       if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-        const success = await loadUserData(session.user.id)
+        const success = await loadUserData(session.user.id);
 
         if (!success) {
-          setLoading(false)
-          return
+          setLoading(false);
+          return;
         }
       }
 
-      setLoading(false)
-    })
+      setLoading(false);
+    });
 
     return () => {
-      subscription.unsubscribe()
-    }
+      subscription.unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   if (!initialized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loading size="lg" />
       </div>
-    )
+    );
   }
 
   if (authError) {
@@ -284,10 +284,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function App() {
@@ -605,7 +605,7 @@ function App() {
         </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>
-  )
+  );
 }
 
-export default App
+export default App;

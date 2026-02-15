@@ -1,20 +1,23 @@
-import { useState, useEffect, useRef } from 'react'
-import { Modal, ModalFooter, Button, Input, SearchableSelect } from '@/components/ui'
-import { useCreateProduct } from '@/hooks/useProducts'
-import { useCreatePresentation } from '@/hooks/usePresentations'
-import { useLinkProductToRefItem, type RefItemWithPrices } from '@/hooks/useReferenceTables'
-import { useManufacturers, useCreateManufacturer } from '@/hooks/useManufacturers'
-import { useSearchActiveIngredients, useCreateActiveIngredient } from '@/hooks/useActiveIngredients'
-import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure'
-import type { NfeImportItem, Product } from '@/types/database'
-import toast from 'react-hot-toast'
-import { Sparkles, CheckCircle, Info } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react';
+import { Modal, ModalFooter, Button, Input, SearchableSelect } from '@/components/ui';
+import { useCreateProduct } from '@/hooks/useProducts';
+import { useCreatePresentation } from '@/hooks/usePresentations';
+import { useLinkProductToRefItem, type RefItemWithPrices } from '@/hooks/useReferenceTables';
+import { useManufacturers, useCreateManufacturer } from '@/hooks/useManufacturers';
+import {
+  useSearchActiveIngredients,
+  useCreateActiveIngredient,
+} from '@/hooks/useActiveIngredients';
+import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure';
+import type { NfeImportItem, Product } from '@/types/database';
+import toast from 'react-hot-toast';
+import { Sparkles, CheckCircle, Info } from 'lucide-react';
 interface CmedSuggestionModalProps {
-  isOpen: boolean
-  onClose: () => void
-  nfeItem: NfeImportItem
-  refItemData: RefItemWithPrices
-  onProductCreated: (product: Product, presentationId: string) => void
+  isOpen: boolean;
+  onClose: () => void;
+  nfeItem: NfeImportItem;
+  refItemData: RefItemWithPrices;
+  onProductCreated: (product: Product, presentationId: string) => void;
 }
 
 export default function CmedSuggestionModal({
@@ -24,94 +27,94 @@ export default function CmedSuggestionModal({
   refItemData,
   onProductCreated,
 }: CmedSuggestionModalProps) {
-  const [productName, setProductName] = useState('')
-  const [concentration, setConcentration] = useState('')
-  const [presentationName, setPresentationName] = useState('')
-  const [selectedUnit, setSelectedUnit] = useState('UN')
-  const [selectedManufacturerId, setSelectedManufacturerId] = useState('')
-  const [selectedActiveIngredientId, setSelectedActiveIngredientId] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
-  const [activeIngredientSearchTerm, setActiveIngredientSearchTerm] = useState('')
-  const [isAutoSelectingIngredient, setIsAutoSelectingIngredient] = useState(false)
+  const [productName, setProductName] = useState('');
+  const [concentration, setConcentration] = useState('');
+  const [presentationName, setPresentationName] = useState('');
+  const [selectedUnit, setSelectedUnit] = useState('UN');
+  const [selectedManufacturerId, setSelectedManufacturerId] = useState('');
+  const [selectedActiveIngredientId, setSelectedActiveIngredientId] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [activeIngredientSearchTerm, setActiveIngredientSearchTerm] = useState('');
+  const [isAutoSelectingIngredient, setIsAutoSelectingIngredient] = useState(false);
 
   // Track if form has been initialized to avoid re-populating user changes
-  const formInitializedRef = useRef(false)
+  const formInitializedRef = useRef(false);
   // Track user-selected presentation unit to prevent overwriting
-  const userSelectedPresentationUnitRef = useRef<string>('')
+  const userSelectedPresentationUnitRef = useRef<string>('');
 
   // Presentation fields
-  const [conversionFactor, setConversionFactor] = useState('1')
-  const [presentationUnit, setPresentationUnit] = useState('UN')
+  const [conversionFactor, setConversionFactor] = useState('1');
+  const [presentationUnit, setPresentationUnit] = useState('UN');
 
-  const createProduct = useCreateProduct()
-  const createPresentation = useCreatePresentation()
-  const linkProductToRefItem = useLinkProductToRefItem()
-  const { data: manufacturers = [] } = useManufacturers()
-  const createManufacturer = useCreateManufacturer()
-  const { data: activeIngredients = [] } = useSearchActiveIngredients(activeIngredientSearchTerm)
-  const createActiveIngredient = useCreateActiveIngredient()
-  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure()
+  const createProduct = useCreateProduct();
+  const createPresentation = useCreatePresentation();
+  const linkProductToRefItem = useLinkProductToRefItem();
+  const { data: manufacturers = [] } = useManufacturers();
+  const createManufacturer = useCreateManufacturer();
+  const { data: activeIngredients = [] } = useSearchActiveIngredients(activeIngredientSearchTerm);
+  const createActiveIngredient = useCreateActiveIngredient();
+  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure();
 
   // Extract CMED-specific data from extra_data JSONB
-  const extraData = refItemData.extra_data as Record<string, unknown> | null
-  const substancia = extraData?.substancia as string | null
-  const classeTerapeutica = extraData?.classe_terapeutica as string | null
-  const tarja = extraData?.tarja as string | null
-  const registro = extraData?.registro as string | null
-  const apresentacao = extraData?.apresentacao as string | null
-  const cnpj = extraData?.cnpj as string | null
+  const extraData = refItemData.extra_data as Record<string, unknown> | null;
+  const substancia = extraData?.substancia as string | null;
+  const classeTerapeutica = extraData?.classe_terapeutica as string | null;
+  const tarja = extraData?.tarja as string | null;
+  const registro = extraData?.registro as string | null;
+  const apresentacao = extraData?.apresentacao as string | null;
+  const cnpj = extraData?.cnpj as string | null;
 
   // Get prices from current_prices array (ref_price_history)
-  const currentPrices = refItemData.current_prices || []
-  const pfPriceData = currentPrices.find((p: any) => p.price_type === 'pf')
-  const pmcPriceData = currentPrices.find((p: any) => p.price_type === 'pmc')
-  const pfPrice = pfPriceData?.price_value as number | null
-  const pmcPrice = pmcPriceData?.price_value as number | null
-  const pfLabel = (pfPriceData?.price_meta as Record<string, unknown>)?.label as string | null
-  const pmcLabel = (pmcPriceData?.price_meta as Record<string, unknown>)?.label as string | null
+  const currentPrices = refItemData.current_prices || [];
+  const pfPriceData = currentPrices.find((p: any) => p.price_type === 'pf');
+  const pmcPriceData = currentPrices.find((p: any) => p.price_type === 'pmc');
+  const pfPrice = pfPriceData?.price_value as number | null;
+  const pmcPrice = pmcPriceData?.price_value as number | null;
+  const pfLabel = (pfPriceData?.price_meta as Record<string, unknown>)?.label as string | null;
+  const pmcLabel = (pmcPriceData?.price_meta as Record<string, unknown>)?.label as string | null;
 
   /**
    * Extract concentration from text (e.g., "5 MG", "500 MG/5ML", "0,5 G")
    */
   const extractConcentration = (text: string): string => {
-    if (!text) return ''
+    if (!text) return '';
     // Match patterns like: "5 MG", "500MG", "0,5 G", "10 ML", "25 MCG", "100 UI", "2,5%"
     const match = text.match(
       /(\d+(?:[,.]\d+)?\s*(?:MG|MCG|G|ML|UI|%|MG\/ML|MG\/5ML|MG\/G)[A-Z/0-9]*)/i
-    )
-    return match ? match[1].replace(',', '.').trim() : ''
-  }
+    );
+    return match ? match[1].replace(',', '.').trim() : '';
+  };
 
   /**
    * Identify unit from presentation text
    */
   const identifyUnit = (text: string): string => {
-    if (!text) return 'UN'
-    const upperText = text.toUpperCase()
+    if (!text) return 'UN';
+    const upperText = text.toUpperCase();
 
     // Check for common unit patterns
     // Use (?:\b|\d) to match word boundary OR preceded by digit (e.g., "20ENV")
-    if (/(?:\b|\d)(?:COM|COMPRIMIDO|COMP|CPR|DRG|DRÁGEA|DRAGEA)\b/.test(upperText)) return 'CP'
-    if (/(?:\b|\d)(?:CAP|CÁPS|CAPS|CAPSULA|CÁPSULA)\b/.test(upperText)) return 'CP'
-    if (/(?:\b|\d)(?:FLAC|FLACONETE)\b/.test(upperText)) return 'FLD'
-    if (/(?:\b|\d)(?:ENV|ENVELOPE|SACHÊ|SACHE)\b/.test(upperText)) return 'ENV'
-    if (/(?:\b|\d)(?:FR|FRASCO|FRS)\b/.test(upperText)) return 'FR'
-    if (/(?:\b|\d)(?:AMP|AMPOLA)\b/.test(upperText)) return 'AMP'
-    if (/(?:\b|\d)(?:BG|BISNAGA)\b/.test(upperText)) return 'BG'
-    if (/(?:\b|\d)(?:TB|TUBO)\b/.test(upperText)) return 'TB'
-    if (/(?:\b|\d)(?:FA|FAMP)\b|FRASCO.?AMP/.test(upperText)) return 'FA'
-    if (/(?:\b|\d)(?:SER|SERINGA)\b/.test(upperText)) return 'SER'
-    if (/(?:\b|\d)(?:SOL|SOLUÇÃO|SOLUCAO|SUSPENSÃO|SUSPENSAO|SUSP)\b/.test(upperText)) return 'FR'
-    if (/(?:\b|\d)(?:POM|POMADA|CREME|GEL)\b/.test(upperText)) return 'TB'
-    if (/(?:\b|\d)(?:XPE|XAROPE)\b/.test(upperText)) return 'FR'
-    if (/(?:\b|\d)(?:SUP|SUPOSITÓRIO|SUPOSITORIO)\b/.test(upperText)) return 'UN'
-    if (/(?:\b|\d)(?:OV|ÓVULO|OVULO)\b/.test(upperText)) return 'UN'
-    if (/(?:\b|\d)(?:PÓ|PO)\b/.test(upperText)) return 'ENV'
-    if (/(?:\b|\d)(?:CT|CARTELA)\b/.test(upperText)) return 'CT'
-    if (/(?:\b|\d)(?:BL|BLISTER)\b/.test(upperText)) return 'UN'
+    if (/(?:\b|\d)(?:COM|COMPRIMIDO|COMP|CPR|DRG|DRÁGEA|DRAGEA)\b/.test(upperText)) return 'CP';
+    if (/(?:\b|\d)(?:CAP|CÁPS|CAPS|CAPSULA|CÁPSULA)\b/.test(upperText)) return 'CP';
+    if (/(?:\b|\d)(?:FLAC|FLACONETE)\b/.test(upperText)) return 'FLD';
+    if (/(?:\b|\d)(?:ENV|ENVELOPE|SACHÊ|SACHE)\b/.test(upperText)) return 'ENV';
+    if (/(?:\b|\d)(?:FR|FRASCO|FRS)\b/.test(upperText)) return 'FR';
+    if (/(?:\b|\d)(?:AMP|AMPOLA)\b/.test(upperText)) return 'AMP';
+    if (/(?:\b|\d)(?:BG|BISNAGA)\b/.test(upperText)) return 'BG';
+    if (/(?:\b|\d)(?:TB|TUBO)\b/.test(upperText)) return 'TB';
+    if (/(?:\b|\d)(?:FA|FAMP)\b|FRASCO.?AMP/.test(upperText)) return 'FA';
+    if (/(?:\b|\d)(?:SER|SERINGA)\b/.test(upperText)) return 'SER';
+    if (/(?:\b|\d)(?:SOL|SOLUÇÃO|SOLUCAO|SUSPENSÃO|SUSPENSAO|SUSP)\b/.test(upperText)) return 'FR';
+    if (/(?:\b|\d)(?:POM|POMADA|CREME|GEL)\b/.test(upperText)) return 'TB';
+    if (/(?:\b|\d)(?:XPE|XAROPE)\b/.test(upperText)) return 'FR';
+    if (/(?:\b|\d)(?:SUP|SUPOSITÓRIO|SUPOSITORIO)\b/.test(upperText)) return 'UN';
+    if (/(?:\b|\d)(?:OV|ÓVULO|OVULO)\b/.test(upperText)) return 'UN';
+    if (/(?:\b|\d)(?:PÓ|PO)\b/.test(upperText)) return 'ENV';
+    if (/(?:\b|\d)(?:CT|CARTELA)\b/.test(upperText)) return 'CT';
+    if (/(?:\b|\d)(?:BL|BLISTER)\b/.test(upperText)) return 'UN';
 
-    return 'UN'
-  }
+    return 'UN';
+  };
 
   /**
    * Extract conversion factor from NFe item description
@@ -124,64 +127,66 @@ export default function CmedSuggestionModal({
    * - "REDOXON GTS 20ML BAYE" → 1 (volume only, no count)
    */
   const extractConversionFactor = (text: string): string => {
-    if (!text) return '1'
-    const upperText = text.toUpperCase()
+    if (!text) return '1';
+    const upperText = text.toUpperCase();
 
     // Pattern to match quantity + unit abbreviation (count units, not volume/weight)
     // Captures: 20DRG, 30CPR, 20FLAC, 20ENV, 28CPR, 2ENV, etc.
     // Does NOT capture: 10ML, 20ML, 5MG, 500UI, 2GR, 8G, 4%
     const countUnitPattern =
-      /(\d+)\s*(DRG|DRÁGEAS?|DRAGEAS?|CPR|CP|COMP|COMPRIMIDOS?|CAP|CAPS|CÁPSULAS?|CAPSULAS?|FLAC|FLACONETES?|ENV|ENVELOPES?|AMP|AMPOLAS?|SER|SERINGAS?|TB|TUBOS?|BG|BISNAGAS?|SACHES?|SACHÊS?|ÓVULOS?|OVULOS?|SUPOSITÓRIOS?|SUPOSITORIOS?|ADESIVOS?)\b/gi
+      /(\d+)\s*(DRG|DRÁGEAS?|DRAGEAS?|CPR|CP|COMP|COMPRIMIDOS?|CAP|CAPS|CÁPSULAS?|CAPSULAS?|FLAC|FLACONETES?|ENV|ENVELOPES?|AMP|AMPOLAS?|SER|SERINGAS?|TB|TUBOS?|BG|BISNAGAS?|SACHES?|SACHÊS?|ÓVULOS?|OVULOS?|SUPOSITÓRIOS?|SUPOSITORIOS?|ADESIVOS?)\b/gi;
 
     // Find all matches
-    const matches = [...upperText.matchAll(countUnitPattern)]
+    const matches = [...upperText.matchAll(countUnitPattern)];
 
     if (matches.length > 0) {
       // Return the first valid match
-      const num = parseInt(matches[0][1], 10)
+      const num = parseInt(matches[0][1], 10);
       if (num > 0 && num <= 1000) {
-        return num.toString()
+        return num.toString();
       }
     }
 
-    return '1'
-  }
+    return '1';
+  };
 
   // Pre-fill form with ref_item data when modal opens
   useEffect(() => {
     if (isOpen && refItemData) {
       // Only initialize on first open
       if (formInitializedRef.current) {
-        return
+        return;
       }
 
-      formInitializedRef.current = true
+      formInitializedRef.current = true;
 
       // Use product_name from ref_item
       const productNameToUse =
-        refItemData.product_name || substancia || nfeItem.raw_description || ''
-      setProductName(productNameToUse)
+        refItemData.product_name || substancia || nfeItem.raw_description || '';
+      setProductName(productNameToUse);
 
       // Use concentration from ref_item or extract from presentation
       const extractedConcentration =
-        refItemData.concentration || extractConcentration(refItemData.presentation || '')
-      setConcentration(extractedConcentration)
+        refItemData.concentration || extractConcentration(refItemData.presentation || '');
+      setConcentration(extractedConcentration);
 
       // Use presentation from ref_item
-      setPresentationName(refItemData.presentation || apresentacao || nfeItem.raw_description || '')
+      setPresentationName(
+        refItemData.presentation || apresentacao || nfeItem.raw_description || ''
+      );
 
       // Try to find manufacturer by CNPJ first, then by name
       const manufacturerCnpj =
-        cnpj?.replace(/\D/g, '') || refItemData.manufacturer_code?.replace(/\D/g, '') || ''
-      const manufacturerName = refItemData.manufacturer_name?.toUpperCase() || ''
+        cnpj?.replace(/\D/g, '') || refItemData.manufacturer_code?.replace(/\D/g, '') || '';
+      const manufacturerName = refItemData.manufacturer_name?.toUpperCase() || '';
 
-      let existingManufacturer = null
+      let existingManufacturer = null;
 
       // First try to match by CNPJ (document field)
       if (manufacturerCnpj) {
         existingManufacturer = manufacturers.find(
           (m) => m.document?.replace(/\D/g, '') === manufacturerCnpj
-        )
+        );
       }
 
       // If not found by CNPJ, try by name
@@ -190,68 +195,68 @@ export default function CmedSuggestionModal({
           (m) =>
             m.name.toUpperCase().includes(manufacturerName) ||
             manufacturerName.includes(m.name.toUpperCase())
-        )
+        );
       }
 
-      setSelectedManufacturerId(existingManufacturer?.id || '')
+      setSelectedManufacturerId(existingManufacturer?.id || '');
 
       // Suggest active ingredient by substance name (user can edit or confirm)
       if (substancia) {
         // Always set search term to help user find it, allowing them to edit
-        setActiveIngredientSearchTerm(substancia)
+        setActiveIngredientSearchTerm(substancia);
         // Enable auto-selection mode for initial fill
-        setIsAutoSelectingIngredient(true)
+        setIsAutoSelectingIngredient(true);
       } else {
-        setSelectedActiveIngredientId('')
+        setSelectedActiveIngredientId('');
       }
 
       // Identify unit from ref_item or apresentacao or NFe description
-      const unitSource = nfeItem.raw_description || refItemData.presentation || apresentacao || ''
+      const unitSource = nfeItem.raw_description || refItemData.presentation || apresentacao || '';
       const identifiedUnit =
-        refItemData.entry_unit || refItemData.base_unit || identifyUnit(unitSource)
+        refItemData.entry_unit || refItemData.base_unit || identifyUnit(unitSource);
       // Check if unit exists in available units
-      const unitExists = unitsOfMeasure.some((u) => u.code === identifiedUnit)
-      setSelectedUnit(unitExists ? identifiedUnit : 'UN')
+      const unitExists = unitsOfMeasure.some((u) => u.code === identifiedUnit);
+      setSelectedUnit(unitExists ? identifiedUnit : 'UN');
 
       // Extract conversion factor - não usar quantity do ref_item pois sempre está incorreta
-      const nfeDesc = nfeItem.raw_description || ''
-      const cmedDesc = refItemData.presentation || apresentacao || ''
+      const nfeDesc = nfeItem.raw_description || '';
+      const cmedDesc = refItemData.presentation || apresentacao || '';
       const extractedFactor =
         extractConversionFactor(nfeDesc) !== '1'
           ? extractConversionFactor(nfeDesc)
-          : extractConversionFactor(cmedDesc)
+          : extractConversionFactor(cmedDesc);
 
       // If conversion factor > 1, the entry unit should be CX (box containing multiple base units)
       // Otherwise use the identified unit
       if (parseFloat(extractedFactor) > 1) {
-        setPresentationUnit('CX')
+        setPresentationUnit('CX');
       } else {
-        setPresentationUnit(unitExists ? identifiedUnit : 'UN')
+        setPresentationUnit(unitExists ? identifiedUnit : 'UN');
       }
-      setConversionFactor(extractedFactor)
+      setConversionFactor(extractedFactor);
     } else {
       // Reset flag when modal closes
-      formInitializedRef.current = false
-      setIsAutoSelectingIngredient(false)
-      userSelectedPresentationUnitRef.current = ''
+      formInitializedRef.current = false;
+      setIsAutoSelectingIngredient(false);
+      userSelectedPresentationUnitRef.current = '';
     }
-  }, [isOpen, refItemData, nfeItem, manufacturers, unitsOfMeasure, substancia, apresentacao, cnpj])
+  }, [isOpen, refItemData, nfeItem, manufacturers, unitsOfMeasure, substancia, apresentacao, cnpj]);
 
   // Pre-select active ingredient once search results come back (only during initial fill)
   useEffect(() => {
     // Only auto-select if we're in initial fill mode and have search term
     if (isAutoSelectingIngredient && activeIngredientSearchTerm && activeIngredients.length > 0) {
-      const searchTerm = activeIngredientSearchTerm.toUpperCase().trim()
+      const searchTerm = activeIngredientSearchTerm.toUpperCase().trim();
       const existingActiveIngredient = activeIngredients.find(
         (ai) =>
           ai.name.toUpperCase() === searchTerm ||
           searchTerm.includes(ai.name.toUpperCase()) ||
           ai.name.toUpperCase().includes(searchTerm)
-      )
+      );
       if (existingActiveIngredient && selectedActiveIngredientId !== existingActiveIngredient.id) {
-        setSelectedActiveIngredientId(existingActiveIngredient.id)
+        setSelectedActiveIngredientId(existingActiveIngredient.id);
         // Disable auto-select after first selection to allow user to search freely
-        setIsAutoSelectingIngredient(false)
+        setIsAutoSelectingIngredient(false);
       }
     }
   }, [
@@ -259,53 +264,53 @@ export default function CmedSuggestionModal({
     activeIngredientSearchTerm,
     isAutoSelectingIngredient,
     selectedActiveIngredientId,
-  ])
+  ]);
 
   const handleCreateFromCmed = async () => {
     if (!productName.trim()) {
-      toast.error('Nome do produto é obrigatório')
-      return
+      toast.error('Nome do produto é obrigatório');
+      return;
     }
 
     if (!selectedManufacturerId && !refItemData.manufacturer_name) {
-      toast.error('Fabricante é obrigatório')
-      return
+      toast.error('Fabricante é obrigatório');
+      return;
     }
 
-    setIsCreating(true)
+    setIsCreating(true);
 
     try {
       // 1. Create manufacturer if not exists and ref_item has manufacturer info
-      let manufacturerId = selectedManufacturerId
+      let manufacturerId = selectedManufacturerId;
       if (!manufacturerId && refItemData.manufacturer_name) {
         const newManufacturer = await createManufacturer.mutateAsync({
           name: refItemData.manufacturer_name,
           trade_name: null,
           document: cnpj || refItemData.manufacturer_code || null,
           active: true,
-        })
-        manufacturerId = newManufacturer.id
+        });
+        manufacturerId = newManufacturer.id;
       }
 
       // 2. Create active ingredient if not exists and has substance info
-      let activeIngredientId = selectedActiveIngredientId
+      let activeIngredientId = selectedActiveIngredientId;
       if (!activeIngredientId && substancia) {
         const newActiveIngredient = await createActiveIngredient.mutateAsync({
           name: substancia,
           description: classeTerapeutica || null,
           therapeutic_class: classeTerapeutica || null,
           active: true,
-        })
-        activeIngredientId = newActiveIngredient.id
+        });
+        activeIngredientId = newActiveIngredient.id;
       }
 
       // 3. Create the product
       // Don't use code if it might be duplicate - let it be null to avoid constraint violation
       // The code is optional and can be added later if needed
-      const productCode = null // Always set to null to avoid "duplicate key value violates unique constraint" error
+      const productCode = null; // Always set to null to avoid "duplicate key value violates unique constraint" error
 
       // Find unit ID from code
-      const unitForProduct = unitsOfMeasure.find((u) => u.code === selectedUnit)
+      const unitForProduct = unitsOfMeasure.find((u) => u.code === selectedUnit);
 
       const newProduct = await createProduct.mutateAsync({
         name: productName.trim(),
@@ -316,13 +321,13 @@ export default function CmedSuggestionModal({
         concentration: concentration || null,
         active: true,
         code: productCode,
-      })
+      });
 
       // 4. Create presentation with EAN
-      const ean = nfeItem.ean || refItemData.ean
+      const ean = nfeItem.ean || refItemData.ean;
 
       // Use the unit that user selected (tracked in ref), not the state which might have been reset by effects
-      const unitForPresentation = userSelectedPresentationUnitRef.current || presentationUnit
+      const unitForPresentation = userSelectedPresentationUnitRef.current || presentationUnit;
 
       const newPresentation = await createPresentation.mutateAsync({
         product_id: newProduct.id,
@@ -331,7 +336,7 @@ export default function CmedSuggestionModal({
         unit: unitForPresentation,
         conversion_factor: parseFloat(conversionFactor) || 1,
         manufacturer_id: manufacturerId || null,
-      })
+      });
 
       // 5. Link product to ref_item for price tracking
       await linkProductToRefItem.mutateAsync({
@@ -341,23 +346,23 @@ export default function CmedSuggestionModal({
         isPrimary: true,
         conversionFactor: 1,
         notes: `Criado automaticamente via importação NFe - ${refItemData.source?.name || 'CMED'}`,
-      })
+      });
 
-      toast.success('Produto cadastrado com sucesso via tabela de referência!')
-      onProductCreated(newProduct, newPresentation.id)
-      onClose()
+      toast.success('Produto cadastrado com sucesso via tabela de referência!');
+      onProductCreated(newProduct, newPresentation.id);
+      onClose();
     } catch (error) {
-      console.error('Error creating product from ref_item:', error)
-      toast.error('Erro ao cadastrar produto')
+      console.error('Error creating product from ref_item:', error);
+      toast.error('Erro ao cadastrar produto');
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   const unitOptions = unitsOfMeasure.map((u) => ({
     value: u.code,
     label: `${u.name} (${u.code})`,
-  }))
+  }));
 
   const manufacturerOptions = [
     { value: '', label: 'Selecione ou crie novo...' },
@@ -367,7 +372,7 @@ export default function CmedSuggestionModal({
         value: m.id,
         label: m.trade_name ? `${m.name} (${m.trade_name})` : m.name,
       })),
-  ]
+  ];
 
   const activeIngredientOptions = [
     { value: '', label: 'Selecione ou crie novo...' },
@@ -377,15 +382,15 @@ export default function CmedSuggestionModal({
         value: ai.id,
         label: ai.name,
       })),
-  ]
+  ];
 
   const formatPrice = (value: number | null | undefined) => {
-    if (value == null) return '-'
+    if (value == null) return '-';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(value)
-  }
+    }).format(value);
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Sugestão de Cadastro - CMED" size="2xl">
@@ -546,8 +551,8 @@ export default function CmedSuggestionModal({
                 options={activeIngredientOptions}
                 value={selectedActiveIngredientId}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const newValue = e.target.value
-                  setSelectedActiveIngredientId(newValue)
+                  const newValue = e.target.value;
+                  setSelectedActiveIngredientId(newValue);
                 }}
                 onSearch={(term: string) => setActiveIngredientSearchTerm(term)}
                 placeholder="Selecione..."
@@ -601,10 +606,10 @@ export default function CmedSuggestionModal({
                 options={unitOptions}
                 value={parseFloat(conversionFactor) > 1 ? 'CX' : presentationUnit}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const newUnit = e.target.value
-                  setPresentationUnit(newUnit)
+                  const newUnit = e.target.value;
+                  setPresentationUnit(newUnit);
                   // Track user-selected unit
-                  userSelectedPresentationUnitRef.current = newUnit
+                  userSelectedPresentationUnitRef.current = newUnit;
                 }}
                 placeholder="Selecione..."
                 searchPlaceholder="Buscar..."
@@ -635,5 +640,5 @@ export default function CmedSuggestionModal({
         </ModalFooter>
       </div>
     </Modal>
-  )
+  );
 }

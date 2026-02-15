@@ -1,26 +1,26 @@
-import { ButtonNew, Input, SearchableSelect } from '@/components/ui'
-import { Pencil, Pill, Trash2 } from 'lucide-react'
-import type { Dispatch, SetStateAction } from 'react'
+import { ButtonNew, Input, SearchableSelect } from '@/components/ui';
+import { Pencil, Pill, Trash2 } from 'lucide-react';
+import type { Dispatch, SetStateAction } from 'react';
 
 interface PrescriptionDetailModalComponentsTabProps {
-  activeModalTab: 'item' | 'components' | 'optionals'
-  componentProductOptions: Array<{ value: string; label: string }>
-  selectedComponentProductId: string
-  setSelectedComponentProductId: (value: string) => void
-  setComponentProductSearchTerm: (value: string) => void
-  componentProductsIsLoading: boolean
-  debouncedComponentSearch: string
-  selectedComponentQuantity: number | string
-  setSelectedComponentQuantity: Dispatch<SetStateAction<number | ''>>
-  componentProducts: any[]
-  localComponents: any[]
-  setLocalComponents: (updater: (prev: any[]) => any[]) => void
-  selectedItem: any
-  addComponent: { mutate: (payload: any) => void }
-  editingComponentIndex: number | null
-  setEditingComponentIndex: (value: number | null) => void
-  updateComponent: { mutate: (payload: any) => void }
-  deleteComponent: { mutate: (payload: any) => void }
+  activeModalTab: 'item' | 'components' | 'optionals';
+  componentProductOptions: Array<{ value: string; label: string }>;
+  selectedComponentProductId: string;
+  setSelectedComponentProductId: (value: string) => void;
+  setComponentProductSearchTerm: (value: string) => void;
+  componentProductsIsLoading: boolean;
+  debouncedComponentSearch: string;
+  selectedComponentQuantity: number | string;
+  setSelectedComponentQuantity: Dispatch<SetStateAction<number | ''>>;
+  componentProducts: any[];
+  localComponents: any[];
+  setLocalComponents: (updater: (prev: any[]) => any[]) => void;
+  selectedItem: any;
+  addComponent: { mutate: (payload: any) => void };
+  editingComponentIndex: number | null;
+  setEditingComponentIndex: (value: number | null) => void;
+  updateComponent: { mutate: (payload: any) => void };
+  deleteComponent: { mutate: (payload: any) => void };
 }
 
 export function PrescriptionDetailModalComponentsTab({
@@ -43,7 +43,7 @@ export function PrescriptionDetailModalComponentsTab({
   updateComponent,
   deleteComponent,
 }: PrescriptionDetailModalComponentsTabProps) {
-  if (activeModalTab !== 'components') return null
+  if (activeModalTab !== 'components') return null;
 
   return (
     <div className="space-y-6 p-2">
@@ -74,8 +74,8 @@ export function PrescriptionDetailModalComponentsTab({
                 inputMode="numeric"
                 value={selectedComponentQuantity}
                 onChange={(e) => {
-                  const value = e.target.value
-                  setSelectedComponentQuantity(value === '' ? '' : parseFloat(value))
+                  const value = e.target.value;
+                  setSelectedComponentQuantity(value === '' ? '' : parseFloat(value));
                 }}
               />
             </div>
@@ -83,10 +83,12 @@ export function PrescriptionDetailModalComponentsTab({
               <Input
                 label="Unidade"
                 value={(() => {
-                  const product = componentProducts.find((p) => p.id === selectedComponentProductId)
-                  if (!product) return '--'
-                  const productData = product as any
-                  return productData?.unit_prescription?.symbol || 'UN'
+                  const product = componentProducts.find(
+                    (p) => p.id === selectedComponentProductId
+                  );
+                  if (!product) return '--';
+                  const productData = product as any;
+                  return productData?.unit_prescription?.symbol || 'UN';
                 })()}
                 placeholder="--"
                 readOnly
@@ -97,19 +99,23 @@ export function PrescriptionDetailModalComponentsTab({
               <ButtonNew
                 type="button"
                 onClick={() => {
-                  if (!selectedComponentProductId) return
+                  if (!selectedComponentProductId) return;
 
-                  const product = componentProducts.find((p) => p.id === selectedComponentProductId)
-                  const productData = product as any
+                  const product = componentProducts.find(
+                    (p) => p.id === selectedComponentProductId
+                  );
+                  const productData = product as any;
 
                   if (localComponents.some((c) => c.product_id === selectedComponentProductId)) {
-                    setSelectedComponentProductId('')
-                    setSelectedComponentQuantity('')
-                    return
+                    setSelectedComponentProductId('');
+                    setSelectedComponentQuantity('');
+                    return;
                   }
 
                   const quantity =
-                    typeof selectedComponentQuantity === 'number' ? selectedComponentQuantity : null
+                    typeof selectedComponentQuantity === 'number'
+                      ? selectedComponentQuantity
+                      : null;
 
                   const newComponent = {
                     product_id: selectedComponentProductId,
@@ -124,20 +130,20 @@ export function PrescriptionDetailModalComponentsTab({
                         }
                       : null,
                     isNew: true,
-                  }
+                  };
 
                   if (selectedItem?.id) {
                     addComponent.mutate({
                       prescription_item_id: selectedItem.id,
                       product_id: selectedComponentProductId,
                       quantity: quantity,
-                    })
+                    });
                   } else {
-                    setLocalComponents((prev) => [...prev, newComponent])
+                    setLocalComponents((prev) => [...prev, newComponent]);
                   }
 
-                  setSelectedComponentProductId('')
-                  setSelectedComponentQuantity('')
+                  setSelectedComponentProductId('');
+                  setSelectedComponentQuantity('');
                 }}
                 disabled={!selectedComponentProductId}
                 className="w-full"
@@ -163,20 +169,20 @@ export function PrescriptionDetailModalComponentsTab({
         {localComponents.length > 0 ? (
           <div className="space-y-2">
             {localComponents.map((component, index) => {
-              const componentProduct = componentProducts.find((p) => p.id === component.product_id)
-              const componentProductData = componentProduct as any
-              const localProductData = component.product as any
+              const componentProduct = componentProducts.find((p) => p.id === component.product_id);
+              const componentProductData = componentProduct as any;
+              const localProductData = component.product as any;
               const productName =
-                componentProduct?.name || component.product?.name || 'Produto não encontrado'
+                componentProduct?.name || component.product?.name || 'Produto não encontrado';
               const concentration =
-                componentProduct?.concentration || component.product?.concentration || ''
+                componentProduct?.concentration || component.product?.concentration || '';
               const unitSymbol =
                 componentProductData?.unit_prescription?.symbol ||
                 componentProductData?.unit_stock?.symbol ||
                 localProductData?.unit_prescription?.symbol ||
                 localProductData?.unit_stock?.symbol ||
-                'UN'
-              const isEditing = editingComponentIndex === index
+                'UN';
+              const isEditing = editingComponentIndex === index;
 
               return (
                 <div
@@ -209,12 +215,14 @@ export function PrescriptionDetailModalComponentsTab({
                             value={component.quantity ?? ''}
                             autoFocus
                             onChange={(e) => {
-                              const newQuantity = e.target.value ? parseFloat(e.target.value) : null
+                              const newQuantity = e.target.value
+                                ? parseFloat(e.target.value)
+                                : null;
                               setLocalComponents((prev) =>
                                 prev.map((c, i) =>
                                   i === index ? { ...c, quantity: newQuantity } : c
                                 )
-                              )
+                              );
                             }}
                             onBlur={() => {
                               if (component.id && !component.isNew) {
@@ -222,24 +230,24 @@ export function PrescriptionDetailModalComponentsTab({
                                   id: component.id,
                                   prescriptionItemId: selectedItem?.id || '',
                                   quantity: component.quantity,
-                                })
+                                });
                               }
-                              setEditingComponentIndex(null)
+                              setEditingComponentIndex(null);
                             }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                e.preventDefault()
+                                e.preventDefault();
                                 if (component.id && !component.isNew) {
                                   updateComponent.mutate({
                                     id: component.id,
                                     prescriptionItemId: selectedItem?.id || '',
                                     quantity: component.quantity,
-                                  })
+                                  });
                                 }
-                                setEditingComponentIndex(null)
+                                setEditingComponentIndex(null);
                               }
                               if (e.key === 'Escape') {
-                                setEditingComponentIndex(null)
+                                setEditingComponentIndex(null);
                               }
                             }}
                           />
@@ -268,9 +276,9 @@ export function PrescriptionDetailModalComponentsTab({
                             deleteComponent.mutate({
                               id: component.id,
                               prescriptionItemId: selectedItem?.id || '',
-                            })
+                            });
                           }
-                          setLocalComponents((prev) => prev.filter((_, i) => i !== index))
+                          setLocalComponents((prev) => prev.filter((_, i) => i !== index));
                         }}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-gray-400 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-500 dark:hover:border-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                       >
@@ -279,7 +287,7 @@ export function PrescriptionDetailModalComponentsTab({
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         ) : (
@@ -297,5 +305,5 @@ export function PrescriptionDetailModalComponentsTab({
         )}
       </div>
     </div>
-  )
+  );
 }
