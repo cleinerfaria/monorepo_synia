@@ -1,0 +1,137 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+    types: [closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: homolog
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate staging environment secrets
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          AUREA_SUPABASE_PROJECT_REF: ${{ secrets.AUREA_SUPABASE_PROJECT_REF }}
+          AUREA_SUPABASE_DB_PASSWORD: ${{ secrets.AUREA_SUPABASE_DB_PASSWORD }}
+          WL_SUPABASE_PROJECT_REF: ${{ secrets.WL_SUPABASE_PROJECT_REF }}
+          WL_SUPABASE_DB_PASSWORD: ${{ secrets.WL_SUPABASE_DB_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "🔍 Validating staging environment secrets..."
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+            echo "❌ Missing SUPABASE_ACCESS_TOKEN"
+            exit 1
+          fi
+          if [ -z "${AUREA_SUPABASE_PROJECT_REF:-}" ]; then
+            echo "❌ Missing AUREA_SUPABASE_PROJECT_REF for staging"
+            exit 1
+          fi
+          if [ -z "${WL_SUPABASE_PROJECT_REF:-}" ]; then
+            echo "❌ Missing WL_SUPABASE_PROJECT_REF for staging"
+            exit 1
+          fi
+          echo "✅ All staging secrets validated"
+
+      - name: Deploy Aurea to Staging
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          AUREA_SUPABASE_PROJECT_REF: ${{ secrets.AUREA_SUPABASE_PROJECT_REF }}
+          AUREA_SUPABASE_DB_PASSWORD: ${{ secrets.AUREA_SUPABASE_DB_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "🚀 Deploying Aurea to Staging..."
+          echo "Project: ${AUREA_SUPABASE_PROJECT_REF}"
+          
+          supabase link --project-ref "${AUREA_SUPABASE_PROJECT_REF}" --password "${AUREA_SUPABASE_DB_PASSWORD}" --workdir packages/db-aurea --debug
+          supabase db push --workdir packages/db-aurea --include-all --debug
+          
+          echo "✅ Aurea staging deployment completed"
+
+      - name: Deploy White Label to Staging
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          WL_SUPABASE_PROJECT_REF: ${{ secrets.WL_SUPABASE_PROJECT_REF }}
+          WL_SUPABASE_DB_PASSWORD: ${{ secrets.WL_SUPABASE_DB_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "🚀 Deploying White Label to Staging..."
+          echo "Project: ${WL_SUPABASE_PROJECT_REF}"
+          
+          supabase link --project-ref "${WL_SUPABASE_PROJECT_REF}" --password "${WL_SUPABASE_DB_PASSWORD}" --workdir packages/db-white-label --debug
+          supabase db push --workdir packages/db-white-label --include-all --debug
+          
+          echo "✅ White Label staging deployment completed"
+
+      - name: Verify Staging Deployment
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          AUREA_SUPABASE_DB_PASSWORD: ${{ secrets.AUREA_SUPABASE_DB_PASSWORD }}
+          WL_SUPABASE_DB_PASSWORD: ${{ secrets.WL_SUPABASE_DB_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "🔍 Verifying staging deployment..."
+          
+          echo "Aurea migrations status:"
+          supabase migration list --workdir packages/db-aurea
+          
+          echo "White Label migrations status:"
+          supabase migration list --workdir packages/db-white-label
+          
+          echo "🎉 Staging deployment verified successfully!"
