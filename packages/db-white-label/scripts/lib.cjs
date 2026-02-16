@@ -85,7 +85,7 @@ function getSupabaseConfig() {
 
 function dbReset() {
   const dbUrl = getDbUrl();
-  run('supabase', ['db', 'reset', '--db-url', dbUrl, '--no-seed', '--yes', '--workdir', APP_DIR], {
+  run('supabase', ['db', 'reset', '--db-url', dbUrl, '--no-seed', '--workdir', APP_DIR], {
     timeout: 180_000,
   });
 }
@@ -94,7 +94,7 @@ function dbMigrate() {
   const dbUrl = getDbUrl();
   run(
     'supabase',
-    ['db', 'push', '--db-url', dbUrl, '--include-all', '--yes', '--workdir', APP_DIR],
+    ['db', 'push', '--db-url', dbUrl, '--include-all', '--workdir', APP_DIR],
     { timeout: 180_000 }
   );
 }
