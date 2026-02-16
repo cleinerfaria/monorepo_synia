@@ -2013,10 +2013,11 @@ export default function NfeImportDetailPage() {
                   type="button"
                   variant="secondary"
                   onClick={() => setIsMappingModalOpen(false)}
+                  showIcon={false}
                 >
                   Cancelar
                 </Button>
-                <Button type="button" onClick={handleMapItem} isLoading={updateItem.isPending}>
+                <Button type="button" onClick={handleMapItem} isLoading={updateItem.isPending} showIcon={false}>
                   Salvar
                 </Button>
               </div>
@@ -2051,7 +2052,7 @@ export default function NfeImportDetailPage() {
           />
 
           <ModalFooter>
-            <Button type="button" variant="secondary" onClick={() => setIsProcessModalOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => setIsProcessModalOpen(false)} showIcon={false}>
               Cancelar
             </Button>
             <Button

@@ -4,7 +4,14 @@ import { useLogAction } from '@/hooks/useLogs';
 import { buildLogDiff, buildLogSnapshot } from '@/lib/logging';
 import type { BadgeVariant } from '@/components/ui';
 
-export type UserRole = 'admin' | 'manager' | 'clinician' | 'stock' | 'finance' | 'viewer';
+export type UserRole =
+  | 'admin'
+  | 'manager'
+  | 'clinician'
+  | 'stock'
+  | 'finance'
+  | 'viewer'
+  | 'shift_only';
 
 export interface AccessProfile {
   id: string;
@@ -451,6 +458,7 @@ export const roleLabels: Record<UserRole, string> = {
   stock: 'Estoque',
   finance: 'Financeiro',
   viewer: 'Visualizador',
+  shift_only: 'Plantão',
 };
 
 export const roleBadgeVariants: Record<UserRole, BadgeVariant> = {
@@ -460,6 +468,7 @@ export const roleBadgeVariants: Record<UserRole, BadgeVariant> = {
   stock: 'warning',
   finance: 'info',
   viewer: 'neutral',
+  shift_only: 'info',
 };
 
 export const roleColors: Record<UserRole, { bg: string; text: string }> = {
@@ -475,6 +484,10 @@ export const roleColors: Record<UserRole, { bg: string; text: string }> = {
     text: 'text-yellow-700 dark:text-yellow-300',
   },
   viewer: { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-700 dark:text-gray-300' },
+  shift_only: {
+    bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+    text: 'text-emerald-700 dark:text-emerald-300',
+  },
 };
 
 // Vincular usuário autenticado atual a uma empresa

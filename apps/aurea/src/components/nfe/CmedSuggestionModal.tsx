@@ -628,7 +628,7 @@ export default function CmedSuggestionModal({
               </span>
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" onClick={onClose}>
+              <Button type="button" variant="secondary" onClick={onClose} showIcon={false}>
                 Cancelar
               </Button>
               <Button type="button" onClick={handleCreateFromCmed} isLoading={isCreating}>

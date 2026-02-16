@@ -82,10 +82,10 @@ export function NavigationGuardProvider({ children }: { children: ReactNode }) {
           </p>
         </div>
         <ModalFooter>
-          <Button variant="secondary" onClick={cancelExit}>
+          <Button variant="secondary" onClick={cancelExit} showIcon={false}>
             Continuar Editando
           </Button>
-          <Button variant="danger" onClick={confirmExit}>
+          <Button variant="danger" onClick={confirmExit} showIcon={false}>
             Sair sem Salvar
           </Button>
         </ModalFooter>

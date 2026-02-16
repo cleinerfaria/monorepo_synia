@@ -85,7 +85,7 @@ function getSupabaseConfig() {
 
 function dbReset() {
   const dbUrl = getDbUrl();
-  run('supabase', ['db', 'reset', '--db-url', dbUrl, '--no-seed', '--workdir', APP_DIR], {
+  run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR], {
     timeout: 180_000,
   });
 }
@@ -286,67 +286,9 @@ async function seedAureaDev() {
     onConflict: 'auth_user_id',
   });
 
-  await Promise.all([
-    upsertRows({
-      supabaseUrl,
-      serviceRoleKey,
-      table: 'client',
-      rows: [
-        {
-          company_id: company.id,
-          code: 'E2E-CLI-001',
-          type: 'company',
-          name: 'E2E Cliente 1',
-          active: true,
-        },
-      ],
-      onConflict: 'company_id,code',
-    }),
-    upsertRows({
-      supabaseUrl,
-      serviceRoleKey,
-      table: 'professional',
-      rows: [
-        {
-          company_id: company.id,
-          code: 'E2E-PRO-001',
-          name: 'E2E Profissional 1',
-          role: 'Nurse',
-          active: true,
-        },
-      ],
-      onConflict: 'company_id,code',
-    }),
-    upsertRows({
-      supabaseUrl,
-      serviceRoleKey,
-      table: 'patient',
-      rows: [
-        {
-          company_id: company.id,
-          code: 'E2E-PAT-001',
-          name: 'E2E Paciente 1',
-          active: true,
-        },
-      ],
-      onConflict: 'company_id,code',
-    }),
-    upsertRows({
-      supabaseUrl,
-      serviceRoleKey,
-      table: 'product',
-      rows: [
-        {
-          company_id: company.id,
-          item_type: 'material',
-          code: 'E2E-PRD-001',
-          name: 'E2E Produto 1',
-          active: true,
-        },
-      ],
-      onConflict: 'company_id,code',
-    }),
-  ]);
+  // Note: Professional, patient, and product seeding is now done via seed.sql
+  // during migrations. This script now only ensures auth users exist.
+  process.stdout.write(`Aurea dev seed: auth users (3) have been ensured\n`);
 
   process.stdout.write(`Aurea dev seed applied for company ${company.id}\n`);
 }

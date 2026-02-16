@@ -555,7 +555,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button type="submit" isLoading={updateCompany.isPending}>
+                  <Button type="submit" isLoading={updateCompany.isPending} showIcon={false}>
                     Salvar Alterações
                   </Button>
                 </div>
@@ -592,7 +592,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex justify-end">
-                <Button type="submit" isLoading={updateCompany.isPending}>
+                <Button type="submit" isLoading={updateCompany.isPending} showIcon={false}>
                   Salvar Dados Fiscais
                 </Button>
               </div>
@@ -646,7 +646,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <CardTitle>Dados da Matriz</CardTitle>
                 {isCreatingParent && (
-                  <Button variant="ghost" size="sm" onClick={handleCancelCreateParent}>
+                  <Button variant="ghost" size="sm" onClick={handleCancelCreateParent} showIcon={false}>
                     Cancelar
                   </Button>
                 )}

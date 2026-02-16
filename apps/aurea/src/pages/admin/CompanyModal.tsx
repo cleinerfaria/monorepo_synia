@@ -251,16 +251,17 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
                 variant="danger"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isLoading}
+                showIcon={false}
               >
                 Excluir
               </Button>
             )}
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+            <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} showIcon={false}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} showIcon={false}>
               {isLoading ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar Empresa'}
             </Button>
           </div>

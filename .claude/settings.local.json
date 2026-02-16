@@ -5,7 +5,9 @@
       "Bash(wc:*)",
       "Bash(supabase status:*)",
       "Bash(supabase start:*)",
-      "Bash(supabase:*)"
+      "Bash(supabase:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx vite build:*)"
     ]
   }
 }

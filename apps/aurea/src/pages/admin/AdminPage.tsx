@@ -136,19 +136,28 @@ export default function AdminPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">🏥</span>
               <span className="text-xl font-bold text-gray-900 dark:text-white">AureaCare</span>
               <Badge variant="warning">Admin</Badge>
             </div>
             <div className="flex items-center gap-2">
               {company && (
-                <Button variant="secondary" size="sm" onClick={handleGoToDashboard}>
-                  <Home className="mr-1 h-4 w-4" />
+                <Button
+                  variant="neutral"
+                  showIcon={true}
+                  icon={<Home className="mr-1 h-4 w-4" />}
+                  size="sm"
+                  onClick={handleGoToDashboard}
+                >
                   Dashboard
                 </Button>
               )}
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="mr-1 h-4 w-4" />
+              <Button
+                variant="neutral"
+                showIcon={true}
+                icon={<LogOut className="mr-1 h-4 w-4" />}
+                size="sm"
+                onClick={handleSignOut}
+              >
                 Sair
               </Button>
             </div>
@@ -368,10 +377,7 @@ function CompaniesTab({
             className="pl-10"
           />
         </div>
-        <Button onClick={onNew}>
-          <Plus className="mr-2 h-5 w-5" />
-          Nova Empresa
-        </Button>
+        <Button onClick={onNew}>Nova Empresa</Button>
       </div>
 
       {/* List */}
@@ -418,7 +424,8 @@ function CompaniesTab({
                       </div>
                     </div>
                     <Button
-                      variant="ghost"
+                      variant="neutral"
+                      showIcon={false}
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -511,7 +518,6 @@ function UsersTab({
           </select>
         </div>
         <Button onClick={onNew} disabled={companies.length === 0}>
-          <Plus className="mr-2 h-5 w-5" />
           Novo Usuário
         </Button>
       </div>
@@ -611,7 +617,8 @@ function UsersTab({
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right">
                         <Button
-                          variant="ghost"
+                          variant="neutral"
+                          showIcon={false}
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -720,7 +727,6 @@ function ProfilesTab({
           </select>
         </div>
         <Button onClick={onNew} disabled={companies.length === 0 && !selectedCompanyFilter}>
-          <Plus className="mr-2 h-5 w-5" />
           Novo Perfil
         </Button>
       </div>
@@ -731,14 +737,7 @@ function ProfilesTab({
           icon={<ShieldCheck className="h-16 w-16" />}
           title="Nenhum perfil encontrado"
           description="Os perfis de acesso definem as permissões dos usuários"
-          action={
-            companies.length > 0 ? (
-              <Button onClick={onNew}>
-                <Plus className="mr-2 h-5 w-5" />
-                Novo Perfil
-              </Button>
-            ) : undefined
-          }
+          action={companies.length > 0 ? <Button onClick={onNew}>Novo Perfil</Button> : undefined}
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -778,11 +777,15 @@ function ProfilesTab({
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="neutral" size="sm" showIcon={false}>
                         <Pencil className="h-4 w-4" />
                       </Button>
                       {!profile.is_system && (
-                        <Button variant="ghost" size="sm" onClick={(e) => handleDelete(e, profile)}>
+                        <Button
+                          variant="neutral"
+                          size="sm"
+                          onClick={(e) => handleDelete(e, profile)}
+                        >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       )}

@@ -155,7 +155,7 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
 
         {/* Actions */}
         <div className="flex justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button type="button" variant="ghost" onClick={onClose} showIcon={false}>
             Cancelar
           </Button>
           <Button type="submit" disabled={linkMutation.isPending}>
