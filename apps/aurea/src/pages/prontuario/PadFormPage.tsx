@@ -21,7 +21,6 @@ import {
 import { usePatients } from '@/hooks/usePatients';
 import { useForm } from 'react-hook-form';
 import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
-import toast from 'react-hot-toast';
 
 const HOURS_OPTIONS = [4, 6, 12, 24] as const;
 
@@ -56,10 +55,7 @@ export default function PadFormPage() {
   const updateDemand = useUpdateDemand();
 
   const patientOptions = useMemo(
-    () =>
-      patients
-        .filter((p) => p.active)
-        .map((p) => ({ value: p.id, label: p.name })),
+    () => patients.filter((p) => p.active).map((p) => ({ value: p.id, label: p.name })),
     [patients]
   );
 
@@ -238,33 +234,48 @@ export default function PadFormPage() {
 
           {/* Período */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <DatePicker
-              label="Data de Início"
-              placeholder="Selecione"
-              value={startDateValue}
-              {...register('start_date', { required: 'Data de início é obrigatória' })}
-              error={errors.start_date?.message}
-              required
-            />
+            {(() => {
+              const { onChange, onBlur, name } = register('start_date', {
+                required: 'Data de início é obrigatória',
+              });
+              return (
+                <DatePicker
+                  label="Data de Início"
+                  placeholder="Selecione"
+                  value={startDateValue}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  name={name}
+                  error={errors.start_date?.message}
+                  required
+                />
+              );
+            })()}
             <div>
-              <DatePicker
-                label="Data de Término"
-                placeholder="Selecione"
-                value={endDateValue}
-                {...register('end_date', {
+              {(() => {
+                const { onChange, onBlur, name } = register('end_date', {
                   validate: (value) => {
                     if (noEndDate) return true;
                     if (!value) return 'Data de término é obrigatória';
                     const start = watch('start_date');
-                    if (start && value < start)
-                      return 'Término deve ser após o início';
+                    if (start && value < start) return 'Término deve ser após o início';
                     return true;
                   },
-                })}
-                error={errors.end_date?.message}
-                disabled={noEndDate}
-                required={!noEndDate}
-              />
+                });
+                return (
+                  <DatePicker
+                    label="Data de Término"
+                    placeholder="Selecione"
+                    value={endDateValue}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    name={name}
+                    error={errors.end_date?.message}
+                    disabled={noEndDate}
+                    required={!noEndDate}
+                  />
+                );
+              })()}
             </div>
             <div className="flex items-end pb-1">
               <SwitchNew
@@ -328,9 +339,7 @@ export default function PadFormPage() {
               }}
             />
             {splitDescription && (
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {splitDescription}
-              </span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{splitDescription}</span>
             )}
           </div>
 

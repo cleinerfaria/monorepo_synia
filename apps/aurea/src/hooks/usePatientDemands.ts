@@ -58,10 +58,12 @@ export function usePatientDemands(patientId?: string) {
 
       let query = supabase
         .from('patient_attendance_demand')
-        .select(`
+        .select(
+          `
           *,
           patient:patient(id, name)
-        `)
+        `
+        )
         .eq('company_id', company.id)
         .order('created_at', { ascending: false });
 
@@ -87,10 +89,12 @@ export function usePatientDemand(demandId: string | undefined) {
 
       const { data, error } = await supabase
         .from('patient_attendance_demand')
-        .select(`
+        .select(
+          `
           *,
           patient:patient(id, name)
-        `)
+        `
+        )
         .eq('company_id', company.id)
         .filter('id', 'eq', demandId)
         .single();
@@ -112,10 +116,12 @@ export function useDemandShifts(demandId: string | undefined, from: string, to: 
 
       const { data, error } = await supabase
         .from('patient_attendance_shift')
-        .select(`
+        .select(
+          `
           *,
           professional:professional(id, name)
-        `)
+        `
+        )
         .eq('company_id', company.id)
         .eq('patient_attendance_demand_id', demandId)
         .gte('start_at', `${from}T00:00:00`)
@@ -144,10 +150,12 @@ export function useCreateDemand() {
       const { data: demand, error } = await supabase
         .from('patient_attendance_demand')
         .insert({ ...data, company_id: company.id } as any)
-        .select(`
+        .select(
+          `
           *,
           patient:patient(id, name)
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
@@ -177,10 +185,12 @@ export function useUpdateDemand() {
         .update(data as any)
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
-        .select(`
+        .select(
+          `
           *,
           patient:patient(id, name)
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
@@ -228,15 +238,7 @@ export function useGenerateShifts() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      padId,
-      from,
-      to,
-    }: {
-      padId: string;
-      from: string;
-      to: string;
-    }) => {
+    mutationFn: async ({ padId, from, to }: { padId: string; from: string; to: string }) => {
       const { error } = await supabase.rpc('generate_patient_attendance_shifts', {
         p_pad_id: padId,
         p_date_from: from,

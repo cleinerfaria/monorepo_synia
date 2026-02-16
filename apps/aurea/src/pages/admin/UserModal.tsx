@@ -3,7 +3,6 @@ import { Modal, Input, Button, Select } from '@/components/ui';
 import {
   AppUser,
   UserRole,
-  roleLabels,
   useCreateAppUser,
   useUpdateAppUser,
   useDeactivateAppUser,
@@ -21,7 +20,15 @@ interface UserModalProps {
   companies: Company[];
 }
 
-const roles: UserRole[] = ['admin', 'manager', 'clinician', 'stock', 'finance', 'viewer'];
+const roles: UserRole[] = [
+  'admin',
+  'manager',
+  'clinician',
+  'stock',
+  'finance',
+  'viewer',
+  'shift_only',
+];
 
 export default function UserModal({ isOpen, onClose, user, companies }: UserModalProps) {
   const isEditing = !!user;
@@ -104,6 +111,10 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
       if (!formData.company_id) {
         newErrors.company_id = 'Empresa é obrigatória';
       }
+    }
+
+    if (!formData.access_profile_id) {
+      newErrors.access_profile_id = 'Perfil de acesso é obrigatório';
     }
 
     setErrors(newErrors);
@@ -352,7 +363,7 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
         {/* Perfil de Acesso */}
         <div>
           <Select
-            label="Perfil de Acesso"
+            label="Perfil de Acesso *"
             placeholder="Selecione um perfil"
             options={activeProfiles.map((profile) => ({
               value: profile.id,
@@ -362,39 +373,46 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const newValue = e.target.value;
               const profile = activeProfiles.find((p) => p.id === newValue);
+
+              let newRole: UserRole = 'viewer';
+
+              if (profile) {
+                // Se o código do perfil corresponde a uma role existente, usa ela
+                if (roles.includes(profile.code as UserRole)) {
+                  newRole = profile.code as UserRole;
+                }
+                // Se é admin, força admin
+                else if (profile.is_admin) {
+                  newRole = 'admin';
+                }
+                // Fallback inteligente para perfis que não são roles padrão
+                else {
+                  // Se o código contem 'clinician', 'medico', 'enfermeiro', assume clinical
+                  if (
+                    profile.code.includes('clinician') ||
+                    profile.code.includes('medic') ||
+                    profile.code.includes('enferm')
+                  ) {
+                    newRole = 'clinician';
+                  }
+                  // Se contem 'stock', 'estoque'
+                  else if (profile.code.includes('stock') || profile.code.includes('estoque')) {
+                    newRole = 'stock';
+                  }
+                  // Defaults to viewer for safety
+                }
+              }
+
               setFormData({
                 ...formData,
                 access_profile_id: newValue,
-                role: (profile?.code as UserRole) || formData.role,
+                role: newRole,
               });
             }}
+            error={errors.access_profile_id}
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            O perfil define as permissões do usuário no sistema
-          </p>
-        </div>
-
-        {/* Tipo de Usuário (legado) */}
-        <div>
-          <Select
-            label="Tipo de Usuário"
-            placeholder="Selecione um tipo"
-            options={roles.map((role) => ({
-              value: role,
-              label: roleLabels[role],
-            }))}
-            value={formData.role}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setFormData({ ...formData, role: e.target.value as UserRole })
-            }
-          />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            {formData.role === 'admin' && 'Acesso total ao sistema'}
-            {formData.role === 'manager' && 'Gerencia operações e relatórios'}
-            {formData.role === 'clinician' && 'Acesso a prescrições e pacientes'}
-            {formData.role === 'stock' && 'Gerencia estoque e produtos'}
-            {formData.role === 'finance' && 'Acesso a financeiro e relatórios'}
-            {formData.role === 'viewer' && 'Apenas visualização'}
+            O perfil define as permissões e o nível de acesso (Role: {formData.role})
           </p>
         </div>
 

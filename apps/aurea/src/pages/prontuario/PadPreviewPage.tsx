@@ -49,11 +49,11 @@ export default function PadPreviewPage() {
   const [toDate, setToDate] = useState(in14DaysStr);
 
   const { data: demand, isLoading: isLoadingDemand } = usePatientDemand(demandId);
-  const { data: shifts = [], isLoading: isLoadingShifts, refetch } = useDemandShifts(
-    demandId,
-    fromDate,
-    toDate
-  );
+  const {
+    data: shifts = [],
+    isLoading: isLoadingShifts,
+    refetch,
+  } = useDemandShifts(demandId, fromDate, toDate);
   const generateShifts = useGenerateShifts();
 
   const handleGenerate = async () => {
@@ -180,18 +180,14 @@ export default function PadPreviewPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Paciente</p>
-            <p className="font-medium text-gray-900 dark:text-white">
-              {demand.patient?.name}
-            </p>
+            <p className="font-medium text-gray-900 dark:text-white">{demand.patient?.name}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Período</p>
             <p className="font-medium text-gray-900 dark:text-white">
               {format(parseISO(demand.start_date), 'dd/MM/yyyy')}
               {' — '}
-              {demand.end_date
-                ? format(parseISO(demand.end_date), 'dd/MM/yyyy')
-                : 'Indeterminado'}
+              {demand.end_date ? format(parseISO(demand.end_date), 'dd/MM/yyyy') : 'Indeterminado'}
             </p>
           </div>
           <div>
@@ -224,14 +220,14 @@ export default function PadPreviewPage() {
               <DatePicker
                 label="De"
                 value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
+                onChange={(e: any) => setFromDate(e.target.value)}
               />
             </div>
             <div className="w-full sm:w-48">
               <DatePicker
                 label="Até"
                 value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
+                onChange={(e: any) => setToDate(e.target.value)}
               />
             </div>
             <div className="flex gap-2">

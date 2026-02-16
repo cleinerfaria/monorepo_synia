@@ -59,10 +59,7 @@ export default function PadPage() {
   const [selectedDemand, setSelectedDemand] = useState<DemandWithPatient | null>(null);
   const [searchInput, setSearchInput] = useState('');
 
-  const filteredData = useMemo(
-    () => filterDemands(demands, searchInput),
-    [demands, searchInput]
-  );
+  const filteredData = useMemo(() => filterDemands(demands, searchInput), [demands, searchInput]);
   const totalCount = filteredData.length;
   const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
   const paginatedDemands = useMemo(() => {
@@ -151,9 +148,7 @@ export default function PadPage() {
         accessorKey: 'hours_per_day',
         header: 'Horas/dia',
         cell: ({ row }) => (
-          <span className="text-gray-700 dark:text-gray-300">
-            {row.original.hours_per_day}h
-          </span>
+          <span className="text-gray-700 dark:text-gray-300">{row.original.hours_per_day}h</span>
         ),
       },
       {
@@ -311,9 +306,7 @@ export default function PadPage() {
         <p className="text-gray-600 dark:text-gray-400">
           Tem certeza que deseja {selectedDemand?.is_active ? 'desativar' : 'ativar'} a escala do
           paciente{' '}
-          <strong className="text-gray-900 dark:text-white">
-            {selectedDemand?.patient?.name}
-          </strong>
+          <strong className="text-gray-900 dark:text-white">{selectedDemand?.patient?.name}</strong>
           ?
         </p>
 
