@@ -18,6 +18,7 @@
     "db:prepare:test:aurea": "npm run db:prepare:test -w @synia/db-aurea",
     "db:reset:white-label": "npm run db:reset -w @synia/db-white-label",
     "db:migrate:white-label": "npm run db:migrate -w @synia/db-white-label",
+    "migrate": "node scripts/migrate-select.cjs",
     "db:seed:dev:white-label": "npm run db:seed:dev -w @synia/db-white-label",
     "db:prepare:test:white-label": "npm run db:prepare:test -w @synia/db-white-label",
     "setup:dev": "node scripts/setup-dev.cjs",
