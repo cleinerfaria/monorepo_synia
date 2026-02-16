@@ -187,8 +187,8 @@ export function PrescriptionPrintModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Imprimir PrescriÃ§Ã£o"
-      description="Escolha perÃ­odo de 1 a 14 dias e a orientaÃ§Ã£o da pÃ¡gina."
+      title="Imprimir Prescrição"
+      description="Escolha perÃ­odo de 1 a 14 dias e a orientação da página."
       size="lg"
     >
       <div className="space-y-4">
@@ -220,7 +220,7 @@ export function PrescriptionPrintModal({
             }
           />
           <Select
-            label="OrientaÃ§Ã£o"
+            label="Orientação"
             value={orientation}
             options={ORIENTATION_OPTIONS}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -276,7 +276,7 @@ export function PrescriptionPrintModal({
           </div>
           {!canPrint && (
             <p className="text-feedback-danger-fg mt-3 text-sm">
-              Seu perfil nÃ£o possui permissÃ£o para imprimir prescriÃ§Ãµes.
+              Seu perfil não possui permissão para imprimir prescriçÃµes.
             </p>
           )}
         </div>

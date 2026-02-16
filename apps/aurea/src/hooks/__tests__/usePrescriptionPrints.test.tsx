@@ -72,7 +72,7 @@ describe('usePrescriptionPrints hooks', () => {
         week_start_day: 0,
         created_at: '2026-02-09T10:00:00Z',
         created_by: 'user-1',
-        created_by_name: 'Usuario Teste',
+        created_by_name: 'Usuário Teste',
       },
     ];
 
@@ -89,7 +89,7 @@ describe('usePrescriptionPrints hooks', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       in: vi.fn().mockResolvedValue({
-        data: [{ auth_user_id: 'user-1', name: 'Usuario Teste' }],
+        data: [{ auth_user_id: 'user-1', name: 'Usuário Teste' }],
         error: null,
       }),
     };
@@ -146,7 +146,7 @@ describe('usePrescriptionPrints hooks', () => {
       data: [
         {
           ...history[0],
-          created_by_name: 'Usuario Teste',
+          created_by_name: 'Usuário Teste',
         },
       ],
       error: null,
@@ -167,7 +167,7 @@ describe('usePrescriptionPrints hooks', () => {
     expect(result.current.data).toEqual([
       {
         ...history[0],
-        created_by_name: 'Usuario Teste',
+        created_by_name: 'Usuário Teste',
       },
     ]);
   });
@@ -191,7 +191,7 @@ describe('usePrescriptionPrints hooks', () => {
       metadata_snapshot: null,
       created_at: '2026-02-09T10:00:00Z',
       created_by: 'user-1',
-      created_by_name: 'Usuario Teste',
+      created_by_name: 'Usuário Teste',
       items: [],
     };
 
@@ -233,7 +233,7 @@ describe('usePrescriptionPrints hooks', () => {
       },
       created_at: '2026-02-09T10:00:00Z',
       created_by: 'user-1',
-      created_by_name: 'Usuario Teste',
+      created_by_name: 'Usuário Teste',
       items: [],
     };
 

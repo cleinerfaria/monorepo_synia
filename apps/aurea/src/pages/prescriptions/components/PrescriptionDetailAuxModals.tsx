@@ -134,7 +134,7 @@ export function PrescriptionDetailAuxModals({
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja remover este item da prescriÃ§Ã£o?
+          Tem certeza que deseja remover este item da prescrição?
         </p>
 
         <ModalFooter>
@@ -159,17 +159,17 @@ export function PrescriptionDetailAuxModals({
       <Modal
         isOpen={isSuspendItemModalOpen}
         onClose={() => setIsSuspendItemModalOpen(false)}
-        title="Suspender MedicaÃ§Ã£o"
+        title="Suspender Medicação"
         size="sm"
       >
         <div className="space-y-4">
           <p className="text-gray-600 dark:text-gray-400">
-            Informe a data final para suspender este item da prescriÃ§Ã£o.
+            Informe a data final para suspender este item da prescrição.
           </p>
 
           <div>
             <DatePicker
-              label="Data Final de SuspensÃ£o"
+              label="Data Final de Suspensão"
               value={suspensionEndDate}
               onChange={(event: any) => {
                 const nextValue = typeof event === 'string' ? event : event.target.value;

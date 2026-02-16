@@ -42,26 +42,31 @@ export function useProfessionalUser(professionalId: string | undefined) {
     queryFn: async () => {
       if (!professionalId || !company?.id) return null;
 
-      const { data, error } = await supabase
+      // Primeiro, busca o vínculo professional_user
+      const { data: linkData, error: linkError } = await supabase
         .from('professional_user')
-        .select(
-          `
-          *,
-          app_user:user_id (
-            id,
-            name,
-            email,
-            role,
-            active
-          )
-        `
-        )
+        .select('*')
         .eq('company_id', company.id)
         .eq('professional_id', professionalId)
         .maybeSingle();
 
-      if (error) throw error;
-      return data as ProfessionalUserLink | null;
+      if (linkError) throw linkError;
+      if (!linkData) return null;
+
+      // Em seguida, busca o app_user pelo auth_user_id (que é o user_id do link)
+      const { data: appUser, error: userError } = await supabase
+        .from('app_user')
+        .select('id, name, email, role, active')
+        .eq('auth_user_id', linkData.user_id)
+        .maybeSingle();
+
+      if (userError) throw userError;
+
+      // Combina os dados
+      return {
+        ...linkData,
+        app_user: appUser,
+      } as ProfessionalUserLink;
     },
     enabled: !!professionalId && !!company?.id,
   });
@@ -136,11 +141,11 @@ export function useLinkProfessionalUser() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY, variables.professionalId] });
       queryClient.invalidateQueries({ queryKey: ['available_app_users'] });
-      toast.success('Profissional vinculado ao usuario com sucesso!');
+      toast.success('Profissional vinculado ao usuário com sucesso!');
     },
     onError: (error) => {
-      console.error('Error linking professional to user:', error);
-      toast.error('Erro ao vincular profissional ao usuario');
+      console.error('Erro ao vincular profissional ao usuário:', error);
+      toast.error('Erro ao vincular profissional ao usuário');
     },
   });
 }
@@ -226,7 +231,7 @@ export function useCreateAndLinkProfessionalUser() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.details || result.error || 'Erro ao criar usuario');
+        throw new Error(result.details || result.error || 'Erro ao criar usuário');
       }
 
       const authUserId = result.auth_user_id as string;
@@ -251,11 +256,11 @@ export function useCreateAndLinkProfessionalUser() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY, variables.professionalId] });
       queryClient.invalidateQueries({ queryKey: ['available_app_users'] });
       queryClient.invalidateQueries({ queryKey: ['app_users'] });
-      toast.success('Usuario criado e vinculado com sucesso!');
+      toast.success('Usuário criado e vinculado com sucesso!');
     },
     onError: (error) => {
       console.error('Error creating and linking user:', error);
-      toast.error(error instanceof Error ? error.message : 'Erro ao criar e vincular usuario');
+      toast.error(error instanceof Error ? error.message : 'Erro ao criar e vincular usuário');
     },
   });
 }

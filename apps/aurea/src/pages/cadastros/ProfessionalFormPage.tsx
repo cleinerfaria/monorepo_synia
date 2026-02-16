@@ -81,24 +81,24 @@ const COUNCIL_OPTIONS = [
   { value: 'CRM', label: 'CRM - Medicina' },
   { value: 'COREN', label: 'COREN - Enfermagem' },
   { value: 'CREFITO', label: 'CREFITO - Fisioterapia' },
-  { value: 'CRN', label: 'CRN - NutriÃ§Ã£o' },
-  { value: 'CRF', label: 'CRF - FarmÃ¡cia' },
+  { value: 'CRN', label: 'CRN - Nutrição' },
+  { value: 'CRF', label: 'CRF - Farmácia' },
   { value: 'CRP', label: 'CRP - Psicologia' },
   { value: 'CREFONO', label: 'CREFONO - Fonoaudiologia' },
-  { value: 'CRESS', label: 'CRESS - ServiÃ§o Social' },
+  { value: 'CRESS', label: 'CRESS - Serviço Social' },
   { value: 'CRO', label: 'CRO - Odontologia' },
   { value: 'OUTRO', label: 'Outro' },
 ];
 
 const ROLE_OPTIONS = [
-  { value: 'MÃ©dico', label: 'MÃ©dico' },
+  { value: 'Médico', label: 'Médico' },
   { value: 'Enfermeiro', label: 'Enfermeiro' },
-  { value: 'TÃ©cnico de Enfermagem', label: 'TÃ©cnico de Enfermagem' },
+  { value: 'Técnico de Enfermagem', label: 'Técnico de Enfermagem' },
   { value: 'Fisioterapeuta', label: 'Fisioterapeuta' },
   { value: 'Nutricionista', label: 'Nutricionista' },
-  { value: 'FarmacÃªutico', label: 'FarmacÃªutico' },
-  { value: 'PsicÃ³logo', label: 'PsicÃ³logo' },
-  { value: 'FonoaudiÃ³logo', label: 'FonoaudiÃ³logo' },
+  { value: 'Farmacêutico', label: 'Farmacêutico' },
+  { value: 'Psicólogo', label: 'Psicólogo' },
+  { value: 'Fonoaudiólogo', label: 'Fonoaudiólogo' },
   { value: 'Assistente Social', label: 'Assistente Social' },
   { value: 'Cuidador', label: 'Cuidador' },
   { value: 'Outro', label: 'Outro' },
@@ -210,7 +210,7 @@ export default function ProfessionalFormPage() {
     } catch (error) {
       console.error('Error loading professional signature preview:', error);
       setSignaturePreviewUrl(null);
-      toast.error('Nao foi possivel carregar a assinatura do profissional.');
+      toast.error('Não foi possível carregar a assinatura do profissional.');
     } finally {
       setIsLoadingSignaturePreview(false);
     }
@@ -351,7 +351,7 @@ export default function ProfessionalFormPage() {
 
     if (hasSignatureChanges) {
       if (!company?.id) {
-        toast.error('Nao foi possivel identificar a empresa para salvar a assinatura.');
+        toast.error('Não foi possível identificar a empresa para salvar a assinatura.');
         return;
       }
 
@@ -365,7 +365,7 @@ export default function ProfessionalFormPage() {
           removeCurrent: removeSignatureOnSave,
         });
       } catch (error) {
-        console.error('Error saving professional signature:', error);
+        console.error('Erro ao salvar a assinatura do profissional:', error);
         toast.error('Profissional salvo, mas houve erro ao salvar a assinatura.');
         return;
       } finally {
@@ -414,7 +414,7 @@ export default function ProfessionalFormPage() {
             disabled={
               createProfessional.isPending || updateProfessional.isPending || isSavingSignature
             }
-            label={isEditing ? 'Salvar AlteraÃ§Ãµes' : 'Cadastrar Profissional'}
+            label={isEditing ? 'Salvar Alterações' : 'Cadastrar Profissional'}
           />
         </div>
       </div>
@@ -426,7 +426,7 @@ export default function ProfessionalFormPage() {
               Dados Cadastrais
             </TabButton>
             <TabButton active={activeTab === 'council'} onClick={() => setActiveTab('council')}>
-              RemuneraÃ§Ã£o
+              Remuneração
             </TabButton>
             <TabButton active={activeTab === 'contact'} onClick={() => setActiveTab('contact')}>
               Escala
@@ -436,7 +436,7 @@ export default function ProfessionalFormPage() {
                 active={activeTab === 'user_link'}
                 onClick={() => setActiveTab('user_link')}
               >
-                Vinculo de Usuario
+                Vínculo de Usuário
               </TabButton>
             )}
           </div>
@@ -448,19 +448,19 @@ export default function ProfessionalFormPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <Input
-                    label="CÃ³digo Externo"
-                    placeholder="CÃ³digo do sistema externo"
+                    label="Código Externo"
+                    placeholder="Código do sistema externo"
                     {...register('code')}
                   />
                   <Input
                     label="Nome Completo"
                     placeholder="Nome do profissional"
-                    {...register('name', { required: 'Nome Ã© obrigatÃ³rio' })}
+                    {...register('name', { required: 'Nome é obrigatório' })}
                     error={errors.name?.message}
                     required
                   />
                   <Select
-                    label="FunÃ§Ã£o"
+                    label="Função"
                     options={ROLE_OPTIONS}
                     placeholder="Selecione..."
                     value={roleValue}
@@ -476,7 +476,7 @@ export default function ProfessionalFormPage() {
                     value={councilTypeValue}
                     {...register('council_type')}
                   />
-                  <Input label="NÃºmero" placeholder="123456" {...register('council_number')} />
+                  <Input label="Número" placeholder="123456" {...register('council_number')} />
                   <Select
                     label="UF"
                     options={UF_OPTIONS}
@@ -510,11 +510,11 @@ export default function ProfessionalFormPage() {
                 <div className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      Assinatura para impressao
+                      Assinatura para impressão
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Envie um arquivo PNG com fundo transparente (maximo 2MB). Esta assinatura sera
-                      usada na impressao de prescricoes e relatorios.
+                      Envie um arquivo PNG com fundo transparente (máximo 2MB). Esta assinatura será
+                      usada na impressão de prescrições e relatórios.
                     </p>
                   </div>
 
@@ -573,7 +573,7 @@ export default function ProfessionalFormPage() {
 
                   {removeSignatureOnSave && !signatureFile && (
                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                      A assinatura atual sera removida quando voce salvar.
+                      A assinatura atual será removida quando você salvar.
                     </p>
                   )}
                 </div>
@@ -618,7 +618,7 @@ export default function ProfessionalFormPage() {
                   <div className="space-y-4">
                     <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                       <h3 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
-                        Usuario vinculado
+                        Usuário vinculado
                       </h3>
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <div>
@@ -656,7 +656,7 @@ export default function ProfessionalFormPage() {
                       onClick={() => {
                         if (
                           window.confirm(
-                            'Tem certeza que deseja desvincular este usuario do profissional?'
+                            'Tem certeza que deseja desvincular este usuário do profissional?'
                           )
                         ) {
                           unlinkProfessionalUser.mutate({ professionalId: id! });
@@ -665,7 +665,7 @@ export default function ProfessionalFormPage() {
                       label={
                         unlinkProfessionalUser.isPending
                           ? 'Desvinculando...'
-                          : 'Desvincular usuario'
+                          : 'Desvincular usuário'
                       }
                     />
                   </div>
@@ -687,7 +687,7 @@ export default function ProfessionalFormPage() {
                         size="sm"
                         showIcon={false}
                         onClick={() => setLinkMode('create')}
-                        label="Criar novo usuario"
+                        label="Criar novo usuário"
                       />
                     </div>
 
@@ -697,19 +697,21 @@ export default function ProfessionalFormPage() {
                           <Loading size="sm" />
                         ) : availableUsers.length === 0 ? (
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Nenhum usuario disponivel para vinculacao.
+                            Nenhum usuário disponível para vinculação.
                           </p>
                         ) : (
                           <>
                             <Select
-                              label="Usuario"
+                              label="Usuário"
                               placeholder="Selecione um usuario..."
                               options={availableUsers.map((u) => ({
                                 value: u.auth_user_id,
                                 label: `${u.name} (${u.email})`,
                               }))}
                               value={selectedUserId}
-                              onChange={(value: string) => setSelectedUserId(value)}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                setSelectedUserId(e.target.value)
+                              }
                             />
                             <Button
                               type="button"
@@ -735,7 +737,7 @@ export default function ProfessionalFormPage() {
                       <div className="space-y-3">
                         <Input
                           label="Nome"
-                          placeholder="Nome do usuario"
+                          placeholder="Nome do usuário"
                           value={newUserName}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             setNewUserName(e.target.value)
@@ -763,8 +765,8 @@ export default function ProfessionalFormPage() {
                           required
                         />
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          O usuario sera criado com a role &quot;Plantao&quot; (acesso exclusivo ao
-                          modulo de plantao).
+                          O usuário será criado com a role &quot;Plantão&quot; (acesso exclusivo ao
+                          módulo de plantão).
                         </p>
                         <Button
                           type="button"

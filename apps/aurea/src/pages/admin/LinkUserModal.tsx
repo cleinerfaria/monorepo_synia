@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Input, Button } from '@/components/ui';
+import { Modal, Input, Button, Select } from '@/components/ui';
 import { Company } from '@/hooks/useCompanies';
-import { UserRole, roleLabels, useLinkCurrentUser } from '@/hooks/useAppUsers';
+import { UserRole, useLinkCurrentUser } from '@/hooks/useAppUsers';
+import { useAccessProfiles } from '@/hooks/useAccessProfiles';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
@@ -13,7 +14,15 @@ interface LinkUserModalProps {
   companies: Company[];
 }
 
-const roles: UserRole[] = ['admin', 'manager', 'clinician', 'stock', 'finance', 'viewer'];
+const roles: UserRole[] = [
+  'admin',
+  'manager',
+  'clinician',
+  'stock',
+  'finance',
+  'viewer',
+  'shift_only',
+];
 
 export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserModalProps) {
   const navigate = useNavigate();
@@ -22,9 +31,13 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
   const [formData, setFormData] = useState({
     company_id: '',
     name: '',
-    role: 'admin' as UserRole,
+    role: 'viewer' as UserRole,
+    access_profile_id: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Buscar perfis de acesso
+  const { data: accessProfiles = [] } = useAccessProfiles(formData.company_id || undefined);
 
   const linkMutation = useLinkCurrentUser();
 
@@ -33,7 +46,8 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
       setFormData({
         company_id: companies.length > 0 ? companies[0].id : '',
         name: user?.user_metadata?.name || user?.email?.split('@')[0] || '',
-        role: 'admin',
+        role: 'viewer',
+        access_profile_id: '',
       });
       setErrors({});
     }
@@ -50,6 +64,10 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
       newErrors.company_id = 'Empresa é obrigatória';
     }
 
+    if (!formData.access_profile_id) {
+      newErrors.access_profile_id = 'Perfil de acesso é obrigatório';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -64,6 +82,7 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
         company_id: formData.company_id,
         name: formData.name,
         role: formData.role,
+        access_profile_id: formData.access_profile_id,
       });
 
       // Atualizar o estado global com o novo appUser e company
@@ -91,6 +110,9 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
     }
   };
 
+  // Filtrar perfis ativos
+  const activeProfiles = accessProfiles.filter((p) => p.active);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Vincular Minha Conta" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -105,21 +127,19 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
 
         {/* Empresa */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Empresa *
-          </label>
-          <select
+          <Select
+            label="Empresa *"
+            placeholder="Selecione uma empresa"
+            options={companies.map((c) => ({
+              value: c.id,
+              label: c.name,
+            }))}
             value={formData.company_id}
-            onChange={(e) => setFormData({ ...formData, company_id: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
-          >
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          {errors.company_id && <p className="mt-1 text-sm text-red-500">{errors.company_id}</p>}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setFormData({ ...formData, company_id: e.target.value, access_profile_id: '' })
+            }
+            error={errors.company_id}
+          />
         </div>
 
         {/* Nome */}
@@ -131,26 +151,58 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="Digite seu nome"
+            error={errors.name}
           />
-          {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
         </div>
 
-        {/* Perfil */}
+        {/* Perfil de Acesso */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Perfil de Acesso
-          </label>
-          <select
-            value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
-          >
-            {roles.map((role) => (
-              <option key={role} value={role}>
-                {roleLabels[role]}
-              </option>
-            ))}
-          </select>
+          <Select
+            label="Perfil de Acesso *"
+            placeholder="Selecione um perfil"
+            options={activeProfiles.map((profile) => ({
+              value: profile.id,
+              label: `${profile.name}${profile.is_system ? ' (Sistema)' : ''}${profile.is_admin ? ' ⭐' : ''}`,
+            }))}
+            value={formData.access_profile_id}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const newValue = e.target.value;
+              const profile = activeProfiles.find((p) => p.id === newValue);
+
+              let newRole: UserRole = 'viewer';
+
+              if (profile) {
+                if (roles.includes(profile.code as UserRole)) {
+                  newRole = profile.code as UserRole;
+                } else if (profile.is_admin) {
+                  newRole = 'admin';
+                } else {
+                  // Fallback logic for derived roles
+                  if (
+                    profile.code.includes('clinician') ||
+                    profile.code.includes('medic') ||
+                    profile.code.includes('enferm')
+                  ) {
+                    newRole = 'clinician';
+                  } else if (profile.code.includes('stock') || profile.code.includes('estoque')) {
+                    newRole = 'stock';
+                  }
+                }
+              }
+
+              setFormData({
+                ...formData,
+                access_profile_id: newValue,
+                role: newRole,
+              });
+            }}
+            error={errors.access_profile_id}
+          />
+          {formData.access_profile_id && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Nível de acesso do sistema: {formData.role}
+            </p>
+          )}
         </div>
 
         {/* Actions */}

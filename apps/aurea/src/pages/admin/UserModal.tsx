@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Button } from '@/components/ui';
+import { Modal, Input, Button, Select } from '@/components/ui';
 import {
   AppUser,
   UserRole,
-  roleLabels,
   useCreateAppUser,
   useUpdateAppUser,
   useDeactivateAppUser,
@@ -21,7 +20,15 @@ interface UserModalProps {
   companies: Company[];
 }
 
-const roles: UserRole[] = ['admin', 'manager', 'clinician', 'stock', 'finance', 'viewer'];
+const roles: UserRole[] = [
+  'admin',
+  'manager',
+  'clinician',
+  'stock',
+  'finance',
+  'viewer',
+  'shift_only',
+];
 
 export default function UserModal({ isOpen, onClose, user, companies }: UserModalProps) {
   const isEditing = !!user;
@@ -104,6 +111,10 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
       if (!formData.company_id) {
         newErrors.company_id = 'Empresa é obrigatória';
       }
+    }
+
+    if (!formData.access_profile_id) {
+      newErrors.access_profile_id = 'Perfil de acesso é obrigatório';
     }
 
     setErrors(newErrors);
@@ -207,26 +218,19 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
 
         {!isEditing && (
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Empresa *
-            </label>
-            <select
+            <Select
+              label="Empresa *"
+              placeholder="Selecione uma empresa"
+              options={companies.map((c) => ({
+                value: c.id,
+                label: c.name,
+              }))}
               value={formData.company_id}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, company_id: e.target.value, access_profile_id: '' })
               }
-              className={`w-full rounded-lg border px-3 py-2 text-sm dark:bg-gray-800 ${
-                errors.company_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              }`}
-            >
-              <option value="">Selecione uma empresa</option>
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {errors.company_id && <p className="mt-1 text-sm text-red-500">{errors.company_id}</p>}
+              error={errors.company_id}
+            />
           </div>
         )}
 
@@ -298,11 +302,11 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
             {!showResetPassword ? (
               <Button
                 type="button"
-                variant="secondary"
+                variant="neutral"
+                icon={<Key className="mr-2 h-4 w-4" />}
                 size="sm"
                 onClick={() => setShowResetPassword(true)}
               >
-                <Key className="mr-2 h-4 w-4" />
                 Redefinir Senha
               </Button>
             ) : (
@@ -358,56 +362,57 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
 
         {/* Perfil de Acesso */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Perfil de Acesso
-          </label>
-          <select
+          <Select
+            label="Perfil de Acesso *"
+            placeholder="Selecione um perfil"
+            options={activeProfiles.map((profile) => ({
+              value: profile.id,
+              label: `${profile.name}${profile.is_system ? ' (Sistema)' : ''}${profile.is_admin ? ' ⭐' : ''}`,
+            }))}
             value={formData.access_profile_id}
-            onChange={(e) => {
-              const profile = activeProfiles.find((p) => p.id === e.target.value);
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const newValue = e.target.value;
+              const profile = activeProfiles.find((p) => p.id === newValue);
+
+              let newRole: UserRole = 'viewer';
+
+              if (profile) {
+                // Se o código do perfil corresponde a uma role existente, usa ela
+                if (roles.includes(profile.code as UserRole)) {
+                  newRole = profile.code as UserRole;
+                }
+                // Se é admin, força admin
+                else if (profile.is_admin) {
+                  newRole = 'admin';
+                }
+                // Fallback inteligente para perfis que não são roles padrão
+                else {
+                  // Se o código contem 'clinician', 'medico', 'enfermeiro', assume clinical
+                  if (
+                    profile.code.includes('clinician') ||
+                    profile.code.includes('medic') ||
+                    profile.code.includes('enferm')
+                  ) {
+                    newRole = 'clinician';
+                  }
+                  // Se contem 'stock', 'estoque'
+                  else if (profile.code.includes('stock') || profile.code.includes('estoque')) {
+                    newRole = 'stock';
+                  }
+                  // Defaults to viewer for safety
+                }
+              }
+
               setFormData({
                 ...formData,
-                access_profile_id: e.target.value,
-                role: (profile?.code as UserRole) || formData.role,
+                access_profile_id: newValue,
+                role: newRole,
               });
             }}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
-          >
-            <option value="">Selecione um perfil</option>
-            {activeProfiles.map((profile) => (
-              <option key={profile.id} value={profile.id}>
-                {profile.name} {profile.is_system && '(Sistema)'} {profile.is_admin && '⭐'}
-              </option>
-            ))}
-          </select>
+            error={errors.access_profile_id}
+          />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            O perfil define as permissões do usuário no sistema
-          </p>
-        </div>
-
-        {/* Tipo de Usuário (legado) */}
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Tipo de Usuário
-          </label>
-          <select
-            value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
-          >
-            {roles.map((role) => (
-              <option key={role} value={role}>
-                {roleLabels[role]}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            {formData.role === 'admin' && 'Acesso total ao sistema'}
-            {formData.role === 'manager' && 'Gerencia operações e relatórios'}
-            {formData.role === 'clinician' && 'Acesso a prescrições e pacientes'}
-            {formData.role === 'stock' && 'Gerencia estoque e produtos'}
-            {formData.role === 'finance' && 'Acesso a financeiro e relatórios'}
-            {formData.role === 'viewer' && 'Apenas visualização'}
+            O perfil define as permissões e o nível de acesso (Role: {formData.role})
           </p>
         </div>
 

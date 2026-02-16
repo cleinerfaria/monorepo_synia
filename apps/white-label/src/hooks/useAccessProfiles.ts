@@ -106,7 +106,7 @@ export function useSystemModules() {
   });
 }
 
-// Atualizar status de um mÃ³dulo do sistema
+// Atualizar status de um módulo do sistema
 export function useUpdateSystemModuleStatus() {
   const queryClient = useQueryClient();
 

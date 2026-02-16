@@ -13,7 +13,7 @@ import {
   SwitchNew,
 } from '@/components/ui';
 
-// FunÃ§Ã£o de mÃ¡scara para CPF
+// Função de máscara para CPF
 const formatCPF = (value: string): string => {
   const digits = value.replace(/\D/g, '').slice(0, 11);
   if (digits.length <= 3) return digits;
@@ -22,14 +22,14 @@ const formatCPF = (value: string): string => {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 };
 
-// FunÃ§Ã£o de validaÃ§Ã£o de CPF (algoritmo dos dÃ­gitos verificadores)
+// Função de validação de CPF (algoritmo dos dÃ­gitos verificadores)
 const validateCPF = (cpf: string): boolean => {
   const digits = cpf.replace(/\D/g, '');
 
   // CPF deve ter 11 dÃ­gitos
   if (digits.length !== 11) return false;
 
-  // Verifica se todos os dÃ­gitos sÃ£o iguais (CPFs invÃ¡lidos conhecidos)
+  // Verifica se todos os dÃ­gitos são iguais (CPFs inválidos conhecidos)
   if (/^(\d)\1{10}$/.test(digits)) return false;
 
   // Calcula o primeiro dÃ­gito verificador
@@ -103,7 +103,7 @@ export default function PatientFormPage() {
   const navigate = useNavigate();
   const isEditing = id && id !== 'novo';
 
-  // Contexto de navegaÃ§Ã£o protegida
+  // Contexto de navegação protegida
   const {
     setHasUnsavedChanges: setGlobalUnsavedChanges,
     safeNavigate,
@@ -111,7 +111,7 @@ export default function PatientFormPage() {
   } = useNavigationGuard();
   const { company } = useAuthStore();
 
-  // Estado de abas e formulÃ¡rio
+  // Estado de abas e formulário
   const [activeTab, setActiveTab] = useState<FormTab>('basic');
   const [localUnsavedChanges, setLocalUnsavedChanges] = useState(false);
   const [patientAge, setPatientAge] = useState<{
@@ -120,7 +120,7 @@ export default function PatientFormPage() {
     days: number;
   } | null>(null);
 
-  // FunÃ§Ã£o para calcular idade detalhada a partir da data de nascimento
+  // Função para calcular idade detalhada a partir da data de nascimento
   const calculateAge = (
     birthDateStr: string
   ): { years: number; months: number; days: number } | null => {
@@ -130,7 +130,7 @@ export default function PatientFormPage() {
       const today = new Date();
 
       const years = differenceInYears(today, birthDate);
-      // Para calcular meses, precisamos ajustar para depois do Ãºltimo aniversÃ¡rio
+      // Para calcular meses, precisamos ajustar para depois do Ãºltimo aniversário
       const afterLastBirthday = new Date(birthDate);
       afterLastBirthday.setFullYear(afterLastBirthday.getFullYear() + years);
       const months = differenceInMonths(today, afterLastBirthday);
@@ -146,7 +146,7 @@ export default function PatientFormPage() {
     }
   };
 
-  // FunÃ§Ã£o para formatar a exibiÃ§Ã£o da idade
+  // Função para formatar a exibição da idade
   const formatAge = (age: { years: number; months: number; days: number } | null): string => {
     if (!age) return '';
 
@@ -221,32 +221,32 @@ export default function PatientFormPage() {
     ...birthDateField
   } = register('birth_date');
 
-  // Assistir mudanÃ§as na data de nascimento
+  // Assistir mudanças na data de nascimento
   const birthDate = watch('birth_date');
   const gender = watch('gender');
   const activeValue = watch('active');
   const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
 
-  // Handler para aplicar mÃ¡scara de CPF
+  // Handler para aplicar máscara de CPF
   const handleCPFChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const formatted = formatCPF(e.target.value);
       setCpfValue(formatted);
       setValue('cpf', formatted, { shouldDirty: true });
-      // Limpa o erro enquanto estÃ¡ digitando
+      // Limpa o erro enquanto está digitando
       if (cpfError) setCpfError(undefined);
     },
     [setValue, cpfError]
   );
 
-  // ValidaÃ§Ã£o de CPF ao sair do campo
+  // Validação de CPF ao sair do campo
   const handleCPFBlur = useCallback(() => {
     if (cpfValue) {
       const digits = cpfValue.replace(/\D/g, '');
       if (digits.length > 0 && digits.length < 11) {
         setCpfError('CPF incompleto');
       } else if (digits.length === 11 && !validateCPF(cpfValue)) {
-        setCpfError('CPF invÃ¡lido');
+        setCpfError('CPF inválido');
       } else {
         setCpfError(undefined);
       }
@@ -255,10 +255,10 @@ export default function PatientFormPage() {
     }
   }, [cpfValue]);
 
-  // FunÃ§Ãµes para salvar dados relacionados individualmente
+  // FunçÃµes para salvar dados relacionados individualmente
   const handleSaveAddresses = async (addressesToSave: PatientAddress[]) => {
     if (!isEditing || !id) {
-      toast.error('Ã‰ necessÃ¡rio salvar o paciente primeiro');
+      toast.error('Ã‰ necessário salvar o paciente primeiro');
       return;
     }
 
@@ -267,15 +267,15 @@ export default function PatientFormPage() {
         patientId: id,
         addresses: addressesToSave,
       });
-      toast.success('EndereÃ§os salvos com sucesso!');
+      toast.success('Endereços salvos com sucesso!');
     } catch {
-      toast.error('Erro ao salvar endereÃ§os');
+      toast.error('Erro ao salvar endereços');
     }
   };
 
   const handleSaveContacts = async (contactsToSave: PatientContact[]) => {
     if (!isEditing || !id) {
-      toast.error('Ã‰ necessÃ¡rio salvar o paciente primeiro');
+      toast.error('Ã‰ necessário salvar o paciente primeiro');
       return;
     }
 
@@ -292,7 +292,7 @@ export default function PatientFormPage() {
 
   const handleSavePayers = async (payersToSave: PatientPayer[]) => {
     if (!isEditing || !id) {
-      toast.error('Ã‰ necessÃ¡rio salvar o paciente primeiro');
+      toast.error('Ã‰ necessário salvar o paciente primeiro');
       return;
     }
 
@@ -307,7 +307,7 @@ export default function PatientFormPage() {
     }
   };
 
-  // Sincronizar estado de mudanÃ§as nÃ£o salvas com o contexto global
+  // Sincronizar estado de mudanças não salvas com o contexto global
   useEffect(() => {
     setGlobalUnsavedChanges(isDirty || localUnsavedChanges);
     return () => {
@@ -324,7 +324,7 @@ export default function PatientFormPage() {
     }
   }, [birthDate]);
 
-  // Alerta do browser ao fechar/recarregar a pÃ¡gina
+  // Alerta do browser ao fechar/recarregar a página
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty || localUnsavedChanges) {
@@ -337,7 +337,7 @@ export default function PatientFormPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty, localUnsavedChanges]);
 
-  // Inicializa o formulÃ¡rio quando o paciente Ã© carregado
+  // Inicializa o formulário quando o paciente Ã© carregado
   useEffect(() => {
     if (isEditing && patient) {
       const formattedCPF = patient.cpf ? formatCPF(patient.cpf) : '';
@@ -426,8 +426,8 @@ export default function PatientFormPage() {
         return;
       }
       if (digits.length === 11 && !validateCPF(cpfValue)) {
-        setCpfError('CPF invÃ¡lido');
-        toast.error('CPF invÃ¡lido');
+        setCpfError('CPF inválido');
+        toast.error('CPF inválido');
         return;
       }
     }
@@ -482,7 +482,7 @@ export default function PatientFormPage() {
       setGlobalUnsavedChanges(false);
       navigate('/pacientes');
     } catch {
-      // Erro jÃ¡ tratado pelo hook
+      // Erro já tratado pelo hook
     }
   };
 
@@ -521,7 +521,7 @@ export default function PatientFormPage() {
             variant="solid"
             showIcon={false}
             disabled={createPatient.isPending || updatePatient.isPending}
-            label={isEditing ? 'Salvar AlteraÃ§Ãµes' : 'Cadastrar Paciente'}
+            label={isEditing ? 'Salvar AlteraçÃµes' : 'Cadastrar Paciente'}
           />
         </div>
       </div>
@@ -531,10 +531,10 @@ export default function PatientFormPage() {
         <div className="border-b border-gray-200 dark:border-gray-700">
           <div className="flex px-6">
             <TabButton active={activeTab === 'basic'} onClick={() => setActiveTab('basic')}>
-              Dados BÃ¡sicos
+              Dados Básicos
             </TabButton>
             <TabButton active={activeTab === 'address'} onClick={() => setActiveTab('address')}>
-              EndereÃ§os
+              Endereços
             </TabButton>
             <TabButton active={activeTab === 'contact'} onClick={() => setActiveTab('contact')}>
               Contatos
@@ -547,18 +547,18 @@ export default function PatientFormPage() {
 
         <div className="p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Aba: Dados BÃ¡sicos */}
+            {/* Aba: Dados Básicos */}
             {activeTab === 'basic' && (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
                   <div className="md:col-span-1">
-                    <Input label="CÃ³digo" placeholder="CÃ³digo" {...register('code')} />
+                    <Input label="Código" placeholder="Código" {...register('code')} />
                   </div>
                   <div className="md:col-span-5">
                     <Input
                       label="Nome Completo"
                       placeholder="Nome do paciente"
-                      {...register('name', { required: 'Nome Ã© obrigatÃ³rio' })}
+                      {...register('name', { required: 'Nome Ã© obrigatório' })}
                       error={errors.name?.message}
                       required
                     />
@@ -570,7 +570,7 @@ export default function PatientFormPage() {
                     label="Sexo"
                     options={genderOptions}
                     value={gender}
-                    {...register('gender', { required: 'Sexo Ã© obrigatÃ³rio' })}
+                    {...register('gender', { required: 'Sexo Ã© obrigatório' })}
                     error={errors.gender?.message}
                     required
                   />
@@ -610,8 +610,8 @@ export default function PatientFormPage() {
                     {...register('father_name')}
                   />
                   <Input
-                    label="Nome da MÃ£e"
-                    placeholder="Nome completo da mÃ£e"
+                    label="Nome da Mãe"
+                    placeholder="Nome completo da mãe"
                     {...register('mother_name')}
                   />
                 </div>
@@ -632,7 +632,7 @@ export default function PatientFormPage() {
               </div>
             )}
 
-            {/* Aba: EndereÃ§os */}
+            {/* Aba: Endereços */}
             {activeTab === 'address' && (
               <PatientAddressForm
                 addresses={addresses}

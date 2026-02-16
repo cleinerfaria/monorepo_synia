@@ -25,7 +25,7 @@ export const CHART_COLORS = {
 /** Níveis de saturação adicionados quando cor original é muito neutra */
 export const MIN_SATURATION = 15;
 
-/** Paleta fixa para sÃ©ries secundÃ¡rias em grÃ¡ficos (a primÃ¡ria vem da empresa) */
+/** Paleta fixa para sÃ©ries secundárias em gráficos (a primária vem da empresa) */
 export const CHART_SERIES_COLORS = [
   '#10B981',
   '#F59E0B',
@@ -37,7 +37,7 @@ export const CHART_SERIES_COLORS = [
   '#94A3B8',
 ];
 
-/** Cores neutras reutilizÃ¡veis (para tooltips, textos auxiliares, etc.) */
+/** Cores neutras reutilizáveis (para tooltips, textos auxiliares, etc.) */
 export const NEUTRAL_COLORS = {
   white: '#ffffff',
   black: '#000000',
@@ -53,7 +53,7 @@ export const NEUTRAL_COLORS = {
   gray900: '#111827',
 };
 
-/** Cores de status reutilizÃ¡veis */
+/** Cores de status reutilizáveis */
 export const STATUS_COLORS = {
   success: '#10B981',
   warning: '#F59E0B',
