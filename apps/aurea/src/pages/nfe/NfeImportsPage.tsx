@@ -599,7 +599,12 @@ export default function NfeImportsPage() {
           )}
 
           <ModalFooter>
-            <Button type="button" variant="secondary" onClick={() => setIsImportModalOpen(false)} showIcon={false}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsImportModalOpen(false)}
+              showIcon={false}
+            >
               Cancelar
             </Button>
           </ModalFooter>
@@ -619,7 +624,12 @@ export default function NfeImportsPage() {
         </p>
 
         <ModalFooter>
-          <Button type="button" variant="secondary" onClick={() => setIsDeleteModalOpen(false)} showIcon={false}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setIsDeleteModalOpen(false)}
+            showIcon={false}
+          >
             Cancelar
           </Button>
           <Button

@@ -42,6 +42,9 @@ import {
   Palette,
 } from 'lucide-react';
 export default function AdminPage() {
+  const { systemUser } = useAuthStore();
+  const isSuperadmin = systemUser?.is_superadmin === true;
+
   const [activeTab, setActiveTab] = useState<'companies' | 'users' | 'profiles' | 'ui'>(
     'companies'
   );
@@ -244,19 +247,21 @@ export default function AdminPage() {
               >
                 Perfis de Acesso
               </TabButton>
-              <TabButton
-                active={activeTab === 'ui'}
-                onClick={() => {
-                  setActiveTab('ui');
-                  setSearchTerm('');
-                }}
-                icon={<Palette className="h-5 w-5" />}
-                hoverBorder
-                className="px-1 py-4"
-                badge={<Badge variant="info">Lab</Badge>}
-              >
-                UI
-              </TabButton>
+              {isSuperadmin && (
+                <TabButton
+                  active={activeTab === 'ui'}
+                  onClick={() => {
+                    setActiveTab('ui');
+                    setSearchTerm('');
+                  }}
+                  icon={<Palette className="h-5 w-5" />}
+                  hoverBorder
+                  className="px-1 py-4"
+                  badge={<Badge variant="info">Lab</Badge>}
+                >
+                  UI
+                </TabButton>
+              )}
             </nav>
           </div>
 
@@ -269,6 +274,7 @@ export default function AdminPage() {
               onSearchChange={setSearchTerm}
               onNew={handleNewCompany}
               onEdit={handleEditCompany}
+              readOnly={!isSuperadmin}
             />
           ) : activeTab === 'users' ? (
             <UsersTab
@@ -281,6 +287,7 @@ export default function AdminPage() {
               onCompanyFilterChange={setSelectedCompanyFilter}
               onNew={handleNewUser}
               onEdit={handleEditUser}
+              readOnly={!isSuperadmin}
             />
           ) : activeTab === 'profiles' ? (
             <ProfilesTab
@@ -293,6 +300,7 @@ export default function AdminPage() {
               onCompanyFilterChange={setSelectedCompanyFilter}
               onNew={handleNewProfile}
               onEdit={handleEditProfile}
+              readOnly={!isSuperadmin}
             />
           ) : (
             <AdminUiTab companyName={company?.name} />
@@ -344,6 +352,7 @@ interface CompaniesTabProps {
   onSearchChange: (value: string) => void;
   onNew: () => void;
   onEdit: (company: Company) => void;
+  readOnly?: boolean;
 }
 
 function CompaniesTab({
@@ -353,6 +362,7 @@ function CompaniesTab({
   onSearchChange,
   onNew,
   onEdit,
+  readOnly = false,
 }: CompaniesTabProps) {
   if (isLoading) {
     return (
@@ -377,7 +387,7 @@ function CompaniesTab({
             className="pl-10"
           />
         </div>
-        <Button onClick={onNew}>Nova Empresa</Button>
+        {!readOnly && <Button onClick={onNew}>Nova Empresa</Button>}
       </div>
 
       {/* List */}
@@ -385,18 +395,26 @@ function CompaniesTab({
         <EmptyState
           icon={<Building2 className="h-16 w-16" />}
           title="Nenhuma empresa cadastrada"
-          description="Crie a primeira empresa para começar"
+          description={
+            readOnly ? 'Nenhuma empresa encontrada' : 'Crie a primeira empresa para começar'
+          }
           action={
-            <Button onClick={onNew}>
-              <Plus className="mr-2 h-5 w-5" />
-              Nova Empresa
-            </Button>
+            !readOnly ? (
+              <Button onClick={onNew}>
+                <Plus className="mr-2 h-5 w-5" />
+                Nova Empresa
+              </Button>
+            ) : undefined
           }
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {companies.map((company) => (
-            <div key={company.id} className="cursor-pointer" onClick={() => onEdit(company)}>
+            <div
+              key={company.id}
+              className={readOnly ? '' : 'cursor-pointer'}
+              onClick={() => !readOnly && onEdit(company)}
+            >
               <Card className="h-full transition-shadow hover:shadow-lg">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
@@ -423,17 +441,19 @@ function CompaniesTab({
                         )}
                       </div>
                     </div>
-                    <Button
-                      variant="neutral"
-                      showIcon={false}
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(company);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    {!readOnly && (
+                      <Button
+                        variant="neutral"
+                        showIcon={false}
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(company);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                   <div className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-700">
                     <p className="text-xs text-gray-400 dark:text-gray-500">
@@ -467,6 +487,7 @@ interface UsersTabProps {
   onCompanyFilterChange: (value: string) => void;
   onNew: () => void;
   onEdit: (user: AppUser) => void;
+  readOnly?: boolean;
 }
 
 function UsersTab({
@@ -479,6 +500,7 @@ function UsersTab({
   onCompanyFilterChange,
   onNew,
   onEdit,
+  readOnly = false,
 }: UsersTabProps) {
   if (isLoading) {
     return (
@@ -517,9 +539,11 @@ function UsersTab({
             ))}
           </select>
         </div>
-        <Button onClick={onNew} disabled={companies.length === 0}>
-          Novo Usuário
-        </Button>
+        {!readOnly && (
+          <Button onClick={onNew} disabled={companies.length === 0}>
+            Novo Usuário
+          </Button>
+        )}
       </div>
 
       {/* List */}
@@ -528,12 +552,14 @@ function UsersTab({
           icon={<Users className="h-16 w-16" />}
           title="Nenhum usuário encontrado"
           description={
-            companies.length === 0
-              ? 'Crie uma empresa primeiro para adicionar usuários'
-              : 'Adicione o primeiro usuário'
+            readOnly
+              ? 'Nenhum usuário encontrado'
+              : companies.length === 0
+                ? 'Crie uma empresa primeiro para adicionar usuários'
+                : 'Adicione o primeiro usuário'
           }
           action={
-            companies.length > 0 ? (
+            !readOnly && companies.length > 0 ? (
               <Button onClick={onNew}>
                 <Plus className="mr-2 h-5 w-5" />
                 Novo Usuário
@@ -559,9 +585,11 @@ function UsersTab({
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                    Ações
-                  </th>
+                  {!readOnly && (
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Ações
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
@@ -570,8 +598,8 @@ function UsersTab({
                   return (
                     <tr
                       key={user.id}
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                      onClick={() => onEdit(user)}
+                      className={`${readOnly ? '' : 'cursor-pointer'} hover:bg-gray-50 dark:hover:bg-gray-800`}
+                      onClick={() => !readOnly && onEdit(user)}
                     >
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="flex items-center">
@@ -615,19 +643,21 @@ function UsersTab({
                           </span>
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right">
-                        <Button
-                          variant="neutral"
-                          showIcon={false}
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(user);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </td>
+                      {!readOnly && (
+                        <td className="whitespace-nowrap px-6 py-4 text-right">
+                          <Button
+                            variant="neutral"
+                            showIcon={false}
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEdit(user);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
@@ -654,6 +684,7 @@ interface ProfilesTabProps {
   onCompanyFilterChange: (value: string) => void;
   onNew: () => void;
   onEdit: (profile: AccessProfile) => void;
+  readOnly?: boolean;
 }
 
 function ProfilesTab({
@@ -666,6 +697,7 @@ function ProfilesTab({
   onCompanyFilterChange,
   onNew,
   onEdit,
+  readOnly = false,
 }: ProfilesTabProps) {
   const deleteMutation = useDeleteAccessProfile();
 
@@ -726,9 +758,11 @@ function ProfilesTab({
             ))}
           </select>
         </div>
-        <Button onClick={onNew} disabled={companies.length === 0 && !selectedCompanyFilter}>
-          Novo Perfil
-        </Button>
+        {!readOnly && (
+          <Button onClick={onNew} disabled={companies.length === 0 && !selectedCompanyFilter}>
+            Novo Perfil
+          </Button>
+        )}
       </div>
 
       {/* List */}
@@ -736,13 +770,25 @@ function ProfilesTab({
         <EmptyState
           icon={<ShieldCheck className="h-16 w-16" />}
           title="Nenhum perfil encontrado"
-          description="Os perfis de acesso definem as permissões dos usuários"
-          action={companies.length > 0 ? <Button onClick={onNew}>Novo Perfil</Button> : undefined}
+          description={
+            readOnly
+              ? 'Nenhum perfil encontrado'
+              : 'Os perfis de acesso definem as permissões dos usuários'
+          }
+          action={
+            !readOnly && companies.length > 0 ? (
+              <Button onClick={onNew}>Novo Perfil</Button>
+            ) : undefined
+          }
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {profiles.map((profile) => (
-            <div key={profile.id} className="cursor-pointer" onClick={() => onEdit(profile)}>
+            <div
+              key={profile.id}
+              className={readOnly ? '' : 'cursor-pointer'}
+              onClick={() => !readOnly && onEdit(profile)}
+            >
               <Card className="h-full transition-shadow hover:shadow-lg">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
@@ -776,20 +822,22 @@ function ProfilesTab({
                         <p className="text-xs text-gray-500 dark:text-gray-400">{profile.code}</p>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="neutral" size="sm" showIcon={false}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      {!profile.is_system && (
-                        <Button
-                          variant="neutral"
-                          size="sm"
-                          onClick={(e) => handleDelete(e, profile)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                    {!readOnly && (
+                      <div className="flex gap-1">
+                        <Button variant="neutral" size="sm" showIcon={false}>
+                          <Pencil className="h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
+                        {!profile.is_system && (
+                          <Button
+                            variant="neutral"
+                            size="sm"
+                            onClick={(e) => handleDelete(e, profile)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {profile.description && (
                     <p className="mt-2 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">

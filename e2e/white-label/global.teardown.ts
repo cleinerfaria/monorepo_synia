@@ -8,10 +8,11 @@ export default async function globalTeardown(): Promise<void> {
     APP_ENV: process.env.APP_ENV || 'dev',
   };
 
-  execFileSync('npm', ['run', 'db:reset'], {
-    cwd: path.resolve(repoRoot, 'apps/white-label'),
-    stdio: 'inherit',
-    env,
-    timeout: 300_000,
-  });
+  // execFileSync('npm', ['run', 'db:reset'], {
+  //   cwd: path.resolve(repoRoot, 'apps/white-label'),
+  //   stdio: 'inherit',
+  //   env,
+  //   timeout: 300_000,
+  //   shell: true,
+  // });
 }

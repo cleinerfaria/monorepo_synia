@@ -27,6 +27,7 @@
     "test:e2e:prepare": "npm run db:prepare:test",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
     "version:bump": "node ../../scripts/bump-version.cjs --target-dir=.",
     "precommit:check": "npm run format && npm run lint:fix && npm run format:check:staged && npm run encoding:check:staged && npm run test:run && npm run build",
     "hooks:install": "node ../../scripts/setup-git-hooks.cjs",

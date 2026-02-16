@@ -282,16 +282,15 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <div style={loginPrimaryVars} className="[&>div]:w-full">
-                <Button
-                  label={isSubmitting ? 'Entrando...' : 'Entrar'}
-                  variant="solid"
-                  size="lg"
-                  showIcon={false}
-                  disabled={isSubmitting}
-                  className="w-full !text-white"
-                />
-              </div>
+              <Button
+                label={isSubmitting ? 'Entrando...' : 'Entrar'}
+                variant="solid"
+                size="lg"
+                showIcon={false}
+                disabled={isSubmitting}
+                className="w-full !text-white"
+                style={loginPrimaryVars}
+              />
             </form>
           </Card>
 

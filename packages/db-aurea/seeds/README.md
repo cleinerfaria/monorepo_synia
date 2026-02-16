@@ -1,78 +1,125 @@
 ﻿# Aurea Development Seeds
 
-## Estrutura (SEM REDUNDÂNCIA)
+## 📁 Estrutura
 
-- **dev-seed-data.sql** - Espelho de supabase/seed.sql (referência local)
-  - 3 Profissionais (Médico, Enfermeiro, Fisioterapeuta)
-  - 3 Pacientes (com dados demográficos)
-  - 10 Medicações (com tipos: antibiotic, psychotropic)
+```
+seeds/
+├── data_seed.sql        ← REFERÊNCIA (uso: documentação)
+├── app-users.sql       ← App Users + System User (vinculação manual)
+└── README.md
 
-- **supabase/seed.sql** - FONTE OFICIAL (executada automaticamente)
-  - Mesmo conteúdo de dev-seed-data.sql
-  - Executada durante `db:reset` e `db:push`
+supabase/
+└── seed.sql            ← EXECUTADO AUTOMATICAMENTE (profissionais, pacientes, medicações, app users)
+```
 
-### ✅ Separação de Responsabilidades
+## 🔄 Como Funciona
 
-**Migrations gerenciam:**
-- Unit of Measure (8 unidades) - `20260122240000_unit_of_measure.sql`
-- Administration Routes (20 rotas) - `seed_administration_routes.sql`
-
-**Seeds (supabase/seed.sql) gerenciam:**
-- Profissionais, Pacientes, Medicações
-
-> ❌ **Nenhuma redund
-
-## Como Usar
-
-### Automático (Recomendado - Durante Reset)
-
-O arquivo `supabase/seed.sql` é executado automaticamente:
+### 1️⃣ Migrations (Estrutura)
 
 ```bash
 npm run db:reset:aurea
 ```
 
-Isso:
-1. Reseta banco de dados
-2. Executa todas as migrations
-3. Executa supabase/seed.sql (profissionais, pacientes, medicações)
-4. Retorna banco limpo com dados de teste
+- Schema tables
+- Unit of Measure
+- Administration Routes
+- Cria company (00.000.000/0001-00)
 
-### Criar Auth Users
+### 2️⃣ Supabase Seed SQL (Automático)
 
-Após reset, crie os usuários de teste:
+Supabase executa automaticamente `supabase/seed.sql`:
+
+- 3 Profissionais
+- 3 Pacientes
+- 10 Medicações
+- 1 System User (se auth user existir)
+- 3 App Users (se auth users existirem)
+
+### 3️⃣ Auth Users (Manual)
 
 ```bash
 npm run db:seed:dev:aurea
 ```
 
-Isso cria 3 auth users:
-- `admin@e2e.local` (admin role)
-- `manager@e2e.local` (manager role)
-- `user@e2e.local` (viewer role)
+**Fluxo:**
 
-## Dados Inseridos (Total: 16 registros)
+1. **scripts/lib.cjs** → Cria auth users via API Supabase
+   - superadmin@aurea.com (system admin)
+   - admin@aurea.com
+   - manager@aurea.com
+   - user@aurea.com
+
+2. **supabase/seed.sql** → Detecta auth users e cria app_user + system_user
+   - Insere system_user (1x) se API criou superadmin
+   - Insere app_user (3x) se API criou usuários
+
+## ✅ Responsabilidades
+
+| Etapa                              | Arquivo           | Tipo        | Gatilho                    |
+| ---------------------------------- | ----------------- | ----------- | -------------------------- |
+| Schema                             | migration         | SQL         | Auto (db reset)            |
+| Profissionais/Pacientes/Medicações | supabase/seed.sql | SQL         | Auto (db reset → Supabase) |
+| System User + App Users            | supabase/seed.sql | SQL         | Auto (db reset → Supabase) |
+| Auth Users                         | scripts/lib.cjs   | Node.js/API | Manual (db:seed:dev)       |
+
+## 📊 Dados Inseridos
+
+### System User (1)
+
+- `superadmin@aurea.com` (is_superadmin=true)
+
+### App Users (3)
+
+- `admin@aurea.com` (role: admin)
+- `manager@aurea.com` (role: manager)
+- `user@aurea.com` (role: viewer)
 
 ### Profissionais (3)
-- **E2E-PRO-001** - Dra. Ana Silva (CRM 123456)
-- **E2E-PRO-002** - Enf. Carlos Santos (COREN 654321)
-- **E2E-PRO-003** - Fisio. Maria Oliveira (CREFITO 987654)
+
+- Dra. Ana Silva (Médico - CRM)
+- Enf. Carlos Santos (Enfermeiro - COREN)
+- Fisio. Maria Oliveira (Fisioterapeuta - CREFITO)
 
 ### Pacientes (3)
-- **E2E-PAT-001** - João da Silva (M, 1960-05-15)
-- **E2E-PAT-002** - Maria dos Santos (F, 1965-08-22)
-- **E2E-PAT-003** - Pedro Costa (M, 1955-12-10)
+
+- João da Silva
+- Maria dos Santos
+- Pedro Costa
 
 ### Medicações (10)
-- E2E-MED-001 - Dipirona 500mg (analgésico)
-- E2E-MED-002 - Amoxicilina 500mg (🚨 antibiotic)
-- E2E-MED-003 - Omeprazol 20mg (protetor gástrico)
-- E2E-MED-004 - Metformina 850mg (antidiabético)
-- E2E-MED-005 - Lisinopril 10mg (anti-hipertensivo)
-- E2E-MED-006 - Fluoxetina 20mg (🚨 psychotropic)
-- E2E-MED-007 - Soro Fisiológico 0,9% (solução)
-- E2E-MED-008 - Difenidramina 25mg (anti-histamínico)
-- E2E-MED-009 - Metoclopramida 10mg (antiemético)
-- E2E-MED-010 - Losartana 50mg (antagonista AT2)
 
+- Dipirona 500mg, Amoxicilina 500mg 🚨, Omeprazol 20mg, Metformina 850mg, Lisinopril 10mg
+- Fluoxetina 20mg 🚨, Soro Fisiológico 0,9%, Difenidramina 25mg, Metoclopramida 10mg, Losartana 50mg
 
+## 🧪 Setup Completo
+
+```bash
+npm run setup -- aurea
+
+# Internamente executa:
+# 1. npm run db:reset:aurea
+#    → migrations + supabase/seed.sql (tudo automático)
+# 2. npm run db:seed:dev:aurea
+#    → cria auth users via API
+#    → supabase/seed.sql detecta e cria system_user + app_users
+```
+
+## 📝 Notas Importantes
+
+### `data_seed.sql` é apenas REFERÊNCIA
+
+- Não é executado automaticamente
+- Documenta a estrutura esperada
+- Use para entender o fluxo
+
+### `app-users.sql` é BACKUP
+
+- Pode ser executado manualmente com `psql` se necessário
+- Normalmente desnecessário (tudo já está em `supabase/seed.sql`)
+- Mantido para compatibilidade
+
+### Ambiente Supabase
+
+- ✅ Usar **sempre Supabase remoto**
+- ❌ Nunca usar `supabase start` (local)
+- Scripts npm gerenciam tudo automaticamente

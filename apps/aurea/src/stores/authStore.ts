@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AppUser, Company } from '@/types/database';
+import type { AppUser, Company, SystemUser } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
 
@@ -9,6 +9,8 @@ interface AuthState {
   user: User | null;
   appUser: AppUser | null;
   company: Company | null;
+  systemUser: SystemUser | null;
+  hasAnySystemUser: boolean;
   isLoading: boolean;
   isInitialized: boolean;
 
@@ -16,6 +18,7 @@ interface AuthState {
   setSession: (session: Session | null) => void;
   setAppUser: (appUser: AppUser | null) => void;
   setCompany: (company: Company | null) => void;
+  setSystemUser: (systemUser: SystemUser | null) => void;
   setLoading: (loading: boolean) => void;
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -29,6 +32,24 @@ interface AuthState {
   updateCompany: (updates: Partial<Company>) => Promise<void>;
 }
 
+async function fetchSystemUserData(userId: string) {
+  // Busca o system_user do usuário atual
+  const { data: systemUser } = await supabase
+    .from('system_user')
+    .select('*')
+    .eq('auth_user_id', userId)
+    .single();
+
+  // Verifica se existe algum system_user cadastrado (para lógica de bootstrap/onboarding)
+  const { data: countResult } = await supabase.rpc('count_system_users');
+  const hasAnySystemUser = (countResult ?? 0) > 0;
+
+  return {
+    systemUser: systemUser as SystemUser | null,
+    hasAnySystemUser,
+  };
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -36,12 +57,15 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       appUser: null,
       company: null,
+      systemUser: null,
+      hasAnySystemUser: false,
       isLoading: true,
       isInitialized: false,
 
       setSession: (session) => set({ session, user: session?.user ?? null }),
       setAppUser: (appUser) => set({ appUser }),
       setCompany: (company) => set({ company }),
+      setSystemUser: (systemUser) => set({ systemUser }),
       setLoading: (isLoading) => set({ isLoading }),
 
       initialize: async () => {
@@ -55,6 +79,10 @@ export const useAuthStore = create<AuthState>()(
 
           if (session?.user) {
             set({ session, user: session.user });
+
+            // Fetch system_user data
+            const { systemUser, hasAnySystemUser } = await fetchSystemUserData(session.user.id);
+            set({ systemUser, hasAnySystemUser });
 
             // Fetch app user
             const { data: appUser } = await supabase
@@ -99,6 +127,12 @@ export const useAuthStore = create<AuthState>()(
 
           if (data.session?.user) {
             set({ session: data.session, user: data.session.user });
+
+            // Fetch system_user data
+            const { systemUser, hasAnySystemUser } = await fetchSystemUserData(
+              data.session.user.id
+            );
+            set({ systemUser, hasAnySystemUser });
 
             // Fetch app user
             const { data: appUser } = await supabase
@@ -175,6 +209,8 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           appUser: null,
           company: null,
+          systemUser: null,
+          hasAnySystemUser: false,
         });
       },
 

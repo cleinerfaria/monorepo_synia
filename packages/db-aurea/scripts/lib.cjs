@@ -1,8 +1,8 @@
-﻿// Load environment variables from root .env.local
-const { execFileSync } = require('node:child_process');
+﻿// Load environment variables from app .env.local
+const { spawn, execFileSync } = require('node:child_process');
 const path = require('node:path');
 
-require('dotenv').config({ path: path.resolve(__dirname, '../../../.env.local') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../../apps/aurea/.env.local') });
 
 const PROJECT = 'aurea';
 const DB_URL_ENV = 'DB_URL';
@@ -30,11 +30,27 @@ function ensureDevEnv() {
 }
 
 function run(command, args, options = {}) {
-  execFileSync(command, args, {
-    cwd: options.cwd || process.cwd(),
-    stdio: 'inherit',
-    env: options.env || process.env,
-    timeout: options.timeout || 60_000,
+  process.stdout.write(`\n⚙️  Running: ${command} ${args.join(' ')}\n`);
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd || process.cwd(),
+      stdio: ['inherit', 'inherit', 'inherit'],
+      env: options.env || process.env,
+      timeout: options.timeout || 60_000,
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command failed with exit code ${code}`));
+      } else {
+        resolve();
+      }
+    });
+
+    child.on('error', (error) => {
+      reject(error);
+    });
   });
 }
 
@@ -83,16 +99,16 @@ function getSupabaseConfig() {
   };
 }
 
-function dbReset() {
+async function dbReset() {
   const dbUrl = getDbUrl();
-  run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR], {
+  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR, '--yes'], {
     timeout: 180_000,
   });
 }
 
-function dbMigrate() {
+async function dbMigrate() {
   const dbUrl = getDbUrl();
-  run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-all', '--workdir', APP_DIR], {
+  await run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-all', '--workdir', APP_DIR], {
     timeout: 180_000,
   });
 }
@@ -176,28 +192,55 @@ async function seedAureaDev() {
   ensureDevEnv();
 
   const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
-  const companyDocument = '11.111.111/0001-11';
-  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'e2e.admin@aurea.local';
-  const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'AureaE2E!123';
-  const managerEmail = process.env.E2E_MANAGER_EMAIL || 'e2e.manager@aurea.local';
-  const managerPassword = process.env.E2E_MANAGER_PASSWORD || 'AureaE2E!123';
-  const userEmail = process.env.E2E_USER_EMAIL || 'e2e.user@aurea.local';
-  const userPassword = process.env.E2E_USER_PASSWORD || 'AureaE2E!123';
+  const companyDocument = '00.000.000/0001-00';
 
-  await upsertRows({
-    supabaseUrl,
-    serviceRoleKey,
-    table: 'company',
-    rows: [
-      {
-        name: 'Aurea E2E Tenant',
-        trade_name: 'Aurea E2E',
-        document: companyDocument,
-      },
-    ],
-    onConflict: 'document',
-  });
+  // Ler credenciais do .env.local
+  const systemAdminEmail = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@aurea.local';
+  const systemAdminPassword = process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Aurea123';
+  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@aurea.local';
+  const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'Aurea123';
+  const managerEmail = process.env.E2E_MANAGER_EMAIL || 'manager@aurea.local';
+  const managerPassword = process.env.E2E_MANAGER_PASSWORD || 'Aurea123';
+  const userEmail = process.env.E2E_USER_EMAIL || 'user@aurea.local';
+  const userPassword = process.env.E2E_USER_PASSWORD || 'Aurea123';
 
+  process.stdout.write('\n📝 Creating auth users...\n');
+
+  const [systemAdminId, adminId, managerId, userId] = await Promise.all([
+    ensureAuthUser({
+      supabaseUrl,
+      serviceRoleKey,
+      email: systemAdminEmail,
+      password: systemAdminPassword,
+      name: 'System Admin',
+    }),
+    ensureAuthUser({
+      supabaseUrl,
+      serviceRoleKey,
+      email: adminEmail,
+      password: adminPassword,
+      name: 'Admin',
+    }),
+    ensureAuthUser({
+      supabaseUrl,
+      serviceRoleKey,
+      email: managerEmail,
+      password: managerPassword,
+      name: 'Manager',
+    }),
+    ensureAuthUser({
+      supabaseUrl,
+      serviceRoleKey,
+      email: userEmail,
+      password: userPassword,
+      name: 'User',
+    }),
+  ]);
+
+  process.stdout.write('✅ Auth users created\n');
+
+  // Buscar company
+  process.stdout.write('\n🔍 Fetching company...\n');
   const company = await getSingleRow({
     supabaseUrl,
     serviceRoleKey,
@@ -207,49 +250,28 @@ async function seedAureaDev() {
   if (!company?.id) {
     throw new Error('Could not resolve Aurea company for dev seed');
   }
+  process.stdout.write('✅ Company found\n');
 
-  const adminProfile = await getSingleRow({
+  // Criar system_user
+  process.stdout.write('\n📝 Creating system_user...\n');
+  await upsertRows({
     supabaseUrl,
     serviceRoleKey,
-    path: 'access_profile?select=id&code=eq.admin&is_system=is.true&limit=1',
+    table: 'system_user',
+    rows: [
+      {
+        auth_user_id: systemAdminId,
+        is_superadmin: true,
+        name: 'System Admin',
+        email: systemAdminEmail,
+      },
+    ],
+    onConflict: 'auth_user_id',
   });
+  process.stdout.write('✅ system_user created\n');
 
-  const viewerProfile = await getSingleRow({
-    supabaseUrl,
-    serviceRoleKey,
-    path: 'access_profile?select=id&code=eq.viewer&is_system=is.true&limit=1',
-  });
-
-  const managerProfile = await getSingleRow({
-    supabaseUrl,
-    serviceRoleKey,
-    path: 'access_profile?select=id&code=eq.manager&is_system=is.true&limit=1',
-  });
-
-  const [adminAuthId, managerAuthId, userAuthId] = await Promise.all([
-    ensureAuthUser({
-      supabaseUrl,
-      serviceRoleKey,
-      email: adminEmail,
-      password: adminPassword,
-      name: 'E2E Admin',
-    }),
-    ensureAuthUser({
-      supabaseUrl,
-      serviceRoleKey,
-      email: managerEmail,
-      password: managerPassword,
-      name: 'E2E Manager',
-    }),
-    ensureAuthUser({
-      supabaseUrl,
-      serviceRoleKey,
-      email: userEmail,
-      password: userPassword,
-      name: 'E2E User',
-    }),
-  ]);
-
+  // Criar app_users
+  process.stdout.write('\n📝 Creating app_users...\n');
   await upsertRows({
     supabaseUrl,
     serviceRoleKey,
@@ -257,40 +279,46 @@ async function seedAureaDev() {
     rows: [
       {
         company_id: company.id,
-        auth_user_id: adminAuthId,
-        name: 'E2E Admin',
-        email: adminEmail,
+        auth_user_id: systemAdminId,
+        name: 'System Admin',
+        email: systemAdminEmail,
+        active: true,
         role: 'admin',
-        active: true,
-        access_profile_id: adminProfile?.id || null,
       },
       {
         company_id: company.id,
-        auth_user_id: managerAuthId,
-        name: 'E2E Manager',
+        auth_user_id: adminId,
+        name: 'Admin',
+        email: adminEmail,
+        active: true,
+        role: 'admin',
+      },
+      {
+        company_id: company.id,
+        auth_user_id: managerId,
+        name: 'Manager',
         email: managerEmail,
-        role: 'manager',
         active: true,
-        access_profile_id: managerProfile?.id || null,
+        role: 'manager',
       },
       {
         company_id: company.id,
-        auth_user_id: userAuthId,
-        name: 'E2E User',
+        auth_user_id: userId,
+        name: 'User',
         email: userEmail,
-        role: 'viewer',
         active: true,
-        access_profile_id: viewerProfile?.id || null,
+        role: 'viewer',
       },
     ],
-    onConflict: 'auth_user_id',
+    onConflict: 'auth_user_id,company_id',
   });
+  process.stdout.write('✅ app_users created\n');
 
-  // Note: Professional, patient, and product seeding is now done via seed.sql
-  // during migrations. This script now only ensures auth users exist.
-  process.stdout.write(`Aurea dev seed: auth users (3) have been ensured\n`);
-
-  process.stdout.write(`Aurea dev seed applied for company ${company.id}\n`);
+  process.stdout.write('\n✨ Aurea dev seed applied successfully!\n');
+  process.stdout.write(`  - System Admin: ${systemAdminEmail}\n`);
+  process.stdout.write(`  - Admin: ${adminEmail}\n`);
+  process.stdout.write(`  - Manager: ${managerEmail}\n`);
+  process.stdout.write(`  - User: ${userEmail}\n`);
 }
 
 module.exports = {

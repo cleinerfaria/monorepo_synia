@@ -90,7 +90,7 @@ const SIDEBAR_STORAGE_KEY = 'aurea-sidebar-pinned';
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
-  const { appUser, company, signOut } = useAuthStore();
+  const { appUser, company, signOut, systemUser } = useAuthStore();
   const { theme, setTheme, resolvedTheme: _resolvedTheme } = useTheme();
   const { handleLinkClick } = useNavigationGuard();
   const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile
@@ -174,6 +174,7 @@ export default function DashboardLayout() {
                 showPinButton={false}
                 isPinned={false}
                 onTogglePin={() => {}}
+                hasSystemUser={!!systemUser}
               />
             </div>
           </Transition.Child>
@@ -200,6 +201,7 @@ export default function DashboardLayout() {
             onLinkClick={handleLinkClick}
             showPinButton={true}
             isPinned={isPinned}
+            hasSystemUser={!!systemUser}
             onTogglePin={togglePin}
           />
         </div>
@@ -274,6 +276,7 @@ interface SidebarContentProps {
   showPinButton?: boolean;
   isPinned?: boolean;
   onTogglePin?: () => void;
+  hasSystemUser?: boolean;
 }
 
 function SidebarContent({
@@ -287,6 +290,7 @@ function SidebarContent({
   showPinButton = false,
   isPinned = false,
   onTogglePin,
+  hasSystemUser = false,
 }: SidebarContentProps) {
   const versionLabel = `v${__APP_VERSION__}`;
 
@@ -361,87 +365,95 @@ function SidebarContent({
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-2">
         <ul className="space-y-0.5">
-          {navigation.map((item) => (
-            <li key={item.name}>
-              {item.children ? (
-                <div>
-                  <button
-                    onClick={() => isExpanded_ && toggleExpanded(item.name)}
-                    className={clsx(
-                      'sidebar-link w-full',
-                      isExpanded_ ? 'justify-between' : 'justify-center',
-                      isExpanded(item.name) && isExpanded_ && 'bg-gray-50 dark:bg-gray-700/30'
+          {navigation
+            .filter((item) => {
+              // Esconder "Administração" para usuários sem registro em system_user
+              if (item.href === '/admin' && !hasSystemUser) {
+                return false;
+              }
+              return true;
+            })
+            .map((item) => (
+              <li key={item.name}>
+                {item.children ? (
+                  <div>
+                    <button
+                      onClick={() => isExpanded_ && toggleExpanded(item.name)}
+                      className={clsx(
+                        'sidebar-link w-full',
+                        isExpanded_ ? 'justify-between' : 'justify-center',
+                        isExpanded(item.name) && isExpanded_ && 'bg-gray-50 dark:bg-gray-700/30'
+                      )}
+                      title={!isExpanded_ ? item.name : undefined}
+                    >
+                      <span className="flex items-center gap-3">
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {isExpanded_ && item.name}
+                      </span>
+                      {isExpanded_ && (
+                        <ChevronDown
+                          className={clsx(
+                            'h-4 w-4 flex-shrink-0 transition-transform',
+                            isExpanded(item.name) && 'rotate-180'
+                          )}
+                        />
+                      )}
+                    </button>
+                    {isExpanded(item.name) && isExpanded_ && (
+                      <Transition
+                        show={isExpanded(item.name)}
+                        enter="transition-all duration-200 ease-out"
+                        enterFrom="opacity-0 max-h-0"
+                        enterTo="opacity-100 max-h-96"
+                        leave="transition-all duration-150 ease-in"
+                        leaveFrom="opacity-100 max-h-96"
+                        leaveTo="opacity-0 max-h-0"
+                      >
+                        <ul className="ml-4 mt-0.5 space-y-0.5 overflow-hidden">
+                          {item.children.map((child) => (
+                            <li key={child.name}>
+                              <NavLink
+                                to={child.href}
+                                end
+                                onClick={(e) => {
+                                  onLinkClick?.(e, child.href);
+                                  if (!e.defaultPrevented) {
+                                    onNavigate?.();
+                                  }
+                                }}
+                                className={({ isActive }) =>
+                                  clsx('sidebar-link pl-8', isActive && 'active')
+                                }
+                              >
+                                {child.name}
+                              </NavLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </Transition>
                     )}
+                  </div>
+                ) : (
+                  <NavLink
+                    to={item.href}
+                    end={item.href === '/'}
+                    onClick={(e) => {
+                      onLinkClick?.(e, item.href);
+                      if (!e.defaultPrevented) {
+                        onNavigate?.();
+                      }
+                    }}
+                    className={({ isActive }) =>
+                      clsx('sidebar-link', !isExpanded_ && 'justify-center', isActive && 'active')
+                    }
                     title={!isExpanded_ ? item.name : undefined}
                   >
-                    <span className="flex items-center gap-3">
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {isExpanded_ && item.name}
-                    </span>
-                    {isExpanded_ && (
-                      <ChevronDown
-                        className={clsx(
-                          'h-4 w-4 flex-shrink-0 transition-transform',
-                          isExpanded(item.name) && 'rotate-180'
-                        )}
-                      />
-                    )}
-                  </button>
-                  {isExpanded(item.name) && isExpanded_ && (
-                    <Transition
-                      show={isExpanded(item.name)}
-                      enter="transition-all duration-200 ease-out"
-                      enterFrom="opacity-0 max-h-0"
-                      enterTo="opacity-100 max-h-96"
-                      leave="transition-all duration-150 ease-in"
-                      leaveFrom="opacity-100 max-h-96"
-                      leaveTo="opacity-0 max-h-0"
-                    >
-                      <ul className="ml-4 mt-0.5 space-y-0.5 overflow-hidden">
-                        {item.children.map((child) => (
-                          <li key={child.name}>
-                            <NavLink
-                              to={child.href}
-                              end
-                              onClick={(e) => {
-                                onLinkClick?.(e, child.href);
-                                if (!e.defaultPrevented) {
-                                  onNavigate?.();
-                                }
-                              }}
-                              className={({ isActive }) =>
-                                clsx('sidebar-link pl-8', isActive && 'active')
-                              }
-                            >
-                              {child.name}
-                            </NavLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </Transition>
-                  )}
-                </div>
-              ) : (
-                <NavLink
-                  to={item.href}
-                  end={item.href === '/'}
-                  onClick={(e) => {
-                    onLinkClick?.(e, item.href);
-                    if (!e.defaultPrevented) {
-                      onNavigate?.();
-                    }
-                  }}
-                  className={({ isActive }) =>
-                    clsx('sidebar-link', !isExpanded_ && 'justify-center', isActive && 'active')
-                  }
-                  title={!isExpanded_ ? item.name : undefined}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {isExpanded_ && item.name}
-                </NavLink>
-              )}
-            </li>
-          ))}
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {isExpanded_ && item.name}
+                  </NavLink>
+                )}
+              </li>
+            ))}
         </ul>
       </nav>
 

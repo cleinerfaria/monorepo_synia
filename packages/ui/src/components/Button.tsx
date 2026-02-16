@@ -111,6 +111,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   icon?: ReactNode;
   dropdownItems?: ButtonDropdownItem[];
   dropdownPortal?: boolean;
+  fullWidth?: boolean;
 }
 
 const buttonSizeStyles: Record<ButtonSize, string> = {
@@ -278,6 +279,7 @@ export function Button({
   className,
   disabled,
   type = 'button',
+  fullWidth = false,
   ...props
 }: ButtonProps) {
   const visualVariant =
@@ -287,7 +289,12 @@ export function Button({
   const resolvedIcon = icon ?? <PlusIcon className={iconSizeStyles[size]} />;
 
   return (
-    <div className="group relative inline-flex items-stretch overflow-x-clip">
+    <div
+      className={cx(
+        'group relative items-stretch overflow-x-clip',
+        fullWidth ? 'flex w-full' : 'inline-flex'
+      )}
+    >
       <span
         aria-hidden
         className={cx(
@@ -309,7 +316,7 @@ export function Button({
         type={type}
         disabled={isDisabled}
         className={cx(
-          'relative inline-flex items-center justify-center overflow-hidden whitespace-nowrap font-medium transition-all duration-300',
+          'relative flex items-center justify-center overflow-hidden whitespace-nowrap font-medium transition-all duration-300',
           'focus:outline-none focus:ring-2',
           'disabled:cursor-not-allowed disabled:opacity-50',
           variantStyles[visualVariant],

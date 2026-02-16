@@ -3628,6 +3628,14 @@ export type PatientContact = Tables<'patient_contact'>;
 export type PatientPayer = Tables<'patient_payer'>;
 export type Professional = Tables<'professional'>;
 export type AppUser = Tables<'app_user'>;
+
+export interface SystemUser {
+  auth_user_id: string;
+  is_superadmin: boolean;
+  name: string;
+  email: string;
+  created_at: string;
+}
 export type Manufacturer = Tables<'manufacturer'>;
 export type Supplier = Tables<'supplier'>;
 export type NfeImport = Tables<'nfe_import'>;

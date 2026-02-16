@@ -426,7 +426,13 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
             )}
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} showIcon={false}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onClose}
+              disabled={isLoading}
+              showIcon={false}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading} showIcon={false}>
