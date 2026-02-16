@@ -374,7 +374,11 @@ export default function ProductModal({
             <Button type="button" variant="secondary" onClick={onClose} showIcon={false}>
               Cancelar
             </Button>
-            <Button type="submit" isLoading={createItem.isPending || updateItem.isPending} showIcon={false}>
+            <Button
+              type="submit"
+              isLoading={createItem.isPending || updateItem.isPending}
+              showIcon={false}
+            >
               {item ? 'Salvar' : prefillData ? 'Cadastrar e Vincular' : 'Criar'}
             </Button>
           </ModalFooter>
@@ -470,7 +474,12 @@ export default function ProductModal({
           </div>
 
           <ModalFooter>
-            <Button type="button" variant="secondary" onClick={() => setIsNewGroupModalOpen(false)} showIcon={false}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsNewGroupModalOpen(false)}
+              showIcon={false}
+            >
               Cancelar
             </Button>
             <Button type="submit" isLoading={createProductGroup.isPending}>

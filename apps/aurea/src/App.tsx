@@ -49,6 +49,7 @@ const UsersSettingsPage = lazy(() => import('@/pages/settings/UsersPage'));
 const AccessProfilesPage = lazy(() => import('@/pages/settings/AccessProfilesPage'));
 const LogsPage = lazy(() => import('@/pages/settings/LogsPage'));
 const AdminPage = lazy(() => import('@/pages/admin/AdminPage'));
+const NoAccessPage = lazy(() => import('@/pages/auth/NoAccessPage'));
 const MyShiftsPage = lazy(() => import('@/pages/shift/MyShiftsPage'));
 const ActiveShiftPage = lazy(() => import('@/pages/shift/ActiveShiftPage'));
 
@@ -74,7 +75,7 @@ function RouteLoader() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, company, appUser } = useAuthStore();
+  const { session, isLoading, company, appUser, systemUser, hasAnySystemUser } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -88,9 +89,18 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  // Usuário sem empresa só pode acessar /admin
+  // Usuário sem empresa
   if (!company) {
-    return <Navigate to="/admin" replace />;
+    // Se é system_user, vai para admin
+    if (systemUser) {
+      return <Navigate to="/admin" replace />;
+    }
+    // Se não há system_users cadastrados (bootstrap), vai para admin (onboarding)
+    if (!hasAnySystemUser) {
+      return <Navigate to="/admin" replace />;
+    }
+    // Caso contrário, sem acesso
+    return <Navigate to="/sem-acesso" replace />;
   }
 
   // Usuário shift_only deve usar o layout dedicado
@@ -103,7 +113,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Rota exclusiva para usuários shift_only
 function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, company } = useAuthStore();
+  const { session, isLoading, company, systemUser, hasAnySystemUser } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -118,16 +128,18 @@ function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!company) {
-    return <Navigate to="/admin" replace />;
+    if (systemUser) return <Navigate to="/admin" replace />;
+    if (!hasAnySystemUser) return <Navigate to="/admin" replace />;
+    return <Navigate to="/sem-acesso" replace />;
   }
 
   // Qualquer role pode acessar (admins testando, etc), mas shift_only é o principal
   return <>{children}</>;
 }
 
-// Rota especial para admin - permite acesso sem empresa
+// Rota especial para admin - requer system_user ou bootstrap (sem system_users)
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading } = useAuthStore();
+  const { session, isLoading, systemUser, hasAnySystemUser } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -141,11 +153,18 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
+  // Permitir acesso se:
+  // 1. É um system_user (superadmin ou não)
+  // 2. Não há system_users cadastrados (bootstrap/onboarding)
+  if (!systemUser && hasAnySystemUser) {
+    return <Navigate to="/sem-acesso" replace />;
+  }
+
   return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, appUser } = useAuthStore();
+  const { session, isLoading, appUser, company, systemUser, hasAnySystemUser } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -156,9 +175,13 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (session) {
-    // Se tem sessão mas não tem empresa, vai para admin
-    if (!appUser) {
+    // Se é system_user ou não há system_users (bootstrap), vai para admin
+    if (!company && (systemUser || !hasAnySystemUser)) {
       return <Navigate to="/admin" replace />;
+    }
+    // Se não tem empresa e não é system_user, sem acesso
+    if (!company && !appUser) {
+      return <Navigate to="/sem-acesso" replace />;
     }
     return <Navigate to="/" replace />;
   }
@@ -167,7 +190,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setSession, setAppUser, setCompany, setLoading } = useAuthStore();
+  const { setSession, setAppUser, setCompany, setSystemUser, setLoading } = useAuthStore();
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const initRef = useRef(false);
@@ -180,6 +203,19 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUserData = async (userId: string): Promise<boolean> => {
     try {
+      // Fetch system_user data
+      const { data: systemUserData } = await supabase
+        .from('system_user')
+        .select('*')
+        .eq('auth_user_id', userId)
+        .single();
+
+      const { data: countResult } = await supabase.rpc('count_system_users');
+      const hasAny = (countResult ?? 0) > 0;
+
+      setSystemUser(systemUserData ?? null);
+      useAuthStore.setState({ hasAnySystemUser: hasAny });
+
       // Fetch app_user
       const { data: userData, error: userError } = await supabase
         .from('app_user')
@@ -187,11 +223,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('auth_user_id', userId)
         .single();
 
-      // Se não tem app_user, permite continuar (usuário admin sem empresa)
+      // Se não tem app_user, permite continuar (system_user ou bootstrap)
       if (userError || !userData) {
         setAppUser(null);
         setCompany(null);
-        return true; // Permite continuar para página admin
+        return true;
       }
 
       setAppUser(userData as AppUser);
@@ -203,10 +239,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', (userData as AppUser).company_id)
         .single();
 
-      // Se não tem empresa, permite continuar (usuário admin sem empresa)
       if (companyError || !companyData) {
         setCompany(null);
-        return true; // Permite continuar para página admin
+        return true;
       }
 
       setCompany(companyData as Company);
@@ -269,6 +304,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       if (event === 'SIGNED_OUT') {
         setAppUser(null);
         setCompany(null);
+        setSystemUser(null);
+        useAuthStore.setState({ hasAnySystemUser: false });
         setLoading(false);
         return;
       }
@@ -598,6 +635,16 @@ function App() {
                   }
                 />
               </Route>
+
+              {/* Sem Acesso */}
+              <Route
+                path="/sem-acesso"
+                element={
+                  <Suspense fallback={<RouteLoader />}>
+                    <NoAccessPage />
+                  </Suspense>
+                }
+              />
 
               {/* Administração - Rota separada que permite acesso sem empresa */}
               <Route

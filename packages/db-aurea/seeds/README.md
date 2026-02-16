@@ -3,6 +3,7 @@
 ## Estrutura (SEM REDUNDÂNCIA)
 
 - **dev-seed-data.sql** - Espelho de supabase/seed.sql (referência local)
+  - 1 Superadmin System User (bootstrap)
   - 3 Profissionais (Médico, Enfermeiro, Fisioterapeuta)
   - 3 Pacientes (com dados demográficos)
   - 10 Medicações (com tipos: antibiotic, psychotropic)
@@ -20,7 +21,9 @@
 **Seeds (supabase/seed.sql) gerenciam:**
 - Profissionais, Pacientes, Medicações
 
-> ❌ **Nenhuma redund
+**scripts/lib.cjs gerencia (com integridade referencial):**
+- System User (Superadmin) → cria auth.user DEPOIS vincula em public.system_user
+- App Users (Admin/Manager/Viewer) → cria auth.user DEPOIS vincula em public.app_user
 
 ## Como Usar
 
@@ -38,22 +41,33 @@ Isso:
 3. Executa supabase/seed.sql (profissionais, pacientes, medicações)
 4. Retorna banco limpo com dados de teste
 
-### Criar Auth Users
+### Criar Auth Users (System + App)
 
-Após reset, crie os usuários de teste:
+Após reset, crie os usuários de autenticação:
 
 ```bash
 npm run db:seed:dev:aurea
 ```
 
-Isso cria 3 auth users:
-- `admin@e2e.local` (admin role)
-- `manager@e2e.local` (manager role)
-- `user@e2e.local` (viewer role)
+Isso cria 4 usuários de autenticação + vincula em `public.system_user` e `public.app_user`:
+- `admin@aurea.local` (system_user, superadmin=true) ← Bootstrap
+- `e2e.admin@aurea.local` (app_user, role: admin)
+- `e2e.manager@aurea.local` (app_user, role: manager)
+- `e2e.user@aurea.local` (app_user, role: viewer)
 
-## Dados Inseridos (Total: 16 registros)
+## Dados Insertos (Total: 17 entidades + 4 auth users)
 
-### Profissionais (3)
+### System User (1) - Criado via lib.cjs
+- **Admin Master** (`admin@aurea.local`)
+- `is_superadmin = true` (bootstrap para testes E2E)
+- Auth user criado primeiro via `ensureAuthUser()`, depois vinculado em `public.system_user`
+
+### App Users (3) - Criados via lib.cjs
+- `e2e.admin@aurea.local` (role: admin, access_profile: admin)
+- `e2e.manager@aurea.local` (role: manager, access_profile: manager)
+- `e2e.user@aurea.local` (role: viewer, access_profile: viewer)
+
+### Profissionais (3) - Criados via seed.sql
 - **E2E-PRO-001** - Dra. Ana Silva (CRM 123456)
 - **E2E-PRO-002** - Enf. Carlos Santos (COREN 654321)
 - **E2E-PRO-003** - Fisio. Maria Oliveira (CREFITO 987654)

@@ -646,7 +646,12 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <CardTitle>Dados da Matriz</CardTitle>
                 {isCreatingParent && (
-                  <Button variant="ghost" size="sm" onClick={handleCancelCreateParent} showIcon={false}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCancelCreateParent}
+                    showIcon={false}
+                  >
                     Cancelar
                   </Button>
                 )}

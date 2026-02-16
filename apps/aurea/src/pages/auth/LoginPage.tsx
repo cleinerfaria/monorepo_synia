@@ -202,6 +202,7 @@ export default function LoginPage() {
                 className="w-full"
                 size="lg"
                 isLoading={isSubmitting}
+                fullWidth
               >
                 Entrar
               </Button>

@@ -1,5 +1,6 @@
 ﻿// Load environment variables from app .env.local first, then from root .env.local
-const { execFileSync } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
+const { createInterface } = require('node:readline');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -38,12 +39,42 @@ function ensureDevEnv() {
 }
 
 function run(command, args, options = {}) {
-  execFileSync(command, args, {
-    cwd: options.cwd || process.cwd(),
-    stdio: 'inherit',
-    env: options.env || process.env,
-    timeout: options.timeout || 60_000,
-  });
+  process.stdout.write(`\n⚙️  Running: ${command} ${args.join(' ')}\n`)
+  
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd || process.cwd(),
+      stdio: ['inherit', 'inherit', 'inherit'],
+      env: options.env || process.env,
+      timeout: options.timeout || 60_000,
+    })
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command failed with exit code ${code}`))
+      } else {
+        resolve()
+      }
+    })
+
+    child.on('error', (error) => {
+      reject(error)
+    })
+  })
+}
+
+async function askConfirmation(message) {
+  return new Promise((resolve) => {
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    })
+
+    rl.question(`\n⚠️  ${message} (s/n): `, (answer) => {
+      rl.close()
+      resolve(answer.toLowerCase() === 's' || answer.toLowerCase() === 'y')
+    })
+  })
 }
 
 async function requestJson(url, { method = 'GET', headers = {}, body } = {}) {
@@ -91,16 +122,16 @@ function getSupabaseConfig() {
   };
 }
 
-function dbReset() {
+async function dbReset() {
   const dbUrl = getDbUrl();
-  run('supabase', ['db', 'reset', '--db-url', dbUrl, '--no-seed', '--workdir', APP_DIR], {
+  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--no-seed', '--workdir', APP_DIR], {
     timeout: 180_000,
   });
 }
 
-function dbMigrate() {
+async function dbMigrate() {
   const dbUrl = getDbUrl();
-  run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-all', '--workdir', APP_DIR], {
+  await run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-all', '--workdir', APP_DIR], {
     timeout: 180_000,
   });
 }

@@ -1,5 +1,6 @@
 ﻿// Load environment variables from root .env.local
-const { execFileSync } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
+const { createInterface } = require('node:readline');
 const path = require('node:path');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env.local') });
@@ -30,12 +31,42 @@ function ensureDevEnv() {
 }
 
 function run(command, args, options = {}) {
-  execFileSync(command, args, {
-    cwd: options.cwd || process.cwd(),
-    stdio: 'inherit',
-    env: options.env || process.env,
-    timeout: options.timeout || 60_000,
-  });
+  process.stdout.write(`\n⚙️  Running: ${command} ${args.join(' ')}\n`)
+  
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd || process.cwd(),
+      stdio: ['inherit', 'inherit', 'inherit'],
+      env: options.env || process.env,
+      timeout: options.timeout || 60_000,
+    })
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command failed with exit code ${code}`))
+      } else {
+        resolve()
+      }
+    })
+
+    child.on('error', (error) => {
+      reject(error)
+    })
+  })
+}
+
+async function askConfirmation(message) {
+  return new Promise((resolve) => {
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    })
+
+    rl.question(`\n⚠️  ${message} (s/n): `, (answer) => {
+      rl.close()
+      resolve(answer.toLowerCase() === 's' || answer.toLowerCase() === 'y')
+    })
+  })
 }
 
 async function requestJson(url, { method = 'GET', headers = {}, body } = {}) {
@@ -83,16 +114,16 @@ function getSupabaseConfig() {
   };
 }
 
-function dbReset() {
+async function dbReset() {
   const dbUrl = getDbUrl();
-  run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR], {
+  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR], {
     timeout: 180_000,
   });
 }
 
-function dbMigrate() {
+async function dbMigrate() {
   const dbUrl = getDbUrl();
-  run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-all', '--workdir', APP_DIR], {
+  await run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-all', '--workdir', APP_DIR], {
     timeout: 180_000,
   });
 }
@@ -286,9 +317,55 @@ async function seedAureaDev() {
     onConflict: 'auth_user_id',
   });
 
+  // Criar System User (Superadmin Bootstrap)
+  const systemAdminEmail = 'admin@aurea.local';
+  const systemAdminPassword = process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'AureaE2E!123';
+
+  const systemAdminAuthId = await ensureAuthUser({
+    supabaseUrl,
+    serviceRoleKey,
+    email: systemAdminEmail,
+    password: systemAdminPassword,
+    name: 'Admin Master',
+  });
+
+  await upsertRows({
+    supabaseUrl,
+    serviceRoleKey,
+    table: 'system_user',
+    rows: [
+      {
+        auth_user_id: systemAdminAuthId,
+        is_superadmin: true,
+        name: 'Admin Master',
+        email: systemAdminEmail,
+      },
+    ],
+    onConflict: 'auth_user_id',
+  });
+
+  // Vincular System User também em app_user para acesso via interface
+  await upsertRows({
+    supabaseUrl,
+    serviceRoleKey,
+    table: 'app_user',
+    rows: [
+      {
+        company_id: company.id,
+        auth_user_id: systemAdminAuthId,
+        name: 'Admin Master',
+        email: systemAdminEmail,
+        role: 'superadmin',
+        active: true,
+        access_profile_id: adminProfile?.id || null,
+      },
+    ],
+    onConflict: 'auth_user_id',
+  });
+
   // Note: Professional, patient, and product seeding is now done via seed.sql
   // during migrations. This script now only ensures auth users exist.
-  process.stdout.write(`Aurea dev seed: auth users (3) have been ensured\n`);
+  process.stdout.write(`Aurea dev seed: system admin user (1) + app users (3) have been ensured\n`);
 
   process.stdout.write(`Aurea dev seed applied for company ${company.id}\n`);
 }

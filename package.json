@@ -21,6 +21,7 @@
     "migrate": "node scripts/migrate-select.cjs",
     "db:seed:dev:white-label": "npm run db:seed:dev -w @synia/db-white-label",
     "db:prepare:test:white-label": "npm run db:prepare:test -w @synia/db-white-label",
+    "setup": "node scripts/setup-select.cjs",
     "setup:dev": "node scripts/setup-dev.cjs",
     "setup:dev:aurea": "node scripts/setup-dev.cjs aurea",
     "setup:dev:wl": "node scripts/setup-dev.cjs white-label",

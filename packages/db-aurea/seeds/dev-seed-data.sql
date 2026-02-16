@@ -2,15 +2,22 @@
 -- Development Seed Data - Aurea E2E
 -- =====================================================
 -- Este arquivo contém dados de desenvolvimento para:
+-- - 1 Superadmin System User (bootstrap)
 -- - 3 Profissionais (Médico, Enfermeiro, Fisioterapeuta)
 -- - 3 Pacientes (com dados demográficos completos)
 -- - 10 Medicações (com várias características)
 --
--- Nota: Unit of Measure e Administration Routes são 
+-- Nota: Unit of Measure e Administration Routes são
 -- gerenciados pelas migrações (não inclusos aqui para evitar redundância)
 -- =====================================================
 
 BEGIN;
+
+-- =====================================================
+-- SYSTEM USER (Bootstrap Superadmin)
+-- =====================================================
+-- Nota: System User é criado via lib.cjs (ensureAuthUser + upsertRows)
+-- Isso garante integridade referencial: auth.users → system_user
 
 -- Declarar variáveis para a empresa E2E
 DO $$
@@ -67,7 +74,7 @@ BEGIN
 
   RAISE NOTICE 'Dev seed data applied successfully!';
   RAISE NOTICE 'Company ID: %', v_company_id;
-  RAISE NOTICE 'Inserted: 3 professionals, 3 patients, 10 medications';
+  RAISE NOTICE 'Inserted: 1 superadmin system user, 3 professionals, 3 patients, 10 medications';
 
 EXCEPTION WHEN OTHERS THEN
   RAISE EXCEPTION 'Erro ao aplicar seed: %', SQLERRM;
