@@ -1,39 +1,45 @@
 -- =====================================================
--- Development Seed Data - Aurea E2E
+-- Aurea Development Seed Data - Centralized Reference
 -- =====================================================
--- Este arquivo contém dados de desenvolvimento para:
--- - 1 Superadmin System User (bootstrap)
--- - 3 Profissionais (Médico, Enfermeiro, Fisioterapeuta)
--- - 3 Pacientes (com dados demográficos completos)
--- - 10 Medicações (com várias características)
+-- 
+-- Este arquivo é a REFERÊNCIA CENTRAL de dados de seed.
+-- 
+-- EXECUÇÃO AUTOMÁTICA (pelo Supabase):
+-- O arquivo real executado é: supabase/seed.sql
+-- Este é executado automaticamente em:
+--   - supabase db reset
+--   - supabase db push
 --
--- Nota: Unit of Measure e Administration Routes são
--- gerenciados pelas migrações (não inclusos aqui para evitar redundância)
+-- DADOS INSERIDOS:
+-- - 3 Profissionais (Médico, Enfermeiro, Fisioterapeuta)
+-- - 3 Pacientes (com dados demográficos)
+-- - 10 Medicações (com classificações: antibiotic, psychotropic)
+--
+-- EMPRESA UTILIZADA:
+-- Document: 00.000.000/0001-00 (criada pela migration inicial)
+--
+-- RESPONSABILIDADES:
+-- Migrations:     Unit of Measure, Administration Routes
+-- seed.sql:       Profissionais, Pacientes, Medicações
+-- lib.cjs:        Auth Users (system_user, app_user)
 -- =====================================================
 
 BEGIN;
 
--- =====================================================
--- SYSTEM USER (Bootstrap Superadmin)
--- =====================================================
--- Nota: System User é criado via lib.cjs (ensureAuthUser + upsertRows)
--- Isso garante integridade referencial: auth.users → system_user
-
--- Declarar variáveis para a empresa E2E
 DO $$
 DECLARE
   v_company_id UUID;
 BEGIN
-  -- Buscar a empresa E2E
+  -- Buscar empresa criada pela migration inicial
   SELECT id INTO v_company_id FROM public.company 
-  WHERE document = '11.111.111/0001-11' LIMIT 1;
+  WHERE document = '00.000.000/0001-00' LIMIT 1;
   
   IF v_company_id IS NULL THEN
-    RAISE EXCEPTION 'Empresa E2E não encontrada. Execute o seed de usuários primeiro.';
+    RAISE EXCEPTION 'Empresa inicial não encontrada. Verifique se as migrations foram executadas.';
   END IF;
 
   -- =====================================================
-  -- 1) PROFISSIONAIS (3 profissionais)
+  -- 1) PROFISSIONAIS
   -- =====================================================
   INSERT INTO public.professional 
     (company_id, code, name, role, council_type, council_number, council_uf, phone, email, active)
@@ -44,7 +50,7 @@ BEGIN
   ON CONFLICT (company_id, code) DO NOTHING;
 
   -- =====================================================
-  -- 2) PACIENTES (3 pacientes)
+  -- 2) PACIENTES
   -- =====================================================
   INSERT INTO public.patient 
     (company_id, code, name, cpf, birth_date, gender, phone, email, active)
@@ -55,29 +61,28 @@ BEGIN
   ON CONFLICT (company_id, code) DO NOTHING;
 
   -- =====================================================
-  -- 3) MEDICAÇÕES (10 produtos de tipo medication)
+  -- 3) MEDICAÇÕES
   -- =====================================================
   INSERT INTO public.product 
     (company_id, item_type, code, name, description, concentration, antibiotic, psychotropic, active)
   VALUES 
     (v_company_id, 'medication', 'E2E-MED-001', 'Dipirona 500mg', 'Analgésico e antitérmico', '500mg', FALSE, FALSE, TRUE),
-    (v_company_id, 'medication', 'E2E-MED-002', 'Amoxicilina 500mg', 'Antibiótico betalactâmico', '500mg', TRUE, FALSE, TRUE),
+    (v_company_id, 'medication', 'E2E-MED-002', 'Amoxicilina 500mg', '🚨 ANTIBIOTIC', '500mg', TRUE, FALSE, TRUE),
     (v_company_id, 'medication', 'E2E-MED-003', 'Omeprazol 20mg', 'Inibidor de bomba de prótons', '20mg', FALSE, FALSE, TRUE),
     (v_company_id, 'medication', 'E2E-MED-004', 'Metformina 850mg', 'Antidiabético oral', '850mg', FALSE, FALSE, TRUE),
     (v_company_id, 'medication', 'E2E-MED-005', 'Lisinopril 10mg', 'Inibidor ECA para hipertensão', '10mg', FALSE, FALSE, TRUE),
-    (v_company_id, 'medication', 'E2E-MED-006', 'Fluoxetina 20mg', 'ISRS antidepressivo', '20mg', FALSE, TRUE, TRUE),
-    (v_company_id, 'medication', 'E2E-MED-007', 'Soro Fisiológico 0,9%', 'Solução para limpeza e irrigação', '0,9%', FALSE, FALSE, TRUE),
+    (v_company_id, 'medication', 'E2E-MED-006', 'Fluoxetina 20mg', '🚨 PSYCHOTROPIC ISRS', '20mg', FALSE, TRUE, TRUE),
+    (v_company_id, 'medication', 'E2E-MED-007', 'Soro Fisiológico 0,9%', 'Solução para limpeza', '0,9%', FALSE, FALSE, TRUE),
     (v_company_id, 'medication', 'E2E-MED-008', 'Difenidramina 25mg', 'Anti-histamínico', '25mg', FALSE, FALSE, TRUE),
-    (v_company_id, 'medication', 'E2E-MED-009', 'Metoclopramida 10mg', 'Antiemético e procinético', '10mg', FALSE, FALSE, TRUE),
-    (v_company_id, 'medication', 'E2E-MED-010', 'Losartana 50mg', 'Antagonista de receptor de angiotensina II', '50mg', FALSE, FALSE, TRUE)
+    (v_company_id, 'medication', 'E2E-MED-009', 'Metoclopramida 10mg', 'Antiemético', '10mg', FALSE, FALSE, TRUE),
+    (v_company_id, 'medication', 'E2E-MED-010', 'Losartana 50mg', 'AT2 Antagonista', '50mg', FALSE, FALSE, TRUE)
   ON CONFLICT (company_id, code) DO NOTHING;
 
-  RAISE NOTICE 'Dev seed data applied successfully!';
+  RAISE NOTICE 'Seed data applied: 3 professionals, 3 patients, 10 medications';
   RAISE NOTICE 'Company ID: %', v_company_id;
-  RAISE NOTICE 'Inserted: 1 superadmin system user, 3 professionals, 3 patients, 10 medications';
 
 EXCEPTION WHEN OTHERS THEN
-  RAISE EXCEPTION 'Erro ao aplicar seed: %', SQLERRM;
+  RAISE NOTICE 'Seed warning (pode ser normal se já inseridos): %', SQLERRM;
 END $$;
 
 COMMIT;

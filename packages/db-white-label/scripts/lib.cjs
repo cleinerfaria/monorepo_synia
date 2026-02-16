@@ -1,6 +1,5 @@
 ﻿// Load environment variables from app .env.local first, then from root .env.local
-const { spawn, execFileSync } = require('node:child_process');
-const { createInterface } = require('node:readline');
+const { spawn } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -59,20 +58,6 @@ function run(command, args, options = {}) {
 
     child.on('error', (error) => {
       reject(error);
-    });
-  });
-}
-
-async function askConfirmation(message) {
-  return new Promise((resolve) => {
-    const rl = createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    rl.question(`\n⚠️  ${message} (s/n): `, (answer) => {
-      rl.close();
-      resolve(answer.toLowerCase() === 's' || answer.toLowerCase() === 'y');
     });
   });
 }
@@ -185,8 +170,8 @@ async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, na
   return created.id;
 }
 
-async function getSingleRow({ supabaseUrl, serviceRoleKey, path }) {
-  const rows = await requestJson(`${supabaseUrl}/rest/v1/${path}`, {
+async function getSingleRow({ supabaseUrl, serviceRoleKey, path: queryPath }) {
+  const rows = await requestJson(`${supabaseUrl}/rest/v1/${queryPath}`, {
     headers: postgrestHeaders(serviceRoleKey, 'return=representation'),
   });
 
@@ -225,20 +210,35 @@ async function seedWhiteLabelDev() {
   const userEmail = requireEnv('E2E_USER_EMAIL');
   const userPassword = requireEnv('E2E_USER_PASSWORD');
 
-  await upsertRows({
-    supabaseUrl,
-    serviceRoleKey,
-    table: 'company',
-    rows: [
-      {
-        name: 'White Label E2E Tenant',
-        trade_name: 'White Label E2E',
-        document: companyDocument,
-      },
-    ],
-    onConflict: 'document',
-  });
+  // Criar os 3 usuários auth via API
+  process.stdout.write('\n🔐 Criando auth users...\n');
+  const [adminId, managerId, userId] = await Promise.all([
+    ensureAuthUser({
+      supabaseUrl,
+      serviceRoleKey,
+      email: adminEmail,
+      password: adminPassword,
+      name: 'E2E Admin White Label',
+    }),
+    ensureAuthUser({
+      supabaseUrl,
+      serviceRoleKey,
+      email: managerEmail,
+      password: managerPassword,
+      name: 'E2E Manager White Label',
+    }),
+    ensureAuthUser({
+      supabaseUrl,
+      serviceRoleKey,
+      email: userEmail,
+      password: userPassword,
+      name: 'E2E User White Label',
+    }),
+  ]);
+  process.stdout.write('✅ Auth users criados\n');
 
+  // Buscar company
+  process.stdout.write('\n🔍 Buscando empresa...\n');
   const company = await getSingleRow({
     supabaseUrl,
     serviceRoleKey,
@@ -248,106 +248,88 @@ async function seedWhiteLabelDev() {
   if (!company?.id) {
     throw new Error('Could not resolve White Label company for dev seed');
   }
+  process.stdout.write('✅ Empresa encontrada\n');
 
-  // Buscar os access profiles para cada role
-  const adminProfile = await getSingleRow({
-    supabaseUrl,
-    serviceRoleKey,
-    path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.admin&limit=1`,
-  });
-
-  const managerProfile = await getSingleRow({
-    supabaseUrl,
-    serviceRoleKey,
-    path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.manager&limit=1`,
-  });
-
-  const userProfile = await getSingleRow({
-    supabaseUrl,
-    serviceRoleKey,
-    path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.user&limit=1`,
-  });
+  // Buscar access_profiles
+  process.stdout.write('\n🔍 Buscando access_profiles...\n');
+  const [adminProfile, managerProfile, userProfile] = await Promise.all([
+    getSingleRow({
+      supabaseUrl,
+      serviceRoleKey,
+      path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.admin&limit=1`,
+    }),
+    getSingleRow({
+      supabaseUrl,
+      serviceRoleKey,
+      path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.manager&limit=1`,
+    }),
+    getSingleRow({
+      supabaseUrl,
+      serviceRoleKey,
+      path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.user&limit=1`,
+    }),
+  ]);
 
   if (!adminProfile?.id || !managerProfile?.id || !userProfile?.id) {
     throw new Error('Could not resolve White Label access profiles for dev seed');
   }
+  process.stdout.write('✅ Access profiles encontrados\n');
 
-  // Criar os 3 usuários auth
-  const adminAuthId = await ensureAuthUser({
+  // Criar system_user (admin é superadmin)
+  process.stdout.write('\n📝 Criando system_user...\n');
+  await upsertRows({
     supabaseUrl,
     serviceRoleKey,
-    email: adminEmail,
-    password: adminPassword,
-    name: 'E2E Admin White Label',
+    table: 'system_user',
+    rows: [
+      {
+        auth_user_id: adminId,
+        is_superadmin: true,
+        name: 'E2E Admin White Label',
+        email: adminEmail,
+      },
+    ],
+    onConflict: 'auth_user_id',
   });
+  process.stdout.write('✅ system_user criado\n');
 
-  const managerAuthId = await ensureAuthUser({
+  // Criar app_users
+  process.stdout.write('\n📝 Criando app_users...\n');
+  await upsertRows({
     supabaseUrl,
     serviceRoleKey,
-    email: managerEmail,
-    password: managerPassword,
-    name: 'E2E Manager White Label',
+    table: 'app_user',
+    rows: [
+      {
+        company_id: company.id,
+        auth_user_id: adminId,
+        name: 'E2E Admin White Label',
+        email: adminEmail,
+        active: true,
+        access_profile_id: adminProfile.id,
+      },
+      {
+        company_id: company.id,
+        auth_user_id: managerId,
+        name: 'E2E Manager White Label',
+        email: managerEmail,
+        active: true,
+        access_profile_id: managerProfile.id,
+      },
+      {
+        company_id: company.id,
+        auth_user_id: userId,
+        name: 'E2E User White Label',
+        email: userEmail,
+        active: true,
+        access_profile_id: userProfile.id,
+      },
+    ],
+    onConflict: 'auth_user_id,company_id',
   });
+  process.stdout.write('✅ app_users criados\n');
 
-  const userAuthId = await ensureAuthUser({
-    supabaseUrl,
-    serviceRoleKey,
-    email: userEmail,
-    password: userPassword,
-    name: 'E2E User White Label',
-  });
-
-  // Inserir os usuários da app e system
-  await Promise.all([
-    upsertRows({
-      supabaseUrl,
-      serviceRoleKey,
-      table: 'app_user',
-      rows: [
-        {
-          company_id: company.id,
-          auth_user_id: adminAuthId,
-          name: 'E2E Admin White Label',
-          email: adminEmail,
-          active: true,
-          access_profile_id: adminProfile.id,
-        },
-        {
-          company_id: company.id,
-          auth_user_id: managerAuthId,
-          name: 'E2E Manager White Label',
-          email: managerEmail,
-          active: true,
-          access_profile_id: managerProfile.id,
-        },
-        {
-          company_id: company.id,
-          auth_user_id: userAuthId,
-          name: 'E2E User White Label',
-          email: userEmail,
-          active: true,
-          access_profile_id: userProfile.id,
-        },
-      ],
-      onConflict: 'auth_user_id,company_id',
-    }),
-    upsertRows({
-      supabaseUrl,
-      serviceRoleKey,
-      table: 'system_user',
-      rows: [
-        {
-          auth_user_id: adminAuthId,
-          is_superadmin: true,
-          name: 'E2E Admin White Label',
-          email: adminEmail,
-        },
-      ],
-      onConflict: 'auth_user_id',
-    }),
-  ]);
-
-  process.stdout.write(`White Label dev seed applied for company ${company.id}\n`);
+  process.stdout.write('\n✨ White Label dev seed aplicado com sucesso!\n');
   process.stdout.write(`  - Admin: ${adminEmail}\n`);
   process.stdout.write(`  - Manager: ${managerEmail}\n`);
   process.stdout.write(`  - User: ${userEmail}\n`);

@@ -1,89 +1,116 @@
 ﻿# Aurea Development Seeds
 
-## Estrutura (SEM REDUNDÂNCIA)
+## 📁 Estrutura
 
-- **dev-seed-data.sql** - Espelho de supabase/seed.sql (referência local)
-  - 1 Superadmin System User (bootstrap)
-  - 3 Profissionais (Médico, Enfermeiro, Fisioterapeuta)
-  - 3 Pacientes (com dados demográficos)
-  - 10 Medicações (com tipos: antibiotic, psychotropic)
+```
+seeds/
+├── seed.sql              ← Pessoas/Pacientes/Medicações
+├── app-users.sql        ← App Users + System User (vinculação)
+└── README.md
+```
 
-- **supabase/seed.sql** - FONTE OFICIAL (executada automaticamente)
-  - Mesmo conteúdo de dev-seed-data.sql
-  - Executada durante `db:reset` e `db:push`
+## 🔄 Como Funciona
 
-### ✅ Separação de Responsabilidades
-
-**Migrations gerenciam:**
-- Unit of Measure (8 unidades) - `20260122240000_unit_of_measure.sql`
-- Administration Routes (20 rotas) - `seed_administration_routes.sql`
-
-**Seeds (supabase/seed.sql) gerenciam:**
-- Profissionais, Pacientes, Medicações
-
-**scripts/lib.cjs gerencia (com integridade referencial):**
-- System User (Superadmin) → cria auth.user DEPOIS vincula em public.system_user
-- App Users (Admin/Manager/Viewer) → cria auth.user DEPOIS vincula em public.app_user
-
-## Como Usar
-
-### Automático (Recomendado - Durante Reset)
-
-O arquivo `supabase/seed.sql` é executado automaticamente:
-
+### 1️⃣ Migrations (Estrutura)
 ```bash
 npm run db:reset:aurea
 ```
+- Schema tables
+- Unit of Measure
+- Administration Routes
+- Cria company (00.000.000/0001-00)
 
-Isso:
-1. Reseta banco de dados
-2. Executa todas as migrations
-3. Executa supabase/seed.sql (profissionais, pacientes, medicações)
-4. Retorna banco limpo com dados de teste
+### 2️⃣ Seed SQL (Automático - Profissionais/Pacientes/Medicações)
+Supabase executa automaticamente `supabase/seed.sql`:
+- 3 Profissionais
+- 3 Pacientes
+- 10 Medicações
 
-### Criar Auth Users (System + App)
-
-Após reset, crie os usuários de autenticação:
-
+### 3️⃣ Auth + App Users + System User
 ```bash
 npm run db:seed:dev:aurea
 ```
 
-Isso cria 4 usuários de autenticação + vincula em `public.system_user` e `public.app_user`:
-- `admin@aurea.local` (system_user, superadmin=true) ← Bootstrap
-- `e2e.admin@aurea.local` (app_user, role: admin)
-- `e2e.manager@aurea.local` (app_user, role: manager)
-- `e2e.user@aurea.local` (app_user, role: viewer)
+**Fluxo:**
+1. **lib.cjs** → Cria auth users via API Supabase
+   - admin@aurea.local (system admin)
+   - e2e.admin@aurea.local
+   - e2e.manager@aurea.local
+   - e2e.user@aurea.local
 
-## Dados Insertos (Total: 17 entidades + 4 auth users)
+2. **seeds/app-users.sql** → Vincula ao banco (executado via psql)
+   - Insere system_user (1x)
+   - Insere app_user (4x)
 
-### System User (1) - Criado via lib.cjs
-- **Admin Master** (`admin@aurea.local`)
-- `is_superadmin = true` (bootstrap para testes E2E)
-- Auth user criado primeiro via `ensureAuthUser()`, depois vinculado em `public.system_user`
+## ✅ Responsabilidades
 
-### App Users (3) - Criados via lib.cjs
-- `e2e.admin@aurea.local` (role: admin, access_profile: admin)
-- `e2e.manager@aurea.local` (role: manager, access_profile: manager)
-- `e2e.user@aurea.local` (role: viewer, access_profile: viewer)
+| Etapa | Arquivo | Tipo | Como |
+|-------|---------|------|------|
+| Schema | migration | SQL | Auto (db reset) |
+| Profissionais/Pacientes/Medicações | supabase/seed.sql | SQL | Auto (Supabase) |
+| Auth Users | scripts/lib.cjs | Node.js/API | Manual (db:seed:dev) |
+| App Users + System User | seeds/app-users.sql | SQL | Via psql (db:seed:dev) |
 
-### Profissionais (3) - Criados via seed.sql
-- **E2E-PRO-001** - Dra. Ana Silva (CRM 123456)
-- **E2E-PRO-002** - Enf. Carlos Santos (COREN 654321)
-- **E2E-PRO-003** - Fisio. Maria Oliveira (CREFITO 987654)
+## 📊 Dados Inseridos
+
+### System User (1)
+- `admin@aurea.local` (is_superadmin=true)
+
+### App Users (3)
+- `e2e.admin@aurea.local` (role: admin)
+- `e2e.manager@aurea.local` (role: manager)
+- `e2e.user@aurea.local` (role: viewer)
+
+### Profissionais (3)
+- Dra. Ana Silva (Médico)
+- Enf. Carlos Santos (Enfermeiro)
+- Fisio. Maria Oliveira (Fisioterapeuta)
 
 ### Pacientes (3)
-- **E2E-PAT-001** - João da Silva (M, 1960-05-15)
-- **E2E-PAT-002** - Maria dos Santos (F, 1965-08-22)
-- **E2E-PAT-003** - Pedro Costa (M, 1955-12-10)
+- João da Silva
+- Maria dos Santos
+- Pedro Costa
 
 ### Medicações (10)
-- E2E-MED-001 - Dipirona 500mg (analgésico)
-- E2E-MED-002 - Amoxicilina 500mg (🚨 antibiotic)
-- E2E-MED-003 - Omeprazol 20mg (protetor gástrico)
-- E2E-MED-004 - Metformina 850mg (antidiabético)
-- E2E-MED-005 - Lisinopril 10mg (anti-hipertensivo)
-- E2E-MED-006 - Fluoxetina 20mg (🚨 psychotropic)
+- Dipirona, Amoxicilina 🚨, Omeprazol, Metformina, Lisinopril
+- Fluoxetina 🚨, Soro Fisiológico, Difenidramina, Metoclopramida, Losartana
+
+## 🧪 Fluxo Rápido
+
+```bash
+npm run setup -- aurea
+
+# Internamente executa:
+# 1. npm run db:reset:aurea
+#    → migrations + supabase/seed.sql (profissionais/pacientes/medicações)
+# 2. npm run db:seed:dev:aurea
+#    → cria auth users + executa app-users.sql
+```
+
+## 🔐 Credenciais Padrão
+
+```bash
+admin@aurea.local / AureaE2E!123
+e2e.admin@aurea.local / AureaE2E!123
+e2e.manager@aurea.local / AureaE2E!123
+e2e.user@aurea.local / AureaE2E!123
+```
+
+Customize via `.env.local`:
+- `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`
+- `E2E_MANAGER_EMAIL`, `E2E_MANAGER_PASSWORD`
+- `E2E_USER_EMAIL`, `E2E_USER_PASSWORD`
+- `E2E_SYSTEM_ADMIN_PASSWORD`
+
+## 📝 Centralização em `/seeds`
+
+✅ Todos os dados de seed estão centralizados em `seeds/`:
+- `seed.sql` - Profissionais/Pacientes/Medicações
+- `app-users.sql` - App Users + System User
+
+✅ Ruby.cjs apenas cria auth users (requer API Supabase)
+
+
 - E2E-MED-007 - Soro Fisiológico 0,9% (solução)
 - E2E-MED-008 - Difenidramina 25mg (anti-histamínico)
 - E2E-MED-009 - Metoclopramida 10mg (antiemético)

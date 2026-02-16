@@ -5,38 +5,26 @@
 -- - supabase db reset
 -- - supabase db push
 -- 
--- Dados de desenvolvimento para E2E testing:
--- - 3 Profissionais
--- - 3 Pacientes
--- - 10 Medicações
+-- Este arquivo carrega os dados de desenvolvimento
+-- para E2E testing: Profissionais, Pacientes, Medicações
 --
--- IMPORTANTE: Unit of Measure e Administration Routes
--- são gerenciados ONLY por migrations. Isso garante
--- separação de responsabilidades e evita redundância.
--- ======================================================
+-- IMPORTANTE: Este arquivo utiliza a empresa criada
+-- pela migration inicial (document: 00.000.000/0001-00)
+-- =====================================================================
 
 BEGIN;
 
--- Declarar variáveis para a empresa E2E
+-- Declarar variáveis para a empresa criada na migration
 DO $$
 DECLARE
   v_company_id UUID;
 BEGIN
-  -- Buscar a empresa E2E
+  -- Buscar a empresa criada na migration inicial
   SELECT id INTO v_company_id FROM public.company 
-  WHERE document = '11.111.111/0001-11' LIMIT 1;
+  WHERE document = '00.000.000/0001-00' LIMIT 1;
   
   IF v_company_id IS NULL THEN
-    -- Se não encontrar, criar a empresa
-    INSERT INTO public.company (name, trade_name, document)
-    VALUES ('Aurea E2E Tenant', 'Aurea E2E', '11.111.111/0001-11')
-    ON CONFLICT (document) DO NOTHING
-    RETURNING id INTO v_company_id;
-    
-    IF v_company_id IS NULL THEN
-      SELECT id INTO v_company_id FROM public.company 
-      WHERE document = '11.111.111/0001-11' LIMIT 1;
-    END IF;
+    RAISE EXCEPTION 'Empresa inicial não encontrada. Verifique se as migrations foram executadas.';
   END IF;
 
   -- =====================================================

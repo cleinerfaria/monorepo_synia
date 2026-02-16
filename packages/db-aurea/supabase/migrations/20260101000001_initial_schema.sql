@@ -449,7 +449,7 @@ VALUES (
     'Vida em Casa LTDA',
     'Vida em Casa',
     '00.000.000/0001-00', -- não altere esse valor pois será usado em outras migrations e em seeds
-    '#D4AF37',
+    '#1aa2ff',
     'dark'
 );
 
