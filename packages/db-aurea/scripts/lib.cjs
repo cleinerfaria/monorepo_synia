@@ -30,28 +30,28 @@ function ensureDevEnv() {
 }
 
 function run(command, args, options = {}) {
-  process.stdout.write(`\n⚙️  Running: ${command} ${args.join(' ')}\n`)
-  
+  process.stdout.write(`\n⚙️  Running: ${command} ${args.join(' ')}\n`);
+
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: options.cwd || process.cwd(),
       stdio: ['inherit', 'inherit', 'inherit'],
       env: options.env || process.env,
       timeout: options.timeout || 60_000,
-    })
+    });
 
     child.on('close', (code) => {
       if (code !== 0) {
-        reject(new Error(`Command failed with exit code ${code}`))
+        reject(new Error(`Command failed with exit code ${code}`));
       } else {
-        resolve()
+        resolve();
       }
-    })
+    });
 
     child.on('error', (error) => {
-      reject(error)
-    })
-  })
+      reject(error);
+    });
+  });
 }
 
 async function requestJson(url, { method = 'GET', headers = {}, body } = {}) {
@@ -101,7 +101,7 @@ function getSupabaseConfig() {
 
 async function dbReset() {
   const dbUrl = getDbUrl();
-  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR], {
+  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR, '--yes'], {
     timeout: 180_000,
   });
 }
@@ -205,7 +205,7 @@ async function seedAureaDev() {
   const userPassword = process.env.E2E_USER_PASSWORD || 'Aurea123';
 
   process.stdout.write('\n📝 Creating auth users...\n');
-  
+
   const [systemAdminId, adminId, managerId, userId] = await Promise.all([
     ensureAuthUser({
       supabaseUrl,
@@ -328,4 +328,3 @@ module.exports = {
   seedAureaDev,
   ensureDevEnv,
 };
-
