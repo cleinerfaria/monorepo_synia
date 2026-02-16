@@ -3,11 +3,13 @@
 ## ❌ **Problema Identificado e Resolvido**
 
 **O que estava acontecendo:**
+
 - Push na `main` → Aplicava migrations só no ambiente **development**
 - Homologação e produção **nunca** recebiam as migrations
 - Workflow reportava sucesso, mas bancos não eram atualizados
 
 **Causa raiz:**
+
 ```yaml
 # Linha problemática no cd.yml (CORRIGIDA)
 environment:
@@ -20,6 +22,7 @@ environment:
 ## ✅ **Fluxo Atual (Corrigido)**
 
 ### 🔄 **Desenvolvimento Local**
+
 ```bash
 # Criar feature branch
 git checkout -b feat/nova-funcionalidade
@@ -37,6 +40,7 @@ git push origin feat/nova-funcionalidade
 ```
 
 ### 🟡 **Deploy para Staging (Homologação)**
+
 ```bash
 # 1. Merge na branch develop
 git checkout develop
@@ -45,16 +49,17 @@ git push origin develop
 
 # 2. GitHub Actions executa automaticamente:
 # → cd-staging.yml
-# → Environment: 'homolog' 
+# → Environment: 'homolog'
 # → Aplica migrations nos bancos de staging
 ```
 
 **📍 Banco alvo**: Projetos Supabase configurados no environment `homolog`
 
 ### 🔴 **Deploy para Produção**
+
 ```bash
 # 1. Merge na main (após aprovação)
-git checkout main  
+git checkout main
 git merge develop
 git push origin main
 
@@ -68,6 +73,7 @@ git push origin main
 **📍 Banco alvo**: Projetos Supabase configurados no environment `production`
 
 ### 🎛️ **Deploy Manual (Qualquer ambiente)**
+
 ```
 GitHub → Actions → "Deploy to Production" → Run workflow
 Escolher: development | homolog | production
@@ -78,18 +84,21 @@ Escolher: development | homolog | production
 ## 🔧 **Configuração Necessária (URGENTE)**
 
 ### **1. Configurar Environments no GitHub**
+
 ```
 Repositório → Settings → Environments → New environment
 ```
 
 Criar 3 environments:
+
 - `development` (sem proteção)
-- `homolog` (opcional: exigir review)  
+- `homolog` (opcional: exigir review)
 - `production` (**obrigatório**: exigir review de admin)
 
 ### **2. Configurar Secrets por Environment**
 
 Cada environment precisa ter:
+
 ```
 SUPABASE_ACCESS_TOKEN=seu_token_pessoal
 AUREA_SUPABASE_PROJECT_REF=projeto_referencia_aurea
@@ -99,8 +108,9 @@ WL_SUPABASE_DB_PASSWORD=senha_do_banco_wl
 ```
 
 **⚠️ Valores diferentes para cada ambiente!**
+
 - `development`: projetos de desenvolvimento
-- `homolog`: projetos de staging  
+- `homolog`: projetos de staging
 - `production`: projetos de produção
 
 **📖 Detalhes completos**: [docs/GITHUB_ENVIRONMENTS_SETUP.md](docs/GITHUB_ENVIRONMENTS_SETUP.md)
@@ -110,7 +120,9 @@ WL_SUPABASE_DB_PASSWORD=senha_do_banco_wl
 ## 📊 **Monitoramento de Migrations**
 
 ### **Novos Logs Detalhados**
+
 Cada deploy agora mostra:
+
 ```
 🎯 Deploying to environment: production
 Branch: main
@@ -124,6 +136,7 @@ Event: push
 ```
 
 ### **Verificação Manual**
+
 ```bash
 # Testar antes do deploy
 npm run test:migrations
@@ -139,7 +152,7 @@ supabase migration list --workdir packages/db-aurea
 Antes de fazer push para `develop` ou `main`:
 
 - [ ] Migrations testadas localmente: `npm run db:migrate:aurea`
-- [ ] Teste automático passou: `npm run test:migrations`  
+- [ ] Teste automático passou: `npm run test:migrations`
 - [ ] Precommit check passou: `npm run precommit:check`
 - [ ] Environments configurados no GitHub
 - [ ] Secrets definidos corretamente para o ambiente alvo
@@ -149,6 +162,7 @@ Antes de fazer push para `develop` ou `main`:
 ## 🔄 **Rollback de Migrations**
 
 ### **Se migration quebrou em staging:**
+
 ```bash
 # 1. Reverter commit
 git revert COMMIT_HASH
@@ -158,6 +172,7 @@ git push origin develop
 ```
 
 ### **Se migration quebrou em produção:**
+
 ```bash
 # 1. URGENTE: Interromper deploy se ainda rodando
 # 2. Criar hotfix com rollback
@@ -168,7 +183,7 @@ git push origin hotfix/rollback-migration
 
 # 3. Merge direto na main (bypass review se necessário)
 git checkout main
-git merge hotfix/rollback-migration  
+git merge hotfix/rollback-migration
 git push origin main
 
 # 4. Deploy automático aplicará rollback em produção
@@ -179,7 +194,7 @@ git push origin main
 ## 📈 **Próximos Passos**
 
 1. **⚠️ URGENTE**: Configurar environments no GitHub
-2. **🧪 Testar**: Deploy manual para homologação  
+2. **🧪 Testar**: Deploy manual para homologação
 3. **🔄 Implementar**: Branch `develop` para staging automático
 4. **🛡️ Configurar**: Proteção obrigatória no environment `production`
 5. **📊 Monitorar**: Primeiro deploy em produção com os novos workflows

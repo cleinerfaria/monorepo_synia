@@ -23,16 +23,16 @@ function log(color, message) {
 
 function runCommand(command, cwd) {
   try {
-    const result = execSync(command, { 
-      cwd, 
+    const result = execSync(command, {
+      cwd,
       stdio: 'pipe',
-      encoding: 'utf8'
+      encoding: 'utf8',
     });
     return { success: true, output: result };
   } catch (error) {
-    return { 
-      success: false, 
-      output: error.stdout || error.stderr || error.message 
+    return {
+      success: false,
+      output: error.stdout || error.stderr || error.message,
     };
   }
 }
@@ -42,31 +42,31 @@ function testMigrations() {
 
   const projects = [
     { name: 'Aurea', workdir: 'packages/db-aurea' },
-    { name: 'White Label', workdir: 'packages/db-white-label' }
+    { name: 'White Label', workdir: 'packages/db-white-label' },
   ];
 
   let allSuccess = true;
 
   for (const project of projects) {
     log('blue', `\n📦 Testando ${project.name}...`);
-    
+
     // 1. Verificar se existem migrations
     log('yellow', '1. Verificando migrations disponíveis...');
     const listResult = runCommand('supabase migration list --local', project.workdir);
-    
+
     if (!listResult.success) {
       log('red', `❌ Erro ao listar migrations: ${listResult.output}`);
       allSuccess = false;
       continue;
     }
-    
-    const migrations = listResult.output.split('\n').filter(line => line.includes('│')).length;
+
+    const migrations = listResult.output.split('\n').filter((line) => line.includes('│')).length;
     log('green', `✅ Encontradas ${migrations} migrations`);
 
     // 2. Testar syntax das migrations
     log('yellow', '2. Verificando sintaxe das migrations...');
     const validateResult = runCommand('supabase db lint', project.workdir);
-    
+
     if (validateResult.success) {
       log('green', '✅ Sintaxe das migrations ok');
     } else {
@@ -77,7 +77,7 @@ function testMigrations() {
     // 3. Simular aplicação (dry-run se disponível)
     log('yellow', '3. Simulando aplicação das migrations...');
     const dryRunResult = runCommand('supabase db push --dry-run', project.workdir);
-    
+
     if (dryRunResult.success) {
       log('green', '✅ Simulação ok - migrations podem ser aplicadas');
     } else {
@@ -87,8 +87,10 @@ function testMigrations() {
 
     // 4. Verificar dependências
     log('yellow', '4. Verificando dependências...');
-    const migrationFiles = require('fs').readdirSync(path.join(project.workdir, 'supabase/migrations'));
-    
+    const migrationFiles = require('fs').readdirSync(
+      path.join(project.workdir, 'supabase/migrations')
+    );
+
     if (migrationFiles.length === 0) {
       log('yellow', '⚠️  Nenhuma migration encontrada');
     } else {
@@ -112,11 +114,7 @@ function testMigrations() {
 function checkEnvironment() {
   log('cyan', '🔍 Verificando ambiente...\n');
 
-  const requiredEnvVars = [
-    'VITE_SUPABASE_URL',
-    'SUPABASE_SERVICE_ROLE_KEY',
-    'DB_URL'
-  ];
+  const requiredEnvVars = ['VITE_SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'DB_URL'];
 
   let envOk = true;
   for (const envVar of requiredEnvVars) {

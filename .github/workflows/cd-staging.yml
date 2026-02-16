@@ -29,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
@@ -96,10 +96,10 @@ jobs:
           set -euo pipefail
           echo "🚀 Deploying Aurea to Staging..."
           echo "Project: ${AUREA_SUPABASE_PROJECT_REF}"
-          
+
           supabase link --project-ref "${AUREA_SUPABASE_PROJECT_REF}" --password "${AUREA_SUPABASE_DB_PASSWORD}" --workdir packages/db-aurea --debug
           supabase db push --workdir packages/db-aurea --include-all --debug
-          
+
           echo "✅ Aurea staging deployment completed"
 
       - name: Deploy White Label to Staging
@@ -112,10 +112,10 @@ jobs:
           set -euo pipefail
           echo "🚀 Deploying White Label to Staging..."
           echo "Project: ${WL_SUPABASE_PROJECT_REF}"
-          
+
           supabase link --project-ref "${WL_SUPABASE_PROJECT_REF}" --password "${WL_SUPABASE_DB_PASSWORD}" --workdir packages/db-white-label --debug
           supabase db push --workdir packages/db-white-label --include-all --debug
-          
+
           echo "✅ White Label staging deployment completed"
 
       - name: Verify Staging Deployment
@@ -127,11 +127,11 @@ jobs:
         run: |
           set -euo pipefail
           echo "🔍 Verifying staging deployment..."
-          
+
           echo "Aurea migrations status:"
           supabase migration list --workdir packages/db-aurea
-          
+
           echo "White Label migrations status:"
           supabase migration list --workdir packages/db-white-label
-          
+
           echo "🎉 Staging deployment verified successfully!"
