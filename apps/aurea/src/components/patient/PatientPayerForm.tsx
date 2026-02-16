@@ -1,16 +1,16 @@
-import { useState } from 'react'
-import { ButtonNew, Input, Switch, Textarea, DatePicker, SearchableSelect } from '@/components/ui'
-import type { PatientPayer, Client } from '@/types/database'
-import { Plus, Trash2, CreditCard } from 'lucide-react'
-import { formatDateOnly } from '@/lib/dateOnly'
+﻿import { useState } from 'react';
+import { Button, Input, Switch, Textarea, DatePicker, SearchableSelect } from '@/components/ui';
+import type { PatientPayer, Client } from '@/types/database';
+import { Plus, Trash2, CreditCard } from 'lucide-react';
+import { formatDateOnly } from '@/lib/dateOnly';
 interface PatientPayerFormProps {
-  payers: PatientPayer[]
-  onChange: (payers: PatientPayer[]) => void
-  companyId: string
-  patientId?: string
-  clients: Client[]
-  onSave?: (payers: PatientPayer[]) => Promise<void>
-  isSaving?: boolean
+  payers: PatientPayer[];
+  onChange: (payers: PatientPayer[]) => void;
+  companyId: string;
+  patientId?: string;
+  clients: Client[];
+  onSave?: (payers: PatientPayer[]) => Promise<void>;
+  isSaving?: boolean;
 }
 
 export default function PatientPayerForm({
@@ -22,7 +22,7 @@ export default function PatientPayerForm({
   onSave,
   isSaving,
 }: PatientPayerFormProps) {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(payers.length > 0 ? 0 : null)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(payers.length > 0 ? 0 : null);
 
   const handleAddPayer = () => {
     const newPayer: Partial<PatientPayer> = {
@@ -34,81 +34,81 @@ export default function PatientPayerForm({
       active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    }
-    onChange([...payers, newPayer as PatientPayer])
-    setExpandedIndex(payers.length)
-  }
+    };
+    onChange([...payers, newPayer as PatientPayer]);
+    setExpandedIndex(payers.length);
+  };
 
   const handleRemovePayer = (index: number) => {
-    const newPayers = payers.filter((_, i) => i !== index)
-    onChange(newPayers)
+    const newPayers = payers.filter((_, i) => i !== index);
+    onChange(newPayers);
     if (expandedIndex === index) {
-      setExpandedIndex(null)
+      setExpandedIndex(null);
     }
-  }
+  };
 
   const handleUpdatePayer = (index: number, field: keyof PatientPayer, value: any) => {
-    const newPayers = [...payers]
+    const newPayers = [...payers];
 
-    // Se marcando como primário, desmarcar os outros
+    // Se marcando como primÃ¡rio, desmarcar os outros
     if (field === 'is_primary' && value === true) {
       newPayers.forEach((payer, i) => {
         if (i !== index) {
-          payer.is_primary = false
+          payer.is_primary = false;
         }
-      })
+      });
     }
 
     newPayers[index] = {
       ...newPayers[index],
       [field]: value,
       updated_at: new Date().toISOString(),
-    }
-    onChange(newPayers)
-  }
+    };
+    onChange(newPayers);
+  };
 
   const handleCoverageChange = (index: number, value: string) => {
-    const numValue = parseFloat(value)
+    const numValue = parseFloat(value);
     if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
-      handleUpdatePayer(index, 'coverage_percent', numValue)
+      handleUpdatePayer(index, 'coverage_percent', numValue);
     } else if (value === '' || value === null) {
-      handleUpdatePayer(index, 'coverage_percent', null)
+      handleUpdatePayer(index, 'coverage_percent', null);
     }
-  }
+  };
 
   const getClientName = (clientId: string): string => {
-    const client = clients.find((c) => c.id === clientId)
-    return client?.name || 'Cliente não encontrado'
-  }
+    const client = clients.find((c) => c.id === clientId);
+    return client?.name || 'Cliente nÃ£o encontrado';
+  };
 
   const getClientType = (clientId: string): string => {
-    const client = clients.find((c) => c.id === clientId)
-    if (!client?.type) return 'Não definido'
+    const client = clients.find((c) => c.id === clientId);
+    if (!client?.type) return 'NÃ£o definido';
 
     const typeLabels: Record<string, string> = {
-      pessoa_fisica: 'Pessoa Física',
-      pessoa_juridica: 'Pessoa Jurídica',
+      pessoa_fisica: 'Pessoa FÃ­sica',
+      pessoa_juridica: 'Pessoa JurÃ­dica',
       empresa: 'Empresa',
       operadora: 'Operadora',
-      plano_saude: 'Plano de Saúde',
+      plano_saude: 'Plano de SaÃºde',
       seguradora: 'Seguradora',
       insurer: 'Operadora',
-      pf: 'Pessoa Física',
-      pj: 'Pessoa Jurídica',
-      individual: 'Pessoa Física',
+      pf: 'Pessoa FÃ­sica',
+      pj: 'Pessoa JurÃ­dica',
+      individual: 'Pessoa FÃ­sica',
       corporate: 'Empresa',
       insurance: 'Operadora',
-      health_plan: 'Plano de Saúde',
-      government: 'Órgão Público',
-    }
+      health_plan: 'Plano de SaÃºde',
+      government: 'Ã“rgÃ£o PÃºblico',
+    };
 
-    return typeLabels[client.type.toLowerCase()] || client.type
-  }
+    return typeLabels[client.type.toLowerCase()] || client.type;
+  };
 
   const clientOptions = [
     { value: '', label: 'Selecione um cliente...' },
     ...clients.filter((c) => c.active).map((c) => ({ value: c.id, label: c.name })),
-  ]
+  ];
 
   return (
     <div className="space-y-4">
@@ -116,7 +116,7 @@ export default function PatientPayerForm({
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Fontes Pagadoras</h3>
         <div className="flex items-center gap-2">
           {patientId && onSave && payers.length > 0 && (
-            <ButtonNew
+            <Button
               type="button"
               variant="solid"
               size="sm"
@@ -126,7 +126,7 @@ export default function PatientPayerForm({
               label={isSaving ? 'Salvando...' : 'Salvar Fontes Pagadoras'}
             />
           )}
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             size="sm"
@@ -159,10 +159,12 @@ export default function PatientPayerForm({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {payer.client_id ? getClientName(payer.client_id) : 'Cliente não selecionado'}
+                      {payer.client_id
+                        ? getClientName(payer.client_id)
+                        : 'Cliente nÃ£o selecionado'}
                     </span>
                     {payer.is_primary && (
-                      <span className="rounded border border-primary-500/30 bg-primary-500/10 px-2 py-0.5 text-xs font-semibold text-primary-700 dark:bg-primary-400/20 dark:text-primary-300">
+                      <span className="border-primary-500/30 bg-primary-500/10 text-primary-700 dark:bg-primary-400/20 dark:text-primary-300 rounded border px-2 py-0.5 text-xs font-semibold">
                         Principal
                       </span>
                     )}
@@ -175,33 +177,33 @@ export default function PatientPayerForm({
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {payer.client_id ? getClientType(payer.client_id) : 'Tipo não definido'}
+                    {payer.client_id ? getClientType(payer.client_id) : 'Tipo nÃ£o definido'}
                   </p>
                 </div>
                 <div>
                   <div className="flex gap-1">
                     <span className="text-sm text-gray-600 dark:text-gray-300">Cobertura:</span>
                     <span className="w-10 text-right text-sm text-gray-600 dark:text-gray-300">
-                      {payer.coverage_percent !== null ? `${payer.coverage_percent}%` : '—'}
+                      {payer.coverage_percent !== null ? `${payer.coverage_percent}%` : 'â€”'}
                     </span>
                   </div>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     {payer.start_date
-                      ? `Início: ${formatDateOnly(payer.start_date)}`
-                      : 'Sem data de início'}
+                      ? `InÃ­cio: ${formatDateOnly(payer.start_date)}`
+                      : 'Sem data de inÃ­cio'}
                   </p>
                 </div>
               </div>
             </div>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={(e) => {
-                e.stopPropagation()
-                handleRemovePayer(index)
+                e.stopPropagation();
+                handleRemovePayer(index);
               }}
               icon={<Trash2 className="h-4 w-4" />}
               label=""
@@ -242,7 +244,7 @@ export default function PatientPayerForm({
                   }
                 />
                 <DatePicker
-                  label="Data de Início"
+                  label="Data de InÃ­cio"
                   value={payer.start_date || ''}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleUpdatePayer(index, 'start_date', e.target.value)
@@ -258,8 +260,8 @@ export default function PatientPayerForm({
               </div>
 
               <Textarea
-                label="Observações"
-                placeholder="Informações adicionais sobre esta fonte pagadora"
+                label="ObservaÃ§Ãµes"
+                placeholder="InformaÃ§Ãµes adicionais sobre esta fonte pagadora"
                 value={payer.notes || ''}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   handleUpdatePayer(index, 'notes', e.target.value)
@@ -288,5 +290,5 @@ export default function PatientPayerForm({
         </div>
       ))}
     </div>
-  )
+  );
 }

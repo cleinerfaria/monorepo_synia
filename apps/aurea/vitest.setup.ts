@@ -1,11 +1,11 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock do ResizeObserver (necessário para alguns componentes)
 globalThis.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
-}
+};
 
 // Mock do matchMedia (necessário para media queries)
 Object.defineProperty(window, 'matchMedia', {
@@ -20,21 +20,21 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: () => {},
     dispatchEvent: () => false,
   }),
-})
+});
 
 // Mock do scrollTo
-window.scrollTo = () => {}
+window.scrollTo = () => {};
 
 // Mock do IntersectionObserver
 globalThis.IntersectionObserver = class IntersectionObserver {
-  readonly root: Element | null = null
-  readonly rootMargin: string = ''
-  readonly thresholds: ReadonlyArray<number> = []
+  readonly root: Element | null = null;
+  readonly rootMargin: string = '';
+  readonly thresholds: ReadonlyArray<number> = [];
 
   observe() {}
   unobserve() {}
   disconnect() {}
   takeRecords(): IntersectionObserverEntry[] {
-    return []
+    return [];
   }
-}
+};

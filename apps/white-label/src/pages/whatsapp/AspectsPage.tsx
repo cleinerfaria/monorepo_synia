@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ClipboardList, Edit, LayoutGrid, Plus, Trash } from 'lucide-react';
-import { Card, Button, DataTable, EmptyState, Badge } from '@/components/ui';
+import { Card, Button, DataTable, EmptyState, Badge } from '@synia/ui';
 import { useAuthStore } from '@/stores/authStore';
 import {
   useEvaluations,
@@ -160,7 +160,7 @@ export default function AspectsPage() {
                 placeholder="Buscar avaliacao..."
                 value={searchEvaluations}
                 onChange={(e) => setSearchEvaluations(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
           </div>
@@ -253,7 +253,7 @@ export default function AspectsPage() {
                 placeholder="Buscar aspecto..."
                 value={searchAspects}
                 onChange={(e) => setSearchAspects(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
           </div>

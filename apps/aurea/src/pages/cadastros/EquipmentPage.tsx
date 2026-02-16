@@ -1,11 +1,11 @@
-﻿import { useState, useMemo, useEffect } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useEffect } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  ButtonNew,
   DataTable,
+  ListPagination,
   Modal,
   ModalFooter,
   Input,
@@ -15,67 +15,74 @@ import {
   StatusBadge,
   EmptyState,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useEquipment,
   useCreateEquipment,
   useUpdateEquipment,
   useDeleteEquipment,
   useAssignEquipment,
-} from '@/hooks/useEquipment'
-import { usePatients } from '@/hooks/usePatients'
-import { useForm } from 'react-hook-form'
-import type { Equipment } from '@/types/database'
+} from '@/hooks/useEquipment';
+import { usePatients } from '@/hooks/usePatients';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { useForm } from 'react-hook-form';
+import type { Equipment } from '@/types/database';
 
 interface EquipmentFormData {
-  code: string
-  name: string
-  serial_number: string
-  patrimony_code: string
-  description: string
-  status: 'available' | 'in_use' | 'maintenance' | 'inactive'
+  code: string;
+  name: string;
+  serial_number: string;
+  patrimony_code: string;
+  description: string;
+  status: 'available' | 'in_use' | 'maintenance' | 'inactive';
 }
 
-export default function EquipmentPage() {
-  const [searchInput, setSearchInput] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
-  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
-  const [selectedPatientId, setSelectedPatientId] = useState('')
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
-  const { data: equipment = [], isLoading } = useEquipment()
-  const { data: patients = [] } = usePatients()
-  const createEquipment = useCreateEquipment()
-  const updateEquipment = useUpdateEquipment()
-  const deleteEquipment = useDeleteEquipment()
-  const assignEquipment = useAssignEquipment()
+export default function EquipmentPage() {
+  const [currentPage, setCurrentPage] = useListPageState();
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState('');
+
+  const { data: equipment = [], isLoading } = useEquipment();
+  const { data: patients = [] } = usePatients();
+  const createEquipment = useCreateEquipment();
+  const updateEquipment = useUpdateEquipment();
+  const deleteEquipment = useDeleteEquipment();
+  const assignEquipment = useAssignEquipment();
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<EquipmentFormData>()
+  } = useForm<EquipmentFormData>();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setSearchTerm(searchInput.trim())
-    }, 300)
+      setSearchTerm(searchInput.trim());
+      setCurrentPage(1);
+    }, 300);
 
-    return () => clearTimeout(timeout)
-  }, [searchInput])
+    return () => clearTimeout(timeout);
+  }, [searchInput, setCurrentPage]);
 
-  const hasActiveSearch = searchTerm.trim().length > 0
+  const hasActiveSearch = searchTerm.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-    setSearchTerm('')
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
 
   const openAddModal = () => {
-    setSelectedEquipment(null)
+    setSelectedEquipment(null);
     reset({
       code: '',
       name: '',
@@ -83,12 +90,12 @@ export default function EquipmentPage() {
       patrimony_code: '',
       description: '',
       status: 'available',
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = (item: Equipment) => {
-    setSelectedEquipment(item)
+    setSelectedEquipment(item);
     reset({
       code: item.code || '',
       name: item.name,
@@ -96,20 +103,20 @@ export default function EquipmentPage() {
       patrimony_code: item.patrimony_code || '',
       description: item.description || '',
       status: item.status as EquipmentFormData['status'],
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openDeleteModal = (item: Equipment) => {
-    setSelectedEquipment(item)
-    setIsDeleteModalOpen(true)
-  }
+    setSelectedEquipment(item);
+    setIsDeleteModalOpen(true);
+  };
 
   const openAssignModal = (item: Equipment) => {
-    setSelectedEquipment(item)
-    setSelectedPatientId(item.assigned_patient_id || '')
-    setIsAssignModalOpen(true)
-  }
+    setSelectedEquipment(item);
+    setSelectedPatientId(item.assigned_patient_id || '');
+    setIsAssignModalOpen(true);
+  };
 
   const onSubmit = async (data: EquipmentFormData) => {
     const payload = {
@@ -119,43 +126,43 @@ export default function EquipmentPage() {
       patrimony_code: data.patrimony_code || null,
       description: data.description || null,
       status: data.status,
-    }
+    };
 
     if (selectedEquipment) {
       await updateEquipment.mutateAsync({
         id: selectedEquipment.id,
         ...payload,
-      })
+      });
     } else {
-      await createEquipment.mutateAsync(payload)
+      await createEquipment.mutateAsync(payload);
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const handleDelete = async () => {
     if (selectedEquipment) {
-      await deleteEquipment.mutateAsync(selectedEquipment.id)
-      setIsDeleteModalOpen(false)
+      await deleteEquipment.mutateAsync(selectedEquipment.id);
+      setIsDeleteModalOpen(false);
     }
-  }
+  };
 
   const handleAssign = async () => {
     if (selectedEquipment && selectedPatientId) {
       await assignEquipment.mutateAsync({
         id: selectedEquipment.id,
         patientId: selectedPatientId,
-      })
-      setIsAssignModalOpen(false)
+      });
+      setIsAssignModalOpen(false);
     }
-  }
+  };
 
   const handleUnassign = async (item: Equipment) => {
-    await assignEquipment.mutateAsync({ id: item.id, patientId: null })
-  }
+    await assignEquipment.mutateAsync({ id: item.id, patientId: null });
+  };
 
   const filteredEquipment = useMemo(() => {
-    if (!searchTerm) return equipment
-    const term = searchTerm.toLowerCase()
+    if (!searchTerm) return equipment;
+    const term = searchTerm.toLowerCase();
 
     return equipment.filter((item) => {
       const haystack = [
@@ -168,11 +175,24 @@ export default function EquipmentPage() {
       ]
         .filter(Boolean)
         .join(' ')
-        .toLowerCase()
+        .toLowerCase();
 
-      return haystack.includes(term)
-    })
-  }, [equipment, searchTerm])
+      return haystack.includes(term);
+    });
+  }, [equipment, searchTerm]);
+
+  const totalCount = filteredEquipment.length;
+  const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
+  const paginatedEquipment = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredEquipment.slice(start, start + PAGE_SIZE);
+  }, [filteredEquipment, currentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages, setCurrentPage]);
 
   const columns: ColumnDef<any>[] = useMemo(
     () => [
@@ -256,19 +276,19 @@ export default function EquipmentPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   const statusOptions = [
     { value: 'available', label: 'Disponível' },
     { value: 'in_use', label: 'Em Uso' },
     { value: 'maintenance', label: 'Manutenção' },
     { value: 'inactive', label: 'Desativado' },
-  ]
+  ];
 
   const patientOptions = patients.map((p) => ({
     value: p.id,
     label: p.name,
-  }))
+  }));
 
   return (
     <div className="space-y-6">
@@ -279,9 +299,8 @@ export default function EquipmentPage() {
             Equipamentos
           </h1>
         </div>
-        <ButtonNew onClick={openAddModal} variant="solid" label="Novo Equipamento" />
+        <Button onClick={openAddModal} variant="solid" label="Novo Equipamento" />
       </div>
-      \n {/* Table */}\r\n{' '}
       <Card padding="none">
         <div className="space-y-4 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -292,11 +311,11 @@ export default function EquipmentPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Buscar por nome, código, série, patrimônio ou paciente..."
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -311,8 +330,9 @@ export default function EquipmentPage() {
           </div>
 
           <DataTable
-            data={filteredEquipment}
+            data={paginatedEquipment}
             columns={columns}
+            showPagination={false}
             isLoading={isLoading}
             emptyState={
               <EmptyState
@@ -325,7 +345,7 @@ export default function EquipmentPage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openAddModal}
                       size="sm"
                       variant="solid"
@@ -335,6 +355,16 @@ export default function EquipmentPage() {
                 }
               />
             }
+          />
+          <ListPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            itemLabel="equipamentos"
+            onPreviousPage={() => setCurrentPage((page) => page - 1)}
+            onNextPage={() => setCurrentPage((page) => page + 1)}
+            isLoading={isLoading}
           />
         </div>
       </Card>
@@ -388,14 +418,14 @@ export default function EquipmentPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
@@ -433,7 +463,7 @@ export default function EquipmentPage() {
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
@@ -465,7 +495,7 @@ export default function EquipmentPage() {
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
@@ -483,5 +513,5 @@ export default function EquipmentPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

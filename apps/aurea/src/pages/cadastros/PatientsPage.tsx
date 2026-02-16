@@ -1,48 +1,47 @@
-﻿import { useState, useMemo, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ColumnDef } from '@tanstack/react-table'
-import { Users, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
+import { Users, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX } from 'lucide-react';
 import {
   Card,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   StatusBadge,
   Badge,
   EmptyState,
   SearchableSelect,
-  FilterToggleButton,
   type BadgeVariant,
   IconButton,
   ColorBadge,
-} from '@/components/ui'
-import { usePatientsPaginated, useUpdatePatient } from '@/hooks/usePatients'
-import { useClients } from '@/hooks/useClients'
-import { useListPageState } from '@/hooks/useListPageState'
-import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination'
-import type { Patient, Client } from '@/types/database'
-import { format, differenceInYears } from 'date-fns'
-import { formatDateOnly, parseDateOnlyOrNull } from '@/lib/dateOnly'
+} from '@/components/ui';
+import { usePatientsPaginated, useUpdatePatient } from '@/hooks/usePatients';
+import { useClients } from '@/hooks/useClients';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import type { Patient, Client } from '@/types/database';
+import { format, differenceInYears } from 'date-fns';
+import { formatDateOnly, parseDateOnlyOrNull } from '@/lib/dateOnly';
 
-const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 export default function PatientsPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   // Paginação e busca server-side
-  const [currentPage, setCurrentPage] = useListPageState()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
+  const [currentPage, setCurrentPage] = useListPageState();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   // Filtros (agora server-side)
-  const [clientFilter, setClientFilter] = useState('')
-  const [genderFilter, setGenderFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [clientFilter, setClientFilter] = useState('');
+  const [genderFilter, setGenderFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Ordenação server-side
-  const [sortColumn, setSortColumn] = useState<string>('name')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [sortColumn, setSortColumn] = useState<string>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Filters object for the paginated hook
   const filters = useMemo(
@@ -52,7 +51,7 @@ export default function PatientsPage() {
       status: statusFilter || undefined,
     }),
     [clientFilter, genderFilter, statusFilter]
-  )
+  );
 
   const { data: paginatedData, isLoading } = usePatientsPaginated(
     currentPage,
@@ -61,58 +60,58 @@ export default function PatientsPage() {
     filters,
     sortColumn,
     sortDirection
-  )
+  );
 
-  const items = paginatedData?.data ?? []
-  const totalCount = paginatedData?.totalCount ?? 0
-  const totalPages = paginatedData?.totalPages ?? 1
+  const items = paginatedData?.data ?? [];
+  const totalCount = paginatedData?.totalCount ?? 0;
+  const totalPages = paginatedData?.totalPages ?? 1;
 
-  const updateItem = useUpdatePatient()
+  const updateItem = useUpdatePatient();
 
   // Dados para os filtros
-  const { data: clientsData = [] } = useClients()
-  const clients = clientsData as Client[]
+  const { data: clientsData = [] } = useClients();
+  const clients = clientsData as Client[];
 
   // Search handlers
   const handleSearch = useCallback(() => {
-    setCurrentPage(1)
-    setSearchTerm(searchInput)
-  }, [searchInput, setCurrentPage])
+    setCurrentPage(1);
+    setSearchTerm(searchInput);
+  }, [searchInput, setCurrentPage]);
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSearch()
+      handleSearch();
     }
-  }
+  };
 
   const clearFilters = () => {
-    setSearchInput('')
-    setSearchTerm('')
-    setClientFilter('')
-    setGenderFilter('')
-    setStatusFilter('')
-    setCurrentPage(1)
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setClientFilter('');
+    setGenderFilter('');
+    setStatusFilter('');
+    setCurrentPage(1);
+  };
 
-  const hasActiveFilters = searchTerm || clientFilter || genderFilter || statusFilter
+  const hasActiveFilters = searchTerm || clientFilter || genderFilter || statusFilter;
 
   const toggleActive = async (item: Patient) => {
     await updateItem.mutateAsync({
       id: item.id,
       active: !item.active,
-    })
-  }
+    });
+  };
 
   // Handler para ordenação por coluna
   const handleSort = (column: string) => {
     if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      setSortColumn(column)
-      setSortDirection('asc')
+      setSortColumn(column);
+      setSortDirection('asc');
     }
-    setCurrentPage(1)
-  }
+    setCurrentPage(1);
+  };
 
   const columns: ColumnDef<Patient>[] = useMemo(
     () => [
@@ -121,7 +120,7 @@ export default function PatientsPage() {
         header: () => (
           <button
             onClick={() => handleSort('name')}
-            className="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1"
           >
             NOME
             {sortColumn === 'name' && (
@@ -144,7 +143,7 @@ export default function PatientsPage() {
         header: () => (
           <button
             onClick={() => handleSort('birth_date')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             DATA NASC.
             {sortColumn === 'birth_date' && (
@@ -164,12 +163,12 @@ export default function PatientsPage() {
         header: () => <span className="block w-full text-center">IDADE</span>,
         enableSorting: false,
         cell: ({ row }) => {
-          const birthDate = parseDateOnlyOrNull(row.original.birth_date)
+          const birthDate = parseDateOnlyOrNull(row.original.birth_date);
           return (
             <div className="text-center text-gray-700 dark:text-gray-300">
               {birthDate ? `${differenceInYears(new Date(), birthDate)} anos` : '-'}
             </div>
-          )
+          );
         },
       },
       {
@@ -185,7 +184,7 @@ export default function PatientsPage() {
             M: 'info',
             F: 'pink',
             O: 'neutral',
-          }
+          };
           const genderLabels: Record<string, string> = {
             male: 'Masculino',
             female: 'Feminino',
@@ -194,8 +193,8 @@ export default function PatientsPage() {
             M: 'Masculino',
             F: 'Feminino',
             O: 'Outro',
-          }
-          const gender = row.original.gender
+          };
+          const gender = row.original.gender;
           return (
             <div className="text-center">
               {gender ? (
@@ -204,7 +203,7 @@ export default function PatientsPage() {
                 <span className="text-gray-400 dark:text-gray-500">-</span>
               )}
             </div>
-          )
+          );
         },
       },
       {
@@ -215,10 +214,10 @@ export default function PatientsPage() {
           // Buscar o client da fonte pagadora principal
           const primaryPayer = (row.original as any).patient_payer?.find(
             (payer: any) => payer.is_primary
-          )
-          const client = primaryPayer?.client
-          const operatoraName = client?.name
-          const operatoraColor = client?.color
+          );
+          const client = primaryPayer?.client;
+          const operatoraName = client?.name;
+          const operatoraColor = client?.color;
 
           return (
             <div className="flex justify-center">
@@ -228,7 +227,7 @@ export default function PatientsPage() {
                 <span className="text-gray-400 dark:text-gray-500">-</span>
               )}
             </div>
-          )
+          );
         },
       },
       {
@@ -236,7 +235,7 @@ export default function PatientsPage() {
         header: () => (
           <button
             onClick={() => handleSort('active')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             STATUS
             {sortColumn === 'active' && (
@@ -249,8 +248,8 @@ export default function PatientsPage() {
           <div className="text-center">
             <button
               onClick={(e) => {
-                e.stopPropagation()
-                toggleActive(row.original)
+                e.stopPropagation();
+                toggleActive(row.original);
               }}
               className="cursor-pointer"
             >
@@ -279,8 +278,8 @@ export default function PatientsPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                navigate(`/pacientes/${row.original.id}`)
+                e.stopPropagation();
+                navigate(`/pacientes/${row.original.id}`);
               }}
             >
               <Pencil className="h-4 w-4" />
@@ -288,8 +287,8 @@ export default function PatientsPage() {
             <IconButton
               variant={row.original.active ? 'danger' : 'success'}
               onClick={(e) => {
-                e.stopPropagation()
-                toggleActive(row.original)
+                e.stopPropagation();
+                toggleActive(row.original);
               }}
               title={row.original.active ? 'Inativar' : 'Ativar'}
             >
@@ -305,7 +304,7 @@ export default function PatientsPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [navigate, sortColumn, sortDirection]
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -316,11 +315,7 @@ export default function PatientsPage() {
             Pacientes
           </h1>
         </div>
-        <ButtonNew
-          onClick={() => navigate('/pacientes/novo')}
-          variant="solid"
-          label="Novo Paciente"
-        />
+        <Button onClick={() => navigate('/pacientes/novo')} variant="solid" label="Novo Paciente" />
       </div>
 
       {/* Table */}
@@ -336,11 +331,11 @@ export default function PatientsPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             <div className="flex items-center gap-2">
-              <ButtonNew
+              <Button
                 onClick={handleSearch}
                 variant="outline"
                 size="md"
@@ -349,7 +344,8 @@ export default function PatientsPage() {
                 label=""
                 className="w-9 justify-center pr-3"
               />
-              <FilterToggleButton
+              <Button
+                variant="filter"
                 active={Boolean(showFilters || hasActiveFilters)}
                 onClick={() => setShowFilters(!showFilters)}
                 icon={<Funnel className="mr-1 h-4 w-4" />}
@@ -359,7 +355,7 @@ export default function PatientsPage() {
                 className="min-w-24 justify-center"
               />
               {hasActiveFilters && (
-                <ButtonNew
+                <Button
                   onClick={clearFilters}
                   variant="outline"
                   size="md"
@@ -395,8 +391,8 @@ export default function PatientsPage() {
                   searchPlaceholder="Buscar operadora..."
                   value={clientFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setClientFilter(e.target.value)
-                    setCurrentPage(1)
+                    setClientFilter(e.target.value);
+                    setCurrentPage(1);
                   }}
                 />
 
@@ -413,8 +409,8 @@ export default function PatientsPage() {
                   searchPlaceholder="Buscar..."
                   value={genderFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setGenderFilter(e.target.value)
-                    setCurrentPage(1)
+                    setGenderFilter(e.target.value);
+                    setCurrentPage(1);
                   }}
                 />
 
@@ -430,8 +426,8 @@ export default function PatientsPage() {
                   searchPlaceholder="Buscar status..."
                   value={statusFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setStatusFilter(e.target.value)
-                    setCurrentPage(1)
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
                   }}
                 />
               </div>
@@ -450,7 +446,7 @@ export default function PatientsPage() {
                   title="Nenhum paciente encontrado"
                   description="Nenhum paciente corresponde aos filtros selecionados"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={clearFilters}
                       variant="solid"
                       size="sm"
@@ -465,7 +461,7 @@ export default function PatientsPage() {
                   title="Nenhum paciente cadastrado"
                   description="Cadastre pacientes para gerenciar suas informações"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={() => navigate('/pacientes/novo')}
                       variant="solid"
                       label="Novo Paciente"
@@ -487,5 +483,5 @@ export default function PatientsPage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

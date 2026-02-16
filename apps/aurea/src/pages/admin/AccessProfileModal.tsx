@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Modal, Input, Button, Badge } from '@/components/ui'
+import { useState, useEffect } from 'react';
+import { Modal, Input, Button, Badge } from '@/components/ui';
 import {
   AccessProfile,
   ModulePermission,
@@ -7,15 +7,15 @@ import {
   useCreateAccessProfile,
   useUpdateAccessProfile,
   groupPermissionsByModule,
-} from '@/hooks/useAccessProfiles'
-import toast from 'react-hot-toast'
-import { Check } from 'lucide-react'
+} from '@/hooks/useAccessProfiles';
+import toast from 'react-hot-toast';
+import { Check } from 'lucide-react';
 interface AccessProfileModalProps {
-  isOpen: boolean
-  onClose: () => void
-  profile: AccessProfile | null
-  companyId: string
-  existingPermissionIds?: string[]
+  isOpen: boolean;
+  onClose: () => void;
+  profile: AccessProfile | null;
+  companyId: string;
+  existingPermissionIds?: string[];
 }
 
 export default function AccessProfileModal({
@@ -25,25 +25,25 @@ export default function AccessProfileModal({
   companyId,
   existingPermissionIds = [],
 }: AccessProfileModalProps) {
-  const isEditing = !!profile
-  const isSystemProfile = profile?.is_system ?? false
+  const isEditing = !!profile;
+  const isSystemProfile = profile?.is_system ?? false;
 
   const [formData, setFormData] = useState({
     code: '',
     name: '',
     description: '',
     is_admin: false,
-  })
-  const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set())
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  });
+  const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Buscar todas as permissões
-  const { data: allPermissions = [], isLoading: isLoadingPermissions } = useModulePermissions()
+  const { data: allPermissions = [], isLoading: isLoadingPermissions } = useModulePermissions();
 
-  const createMutation = useCreateAccessProfile()
-  const updateMutation = useUpdateAccessProfile()
+  const createMutation = useCreateAccessProfile();
+  const updateMutation = useUpdateAccessProfile();
 
-  const isLoading = createMutation.isPending || updateMutation.isPending
+  const isLoading = createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     if (profile) {
@@ -52,41 +52,41 @@ export default function AccessProfileModal({
         name: profile.name,
         description: profile.description || '',
         is_admin: profile.is_admin,
-      })
-      setSelectedPermissions(new Set(existingPermissionIds))
+      });
+      setSelectedPermissions(new Set(existingPermissionIds));
     } else {
       setFormData({
         code: '',
         name: '',
         description: '',
         is_admin: false,
-      })
-      setSelectedPermissions(new Set())
+      });
+      setSelectedPermissions(new Set());
     }
-    setErrors({})
-  }, [profile, isOpen, existingPermissionIds])
+    setErrors({});
+  }, [profile, isOpen, existingPermissionIds]);
 
   const validate = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.code.trim()) {
-      newErrors.code = 'Código é obrigatório'
+      newErrors.code = 'Código é obrigatório';
     } else if (!/^[a-z0-9_]+$/.test(formData.code)) {
-      newErrors.code = 'Código deve conter apenas letras minúsculas, números e underscore'
+      newErrors.code = 'Código deve conter apenas letras minúsculas, números e underscore';
     }
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Nome é obrigatório'
+      newErrors.name = 'Nome é obrigatório';
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!validate()) return
+    if (!validate()) return;
 
     try {
       if (isEditing) {
@@ -96,8 +96,8 @@ export default function AccessProfileModal({
           description: formData.description || undefined,
           is_admin: formData.is_admin,
           permission_ids: Array.from(selectedPermissions),
-        })
-        toast.success('Perfil atualizado com sucesso!')
+        });
+        toast.success('Perfil atualizado com sucesso!');
       } else {
         await createMutation.mutateAsync({
           company_id: companyId,
@@ -106,57 +106,57 @@ export default function AccessProfileModal({
           description: formData.description || undefined,
           is_admin: formData.is_admin,
           permission_ids: Array.from(selectedPermissions),
-        })
-        toast.success('Perfil criado com sucesso!')
+        });
+        toast.success('Perfil criado com sucesso!');
       }
-      onClose()
+      onClose();
     } catch (error: any) {
-      console.error('Erro ao salvar perfil:', error)
-      const message = error.message || 'Erro ao salvar perfil'
-      setErrors({ submit: message })
-      toast.error(message)
+      console.error('Erro ao salvar perfil:', error);
+      const message = error.message || 'Erro ao salvar perfil';
+      setErrors({ submit: message });
+      toast.error(message);
     }
-  }
+  };
 
   const togglePermission = (permissionId: string) => {
-    if (isSystemProfile) return
+    if (isSystemProfile) return;
 
-    const newSelected = new Set(selectedPermissions)
+    const newSelected = new Set(selectedPermissions);
     if (newSelected.has(permissionId)) {
-      newSelected.delete(permissionId)
+      newSelected.delete(permissionId);
     } else {
-      newSelected.add(permissionId)
+      newSelected.add(permissionId);
     }
-    setSelectedPermissions(newSelected)
-  }
+    setSelectedPermissions(newSelected);
+  };
 
   const toggleModule = (modulePermissions: ModulePermission[]) => {
-    if (isSystemProfile) return
+    if (isSystemProfile) return;
 
-    const modulePermissionIds = modulePermissions.map((p) => p.id)
-    const allSelected = modulePermissionIds.every((id) => selectedPermissions.has(id))
+    const modulePermissionIds = modulePermissions.map((p) => p.id);
+    const allSelected = modulePermissionIds.every((id) => selectedPermissions.has(id));
 
-    const newSelected = new Set(selectedPermissions)
+    const newSelected = new Set(selectedPermissions);
     if (allSelected) {
-      modulePermissionIds.forEach((id) => newSelected.delete(id))
+      modulePermissionIds.forEach((id) => newSelected.delete(id));
     } else {
-      modulePermissionIds.forEach((id) => newSelected.add(id))
+      modulePermissionIds.forEach((id) => newSelected.add(id));
     }
-    setSelectedPermissions(newSelected)
-  }
+    setSelectedPermissions(newSelected);
+  };
 
   const selectAll = () => {
-    if (isSystemProfile) return
-    setSelectedPermissions(new Set(allPermissions.map((p) => p.id)))
-  }
+    if (isSystemProfile) return;
+    setSelectedPermissions(new Set(allPermissions.map((p) => p.id)));
+  };
 
   const deselectAll = () => {
-    if (isSystemProfile) return
-    setSelectedPermissions(new Set())
-  }
+    if (isSystemProfile) return;
+    setSelectedPermissions(new Set());
+  };
 
   // Agrupar permissões por módulo
-  const groupedPermissions = groupPermissionsByModule(allPermissions)
+  const groupedPermissions = groupPermissionsByModule(allPermissions);
 
   return (
     <Modal
@@ -231,7 +231,7 @@ export default function AccessProfileModal({
             checked={formData.is_admin}
             onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
             disabled={isSystemProfile}
-            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
           />
           <label htmlFor="is_admin" className="text-sm text-gray-700 dark:text-gray-300">
             Administrador (acesso total a todas as funcionalidades)
@@ -260,12 +260,12 @@ export default function AccessProfileModal({
             ) : (
               <div className="max-h-96 space-y-4 overflow-y-auto pr-2">
                 {groupedPermissions.map(({ module, permissions }) => {
-                  const modulePermissionIds = permissions.map((p) => p.id)
+                  const modulePermissionIds = permissions.map((p) => p.id);
                   const selectedCount = modulePermissionIds.filter((id) =>
                     selectedPermissions.has(id)
-                  ).length
-                  const allSelected = selectedCount === permissions.length
-                  const someSelected = selectedCount > 0 && selectedCount < permissions.length
+                  ).length;
+                  const allSelected = selectedCount === permissions.length;
+                  const someSelected = selectedCount > 0 && selectedCount < permissions.length;
 
                   return (
                     <div
@@ -290,7 +290,7 @@ export default function AccessProfileModal({
                             }`}
                           >
                             {allSelected && <Check className="h-3 w-3 text-white" />}
-                            {someSelected && <div className="h-2 w-2 rounded-sm bg-primary-500" />}
+                            {someSelected && <div className="bg-primary-500 h-2 w-2 rounded-sm" />}
                           </div>
                           <span className="font-medium text-gray-900 dark:text-white">
                             {module.name}
@@ -317,7 +317,7 @@ export default function AccessProfileModal({
                               checked={selectedPermissions.has(permission.id)}
                               onChange={() => togglePermission(permission.id)}
                               disabled={isSystemProfile}
-                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                             />
                             <span className="text-gray-700 dark:text-gray-300">
                               {permission.name}
@@ -326,7 +326,7 @@ export default function AccessProfileModal({
                         ))}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             )}
@@ -346,5 +346,5 @@ export default function AccessProfileModal({
         </div>
       </form>
     </Modal>
-  )
+  );
 }

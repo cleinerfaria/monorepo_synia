@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Input, Button, Loading, Select, MultiSelect, SearchableSelect } from '@/components/ui';
+import { Input, Button, Loading, Select, MultiSelect, SearchableSelect } from '@synia/ui';
 import usePageFilters from '@/hooks/usePageFilters';
 import type { PageFilter } from '@/types/database';
 
@@ -302,7 +302,7 @@ export default function DynamicFilters({
                     type="button"
                     onClick={() => handleLoadMore(filter)}
                     disabled={state?.isLoading}
-                    className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                    className="text-primary-600 hover:text-primary-700 dark:text-primary-400 text-xs"
                   >
                     {state?.isLoading ? 'Carregando...' : 'Carregar mais...'}
                   </button>
@@ -353,7 +353,7 @@ export default function DynamicFilters({
                     type="button"
                     onClick={() => handleLoadMore(filter)}
                     disabled={state?.isLoading}
-                    className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                    className="text-primary-600 hover:text-primary-700 dark:text-primary-400 text-xs"
                   >
                     {state?.isLoading ? 'Carregando...' : 'Carregar mais...'}
                   </button>
@@ -370,7 +370,7 @@ export default function DynamicFilters({
               type="checkbox"
               checked={value === true}
               onChange={(e) => handleInputChange(filter, e.target.checked.toString())}
-              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="text-primary-600 focus:ring-primary-500 rounded border-gray-300"
             />
             <label className="text-sm text-gray-700 dark:text-gray-300">{label}</label>
           </div>
@@ -393,7 +393,7 @@ export default function DynamicFilters({
                     value={option.value}
                     checked={value === option.value}
                     onChange={(e) => handleInputChange(filter, e.target.value)}
-                    className="border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="text-primary-600 focus:ring-primary-500 border-gray-300"
                   />
                   <label className="text-sm text-gray-700 dark:text-gray-300">{option.label}</label>
                 </div>

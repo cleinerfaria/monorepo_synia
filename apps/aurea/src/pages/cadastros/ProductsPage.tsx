@@ -1,77 +1,76 @@
-﻿import { useState, useMemo, useCallback, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ColumnDef } from '@tanstack/react-table'
-import { Archive, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
+import { Archive, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX } from 'lucide-react';
 import {
   Card,
-  ButtonNew,
+  Button,
   DataTable,
   ListPagination,
   StatusBadge,
   EmptyState,
   SearchableSelect,
-  FilterToggleButton,
   IconButton,
-} from '@/components/ui'
-import { useProductsPaginated, useUpdateProduct } from '@/hooks/useProducts'
-import { useActiveIngredients } from '@/hooks/useActiveIngredients'
-import { useProductGroups } from '@/hooks/useProductGroups'
-import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure'
-import { useListPageState } from '@/hooks/useListPageState'
-import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination'
-import type { Product } from '@/types/database'
+} from '@/components/ui';
+import { useProductsPaginated, useUpdateProduct } from '@/hooks/useProducts';
+import { useActiveIngredients } from '@/hooks/useActiveIngredients';
+import { useProductGroups } from '@/hooks/useProductGroups';
+import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import type { Product } from '@/types/database';
 
-const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE
-const SORT_COLUMNS = new Set(['name', 'item_type', 'min_stock', 'active'])
-const ITEM_TYPES = new Set(['medication', 'material', 'diet'])
-const STATUS_VALUES = new Set(['active', 'inactive'])
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
+const SORT_COLUMNS = new Set(['name', 'item_type', 'min_stock', 'active']);
+const ITEM_TYPES = new Set(['medication', 'material', 'diet']);
+const STATUS_VALUES = new Set(['active', 'inactive']);
 
 const parseSortColumn = (value: string | null) =>
-  value && SORT_COLUMNS.has(value) ? value : 'name'
+  value && SORT_COLUMNS.has(value) ? value : 'name';
 
 const parseSortDirection = (value: string | null): 'asc' | 'desc' =>
-  value === 'desc' ? 'desc' : 'asc'
+  value === 'desc' ? 'desc' : 'asc';
 
-const parseItemType = (value: string | null) => (value && ITEM_TYPES.has(value) ? value : '')
+const parseItemType = (value: string | null) => (value && ITEM_TYPES.has(value) ? value : '');
 
-const parseStatus = (value: string | null) => (value && STATUS_VALUES.has(value) ? value : '')
+const parseStatus = (value: string | null) => (value && STATUS_VALUES.has(value) ? value : '');
 
 export default function ProductsPage() {
-  const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const initialSearchTerm = searchParams.get('q') ?? ''
-  const initialTypeFilter = parseItemType(searchParams.get('type'))
-  const initialActiveIngredientFilter = searchParams.get('activeIngredient') ?? ''
-  const initialGroupFilter = searchParams.get('group') ?? ''
-  const initialUnitFilter = searchParams.get('unit') ?? ''
-  const initialStatusFilter = parseStatus(searchParams.get('status'))
-  const initialSortColumn = parseSortColumn(searchParams.get('sort'))
-  const initialSortDirection = parseSortDirection(searchParams.get('dir'))
+  const initialSearchTerm = searchParams.get('q') ?? '';
+  const initialTypeFilter = parseItemType(searchParams.get('type'));
+  const initialActiveIngredientFilter = searchParams.get('activeIngredient') ?? '';
+  const initialGroupFilter = searchParams.get('group') ?? '';
+  const initialUnitFilter = searchParams.get('unit') ?? '';
+  const initialStatusFilter = parseStatus(searchParams.get('status'));
+  const initialSortColumn = parseSortColumn(searchParams.get('sort'));
+  const initialSortDirection = parseSortDirection(searchParams.get('dir'));
 
   // Paginação e busca server-side
-  const [currentPage, setCurrentPage] = useListPageState()
-  const [searchTerm, setSearchTerm] = useState(initialSearchTerm)
-  const [searchInput, setSearchInput] = useState(initialSearchTerm)
+  const [currentPage, setCurrentPage] = useListPageState();
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [searchInput, setSearchInput] = useState(initialSearchTerm);
 
   // Filtros (agora server-side)
-  const [typeFilter, setTypeFilter] = useState(initialTypeFilter)
+  const [typeFilter, setTypeFilter] = useState(initialTypeFilter);
   const [activeIngredientFilter, setActiveIngredientFilter] = useState(
     initialActiveIngredientFilter
-  )
-  const [groupFilter, setGroupFilter] = useState(initialGroupFilter)
-  const [unitFilter, setUnitFilter] = useState(initialUnitFilter)
-  const [statusFilter, setStatusFilter] = useState(initialStatusFilter)
-  const [showFilters, setShowFilters] = useState(false)
+  );
+  const [groupFilter, setGroupFilter] = useState(initialGroupFilter);
+  const [unitFilter, setUnitFilter] = useState(initialUnitFilter);
+  const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Ordenação server-side
-  const [sortColumn, setSortColumn] = useState<string>(initialSortColumn)
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection)
+  const [sortColumn, setSortColumn] = useState<string>(initialSortColumn);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection);
 
-  const searchParamsString = searchParams.toString()
+  const searchParamsString = searchParams.toString();
 
   const parsedParams = useMemo(() => {
-    const params = new URLSearchParams(searchParamsString)
+    const params = new URLSearchParams(searchParamsString);
     return {
       searchTerm: params.get('q') ?? '',
       typeFilter: parseItemType(params.get('type')),
@@ -81,33 +80,33 @@ export default function ProductsPage() {
       statusFilter: parseStatus(params.get('status')),
       sortColumn: parseSortColumn(params.get('sort')),
       sortDirection: parseSortDirection(params.get('dir')),
-    }
-  }, [searchParamsString])
+    };
+  }, [searchParamsString]);
 
   useEffect(() => {
-    setSearchTerm(parsedParams.searchTerm)
-    setSearchInput(parsedParams.searchTerm)
-    setTypeFilter(parsedParams.typeFilter)
-    setActiveIngredientFilter(parsedParams.activeIngredientFilter)
-    setGroupFilter(parsedParams.groupFilter)
-    setUnitFilter(parsedParams.unitFilter)
-    setStatusFilter(parsedParams.statusFilter)
-    setSortColumn(parsedParams.sortColumn)
-    setSortDirection(parsedParams.sortDirection)
-  }, [parsedParams])
+    setSearchTerm(parsedParams.searchTerm);
+    setSearchInput(parsedParams.searchTerm);
+    setTypeFilter(parsedParams.typeFilter);
+    setActiveIngredientFilter(parsedParams.activeIngredientFilter);
+    setGroupFilter(parsedParams.groupFilter);
+    setUnitFilter(parsedParams.unitFilter);
+    setStatusFilter(parsedParams.statusFilter);
+    setSortColumn(parsedParams.sortColumn);
+    setSortDirection(parsedParams.sortDirection);
+  }, [parsedParams]);
 
   const listParamsString = useMemo(() => {
-    const params = new URLSearchParams()
-    if (searchTerm) params.set('q', searchTerm)
-    if (currentPage > 1) params.set('page', String(currentPage))
-    if (typeFilter) params.set('type', typeFilter)
-    if (activeIngredientFilter) params.set('activeIngredient', activeIngredientFilter)
-    if (groupFilter) params.set('group', groupFilter)
-    if (unitFilter) params.set('unit', unitFilter)
-    if (statusFilter) params.set('status', statusFilter)
-    if (sortColumn !== 'name') params.set('sort', sortColumn)
-    if (sortDirection !== 'asc') params.set('dir', sortDirection)
-    return params.toString()
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('q', searchTerm);
+    if (currentPage > 1) params.set('page', String(currentPage));
+    if (typeFilter) params.set('type', typeFilter);
+    if (activeIngredientFilter) params.set('activeIngredient', activeIngredientFilter);
+    if (groupFilter) params.set('group', groupFilter);
+    if (unitFilter) params.set('unit', unitFilter);
+    if (statusFilter) params.set('status', statusFilter);
+    if (sortColumn !== 'name') params.set('sort', sortColumn);
+    if (sortDirection !== 'asc') params.set('dir', sortDirection);
+    return params.toString();
   }, [
     searchTerm,
     currentPage,
@@ -118,20 +117,20 @@ export default function ProductsPage() {
     statusFilter,
     sortColumn,
     sortDirection,
-  ])
+  ]);
 
   useEffect(() => {
     if (listParamsString !== searchParamsString) {
-      setSearchParams(listParamsString, { replace: true })
+      setSearchParams(listParamsString, { replace: true });
     }
-  }, [listParamsString, searchParamsString, setSearchParams])
+  }, [listParamsString, searchParamsString, setSearchParams]);
 
-  const listQuerySuffix = listParamsString ? `?${listParamsString}` : ''
+  const listQuerySuffix = listParamsString ? `?${listParamsString}` : '';
   const buildProductUrl = useCallback(
     (productId: string) => `/produtos/${productId}${listQuerySuffix}`,
     [listQuerySuffix]
-  )
-  const newProductUrl = listQuerySuffix ? `/produtos/novo${listQuerySuffix}` : '/produtos/novo'
+  );
+  const newProductUrl = listQuerySuffix ? `/produtos/novo${listQuerySuffix}` : '/produtos/novo';
 
   // Filters object for the paginated hook
   const filters = useMemo(
@@ -143,7 +142,7 @@ export default function ProductsPage() {
       status: statusFilter || undefined,
     }),
     [typeFilter, activeIngredientFilter, groupFilter, unitFilter, statusFilter]
-  )
+  );
 
   const { data: paginatedData, isLoading } = useProductsPaginated(
     currentPage,
@@ -152,62 +151,62 @@ export default function ProductsPage() {
     filters,
     sortColumn,
     sortDirection
-  )
+  );
 
-  const items = paginatedData?.data ?? []
-  const totalCount = paginatedData?.totalCount ?? 0
-  const totalPages = paginatedData?.totalPages ?? 1
+  const items = paginatedData?.data ?? [];
+  const totalCount = paginatedData?.totalCount ?? 0;
+  const totalPages = paginatedData?.totalPages ?? 1;
 
-  const updateItem = useUpdateProduct()
+  const updateItem = useUpdateProduct();
 
   // Dados para os filtros
-  const { data: activeIngredients = [] } = useActiveIngredients()
-  const { data: productGroups = [] } = useProductGroups()
-  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure()
+  const { data: activeIngredients = [] } = useActiveIngredients();
+  const { data: productGroups = [] } = useProductGroups();
+  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure();
 
   // Search handlers
   const handleSearch = useCallback(() => {
-    setCurrentPage(1)
-    setSearchTerm(searchInput)
-  }, [searchInput, setCurrentPage])
+    setCurrentPage(1);
+    setSearchTerm(searchInput);
+  }, [searchInput, setCurrentPage]);
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSearch()
+      handleSearch();
     }
-  }
+  };
 
   const clearFilters = () => {
-    setSearchInput('')
-    setSearchTerm('')
-    setTypeFilter('')
-    setActiveIngredientFilter('')
-    setGroupFilter('')
-    setUnitFilter('')
-    setStatusFilter('')
-    setCurrentPage(1)
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setTypeFilter('');
+    setActiveIngredientFilter('');
+    setGroupFilter('');
+    setUnitFilter('');
+    setStatusFilter('');
+    setCurrentPage(1);
+  };
 
   const hasActiveFilters =
-    searchTerm || typeFilter || activeIngredientFilter || groupFilter || unitFilter || statusFilter
+    searchTerm || typeFilter || activeIngredientFilter || groupFilter || unitFilter || statusFilter;
 
   const toggleActive = async (item: Product) => {
     await updateItem.mutateAsync({
       id: item.id,
       active: !item.active,
-    })
-  }
+    });
+  };
 
   // Handler para ordenação por coluna
   const handleSort = (column: string) => {
     if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      setSortColumn(column)
-      setSortDirection('asc')
+      setSortColumn(column);
+      setSortDirection('asc');
     }
-    setCurrentPage(1)
-  }
+    setCurrentPage(1);
+  };
 
   const columns: ColumnDef<Product>[] = useMemo(
     () => [
@@ -216,7 +215,7 @@ export default function ProductsPage() {
         header: () => (
           <button
             onClick={() => handleSort('name')}
-            className="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1"
           >
             NOME
             {sortColumn === 'name' && (
@@ -236,7 +235,7 @@ export default function ProductsPage() {
               )}
             </p>
             {(row.original as any).active_ingredient_rel && (
-              <p className="text-sm text-primary-600 dark:text-primary-400">
+              <p className="text-primary-600 dark:text-primary-400 text-sm">
                 {(row.original as any).active_ingredient_rel.name}
               </p>
             )}
@@ -248,7 +247,7 @@ export default function ProductsPage() {
         header: () => (
           <button
             onClick={() => handleSort('item_type')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             TIPO
             {sortColumn === 'item_type' && (
@@ -271,11 +270,11 @@ export default function ProductsPage() {
               label: 'Dieta',
               color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
             },
-          }
+          };
           const type = typeLabels[row.original.item_type] || {
             label: row.original.item_type,
             color: 'bg-gray-100 text-gray-700',
-          }
+          };
           return (
             <div className="text-center">
               <span
@@ -284,7 +283,7 @@ export default function ProductsPage() {
                 {type.label}
               </span>
             </div>
-          )
+          );
         },
       },
       {
@@ -302,7 +301,7 @@ export default function ProductsPage() {
         header: () => (
           <button
             onClick={() => handleSort('min_stock')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             EST. MÍNIMO
             {sortColumn === 'min_stock' && (
@@ -322,17 +321,17 @@ export default function ProductsPage() {
         header: () => <span className="block w-full text-center">APRESENTAÇÕES</span>,
         enableSorting: false,
         cell: ({ row }) => {
-          const count = (row.original as any).presentations?.length || 0
+          const count = (row.original as any).presentations?.length || 0;
           if (count === 0) {
-            return <div className="text-center text-gray-400 dark:text-gray-500">-</div>
+            return <div className="text-center text-gray-400 dark:text-gray-500">-</div>;
           }
           return (
             <div className="text-center">
-              <span className="inline-flex min-w-[24px] items-center justify-center rounded-full bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-400">
+              <span className="bg-primary-500/10 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 inline-flex min-w-[24px] items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium">
                 {count}
               </span>
             </div>
-          )
+          );
         },
       },
       {
@@ -340,7 +339,7 @@ export default function ProductsPage() {
         header: () => (
           <button
             onClick={() => handleSort('active')}
-            className="flex w-full items-center justify-center gap-1 hover:text-primary-600 dark:hover:text-primary-400"
+            className="hover:text-primary-600 dark:hover:text-primary-400 flex w-full items-center justify-center gap-1"
           >
             STATUS
             {sortColumn === 'active' && (
@@ -353,8 +352,8 @@ export default function ProductsPage() {
           <div className="text-center">
             <button
               onClick={(e) => {
-                e.stopPropagation()
-                toggleActive(row.original)
+                e.stopPropagation();
+                toggleActive(row.original);
               }}
               className="cursor-pointer"
             >
@@ -371,8 +370,8 @@ export default function ProductsPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                navigate(buildProductUrl(row.original.id))
+                e.stopPropagation();
+                navigate(buildProductUrl(row.original.id));
               }}
             >
               <Pencil className="h-4 w-4" />
@@ -380,8 +379,8 @@ export default function ProductsPage() {
             <IconButton
               variant={row.original.active ? 'danger' : 'success'}
               onClick={(e) => {
-                e.stopPropagation()
-                toggleActive(row.original)
+                e.stopPropagation();
+                toggleActive(row.original);
               }}
               title={row.original.active ? 'Inativar' : 'Ativar'}
             >
@@ -397,7 +396,7 @@ export default function ProductsPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [navigate, sortColumn, sortDirection, buildProductUrl]
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -408,7 +407,7 @@ export default function ProductsPage() {
             Produtos
           </h1>
         </div>
-        <ButtonNew onClick={() => navigate(newProductUrl)} variant="solid" label="Novo Produto" />
+        <Button onClick={() => navigate(newProductUrl)} variant="solid" label="Novo Produto" />
       </div>
 
       {/* Table */}
@@ -424,11 +423,11 @@ export default function ProductsPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             <div className="flex items-center gap-2">
-              <ButtonNew
+              <Button
                 onClick={handleSearch}
                 variant="outline"
                 size="md"
@@ -437,7 +436,8 @@ export default function ProductsPage() {
                 label=""
                 className="w-9 justify-center pr-3"
               />
-              <FilterToggleButton
+              <Button
+                variant="filter"
                 active={Boolean(showFilters || hasActiveFilters)}
                 onClick={() => setShowFilters(!showFilters)}
                 icon={<Funnel className="mr-1 h-4 w-4" />}
@@ -454,7 +454,7 @@ export default function ProductsPage() {
                 className="min-w-24 justify-center"
               />
               {hasActiveFilters && (
-                <ButtonNew
+                <Button
                   onClick={clearFilters}
                   variant="outline"
                   size="md"
@@ -486,8 +486,8 @@ export default function ProductsPage() {
                   searchPlaceholder="Buscar tipo..."
                   value={typeFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setTypeFilter(e.target.value)
-                    setCurrentPage(1)
+                    setTypeFilter(e.target.value);
+                    setCurrentPage(1);
                   }}
                 />
 
@@ -507,8 +507,8 @@ export default function ProductsPage() {
                   searchPlaceholder="Buscar princípio ativo..."
                   value={activeIngredientFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setActiveIngredientFilter(e.target.value)
-                    setCurrentPage(1)
+                    setActiveIngredientFilter(e.target.value);
+                    setCurrentPage(1);
                   }}
                 />
 
@@ -526,8 +526,8 @@ export default function ProductsPage() {
                   searchPlaceholder="Buscar grupo..."
                   value={groupFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setGroupFilter(e.target.value)
-                    setCurrentPage(1)
+                    setGroupFilter(e.target.value);
+                    setCurrentPage(1);
                   }}
                 />
 
@@ -545,8 +545,8 @@ export default function ProductsPage() {
                   searchPlaceholder="Buscar unidade..."
                   value={unitFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setUnitFilter(e.target.value)
-                    setCurrentPage(1)
+                    setUnitFilter(e.target.value);
+                    setCurrentPage(1);
                   }}
                 />
 
@@ -562,8 +562,8 @@ export default function ProductsPage() {
                   searchPlaceholder="Buscar status..."
                   value={statusFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setStatusFilter(e.target.value)
-                    setCurrentPage(1)
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
                   }}
                 />
               </div>
@@ -582,7 +582,7 @@ export default function ProductsPage() {
                   title="Nenhum produto encontrado"
                   description="Nenhum produto corresponde aos filtros selecionados"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={clearFilters}
                       variant="solid"
                       size="sm"
@@ -597,7 +597,7 @@ export default function ProductsPage() {
                   title="Nenhum produto cadastrado"
                   description="Cadastre produtos para utilizar nas prescrições e no estoque"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={() => navigate(newProductUrl)}
                       variant="solid"
                       label="Novo Produto"
@@ -619,5 +619,5 @@ export default function ProductsPage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

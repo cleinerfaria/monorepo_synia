@@ -1,41 +1,43 @@
-﻿import { useState, useMemo, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Search, UserIcon, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
+import { Pencil, Trash2, Search, UserIcon, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  ButtonNew,
   DataTable,
+  ListPagination,
   Modal,
   ModalFooter,
   Badge,
   EmptyState,
   IconButton,
-} from '@/components/ui'
-import { useProfessionals, useDeleteProfessional } from '@/hooks/useProfessionals'
-import type { Professional } from '@/types/database'
+} from '@/components/ui';
+import { useProfessionals, useDeleteProfessional } from '@/hooks/useProfessionals';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import type { Professional } from '@/types/database';
 
 const formatPhoneDisplay = (value?: string | null): string => {
-  if (!value) return '-'
-  const digits = value.replace(/\D/g, '').slice(0, 11)
-  if (!digits) return value
-  if (digits.length <= 2) return digits
+  if (!value) return '-';
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (!digits) return value;
+  if (digits.length <= 2) return digits;
   if (digits.length <= 6) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   }
   if (digits.length <= 10) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   }
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
-}
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
 
 const filteredProfessionals = (professionals: Professional[], search: string) => {
-  if (!search.trim()) return professionals
-  const query = search.toLowerCase()
+  if (!search.trim()) return professionals;
+  const query = search.toLowerCase();
   return professionals.filter((professional) => {
-    const name = professional.name?.toLowerCase() || ''
-    const role = professional.role?.toLowerCase() || ''
+    const name = professional.name?.toLowerCase() || '';
+    const role = professional.role?.toLowerCase() || '';
     const council = [
       professional.council_type,
       professional.council_number,
@@ -43,49 +45,69 @@ const filteredProfessionals = (professionals: Professional[], search: string) =>
     ]
       .filter(Boolean)
       .join(' ')
-      .toLowerCase()
-    return name.includes(query) || role.includes(query) || council.includes(query)
-  })
-}
+      .toLowerCase();
+    return name.includes(query) || role.includes(query) || council.includes(query);
+  });
+};
+
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 export default function ProfessionalsPage() {
-  const navigate = useNavigate()
-  const { data: professionals = [], isLoading } = useProfessionals()
-  const deleteProfessional = useDeleteProfessional()
+  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useListPageState();
+  const { data: professionals = [], isLoading } = useProfessionals();
+  const deleteProfessional = useDeleteProfessional();
 
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null)
-  const [searchInput, setSearchInput] = useState('')
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
+  const [searchInput, setSearchInput] = useState('');
 
   const filteredData = useMemo(
     () => filteredProfessionals(professionals, searchInput),
     [professionals, searchInput]
-  )
+  );
+  const totalCount = filteredData.length;
+  const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
+  const paginatedProfessionals = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredData.slice(start, start + PAGE_SIZE);
+  }, [filteredData, currentPage]);
 
-  const hasActiveSearch = searchInput.trim().length > 0
+  const hasActiveSearch = searchInput.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-  }
+    setSearchInput('');
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchInput, setCurrentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages, setCurrentPage]);
 
   const handleEdit = useCallback(
     (professional: Professional) => {
-      navigate(`/profissionais/${professional.id}`)
+      navigate(`/profissionais/${professional.id}`);
     },
     [navigate]
-  )
+  );
 
   const openDeleteModal = useCallback((professional: Professional) => {
-    setSelectedProfessional(professional)
-    setIsDeleteModalOpen(true)
-  }, [])
+    setSelectedProfessional(professional);
+    setIsDeleteModalOpen(true);
+  }, []);
 
   const handleDelete = async () => {
     if (selectedProfessional) {
-      await deleteProfessional.mutateAsync(selectedProfessional.id)
-      setIsDeleteModalOpen(false)
+      await deleteProfessional.mutateAsync(selectedProfessional.id);
+      setIsDeleteModalOpen(false);
     }
-  }
+  };
 
   const columns: ColumnDef<Professional>[] = useMemo(
     () => [
@@ -110,26 +132,26 @@ export default function ProfessionalsPage() {
         accessorKey: 'council',
         header: 'Conselho',
         cell: ({ row }) => {
-          const { council_type, council_number, council_uf } = row.original
-          if (!council_type) return '-'
+          const { council_type, council_number, council_uf } = row.original;
+          if (!council_type) return '-';
           return (
             <span className="text-gray-700 dark:text-gray-300">
               {council_type} {council_number}/{council_uf}
             </span>
-          )
+          );
         },
       },
       {
         accessorKey: 'phone',
         header: 'Contato',
         cell: ({ row }) => {
-          const formattedPhone = formatPhoneDisplay(row.original.phone)
+          const formattedPhone = formatPhoneDisplay(row.original.phone);
           return (
             <div>
               <p className="text-gray-700 dark:text-gray-300">{formattedPhone}</p>
               <p className="text-sm text-gray-500">{row.original.email || '-'}</p>
             </div>
-          )
+          );
         },
       },
       {
@@ -148,8 +170,8 @@ export default function ProfessionalsPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                handleEdit(row.original)
+                e.stopPropagation();
+                handleEdit(row.original);
               }}
             >
               <Pencil className="h-4 w-4" />
@@ -157,8 +179,8 @@ export default function ProfessionalsPage() {
             <IconButton
               variant="danger"
               onClick={(e) => {
-                e.stopPropagation()
-                openDeleteModal(row.original)
+                e.stopPropagation();
+                openDeleteModal(row.original);
               }}
             >
               <Trash2 className="h-4 w-4" />
@@ -168,7 +190,7 @@ export default function ProfessionalsPage() {
       },
     ],
     [handleEdit, openDeleteModal]
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -179,7 +201,7 @@ export default function ProfessionalsPage() {
             Profissionais
           </h1>
         </div>
-        <ButtonNew
+        <Button
           onClick={() => navigate('/profissionais/novo')}
           variant="solid"
           label="Novo Profissional"
@@ -197,11 +219,11 @@ export default function ProfessionalsPage() {
                 placeholder="Buscar por nome ou conselho..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -215,8 +237,9 @@ export default function ProfessionalsPage() {
             )}
           </div>
           <DataTable
-            data={filteredData}
+            data={paginatedProfessionals}
             columns={columns}
+            showPagination={false}
             isLoading={isLoading}
             onRowClick={(row) => navigate(`/profissionais/${row.id}`)}
             emptyState={
@@ -224,7 +247,7 @@ export default function ProfessionalsPage() {
                 title="Nenhum profissional cadastrado"
                 description="Comece cadastrando seu primeiro profissional"
                 action={
-                  <ButtonNew
+                  <Button
                     onClick={() => navigate('/profissionais/novo')}
                     size="sm"
                     variant="solid"
@@ -233,6 +256,16 @@ export default function ProfessionalsPage() {
                 }
               />
             }
+          />
+          <ListPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            itemLabel="profissionais"
+            onPreviousPage={() => setCurrentPage((page) => page - 1)}
+            onNextPage={() => setCurrentPage((page) => page + 1)}
+            isLoading={isLoading}
           />
         </div>
       </Card>
@@ -247,11 +280,11 @@ export default function ProfessionalsPage() {
         <p className="text-gray-600 dark:text-gray-400">
           Tem certeza que deseja excluir o profissional{' '}
           <strong className="text-gray-900 dark:text-white">{selectedProfessional?.name}</strong>?
-          Esta ação não pode ser desfeita.
+          Esta aÃ§Ã£o nÃ£o pode ser desfeita.
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
@@ -269,5 +302,5 @@ export default function ProfessionalsPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

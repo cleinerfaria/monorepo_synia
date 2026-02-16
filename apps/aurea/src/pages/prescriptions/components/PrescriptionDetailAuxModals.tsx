@@ -1,36 +1,36 @@
-import { ButtonNew, DatePicker, Modal, ModalFooter } from '@/components/ui'
+﻿import { Button, DatePicker, Modal, ModalFooter } from '@/components/ui';
 import PrescriptionPrintModal, {
   type PrescriptionPrintAction,
-} from '@/components/prescription/PrescriptionPrintModal'
+} from '@/components/prescription/PrescriptionPrintModal';
 
 interface PrescriptionDetailAuxModalsProps {
-  isPeriodModalOpen: boolean
-  setIsPeriodModalOpen: (value: boolean) => void
-  periodStartDate: string
-  setPeriodStartDate: (value: string) => void
-  periodEndDate: string
-  setPeriodEndDate: (value: string) => void
-  periodModalError: string
-  setPeriodModalError: (value: string) => void
-  handleSavePeriod: () => void
-  updatePrescriptionIsPending: boolean
-  isDeleteItemModalOpen: boolean
-  setIsDeleteItemModalOpen: (value: boolean) => void
-  handleDeleteItem: () => void
-  deleteItemIsPending: boolean
-  isSuspendItemModalOpen: boolean
-  setIsSuspendItemModalOpen: (value: boolean) => void
-  suspensionEndDate: string
-  setSuspensionEndDate: (value: string) => void
-  handleSuspendItem: () => void
-  suspendItemWithDateIsPending: boolean
-  isPrintModalOpen: boolean
-  setIsPrintModalOpen: (value: boolean) => void
-  setPrintActionInProgress: (value: PrescriptionPrintAction | null) => void
-  canPrintPrescription: boolean
-  handleGeneratePrescriptionPrint: (params: any) => Promise<void>
-  createPrescriptionPrintIsPending: boolean
-  printActionInProgress: PrescriptionPrintAction | null
+  isPeriodModalOpen: boolean;
+  setIsPeriodModalOpen: (value: boolean) => void;
+  periodStartDate: string;
+  setPeriodStartDate: (value: string) => void;
+  periodEndDate: string;
+  setPeriodEndDate: (value: string) => void;
+  periodModalError: string;
+  setPeriodModalError: (value: string) => void;
+  handleSavePeriod: () => void;
+  updatePrescriptionIsPending: boolean;
+  isDeleteItemModalOpen: boolean;
+  setIsDeleteItemModalOpen: (value: boolean) => void;
+  handleDeleteItem: () => void;
+  deleteItemIsPending: boolean;
+  isSuspendItemModalOpen: boolean;
+  setIsSuspendItemModalOpen: (value: boolean) => void;
+  suspensionEndDate: string;
+  setSuspensionEndDate: (value: string) => void;
+  handleSuspendItem: () => void;
+  suspendItemWithDateIsPending: boolean;
+  isPrintModalOpen: boolean;
+  setIsPrintModalOpen: (value: boolean) => void;
+  setPrintActionInProgress: (value: PrescriptionPrintAction | null) => void;
+  canPrintPrescription: boolean;
+  handleGeneratePrescriptionPrint: (params: any) => Promise<void>;
+  createPrescriptionPrintIsPending: boolean;
+  printActionInProgress: PrescriptionPrintAction | null;
 }
 
 export function PrescriptionDetailAuxModals({
@@ -67,7 +67,7 @@ export function PrescriptionDetailAuxModals({
       <Modal
         isOpen={isPeriodModalOpen}
         onClose={() => setIsPeriodModalOpen(false)}
-        title="Alterar Período"
+        title="Alterar PerÃ­odo"
         size="md"
       >
         <div className="space-y-4">
@@ -75,9 +75,9 @@ export function PrescriptionDetailAuxModals({
             label="Data inicial"
             value={periodStartDate}
             onChange={(event: any) => {
-              const nextValue = typeof event === 'string' ? event : event.target.value
-              setPeriodStartDate(nextValue)
-              if (periodModalError) setPeriodModalError('')
+              const nextValue = typeof event === 'string' ? event : event.target.value;
+              setPeriodStartDate(nextValue);
+              if (periodModalError) setPeriodModalError('');
             }}
           />
 
@@ -86,19 +86,19 @@ export function PrescriptionDetailAuxModals({
             value={periodEndDate}
             min={periodStartDate || undefined}
             onChange={(event: any) => {
-              const nextValue = typeof event === 'string' ? event : event.target.value
-              setPeriodEndDate(nextValue)
-              if (periodModalError) setPeriodModalError('')
+              const nextValue = typeof event === 'string' ? event : event.target.value;
+              setPeriodEndDate(nextValue);
+              if (periodModalError) setPeriodModalError('');
             }}
           />
           <div>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => {
-                setPeriodEndDate('')
-                if (periodModalError) setPeriodModalError('')
+                setPeriodEndDate('');
+                if (periodModalError) setPeriodModalError('');
               }}
               disabled={!periodEndDate}
               showIcon={false}
@@ -110,19 +110,19 @@ export function PrescriptionDetailAuxModals({
         </div>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="neutral"
             onClick={() => setIsPeriodModalOpen(false)}
             showIcon={false}
             label="Cancelar"
           />
-          <ButtonNew
+          <Button
             type="button"
             onClick={handleSavePeriod}
             disabled={updatePrescriptionIsPending}
             showIcon={false}
-            label={updatePrescriptionIsPending ? 'Salvando período...' : 'Salvar período'}
+            label={updatePrescriptionIsPending ? 'Salvando perÃ­odo...' : 'Salvar perÃ­odo'}
           />
         </ModalFooter>
       </Modal>
@@ -134,18 +134,18 @@ export function PrescriptionDetailAuxModals({
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja remover este item da prescrição?
+          Tem certeza que deseja remover este item da prescriÃ§Ã£o?
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="neutral"
             onClick={() => setIsDeleteItemModalOpen(false)}
             showIcon={false}
             label="Cancelar"
           />
-          <ButtonNew
+          <Button
             type="button"
             variant="danger"
             onClick={handleDeleteItem}
@@ -159,21 +159,21 @@ export function PrescriptionDetailAuxModals({
       <Modal
         isOpen={isSuspendItemModalOpen}
         onClose={() => setIsSuspendItemModalOpen(false)}
-        title="Suspender Medicação"
+        title="Suspender MedicaÃ§Ã£o"
         size="sm"
       >
         <div className="space-y-4">
           <p className="text-gray-600 dark:text-gray-400">
-            Informe a data final para suspender este item da prescrição.
+            Informe a data final para suspender este item da prescriÃ§Ã£o.
           </p>
 
           <div>
             <DatePicker
-              label="Data Final de Suspensão"
+              label="Data Final de SuspensÃ£o"
               value={suspensionEndDate}
               onChange={(event: any) => {
-                const nextValue = typeof event === 'string' ? event : event.target.value
-                setSuspensionEndDate(nextValue)
+                const nextValue = typeof event === 'string' ? event : event.target.value;
+                setSuspensionEndDate(nextValue);
               }}
               required
             />
@@ -181,14 +181,14 @@ export function PrescriptionDetailAuxModals({
         </div>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="neutral"
             onClick={() => setIsSuspendItemModalOpen(false)}
             showIcon={false}
             label="Cancelar"
           />
-          <ButtonNew
+          <Button
             type="button"
             variant="neutral"
             onClick={handleSuspendItem}
@@ -202,8 +202,8 @@ export function PrescriptionDetailAuxModals({
       <PrescriptionPrintModal
         isOpen={isPrintModalOpen}
         onClose={() => {
-          setIsPrintModalOpen(false)
-          setPrintActionInProgress(null)
+          setIsPrintModalOpen(false);
+          setPrintActionInProgress(null);
         }}
         canPrint={canPrintPrescription}
         onGenerate={handleGeneratePrescriptionPrint}
@@ -211,5 +211,5 @@ export function PrescriptionDetailAuxModals({
         generatingAction={printActionInProgress}
       />
     </>
-  )
+  );
 }

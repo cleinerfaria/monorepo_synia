@@ -1,18 +1,18 @@
-import { execFileSync } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
-import path from 'node:path'
-import process from 'node:process'
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
 
-const DEFAULT_BASE_URL = 'http://127.0.0.1:4173'
-const DEFAULT_ADMIN_EMAIL = 'e2e.admin@aurea.local'
-const DEFAULT_ADMIN_PASSWORD = 'AureaE2E!123'
-const DEFAULT_ADMIN_NAME = 'E2E Admin'
-const DEFAULT_MANAGER_EMAIL = 'e2e.manager@aurea.local'
-const DEFAULT_MANAGER_PASSWORD = 'AureaE2E!123'
-const DEFAULT_MANAGER_NAME = 'E2E Manager'
-const DEFAULT_USER_EMAIL = 'e2e.user@aurea.local'
-const DEFAULT_USER_PASSWORD = 'AureaE2E!123'
-const DEFAULT_USER_NAME = 'E2E User'
+const DEFAULT_BASE_URL = 'http://127.0.0.1:4173';
+const DEFAULT_ADMIN_EMAIL = 'e2e.admin@aurea.local';
+const DEFAULT_ADMIN_PASSWORD = 'AureaE2E!123';
+const DEFAULT_ADMIN_NAME = 'E2E Admin';
+const DEFAULT_MANAGER_EMAIL = 'e2e.manager@aurea.local';
+const DEFAULT_MANAGER_PASSWORD = 'AureaE2E!123';
+const DEFAULT_MANAGER_NAME = 'E2E Manager';
+const DEFAULT_USER_EMAIL = 'e2e.user@aurea.local';
+const DEFAULT_USER_PASSWORD = 'AureaE2E!123';
+const DEFAULT_USER_NAME = 'E2E User';
 
 function run(command, args, { capture = false, env = process.env } = {}) {
   return execFileSync(command, args, {
@@ -20,33 +20,33 @@ function run(command, args, { capture = false, env = process.env } = {}) {
     encoding: 'utf8',
     stdio: capture ? ['ignore', 'pipe', 'pipe'] : 'inherit',
     env,
-  })
+  });
 }
 
 function readRemoteConfig() {
-  const supabaseUrl = process.env.SUPABASE_DEV_URL
-  const anonKey = process.env.SUPABASE_DEV_ANON_KEY
-  const serviceRoleKey = process.env.SUPABASE_DEV_SERVICE_ROLE_KEY
-  const dbUrl = process.env.SUPABASE_DEV_DB_URL
-  const skipMigrations = process.env.E2E_SKIP_MIGRATIONS === 'true'
-  const skipSeed = process.env.E2E_SKIP_SEED === 'true'
+  const supabaseUrl = process.env.SUPABASE_DEV_URL;
+  const anonKey = process.env.SUPABASE_DEV_ANON_KEY;
+  const serviceRoleKey = process.env.SUPABASE_DEV_SERVICE_ROLE_KEY;
+  const dbUrl = process.env.SUPABASE_DEV_DB_URL;
+  const skipMigrations = process.env.E2E_SKIP_MIGRATIONS === 'true';
+  const skipSeed = process.env.E2E_SKIP_SEED === 'true';
 
   if (!supabaseUrl) {
-    throw new Error('Variavel obrigatoria ausente: SUPABASE_DEV_URL')
+    throw new Error('Variavel obrigatoria ausente: SUPABASE_DEV_URL');
   }
 
   if (!anonKey) {
-    throw new Error('Variavel obrigatoria ausente: SUPABASE_DEV_ANON_KEY')
+    throw new Error('Variavel obrigatoria ausente: SUPABASE_DEV_ANON_KEY');
   }
 
   if (!serviceRoleKey) {
-    throw new Error('Variavel obrigatoria ausente: SUPABASE_DEV_SERVICE_ROLE_KEY')
+    throw new Error('Variavel obrigatoria ausente: SUPABASE_DEV_SERVICE_ROLE_KEY');
   }
 
   if (!skipMigrations && !dbUrl) {
     throw new Error(
       'Variavel obrigatoria ausente: SUPABASE_DEV_DB_URL (necessaria para aplicar migrations).'
-    )
+    );
   }
 
   return {
@@ -57,7 +57,7 @@ function readRemoteConfig() {
     skipMigrations,
     skipSeed,
     companyId: process.env.E2E_COMPANY_ID || null,
-  }
+  };
 }
 
 async function requestJson(url, { method = 'GET', headers = {}, body } = {}) {
@@ -65,16 +65,16 @@ async function requestJson(url, { method = 'GET', headers = {}, body } = {}) {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
+  });
 
   if (!response.ok) {
-    const responseText = await response.text()
-    throw new Error(`${method} ${url} falhou: ${response.status} ${responseText}`)
+    const responseText = await response.text();
+    throw new Error(`${method} ${url} falhou: ${response.status} ${responseText}`);
   }
 
-  if (response.status === 204) return null
+  if (response.status === 204) return null;
 
-  return response.json()
+  return response.json();
 }
 
 function authHeaders(serviceRoleKey) {
@@ -82,14 +82,14 @@ function authHeaders(serviceRoleKey) {
     apikey: serviceRoleKey,
     Authorization: `Bearer ${serviceRoleKey}`,
     'Content-Type': 'application/json',
-  }
+  };
 }
 
 function postgrestHeaders(serviceRoleKey, prefer = 'return=representation') {
   return {
     ...authHeaders(serviceRoleKey),
     Prefer: prefer,
-  }
+  };
 }
 
 async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, name }) {
@@ -98,11 +98,11 @@ async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, na
     {
       headers: authHeaders(serviceRoleKey),
     }
-  )
+  );
 
   const existingUser = usersResponse?.users?.find(
     (user) => (user.email || '').toLowerCase() === email.toLowerCase()
-  )
+  );
 
   if (existingUser) {
     const updatedUser = await requestJson(`${supabaseUrl}/auth/v1/admin/users/${existingUser.id}`, {
@@ -115,9 +115,9 @@ async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, na
           name,
         },
       },
-    })
+    });
 
-    return updatedUser?.id || existingUser.id
+    return updatedUser?.id || existingUser.id;
   }
 
   const createdUser = await requestJson(`${supabaseUrl}/auth/v1/admin/users`, {
@@ -131,13 +131,13 @@ async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, na
         name,
       },
     },
-  })
+  });
 
   if (!createdUser?.id) {
-    throw new Error('Nao foi possivel criar usuario de teste no Supabase Auth.')
+    throw new Error('Nao foi possivel criar usuario de teste no Supabase Auth.');
   }
 
-  return createdUser.id
+  return createdUser.id;
 }
 
 async function ensureAppUser({
@@ -149,7 +149,7 @@ async function ensureAppUser({
   companyId,
   role = 'admin',
 }) {
-  let resolvedCompanyId = companyId
+  let resolvedCompanyId = companyId;
 
   if (resolvedCompanyId) {
     const companyRows = await requestJson(
@@ -157,10 +157,10 @@ async function ensureAppUser({
       {
         headers: postgrestHeaders(serviceRoleKey),
       }
-    )
+    );
 
     if (!Array.isArray(companyRows) || companyRows.length === 0) {
-      throw new Error(`E2E_COMPANY_ID nao encontrado: ${resolvedCompanyId}`)
+      throw new Error(`E2E_COMPANY_ID nao encontrado: ${resolvedCompanyId}`);
     }
   } else {
     const companyRows = await requestJson(
@@ -168,13 +168,13 @@ async function ensureAppUser({
       {
         headers: postgrestHeaders(serviceRoleKey),
       }
-    )
+    );
 
     if (!Array.isArray(companyRows) || companyRows.length === 0) {
-      throw new Error('Nenhuma company encontrada no banco remoto de desenvolvimento.')
+      throw new Error('Nenhuma company encontrada no banco remoto de desenvolvimento.');
     }
 
-    resolvedCompanyId = companyRows[0].id
+    resolvedCompanyId = companyRows[0].id;
   }
 
   const profileRows = await requestJson(
@@ -182,7 +182,7 @@ async function ensureAppUser({
     {
       headers: postgrestHeaders(serviceRoleKey),
     }
-  )
+  );
 
   const payload = {
     company_id: resolvedCompanyId,
@@ -192,24 +192,24 @@ async function ensureAppUser({
     role,
     access_profile_id: profileRows?.[0]?.id || null,
     active: true,
-  }
+  };
 
   await requestJson(`${supabaseUrl}/rest/v1/app_user?on_conflict=auth_user_id`, {
     method: 'POST',
     headers: postgrestHeaders(serviceRoleKey, 'resolution=merge-duplicates,return=representation'),
     body: [payload],
-  })
+  });
 
-  return resolvedCompanyId
+  return resolvedCompanyId;
 }
 
 function applyRemoteMigrations(dbUrl) {
-  run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-all', '--yes', '--workdir', '.'])
+  run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-all', '--yes', '--workdir', '.']);
 }
 
 function writeRuntimeEnvFile({ baseUrl, supabaseUrl, anonKey, accounts }) {
-  const targetDir = path.resolve(process.cwd(), 'e2e')
-  mkdirSync(targetDir, { recursive: true })
+  const targetDir = path.resolve(process.cwd(), 'e2e');
+  mkdirSync(targetDir, { recursive: true });
 
   const contents = [
     `PLAYWRIGHT_BASE_URL=${baseUrl}`,
@@ -222,9 +222,9 @@ function writeRuntimeEnvFile({ baseUrl, supabaseUrl, anonKey, accounts }) {
     `E2E_USER_EMAIL=${accounts.user.email}`,
     `E2E_USER_PASSWORD=${accounts.user.password}`,
     '',
-  ].join('\n')
+  ].join('\n');
 
-  writeFileSync(path.join(targetDir, '.env.runtime'), contents, { encoding: 'utf8' })
+  writeFileSync(path.join(targetDir, '.env.runtime'), contents, { encoding: 'utf8' });
 }
 
 async function prepareAccount({ account, remoteConfig }) {
@@ -234,7 +234,7 @@ async function prepareAccount({ account, remoteConfig }) {
     email: account.email,
     password: account.password,
     name: account.name,
-  })
+  });
 
   const resolvedCompanyId = await ensureAppUser({
     supabaseUrl: remoteConfig.supabaseUrl,
@@ -244,13 +244,13 @@ async function prepareAccount({ account, remoteConfig }) {
     name: account.name,
     companyId: remoteConfig.companyId,
     role: account.role,
-  })
+  });
 
-  return resolvedCompanyId
+  return resolvedCompanyId;
 }
 
 async function upsertRows({ supabaseUrl, serviceRoleKey, table, rows, onConflict }) {
-  if (!rows.length) return
+  if (!rows.length) return;
 
   await requestJson(
     `${supabaseUrl}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`,
@@ -259,7 +259,7 @@ async function upsertRows({ supabaseUrl, serviceRoleKey, table, rows, onConflict
       headers: postgrestHeaders(serviceRoleKey, 'resolution=merge-duplicates,return=minimal'),
       body: rows,
     }
-  )
+  );
 }
 
 async function seedE2eData({ supabaseUrl, serviceRoleKey, companyId }) {
@@ -285,7 +285,7 @@ async function seedE2eData({ supabaseUrl, serviceRoleKey, companyId }) {
       name: 'E2E Cliente Gama',
       active: true,
     },
-  ]
+  ];
 
   const professionals = [
     {
@@ -302,7 +302,7 @@ async function seedE2eData({ supabaseUrl, serviceRoleKey, companyId }) {
       role: 'Fisioterapeuta',
       active: true,
     },
-  ]
+  ];
 
   const patients = [
     {
@@ -317,7 +317,7 @@ async function seedE2eData({ supabaseUrl, serviceRoleKey, companyId }) {
       name: 'E2E Paciente Daniela',
       active: true,
     },
-  ]
+  ];
 
   const products = [
     {
@@ -334,7 +334,7 @@ async function seedE2eData({ supabaseUrl, serviceRoleKey, companyId }) {
       name: 'E2E Produto Dipirona',
       active: true,
     },
-  ]
+  ];
 
   await Promise.all([
     upsertRows({
@@ -365,12 +365,12 @@ async function seedE2eData({ supabaseUrl, serviceRoleKey, companyId }) {
       rows: products,
       onConflict: 'company_id,code',
     }),
-  ])
+  ]);
 }
 
 export async function prepareE2eRuntime({ writeEnvFile = true } = {}) {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || DEFAULT_BASE_URL
-  const remoteConfig = readRemoteConfig()
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || DEFAULT_BASE_URL;
+  const remoteConfig = readRemoteConfig();
   const accounts = {
     admin: {
       email: process.env.E2E_ADMIN_EMAIL || process.env.E2E_USER_EMAIL || DEFAULT_ADMIN_EMAIL,
@@ -391,16 +391,16 @@ export async function prepareE2eRuntime({ writeEnvFile = true } = {}) {
       name: process.env.E2E_USER_NAME || DEFAULT_USER_NAME,
       role: 'viewer',
     },
-  }
+  };
 
   if (!remoteConfig.skipMigrations) {
-    applyRemoteMigrations(remoteConfig.dbUrl)
+    applyRemoteMigrations(remoteConfig.dbUrl);
   }
 
   const resolvedCompanyId = await prepareAccount({
     account: accounts.admin,
     remoteConfig,
-  })
+  });
 
   await Promise.all([
     prepareAccount({
@@ -417,14 +417,14 @@ export async function prepareE2eRuntime({ writeEnvFile = true } = {}) {
         companyId: resolvedCompanyId,
       },
     }),
-  ])
+  ]);
 
   if (!remoteConfig.skipSeed) {
     await seedE2eData({
       supabaseUrl: remoteConfig.supabaseUrl,
       serviceRoleKey: remoteConfig.serviceRoleKey,
       companyId: resolvedCompanyId,
-    })
+    });
   }
 
   const publicRuntime = {
@@ -436,11 +436,11 @@ export async function prepareE2eRuntime({ writeEnvFile = true } = {}) {
     accounts,
     seeded: !remoteConfig.skipSeed,
     companyId: resolvedCompanyId,
-  }
+  };
 
   if (writeEnvFile) {
-    writeRuntimeEnvFile(publicRuntime)
+    writeRuntimeEnvFile(publicRuntime);
   }
 
-  return publicRuntime
+  return publicRuntime;
 }

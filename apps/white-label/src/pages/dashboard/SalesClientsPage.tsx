@@ -267,7 +267,7 @@ export default function SalesClientsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white lg:text-3xl">
+          <h1 className="font-display text-2xl font-bold text-gray-900 lg:text-3xl dark:text-white">
             Clientes
           </h1>
           <p className="mt-1 text-gray-500 dark:text-gray-400">

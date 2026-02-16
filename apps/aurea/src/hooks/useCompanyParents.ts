@@ -1,74 +1,74 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 
 export interface CompanyParent {
-  id: string
-  name: string
-  trade_name: string | null
-  document: string | null
-  postal_code: string | null
-  address: string | null
-  neiborhood: string | null
-  number: string | null
-  city: string | null
-  state: string | null
-  complement: string | null
-  is_active: boolean | null
-  created_at: string | null
-  updated_at: string | null
+  id: string;
+  name: string;
+  trade_name: string | null;
+  document: string | null;
+  postal_code: string | null;
+  address: string | null;
+  neiborhood: string | null;
+  number: string | null;
+  city: string | null;
+  state: string | null;
+  complement: string | null;
+  is_active: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface CreateCompanyParentInput {
-  name: string
-  trade_name?: string | null
-  document?: string | null
-  postal_code?: string | null
-  address?: string | null
-  neiborhood?: string | null
-  number?: string | null
-  city?: string | null
-  state?: string | null
-  complement?: string | null
-  is_active?: boolean | null
+  name: string;
+  trade_name?: string | null;
+  document?: string | null;
+  postal_code?: string | null;
+  address?: string | null;
+  neiborhood?: string | null;
+  number?: string | null;
+  city?: string | null;
+  state?: string | null;
+  complement?: string | null;
+  is_active?: boolean | null;
 }
 
 export interface UpdateCompanyParentInput extends Partial<CreateCompanyParentInput> {
-  id: string
+  id: string;
 }
 
 export function useCompanyParents() {
   return useQuery({
     queryKey: ['company-parents'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('company_parent').select('*').order('name')
+      const { data, error } = await supabase.from('company_parent').select('*').order('name');
 
-      if (error) throw error
-      return data as CompanyParent[]
+      if (error) throw error;
+      return data as CompanyParent[];
     },
-  })
+  });
 }
 
 export function useCompanyParent(id: string | undefined) {
   return useQuery({
     queryKey: ['company-parent', id],
     queryFn: async () => {
-      if (!id) return null
+      if (!id) return null;
 
       const { data, error } = await supabase
         .from('company_parent')
         .select('*')
         .eq('id', id)
-        .single()
+        .single();
 
-      if (error) throw error
-      return data as CompanyParent
+      if (error) throw error;
+      return data as CompanyParent;
     },
     enabled: !!id,
-  })
+  });
 }
 
 export function useCreateCompanyParent() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (input: CreateCompanyParentInput) => {
@@ -88,37 +88,37 @@ export function useCreateCompanyParent() {
           is_active: input.is_active ?? true,
         })
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
-      return data as CompanyParent
+      if (error) throw error;
+      return data as CompanyParent;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['company-parents'] })
+      queryClient.invalidateQueries({ queryKey: ['company-parents'] });
     },
-  })
+  });
 }
 
 export function useUpdateCompanyParent() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (input: UpdateCompanyParentInput) => {
-      const { id, ...updates } = input
+      const { id, ...updates } = input;
 
       const { data, error } = await supabase
         .from('company_parent')
         .update(updates)
         .eq('id', id)
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
-      return data as CompanyParent
+      if (error) throw error;
+      return data as CompanyParent;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['company-parents'] })
-      queryClient.invalidateQueries({ queryKey: ['company-parent', data.id] })
+      queryClient.invalidateQueries({ queryKey: ['company-parents'] });
+      queryClient.invalidateQueries({ queryKey: ['company-parent', data.id] });
     },
-  })
+  });
 }

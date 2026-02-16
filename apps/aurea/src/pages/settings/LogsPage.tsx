@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
+import { useState, useMemo, useCallback } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Card,
   DataTable,
@@ -9,17 +9,17 @@ import {
   Modal,
   ModalFooter,
   Button,
-} from '@/components/ui'
-import { useUserActionLogs } from '@/hooks/useLogs'
-import type { UserActionLog } from '@/types/logs'
-import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { Search } from 'lucide-react'
+} from '@/components/ui';
+import { useUserActionLogs } from '@/hooks/useLogs';
+import type { UserActionLog } from '@/types/logs';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Search } from 'lucide-react';
 const actionLabels = {
   create: 'Criação',
   update: 'Edição',
   delete: 'Exclusão',
-}
+};
 
 const entityLabels = {
   client: 'Cliente',
@@ -29,34 +29,34 @@ const entityLabels = {
   professional: 'Profissional',
   prescription: 'Prescrição',
   nfe: 'Nota Fiscal',
-}
+};
 
 export default function LogsPage() {
-  const [searchInput, setSearchInput] = useState('')
-  const [selectedEntity, setSelectedEntity] = useState<string>('')
-  const [selectedAction, setSelectedAction] = useState<string>('')
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
-  const [selectedLog, setSelectedLog] = useState<UserActionLog | null>(null)
+  const [searchInput, setSearchInput] = useState('');
+  const [selectedEntity, setSelectedEntity] = useState<string>('');
+  const [selectedAction, setSelectedAction] = useState<string>('');
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<UserActionLog | null>(null);
 
   const { data: logs = [], isLoading } = useUserActionLogs({
     entity: selectedEntity || undefined,
     limit: 1000,
-  })
+  });
 
   const openDetailsModal = useCallback((log: UserActionLog) => {
-    setSelectedLog(log)
-    setIsDetailsModalOpen(true)
-  }, [])
+    setSelectedLog(log);
+    setIsDetailsModalOpen(true);
+  }, []);
 
   const closeDetailsModal = useCallback(() => {
-    setIsDetailsModalOpen(false)
-    setSelectedLog(null)
-  }, [])
+    setIsDetailsModalOpen(false);
+    setSelectedLog(null);
+  }, []);
 
   const formatJson = (value?: Record<string, any>) => {
-    if (!value || Object.keys(value).length === 0) return 'Sem dados'
-    return JSON.stringify(value, null, 2)
-  }
+    if (!value || Object.keys(value).length === 0) return 'Sem dados';
+    return JSON.stringify(value, null, 2);
+  };
 
   const columns: ColumnDef<UserActionLog>[] = useMemo(
     () => [
@@ -64,7 +64,7 @@ export default function LogsPage() {
         accessorKey: 'created_at',
         header: 'Data/Hora',
         cell: ({ row }) => {
-          const date = new Date(row.original.created_at)
+          const date = new Date(row.original.created_at);
           return (
             <div className="text-sm">
               <div className="font-medium text-gray-900 dark:text-white">
@@ -78,7 +78,7 @@ export default function LogsPage() {
                 })}
               </div>
             </div>
-          )
+          );
         },
       },
       {
@@ -97,11 +97,11 @@ export default function LogsPage() {
         accessorKey: 'action',
         header: 'Ação',
         cell: ({ row }) => {
-          const action = row.original.action
+          const action = row.original.action;
           const variant =
-            action === 'create' ? 'success' : action === 'update' ? 'warning' : 'danger'
+            action === 'create' ? 'success' : action === 'update' ? 'warning' : 'danger';
 
-          return <Badge variant={variant}>{actionLabels[action] || action}</Badge>
+          return <Badge variant={variant}>{actionLabels[action] || action}</Badge>;
         },
       },
       {
@@ -123,29 +123,29 @@ export default function LogsPage() {
         accessorKey: 'details',
         header: 'Detalhes',
         cell: ({ row }) => {
-          const { old_data, new_data } = row.original
-          let changesText = ''
+          const { old_data, new_data } = row.original;
+          let changesText = '';
 
           if (row.original.action === 'create' && new_data) {
-            changesText = 'Registro criado'
+            changesText = 'Registro criado';
           } else if (row.original.action === 'delete' && old_data) {
-            changesText = 'Registro excluído'
+            changesText = 'Registro excluído';
           } else if (row.original.action === 'update' && old_data && new_data) {
-            const changes: string[] = []
+            const changes: string[] = [];
             Object.keys(new_data).forEach((key) => {
               if (old_data[key] !== new_data[key]) {
-                changes.push(key)
+                changes.push(key);
               }
-            })
+            });
             changesText =
-              changes.length > 0 ? `Alterado: ${changes.join(', ')}` : 'Dados atualizados'
+              changes.length > 0 ? `Alterado: ${changes.join(', ')}` : 'Dados atualizados';
           }
 
           return (
             <div className="max-w-xs truncate text-sm text-gray-600 dark:text-gray-400">
               {changesText || '-'}
             </div>
-          )
+          );
         },
       },
       {
@@ -159,7 +159,7 @@ export default function LogsPage() {
       },
     ],
     [openDetailsModal]
-  )
+  );
 
   const entityOptions = [
     { value: '', label: 'Todas as entidades' },
@@ -170,34 +170,34 @@ export default function LogsPage() {
     { value: 'professional', label: 'Profissionais' },
     { value: 'prescription', label: 'Prescrições' },
     { value: 'nfe', label: 'Notas Fiscais' },
-  ]
+  ];
 
   const actionOptions = [
     { value: '', label: 'Todas as ações' },
     { value: 'create', label: 'Criação' },
     { value: 'update', label: 'Edição' },
     { value: 'delete', label: 'Exclusão' },
-  ]
+  ];
 
   const filteredLogs = useMemo(() => {
-    let filtered = logs
+    let filtered = logs;
 
     if (selectedAction) {
-      filtered = filtered.filter((log) => log.action === selectedAction)
+      filtered = filtered.filter((log) => log.action === selectedAction);
     }
 
     if (searchInput.trim()) {
-      const query = searchInput.toLowerCase()
+      const query = searchInput.toLowerCase();
       filtered = filtered.filter(
         (log) =>
           log.entity_name?.toLowerCase().includes(query) ||
           log.app_user?.name?.toLowerCase().includes(query) ||
           log.app_user?.email?.toLowerCase().includes(query)
-      )
+      );
     }
 
-    return filtered
-  }, [logs, selectedAction, searchInput])
+    return filtered;
+  }, [logs, selectedAction, searchInput]);
 
   return (
     <div className="space-y-6">
@@ -225,7 +225,7 @@ export default function LogsPage() {
                 placeholder="Buscar por nome ou usuário..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
 
@@ -289,5 +289,5 @@ export default function LogsPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

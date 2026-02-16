@@ -1,4 +1,4 @@
-import { Select, MultiSelect } from '@/components/ui';
+import { Select, MultiSelect } from '@synia/ui';
 import { periodOptions } from '@/hooks/useSalesFilters';
 import { useFilialOptions, useClienteOptions, useProdutoOptions } from '@/hooks/useFilterOptions';
 import { Calendar, X } from 'lucide-react';

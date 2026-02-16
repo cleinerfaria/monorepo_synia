@@ -103,7 +103,7 @@ export function GroupedBarChart({
     if (isLoading) {
       return (
         <div className={clsx('flex items-center justify-center', className)} style={{ height }}>
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent dark:border-primary-400 dark:border-t-transparent" />
+          <div className="border-primary-500 dark:border-primary-400 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent dark:border-t-transparent" />
         </div>
       );
     }
@@ -126,7 +126,7 @@ export function GroupedBarChart({
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/60 backdrop-blur-[1px] dark:bg-gray-800/60">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent dark:border-primary-400 dark:border-t-transparent" />
+          <div className="border-primary-500 dark:border-primary-400 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent dark:border-t-transparent" />
         </div>
       )}
 

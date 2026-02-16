@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Transition } from '@headlessui/react'
-import { clsx } from 'clsx'
-import { useAuthStore } from '@/stores/authStore'
-import { useTheme } from '@/contexts/ThemeContext'
-import { useNavigationGuard } from '@/contexts/NavigationGuardContext'
-import { IconButton } from '@/components/ui'
+import { useState, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Transition } from '@headlessui/react';
+import { clsx } from 'clsx';
+import { useAuthStore } from '@/stores/authStore';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
+import { IconButton } from '@/components/ui';
 import {
   Home,
   Users,
@@ -22,12 +22,12 @@ import {
   Lock,
   Unlock,
   ShieldCheck,
-} from 'lucide-react'
+} from 'lucide-react';
 interface NavItem {
-  name: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  children?: { name: string; href: string }[]
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children?: { name: string; href: string }[];
 }
 
 const navigation: NavItem[] = [
@@ -84,51 +84,51 @@ const navigation: NavItem[] = [
     ],
   },
   { name: 'Administração', href: '/admin', icon: ShieldCheck },
-]
+];
 
-const SIDEBAR_STORAGE_KEY = 'aurea-sidebar-pinned'
+const SIDEBAR_STORAGE_KEY = 'aurea-sidebar-pinned';
 
 export default function DashboardLayout() {
-  const navigate = useNavigate()
-  const { appUser, company, signOut } = useAuthStore()
-  const { theme, setTheme, resolvedTheme: _resolvedTheme } = useTheme()
-  const { handleLinkClick } = useNavigationGuard()
-  const [sidebarOpen, setSidebarOpen] = useState(false) // Mobile
+  const navigate = useNavigate();
+  const { appUser, company, signOut } = useAuthStore();
+  const { theme, setTheme, resolvedTheme: _resolvedTheme } = useTheme();
+  const { handleLinkClick } = useNavigationGuard();
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile
   const [isPinned, setIsPinned] = useState(() => {
-    const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY)
-    return stored === 'true'
-  })
-  const [isHovered, setIsHovered] = useState(false)
-  const [expandedItem, setExpandedItem] = useState<string | null>(null)
+    const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    return stored === 'true';
+  });
+  const [isHovered, setIsHovered] = useState(false);
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
   // Persistir preferência de pinned
   useEffect(() => {
-    localStorage.setItem(SIDEBAR_STORAGE_KEY, String(isPinned))
-  }, [isPinned])
+    localStorage.setItem(SIDEBAR_STORAGE_KEY, String(isPinned));
+  }, [isPinned]);
 
   const handleSignOut = async () => {
-    await signOut()
-    navigate('/login')
-  }
+    await signOut();
+    navigate('/login');
+  };
 
   const toggleExpanded = (name: string) => {
-    setExpandedItem((prev) => (prev === name ? null : name))
-  }
+    setExpandedItem((prev) => (prev === name ? null : name));
+  };
 
-  const isExpanded = (name: string) => expandedItem === name
+  const isExpanded = (name: string) => expandedItem === name;
 
   const togglePin = () => {
-    setIsPinned((prev) => !prev)
-  }
+    setIsPinned((prev) => !prev);
+  };
 
   // Desktop: O sidebar está expandido se estiver pinned OU em hover
-  const isDesktopExpanded = isPinned || isHovered
+  const isDesktopExpanded = isPinned || isHovered;
 
   const themeOptions = [
     { value: 'light', label: 'Claro', icon: Sun },
     { value: 'dark', label: 'Escuro', icon: Moon },
     { value: 'system', label: 'Sistema', icon: Monitor },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -213,9 +213,9 @@ export default function DashboardLayout() {
         )}
       >
         {/* Top bar */}
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-gray-200 bg-white/80 px-4 backdrop-blur-lg dark:border-gray-700 dark:bg-gray-800/80 lg:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-gray-200 bg-white/80 px-4 backdrop-blur-lg lg:px-8 dark:border-gray-700 dark:bg-gray-800/80">
           <button
-            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden dark:hover:bg-gray-700"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
@@ -260,20 +260,20 @@ export default function DashboardLayout() {
         </main>
       </div>
     </div>
-  )
+  );
 }
 
 interface SidebarContentProps {
-  navigation: NavItem[]
-  toggleExpanded: (name: string) => void
-  isExpanded: (name: string) => boolean
-  company: any
-  isExpanded_: boolean
-  onNavigate?: () => void
-  onLinkClick?: (e: React.MouseEvent, href: string) => void
-  showPinButton?: boolean
-  isPinned?: boolean
-  onTogglePin?: () => void
+  navigation: NavItem[];
+  toggleExpanded: (name: string) => void;
+  isExpanded: (name: string) => boolean;
+  company: any;
+  isExpanded_: boolean;
+  onNavigate?: () => void;
+  onLinkClick?: (e: React.MouseEvent, href: string) => void;
+  showPinButton?: boolean;
+  isPinned?: boolean;
+  onTogglePin?: () => void;
 }
 
 function SidebarContent({
@@ -288,7 +288,7 @@ function SidebarContent({
   isPinned = false,
   onTogglePin,
 }: SidebarContentProps) {
-  const versionLabel = `v${__APP_VERSION__}`
+  const versionLabel = `v${__APP_VERSION__}`;
 
   return (
     <>
@@ -308,7 +308,7 @@ function SidebarContent({
               className="h-14 w-14 rounded-xl object-contain transition-all duration-300"
             />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-lg transition-all duration-300">
+            <div className="from-primary-400 to-primary-600 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg transition-all duration-300">
               <svg
                 className="h-8 w-8 text-white transition-all duration-300"
                 xmlns="http://www.w3.org/2000/svg"
@@ -329,7 +329,7 @@ function SidebarContent({
                 className="h-16 max-w-[9.5rem] object-contain transition-all duration-300"
               />
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-lg transition-all duration-300">
+              <div className="from-primary-400 to-primary-600 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg transition-all duration-300">
                 <svg
                   className="h-7 w-7 text-white transition-all duration-300"
                   xmlns="http://www.w3.org/2000/svg"
@@ -404,9 +404,9 @@ function SidebarContent({
                               to={child.href}
                               end
                               onClick={(e) => {
-                                onLinkClick?.(e, child.href)
+                                onLinkClick?.(e, child.href);
                                 if (!e.defaultPrevented) {
-                                  onNavigate?.()
+                                  onNavigate?.();
                                 }
                               }}
                               className={({ isActive }) =>
@@ -426,9 +426,9 @@ function SidebarContent({
                   to={item.href}
                   end={item.href === '/'}
                   onClick={(e) => {
-                    onLinkClick?.(e, item.href)
+                    onLinkClick?.(e, item.href);
                     if (!e.defaultPrevented) {
-                      onNavigate?.()
+                      onNavigate?.();
                     }
                   }}
                   className={({ isActive }) =>
@@ -452,5 +452,5 @@ function SidebarContent({
         </p>
       </div>
     </>
-  )
+  );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Button, Select } from '@/components/ui';
+import { Modal, Input, Button, Select } from '@synia/ui';
 import { usePageCharts } from '@/hooks/usePageCharts';
 import toast from 'react-hot-toast';
 import type { PageChart, PageChartType, PageChartYAxisConfig } from '../types/database';
@@ -532,7 +532,7 @@ export default function PageChartModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, show_legend: e.target.checked }))
                 }
-                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                 disabled={isLoading}
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">Mostrar Legenda</span>
@@ -543,7 +543,7 @@ export default function PageChartModal({
                 type="checkbox"
                 checked={formData.show_grid}
                 onChange={(e) => setFormData((prev) => ({ ...prev, show_grid: e.target.checked }))}
-                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                 disabled={isLoading}
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">Mostrar Grid</span>
@@ -554,7 +554,7 @@ export default function PageChartModal({
                 type="checkbox"
                 checked={formData.stacked}
                 onChange={(e) => setFormData((prev) => ({ ...prev, stacked: e.target.checked }))}
-                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                 disabled={isLoading}
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">Empilhado</span>
@@ -565,7 +565,7 @@ export default function PageChartModal({
                 type="checkbox"
                 checked={formData.active}
                 onChange={(e) => setFormData((prev) => ({ ...prev, active: e.target.checked }))}
-                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                 disabled={isLoading}
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">Ativo</span>

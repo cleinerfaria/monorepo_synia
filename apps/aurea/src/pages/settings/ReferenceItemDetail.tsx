@@ -1,8 +1,8 @@
-import { Fragment, useState, useMemo } from 'react'
-import { Dialog, Transition, Tab } from '@headlessui/react'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { ColumnDef } from '@tanstack/react-table'
+import { Fragment, useState, useMemo } from 'react';
+import { Dialog, Transition, Tab } from '@headlessui/react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Button,
   DataTable,
@@ -13,48 +13,48 @@ import {
   CardHeader,
   CardTitle,
   IconButton,
-} from '@/components/ui'
-import { useRefPriceHistory, useRefCurrentPrices } from '@/hooks/useReferenceTables'
-import type { RefItem, RefPriceHistory } from '@/types/database'
-import { X, BarChart3, Tag } from 'lucide-react'
-import { formatDateOnly, parseDateOnly } from '@/lib/dateOnly'
+} from '@/components/ui';
+import { useRefPriceHistory, useRefCurrentPrices } from '@/hooks/useReferenceTables';
+import type { RefItem, RefPriceHistory } from '@/types/database';
+import { X, BarChart3, Tag } from 'lucide-react';
+import { formatDateOnly, parseDateOnly } from '@/lib/dateOnly';
 interface ReferenceItemDetailProps {
-  item: RefItem
-  isOpen: boolean
-  onClose: () => void
+  item: RefItem;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  }).format(value)
+  }).format(value);
 }
 
 export default function ReferenceItemDetail({ item, isOpen, onClose }: ReferenceItemDetailProps) {
-  const [selectedTab, setSelectedTab] = useState(0)
-  const [selectedPriceType, setSelectedPriceType] = useState<string | undefined>()
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedPriceType, setSelectedPriceType] = useState<string | undefined>();
 
   const { data: priceHistory = [], isLoading: loadingHistory } = useRefPriceHistory(
     item.id,
     selectedPriceType
-  )
-  const { data: currentPrices = [], isLoading: loadingCurrent } = useRefCurrentPrices(item.id)
+  );
+  const { data: currentPrices = [], isLoading: loadingCurrent } = useRefCurrentPrices(item.id);
 
   // Get unique price types
   const priceTypes = useMemo(() => {
-    const types = new Set(priceHistory.map((p) => p.price_type))
-    return Array.from(types).sort()
-  }, [priceHistory])
+    const types = new Set(priceHistory.map((p) => p.price_type));
+    return Array.from(types).sort();
+  }, [priceHistory]);
 
   const tabs = [
     { name: 'Preços Atuais', icon: Tag },
     { name: 'Histórico', icon: BarChart3 },
-  ]
+  ];
 
   // Price history columns
   const historyColumns: ColumnDef<RefPriceHistory>[] = [
@@ -94,34 +94,34 @@ export default function ReferenceItemDetail({ item, isOpen, onClose }: Reference
         </span>
       ),
     },
-  ]
+  ];
 
   // Calculate price variation for chart
   const _chartData = useMemo(() => {
-    if (priceHistory.length === 0) return []
+    if (priceHistory.length === 0) return [];
 
     // Group by price_type and sort by date
-    const grouped: Record<string, RefPriceHistory[]> = {}
+    const grouped: Record<string, RefPriceHistory[]> = {};
     priceHistory.forEach((p) => {
-      if (!grouped[p.price_type]) grouped[p.price_type] = []
-      grouped[p.price_type].push(p)
-    })
+      if (!grouped[p.price_type]) grouped[p.price_type] = [];
+      grouped[p.price_type].push(p);
+    });
 
     // Sort each group by date
     Object.keys(grouped).forEach((type) => {
       grouped[type].sort(
         (a, b) => parseDateOnly(a.valid_from).getTime() - parseDateOnly(b.valid_from).getTime()
-      )
-    })
+      );
+    });
 
-    return grouped
-  }, [priceHistory])
+    return grouped;
+  }, [priceHistory]);
 
   // Get max price for chart scaling
   const maxPrice = useMemo(() => {
-    if (priceHistory.length === 0) return 100
-    return Math.max(...priceHistory.map((p) => p.price_value)) * 1.1
-  }, [priceHistory])
+    if (priceHistory.length === 0) return 100;
+    return Math.max(...priceHistory.map((p) => p.price_value)) * 1.1;
+  }, [priceHistory]);
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -299,14 +299,14 @@ export default function ReferenceItemDetail({ item, isOpen, onClose }: Reference
                             <CardContent>
                               <div className="flex h-40 items-end gap-1">
                                 {priceHistory.slice(-20).map((price, _index) => {
-                                  const height = (price.price_value / maxPrice) * 100
+                                  const height = (price.price_value / maxPrice) * 100;
                                   const colorMap: Record<string, string> = {
                                     pmc: 'bg-blue-500',
                                     pf: 'bg-green-500',
                                     hospital: 'bg-purple-500',
-                                  }
+                                  };
                                   const color =
-                                    colorMap[price.price_type.toLowerCase()] || 'bg-gray-500'
+                                    colorMap[price.price_type.toLowerCase()] || 'bg-gray-500';
 
                                   return (
                                     <div
@@ -327,7 +327,7 @@ export default function ReferenceItemDetail({ item, isOpen, onClose }: Reference
                                         </div>
                                       </div>
                                     </div>
-                                  )
+                                  );
                                 })}
                               </div>
                               <div className="mt-2 flex justify-between text-xs text-gray-500">
@@ -383,5 +383,5 @@ export default function ReferenceItemDetail({ item, isOpen, onClose }: Reference
         </div>
       </Dialog>
     </Transition>
-  )
+  );
 }

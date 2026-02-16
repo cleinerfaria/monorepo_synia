@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Layers, TrendingUp, Crown, Search, RefreshCw } from 'lucide-react';
-import { Input } from '@/components/ui';
+import { Input } from '@synia/ui';
 import { KpiCard, SalesFiltersBar, SimpleChart, ChartCard, PremiumTable } from '@/components/sales';
 import { useSalesData } from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
@@ -239,7 +239,7 @@ export default function SalesProductsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white lg:text-3xl">
+          <h1 className="font-display text-2xl font-bold text-gray-900 lg:text-3xl dark:text-white">
             Produtos
           </h1>
           <p className="mt-1 text-gray-500 dark:text-gray-400">

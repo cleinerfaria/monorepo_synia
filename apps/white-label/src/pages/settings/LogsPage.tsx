@@ -1,16 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
-import {
-  Card,
-  DataTable,
-  Select,
-  Badge,
-  EmptyState,
-  Modal,
-  ModalFooter,
-  Button,
-} from '@/components/ui';
+import { Card, DataTable, Select, Badge, EmptyState, Modal, ModalFooter, Button } from '@synia/ui';
 import { useUserActionLogs } from '@/hooks/useLogs';
 import type { UserActionLog } from '@/types/logs';
 import { formatDistanceToNow } from 'date-fns';
@@ -226,7 +217,7 @@ export default function LogsPage() {
                 placeholder="Buscar por nome ou usuário..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
 

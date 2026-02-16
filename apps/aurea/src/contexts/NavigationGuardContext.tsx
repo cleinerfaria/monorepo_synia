@@ -1,62 +1,62 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Modal, ModalFooter, Button } from '@/components/ui'
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Modal, ModalFooter, Button } from '@/components/ui';
 
 interface NavigationGuardContextType {
   /** Indica se há alterações não salvas */
-  hasUnsavedChanges: boolean
+  hasUnsavedChanges: boolean;
   /** Define se há alterações não salvas */
-  setHasUnsavedChanges: (value: boolean) => void
+  setHasUnsavedChanges: (value: boolean) => void;
   /** Navega com segurança, mostrando confirmação se houver alterações não salvas */
-  safeNavigate: (path: string) => void
+  safeNavigate: (path: string) => void;
   /** Handler para interceptar cliques em links */
-  handleLinkClick: (e: React.MouseEvent, href: string) => void
+  handleLinkClick: (e: React.MouseEvent, href: string) => void;
 }
 
-const NavigationGuardContext = createContext<NavigationGuardContextType | null>(null)
+const NavigationGuardContext = createContext<NavigationGuardContextType | null>(null);
 
 export function NavigationGuardProvider({ children }: { children: ReactNode }) {
-  const navigate = useNavigate()
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [showExitConfirmModal, setShowExitConfirmModal] = useState(false)
-  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
   const safeNavigate = useCallback(
     (path: string) => {
       if (hasUnsavedChanges) {
-        setPendingNavigation(path)
-        setShowExitConfirmModal(true)
+        setPendingNavigation(path);
+        setShowExitConfirmModal(true);
       } else {
-        navigate(path)
+        navigate(path);
       }
     },
     [hasUnsavedChanges, navigate]
-  )
+  );
 
   const handleLinkClick = useCallback(
     (e: React.MouseEvent, href: string) => {
       if (hasUnsavedChanges) {
-        e.preventDefault()
-        setPendingNavigation(href)
-        setShowExitConfirmModal(true)
+        e.preventDefault();
+        setPendingNavigation(href);
+        setShowExitConfirmModal(true);
       }
     },
     [hasUnsavedChanges]
-  )
+  );
 
   const confirmExit = useCallback(() => {
-    setShowExitConfirmModal(false)
-    setHasUnsavedChanges(false)
+    setShowExitConfirmModal(false);
+    setHasUnsavedChanges(false);
     if (pendingNavigation) {
-      navigate(pendingNavigation)
-      setPendingNavigation(null)
+      navigate(pendingNavigation);
+      setPendingNavigation(null);
     }
-  }, [navigate, pendingNavigation])
+  }, [navigate, pendingNavigation]);
 
   const cancelExit = useCallback(() => {
-    setShowExitConfirmModal(false)
-    setPendingNavigation(null)
-  }, [])
+    setShowExitConfirmModal(false);
+    setPendingNavigation(null);
+  }, []);
 
   return (
     <NavigationGuardContext.Provider
@@ -91,26 +91,26 @@ export function NavigationGuardProvider({ children }: { children: ReactNode }) {
         </ModalFooter>
       </Modal>
     </NavigationGuardContext.Provider>
-  )
+  );
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useNavigationGuard() {
-  const context = useContext(NavigationGuardContext)
-  const navigate = useNavigate()
+  const context = useContext(NavigationGuardContext);
+  const navigate = useNavigate();
   if (!context) {
     if (import.meta.env?.DEV) {
-      console.error('useNavigationGuard called outside NavigationGuardProvider; using fallback.')
+      console.error('useNavigationGuard called outside NavigationGuardProvider; using fallback.');
     }
     return {
       hasUnsavedChanges: false,
       setHasUnsavedChanges: () => {},
       safeNavigate: (path: string) => navigate(path),
       handleLinkClick: (e: React.MouseEvent, href: string) => {
-        e.preventDefault()
-        navigate(href)
+        e.preventDefault();
+        navigate(href);
       },
-    }
+    };
   }
-  return context
+  return context;
 }

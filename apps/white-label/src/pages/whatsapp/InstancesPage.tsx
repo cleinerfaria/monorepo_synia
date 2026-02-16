@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Edit, LogOut, Plus, QrCode, RefreshCw, Smartphone, Trash, Loader2 } from 'lucide-react';
-import { Card, Button, DataTable, EmptyState, Badge, Modal } from '@/components/ui';
+import { Card, Button, DataTable, EmptyState, Badge, Modal } from '@synia/ui';
 import { useAuthStore } from '@/stores/authStore';
 import {
   WhatsappInstance,
@@ -343,7 +343,7 @@ export default function InstancesPage() {
                 placeholder="Buscar por nome, ID ou numero..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
           </div>
@@ -409,7 +409,7 @@ export default function InstancesPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-4 rounded-lg bg-gray-50 p-6 text-center dark:bg-gray-800">
-              <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+              <Loader2 className="text-primary-500 h-8 w-8 animate-spin" />
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">Gerando QR Code</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Aguarde um momento...</p>

@@ -1,11 +1,11 @@
-﻿import { useState, useMemo } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Truck, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useEffect } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Pencil, Trash2, Truck, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  ButtonNew,
   DataTable,
+  ListPagination,
   Modal,
   ModalFooter,
   Input,
@@ -15,104 +15,108 @@ import {
   EmptyState,
   SwitchNew,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useSuppliers,
   useCreateSupplier,
   useUpdateSupplier,
   useDeleteSupplier,
-} from '@/hooks/useSuppliers'
-import { useForm } from 'react-hook-form'
-import type { Supplier } from '@/types/database'
+} from '@/hooks/useSuppliers';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { useForm } from 'react-hook-form';
+import type { Supplier } from '@/types/database';
 
 interface SupplierFormData {
-  code: string
-  name: string
-  trade_name: string
-  document: string
-  state_registration: string
-  municipal_registration: string
-  phone: string
-  email: string
-  website: string
-  address: string
-  city: string
-  state: string
-  zip_code: string
-  contact_name: string
-  contact_phone: string
-  payment_terms: string
-  notes: string
-  active: boolean
+  code: string;
+  name: string;
+  trade_name: string;
+  document: string;
+  state_registration: string;
+  municipal_registration: string;
+  phone: string;
+  email: string;
+  website: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  contact_name: string;
+  contact_phone: string;
+  payment_terms: string;
+  notes: string;
+  active: boolean;
 }
 
-// Função para formatar CNPJ/CPF
-const formatCNPJCPF = (value: string | null | undefined): string => {
-  if (!value) return '-'
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
-  const cleanValue = value.replace(/\D/g, '')
+// FunÃ§Ã£o para formatar CNPJ/CPF
+const formatCNPJCPF = (value: string | null | undefined): string => {
+  if (!value) return '-';
+
+  const cleanValue = value.replace(/\D/g, '');
 
   if (cleanValue.length === 11) {
     // CPF: 000.000.000-00
-    return cleanValue.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+    return cleanValue.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   } else if (cleanValue.length === 14) {
     // CNPJ: 00.000.000/0000-00
-    return cleanValue.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+    return cleanValue.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
   }
 
-  return value
-}
+  return value;
+};
 
 const formatCnpjCpfInput = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 14)
+  const digits = value.replace(/\D/g, '').slice(0, 14);
 
   if (digits.length <= 11) {
-    if (digits.length <= 3) return digits
-    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
     if (digits.length <= 9) {
-      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`
+      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
     }
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
   }
 
-  if (digits.length <= 2) return digits
-  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
   if (digits.length <= 8) {
-    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
   }
   if (digits.length <= 12) {
-    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
   }
-  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`
-}
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+};
 
 const formatPhoneInput = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
-  if (!digits) return ''
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (!digits) return '';
 
-  if (digits.length <= 2) return `(${digits}`
+  if (digits.length <= 2) return `(${digits}`;
 
-  const area = digits.slice(0, 2)
-  const rest = digits.slice(2)
+  const area = digits.slice(0, 2);
+  const rest = digits.slice(2);
 
-  if (digits.length <= 6) return `(${area}) ${rest}`
+  if (digits.length <= 6) return `(${area}) ${rest}`;
 
   if (digits.length <= 10) {
-    const prefix = rest.slice(0, 4)
-    const suffix = rest.slice(4)
-    return `(${area}) ${prefix}${suffix ? `-${suffix}` : ''}`
+    const prefix = rest.slice(0, 4);
+    const suffix = rest.slice(4);
+    return `(${area}) ${prefix}${suffix ? `-${suffix}` : ''}`;
   }
 
-  const prefix = rest.slice(0, 5)
-  const suffix = rest.slice(5)
-  return `(${area}) ${prefix}${suffix ? `-${suffix}` : ''}`
-}
+  const prefix = rest.slice(0, 5);
+  const suffix = rest.slice(5);
+  return `(${area}) ${prefix}${suffix ? `-${suffix}` : ''}`;
+};
 
 const formatCepInput = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 8)
-  if (digits.length <= 5) return digits
-  return `${digits.slice(0, 5)}-${digits.slice(5)}`
-}
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+};
 
 const UF_OPTIONS = [
   { value: 'AC', label: 'AC' },
@@ -142,18 +146,19 @@ const UF_OPTIONS = [
   { value: 'SP', label: 'SP' },
   { value: 'SE', label: 'SE' },
   { value: 'TO', label: 'TO' },
-]
+];
 
 export default function SuppliersPage() {
-  const { data: suppliers = [], isLoading } = useSuppliers()
-  const createSupplier = useCreateSupplier()
-  const updateSupplier = useUpdateSupplier()
-  const deleteSupplier = useDeleteSupplier()
+  const { data: suppliers = [], isLoading } = useSuppliers();
+  const [currentPage, setCurrentPage] = useListPageState();
+  const createSupplier = useCreateSupplier();
+  const updateSupplier = useUpdateSupplier();
+  const deleteSupplier = useDeleteSupplier();
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
-  const [searchInput, setSearchInput] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+  const [searchInput, setSearchInput] = useState('');
 
   const {
     register,
@@ -162,18 +167,18 @@ export default function SuppliersPage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<SupplierFormData>()
+  } = useForm<SupplierFormData>();
 
-  const stateValue = watch('state')
-  const activeValue = watch('active')
-  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active')
-  const [documentValue, setDocumentValue] = useState('')
-  const [phoneValue, setPhoneValue] = useState('')
-  const [contactPhoneValue, setContactPhoneValue] = useState('')
-  const [zipCodeValue, setZipCodeValue] = useState('')
+  const stateValue = watch('state');
+  const activeValue = watch('active');
+  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
+  const [documentValue, setDocumentValue] = useState('');
+  const [phoneValue, setPhoneValue] = useState('');
+  const [contactPhoneValue, setContactPhoneValue] = useState('');
+  const [zipCodeValue, setZipCodeValue] = useState('');
 
   const openCreateModal = () => {
-    setSelectedSupplier(null)
+    setSelectedSupplier(null);
     reset({
       code: '',
       name: '',
@@ -193,21 +198,21 @@ export default function SuppliersPage() {
       payment_terms: '',
       notes: '',
       active: true,
-    })
-    setDocumentValue('')
-    setPhoneValue('')
-    setContactPhoneValue('')
-    setZipCodeValue('')
-    setIsModalOpen(true)
-  }
+    });
+    setDocumentValue('');
+    setPhoneValue('');
+    setContactPhoneValue('');
+    setZipCodeValue('');
+    setIsModalOpen(true);
+  };
 
   const openEditModal = (supplier: Supplier) => {
-    const formattedDocument = formatCnpjCpfInput(supplier.document || '')
-    const formattedPhone = formatPhoneInput(supplier.phone || '')
-    const formattedContactPhone = formatPhoneInput(supplier.contact_phone || '')
-    const formattedZip = formatCepInput(supplier.zip_code || '')
+    const formattedDocument = formatCnpjCpfInput(supplier.document || '');
+    const formattedPhone = formatPhoneInput(supplier.phone || '');
+    const formattedContactPhone = formatPhoneInput(supplier.contact_phone || '');
+    const formattedZip = formatCepInput(supplier.zip_code || '');
 
-    setSelectedSupplier(supplier)
+    setSelectedSupplier(supplier);
     reset({
       code: supplier.code || '',
       name: supplier.name,
@@ -227,18 +232,18 @@ export default function SuppliersPage() {
       payment_terms: supplier.payment_terms || '',
       notes: supplier.notes || '',
       active: supplier.active ?? true,
-    })
-    setDocumentValue(formattedDocument)
-    setPhoneValue(formattedPhone)
-    setContactPhoneValue(formattedContactPhone)
-    setZipCodeValue(formattedZip)
-    setIsModalOpen(true)
-  }
+    });
+    setDocumentValue(formattedDocument);
+    setPhoneValue(formattedPhone);
+    setContactPhoneValue(formattedContactPhone);
+    setZipCodeValue(formattedZip);
+    setIsModalOpen(true);
+  };
 
   const openDeleteModal = (supplier: Supplier) => {
-    setSelectedSupplier(supplier)
-    setIsDeleteModalOpen(true)
-  }
+    setSelectedSupplier(supplier);
+    setIsDeleteModalOpen(true);
+  };
 
   const onSubmit = async (data: SupplierFormData) => {
     const payload = {
@@ -259,42 +264,59 @@ export default function SuppliersPage() {
       contact_phone: data.contact_phone || null,
       payment_terms: data.payment_terms || null,
       notes: data.notes || null,
-    }
+    };
 
     if (selectedSupplier) {
       await updateSupplier.mutateAsync({
         id: selectedSupplier.id,
         ...payload,
-      })
+      });
     } else {
-      await createSupplier.mutateAsync(payload)
+      await createSupplier.mutateAsync(payload);
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const handleDelete = async () => {
     if (selectedSupplier) {
-      await deleteSupplier.mutateAsync(selectedSupplier.id)
-      setIsDeleteModalOpen(false)
+      await deleteSupplier.mutateAsync(selectedSupplier.id);
+      setIsDeleteModalOpen(false);
     }
-  }
+  };
 
   const filteredSuppliers = useMemo(() => {
-    if (!searchInput.trim()) return suppliers
-    const query = searchInput.toLowerCase()
+    if (!searchInput.trim()) return suppliers;
+    const query = searchInput.toLowerCase();
     return suppliers.filter((supplier) => {
-      const name = supplier.name?.toLowerCase() || ''
-      const tradeName = supplier.trade_name?.toLowerCase() || ''
-      const document = supplier.document?.toLowerCase() || ''
-      return name.includes(query) || tradeName.includes(query) || document.includes(query)
-    })
-  }, [suppliers, searchInput])
+      const name = supplier.name?.toLowerCase() || '';
+      const tradeName = supplier.trade_name?.toLowerCase() || '';
+      const document = supplier.document?.toLowerCase() || '';
+      return name.includes(query) || tradeName.includes(query) || document.includes(query);
+    });
+  }, [suppliers, searchInput]);
+  const totalCount = filteredSuppliers.length;
+  const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
+  const paginatedSuppliers = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredSuppliers.slice(start, start + PAGE_SIZE);
+  }, [filteredSuppliers, currentPage]);
 
-  const hasActiveSearch = searchInput.trim().length > 0
+  const hasActiveSearch = searchInput.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-  }
+    setSearchInput('');
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchInput, setCurrentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages, setCurrentPage]);
 
   const columns: ColumnDef<Supplier>[] = useMemo(
     () => [
@@ -326,15 +348,15 @@ export default function SuppliersPage() {
       },
       {
         accessorKey: 'location',
-        header: 'Localização',
+        header: 'LocalizaÃ§Ã£o',
         cell: ({ row }) => {
-          const { city, state } = row.original
-          if (!city && !state) return '-'
+          const { city, state } = row.original;
+          if (!city && !state) return '-';
           return (
             <span className="text-gray-700 dark:text-gray-300">
               {[city, state].filter(Boolean).join(' - ')}
             </span>
-          )
+          );
         },
       },
       {
@@ -363,8 +385,8 @@ export default function SuppliersPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                openEditModal(row.original)
+                e.stopPropagation();
+                openEditModal(row.original);
               }}
             >
               <Pencil className="h-4 w-4" />
@@ -372,8 +394,8 @@ export default function SuppliersPage() {
             <IconButton
               variant="danger"
               onClick={(e) => {
-                e.stopPropagation()
-                openDeleteModal(row.original)
+                e.stopPropagation();
+                openDeleteModal(row.original);
               }}
             >
               <Trash2 className="h-4 w-4" />
@@ -384,7 +406,7 @@ export default function SuppliersPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -395,7 +417,7 @@ export default function SuppliersPage() {
             Fornecedores
           </h1>
         </div>
-        <ButtonNew onClick={openCreateModal} variant="solid" label="Novo Fornecedor" />
+        <Button onClick={openCreateModal} variant="solid" label="Novo Fornecedor" />
       </div>
 
       {/* Table */}
@@ -409,11 +431,11 @@ export default function SuppliersPage() {
                 placeholder="Buscar por nome ou CNPJ..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -427,8 +449,9 @@ export default function SuppliersPage() {
             )}
           </div>
           <DataTable
-            data={filteredSuppliers}
+            data={paginatedSuppliers}
             columns={columns}
+            showPagination={false}
             isLoading={isLoading}
             onRowClick={openEditModal}
             emptyState={
@@ -436,7 +459,7 @@ export default function SuppliersPage() {
                 title="Nenhum fornecedor cadastrado"
                 description="Comece cadastrando seu primeiro fornecedor"
                 action={
-                  <ButtonNew
+                  <Button
                     onClick={openCreateModal}
                     size="sm"
                     variant="solid"
@@ -445,6 +468,16 @@ export default function SuppliersPage() {
                 }
               />
             }
+          />
+          <ListPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            itemLabel="fornecedores"
+            onPreviousPage={() => setCurrentPage((page) => page - 1)}
+            onNextPage={() => setCurrentPage((page) => page + 1)}
+            isLoading={isLoading}
           />
         </div>
       </Card>
@@ -457,18 +490,18 @@ export default function SuppliersPage() {
         size="xl"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Dados Básicos */}
+          {/* Dados BÃ¡sicos */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Dados Básicos</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Dados BÃ¡sicos</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
               <div className="col-span-4">
-                <Input label="Código" placeholder="Código" {...register('code')} />
+                <Input label="CÃ³digo" placeholder="CÃ³digo" {...register('code')} />
               </div>
               <div className="col-span-12">
                 <Input
-                  label="Razão Social"
+                  label="RazÃ£o Social"
                   placeholder="Nome oficial da empresa"
-                  {...register('name', { required: 'Razão social é obrigatória' })}
+                  {...register('name', { required: 'RazÃ£o social Ã© obrigatÃ³ria' })}
                   error={errors.name?.message}
                   required
                 />
@@ -490,32 +523,32 @@ export default function SuppliersPage() {
                 {...register('document')}
                 value={documentValue}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const formatted = formatCnpjCpfInput(e.target.value)
-                  setDocumentValue(formatted)
-                  setValue('document', formatted, { shouldDirty: true })
+                  const formatted = formatCnpjCpfInput(e.target.value);
+                  setDocumentValue(formatted);
+                  setValue('document', formatted, { shouldDirty: true });
                 }}
               />
               <Input
-                label="Inscrição Estadual"
-                placeholder="Número IE"
+                label="InscriÃ§Ã£o Estadual"
+                placeholder="NÃºmero IE"
                 {...register('state_registration')}
               />
               <Input
-                label="Inscrição Municipal"
-                placeholder="Número IM"
+                label="InscriÃ§Ã£o Municipal"
+                placeholder="NÃºmero IM"
                 {...register('municipal_registration')}
               />
             </div>
           </div>
 
-          {/* Endereço */}
+          {/* EndereÃ§o */}
           <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Endereço</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">EndereÃ§o</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
               <div className="md:col-span-10">
                 <Input
-                  label="Endereço"
-                  placeholder="Rua, número, complemento"
+                  label="EndereÃ§o"
+                  placeholder="Rua, nÃºmero, complemento"
                   {...register('address')}
                 />
               </div>
@@ -533,9 +566,9 @@ export default function SuppliersPage() {
                   {...register('zip_code')}
                   value={zipCodeValue}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const formatted = formatCepInput(e.target.value)
-                    setZipCodeValue(formatted)
-                    setValue('zip_code', formatted, { shouldDirty: true })
+                    const formatted = formatCepInput(e.target.value);
+                    setZipCodeValue(formatted);
+                    setValue('zip_code', formatted, { shouldDirty: true });
                   }}
                 />
               </div>
@@ -554,9 +587,9 @@ export default function SuppliersPage() {
                   {...register('phone')}
                   value={phoneValue}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const formatted = formatPhoneInput(e.target.value)
-                    setPhoneValue(formatted)
-                    setValue('phone', formatted, { shouldDirty: true })
+                    const formatted = formatPhoneInput(e.target.value);
+                    setPhoneValue(formatted);
+                    setValue('phone', formatted, { shouldDirty: true });
                   }}
                 />
               </div>
@@ -590,32 +623,32 @@ export default function SuppliersPage() {
                 {...register('contact_phone')}
                 value={contactPhoneValue}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const formatted = formatPhoneInput(e.target.value)
-                  setContactPhoneValue(formatted)
-                  setValue('contact_phone', formatted, { shouldDirty: true })
+                  const formatted = formatPhoneInput(e.target.value);
+                  setContactPhoneValue(formatted);
+                  setValue('contact_phone', formatted, { shouldDirty: true });
                 }}
               />
             </div>
           </div>
 
-          {/* Observações */}
+          {/* ObservaÃ§Ãµes */}
           <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Informações Adicionais
+              InformaÃ§Ãµes Adicionais
             </h3>
             <div className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4">
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="Condições de Pagamento"
-                  placeholder="Ex: 30/60/90 dias, boleto bancário"
+                  label="CondiÃ§Ãµes de Pagamento"
+                  placeholder="Ex: 30/60/90 dias, boleto bancÃ¡rio"
                   rows={2}
                   {...register('payment_terms')}
                 />
               </div>
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="Observações"
-                  placeholder="Observações adicionais..."
+                  label="ObservaÃ§Ãµes"
+                  placeholder="ObservaÃ§Ãµes adicionais..."
                   rows={2}
                   {...register('notes')}
                 />
@@ -631,24 +664,24 @@ export default function SuppliersPage() {
             onBlur={activeOnBlur}
             checked={!!activeValue}
             onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true })
+              setValue('active', e.target.checked, { shouldDirty: true });
             }}
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
               disabled={createSupplier.isPending || updateSupplier.isPending}
-              label={selectedSupplier ? 'Salvar Alterações' : 'Cadastrar'}
+              label={selectedSupplier ? 'Salvar AlteraÃ§Ãµes' : 'Cadastrar'}
             />
           </ModalFooter>
         </form>
@@ -664,11 +697,11 @@ export default function SuppliersPage() {
         <p className="text-gray-600 dark:text-gray-400">
           Tem certeza que deseja excluir o fornecedor{' '}
           <strong className="text-gray-900 dark:text-white">{selectedSupplier?.name}</strong>? Esta
-          ação não pode ser desfeita.
+          aÃ§Ã£o nÃ£o pode ser desfeita.
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
@@ -686,5 +719,5 @@ export default function SuppliersPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

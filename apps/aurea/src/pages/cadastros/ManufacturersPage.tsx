@@ -1,10 +1,9 @@
-﻿import { useState, useMemo, useEffect } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Building2, RefreshCw, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useEffect } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Pencil, Trash2, Building2, RefreshCw, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  ButtonNew,
   DataTable,
   ListPagination,
   Modal,
@@ -15,7 +14,7 @@ import {
   EmptyState,
   SwitchNew,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useManufacturersPaginated,
   useCreateManufacturer,
@@ -23,71 +22,71 @@ import {
   useDeleteManufacturer,
   useReferenceTablesStatus,
   useSyncManufacturersFromReference,
-} from '@/hooks/useManufacturers'
-import { useListPageState } from '@/hooks/useListPageState'
-import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination'
-import { useForm } from 'react-hook-form'
-import type { Manufacturer } from '@/types/database'
+} from '@/hooks/useManufacturers';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { useForm } from 'react-hook-form';
+import type { Manufacturer } from '@/types/database';
 
 interface ManufacturerFormData {
-  code: string
-  name: string
-  trade_name: string
-  document: string
-  website: string
-  phone: string
-  email: string
-  address: string
-  notes: string
-  active: boolean
+  code: string;
+  name: string;
+  trade_name: string;
+  document: string;
+  website: string;
+  phone: string;
+  email: string;
+  address: string;
+  notes: string;
+  active: boolean;
 }
 
-const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 export default function ManufacturersPage() {
-  const [currentPage, setCurrentPage] = useListPageState()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
+  const [currentPage, setCurrentPage] = useListPageState();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   const { data: paginatedData, isLoading } = useManufacturersPaginated(
     currentPage,
     PAGE_SIZE,
     searchTerm
-  )
+  );
 
-  const manufacturers = paginatedData?.data ?? []
-  const totalCount = paginatedData?.totalCount ?? 0
-  const totalPages = paginatedData?.totalPages ?? 1
+  const manufacturers = paginatedData?.data ?? [];
+  const totalCount = paginatedData?.totalCount ?? 0;
+  const totalPages = paginatedData?.totalPages ?? 1;
 
-  const createManufacturer = useCreateManufacturer()
-  const updateManufacturer = useUpdateManufacturer()
-  const deleteManufacturer = useDeleteManufacturer()
-  const { data: refStatus } = useReferenceTablesStatus()
-  const syncManufacturers = useSyncManufacturersFromReference()
+  const createManufacturer = useCreateManufacturer();
+  const updateManufacturer = useUpdateManufacturer();
+  const deleteManufacturer = useDeleteManufacturer();
+  const { data: refStatus } = useReferenceTablesStatus();
+  const syncManufacturers = useSyncManufacturersFromReference();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setCurrentPage(1)
-      setSearchTerm(searchInput)
-    }, 300)
+      setCurrentPage(1);
+      setSearchTerm(searchInput);
+    }, 300);
 
-    return () => clearTimeout(timeout)
-  }, [searchInput, setCurrentPage])
+    return () => clearTimeout(timeout);
+  }, [searchInput, setCurrentPage]);
 
-  const hasActiveSearch = searchTerm.trim().length > 0
+  const hasActiveSearch = searchTerm.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-    setSearchTerm('')
-    setCurrentPage(1)
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false)
-  const [selectedManufacturer, setSelectedManufacturer] = useState<Manufacturer | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [selectedManufacturer, setSelectedManufacturer] = useState<Manufacturer | null>(null);
 
-  const canSync = refStatus?.hasCmed && refStatus?.hasBrasindice
+  const canSync = refStatus?.hasCmed && refStatus?.hasBrasindice;
 
   const {
     register,
@@ -96,13 +95,13 @@ export default function ManufacturersPage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<ManufacturerFormData>()
+  } = useForm<ManufacturerFormData>();
 
-  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active')
-  const activeValue = watch('active')
+  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active');
+  const activeValue = watch('active');
 
   const openCreateModal = () => {
-    setSelectedManufacturer(null)
+    setSelectedManufacturer(null);
     reset({
       code: '',
       name: '',
@@ -114,12 +113,12 @@ export default function ManufacturersPage() {
       address: '',
       notes: '',
       active: true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = (manufacturer: Manufacturer) => {
-    setSelectedManufacturer(manufacturer)
+    setSelectedManufacturer(manufacturer);
     reset({
       code: manufacturer.code || '',
       name: manufacturer.name,
@@ -131,14 +130,14 @@ export default function ManufacturersPage() {
       address: manufacturer.address || '',
       notes: manufacturer.notes || '',
       active: manufacturer.active ?? true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openDeleteModal = (manufacturer: Manufacturer) => {
-    setSelectedManufacturer(manufacturer)
-    setIsDeleteModalOpen(true)
-  }
+    setSelectedManufacturer(manufacturer);
+    setIsDeleteModalOpen(true);
+  };
 
   const onSubmit = async (data: ManufacturerFormData) => {
     const payload = {
@@ -151,30 +150,30 @@ export default function ManufacturersPage() {
       email: data.email || null,
       address: data.address || null,
       notes: data.notes || null,
-    }
+    };
 
     if (selectedManufacturer) {
       await updateManufacturer.mutateAsync({
         id: selectedManufacturer.id,
         ...payload,
-      })
+      });
     } else {
-      await createManufacturer.mutateAsync(payload)
+      await createManufacturer.mutateAsync(payload);
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const handleDelete = async () => {
     if (selectedManufacturer) {
-      await deleteManufacturer.mutateAsync(selectedManufacturer.id)
-      setIsDeleteModalOpen(false)
+      await deleteManufacturer.mutateAsync(selectedManufacturer.id);
+      setIsDeleteModalOpen(false);
     }
-  }
+  };
 
   const handleSync = async () => {
-    await syncManufacturers.mutateAsync()
-    setIsSyncModalOpen(false)
-  }
+    await syncManufacturers.mutateAsync();
+    setIsSyncModalOpen(false);
+  };
 
   const columns: ColumnDef<Manufacturer>[] = useMemo(
     () => [
@@ -182,8 +181,8 @@ export default function ManufacturersPage() {
         accessorKey: 'name',
         header: 'Fabricante',
         cell: ({ row }) => {
-          const name = row.original.name || ''
-          const truncatedName = name.length > 80 ? name.substring(0, 80) + '...' : name
+          const name = row.original.name || '';
+          const truncatedName = name.length > 80 ? name.substring(0, 80) + '...' : name;
 
           return (
             <div className="flex items-center gap-3">
@@ -207,7 +206,7 @@ export default function ManufacturersPage() {
                 )}
               </div>
             </div>
-          )
+          );
         },
       },
       {
@@ -262,7 +261,7 @@ export default function ManufacturersPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -275,19 +274,19 @@ export default function ManufacturersPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button
-            variant="secondary"
+            variant="neutral"
             onClick={() => setIsSyncModalOpen(true)}
             disabled={!canSync}
+            icon={<RefreshCw className="mr-1 h-4 w-4" />}
             title={
               !canSync
                 ? 'Importe CMED e Brasíndice nas Tabelas de Referência para habilitar'
                 : 'Sincronizar fabricantes das tabelas de referência'
             }
           >
-            <RefreshCw className="h-5 w-5" />
             Sincronizar de Referência
           </Button>
-          <ButtonNew onClick={openCreateModal} variant="solid" label="Novo Fabricante" />
+          <Button onClick={openCreateModal} variant="solid" label="Novo Fabricante" />
         </div>
       </div>
 
@@ -302,11 +301,11 @@ export default function ManufacturersPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Buscar por nome, CNPJ ou código..."
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -335,7 +334,7 @@ export default function ManufacturersPage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
@@ -427,19 +426,19 @@ export default function ManufacturersPage() {
             onBlur={activeOnBlur}
             checked={!!activeValue}
             onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true })
+              setValue('active', e.target.checked, { shouldDirty: true });
             }}
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
@@ -463,7 +462,7 @@ export default function ManufacturersPage() {
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
@@ -500,19 +499,23 @@ export default function ManufacturersPage() {
         </div>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
             onClick={() => setIsSyncModalOpen(false)}
             label="Cancelar"
           />
-          <Button type="button" onClick={handleSync} isLoading={syncManufacturers.isPending}>
-            <RefreshCw className="h-4 w-4" />
+          <Button
+            type="button"
+            icon={<RefreshCw className="h-4 w-4" />}
+            onClick={handleSync}
+            isLoading={syncManufacturers.isPending}
+          >
             Sincronizar
           </Button>
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

@@ -1,10 +1,9 @@
-﻿import { useState, useMemo, useEffect } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Beaker, Download, Search, FunnelX } from 'lucide-react'
+﻿import { useState, useMemo, useEffect } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Pencil, Beaker, Download, Search, FunnelX } from 'lucide-react';
 import {
   Card,
   Button,
-  ButtonNew,
   DataTable,
   ListPagination,
   Modal,
@@ -15,67 +14,67 @@ import {
   EmptyState,
   SwitchNew,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useActiveIngredientsPaginated,
   useCreateActiveIngredient,
   useUpdateActiveIngredient,
-} from '@/hooks/useActiveIngredients'
-import { useListPageState } from '@/hooks/useListPageState'
-import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination'
-import { useForm } from 'react-hook-form'
-import type { ActiveIngredient } from '@/types/database'
-import { ImportActiveIngredientsFromCmedModal } from '@/components/catalog/ImportActiveIngredientsFromCmedModal'
+} from '@/hooks/useActiveIngredients';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { useForm } from 'react-hook-form';
+import type { ActiveIngredient } from '@/types/database';
+import { ImportActiveIngredientsFromCmedModal } from '@/components/catalog/ImportActiveIngredientsFromCmedModal';
 
 interface ActiveIngredientFormData {
-  code: string
-  name: string
-  cas_number: string
-  therapeutic_class: string
-  description: string
-  active: boolean
+  code: string;
+  name: string;
+  cas_number: string;
+  therapeutic_class: string;
+  description: string;
+  active: boolean;
 }
 
-const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 export default function ActiveIngredientsPage() {
-  const [currentPage, setCurrentPage] = useListPageState()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
+  const [currentPage, setCurrentPage] = useListPageState();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   const { data: paginatedData, isLoading } = useActiveIngredientsPaginated(
     currentPage,
     PAGE_SIZE,
     searchTerm
-  )
+  );
 
-  const ingredients = paginatedData?.data ?? []
-  const totalCount = paginatedData?.totalCount ?? 0
-  const totalPages = paginatedData?.totalPages ?? 1
+  const ingredients = paginatedData?.data ?? [];
+  const totalCount = paginatedData?.totalCount ?? 0;
+  const totalPages = paginatedData?.totalPages ?? 1;
 
-  const createIngredient = useCreateActiveIngredient()
-  const updateIngredient = useUpdateActiveIngredient()
+  const createIngredient = useCreateActiveIngredient();
+  const updateIngredient = useUpdateActiveIngredient();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setCurrentPage(1)
-      setSearchTerm(searchInput)
-    }, 300)
+      setCurrentPage(1);
+      setSearchTerm(searchInput);
+    }, 300);
 
-    return () => clearTimeout(timeout)
-  }, [searchInput, setCurrentPage])
+    return () => clearTimeout(timeout);
+  }, [searchInput, setCurrentPage]);
 
-  const hasActiveSearch = searchTerm.trim().length > 0
+  const hasActiveSearch = searchTerm.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-    setSearchTerm('')
-    setCurrentPage(1)
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
-  const [selectedIngredient, setSelectedIngredient] = useState<ActiveIngredient | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [selectedIngredient, setSelectedIngredient] = useState<ActiveIngredient | null>(null);
 
   const {
     register,
@@ -84,13 +83,13 @@ export default function ActiveIngredientsPage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<ActiveIngredientFormData>()
+  } = useForm<ActiveIngredientFormData>();
 
-  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active')
-  const activeValue = watch('active')
+  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active');
+  const activeValue = watch('active');
 
   const openCreateModal = () => {
-    setSelectedIngredient(null)
+    setSelectedIngredient(null);
     reset({
       code: '',
       name: '',
@@ -98,12 +97,12 @@ export default function ActiveIngredientsPage() {
       therapeutic_class: '',
       description: '',
       active: true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = (ingredient: ActiveIngredient) => {
-    setSelectedIngredient(ingredient)
+    setSelectedIngredient(ingredient);
     reset({
       code: ingredient.code || '',
       name: ingredient.name,
@@ -111,9 +110,9 @@ export default function ActiveIngredientsPage() {
       therapeutic_class: ingredient.therapeutic_class || '',
       description: ingredient.description || '',
       active: ingredient.active ?? true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const onSubmit = async (data: ActiveIngredientFormData) => {
     const payload = {
@@ -122,18 +121,18 @@ export default function ActiveIngredientsPage() {
       cas_number: data.cas_number || null,
       therapeutic_class: data.therapeutic_class || null,
       description: data.description || null,
-    }
+    };
 
     if (selectedIngredient) {
       await updateIngredient.mutateAsync({
         id: selectedIngredient.id,
         ...payload,
-      })
+      });
     } else {
-      await createIngredient.mutateAsync(payload)
+      await createIngredient.mutateAsync(payload);
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const columns: ColumnDef<ActiveIngredient>[] = useMemo(
     () => [
@@ -179,8 +178,8 @@ export default function ActiveIngredientsPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                openEditModal(row.original)
+                e.stopPropagation();
+                openEditModal(row.original);
               }}
             >
               <Pencil className="h-4 w-4" />
@@ -191,7 +190,7 @@ export default function ActiveIngredientsPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -203,11 +202,14 @@ export default function ActiveIngredientsPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={() => setIsImportModalOpen(true)}>
-            <Download className="h-5 w-5" />
+          <Button
+            variant="neutral"
+            icon={<Download className="mr-1 h-4 w-4" />}
+            onClick={() => setIsImportModalOpen(true)}
+          >
             Importar do CMED
           </Button>
-          <ButtonNew onClick={openCreateModal} variant="solid" label="Novo Princípio Ativo" />
+          <Button onClick={openCreateModal} variant="solid" label="Novo Princípio Ativo" />
         </div>
       </div>
 
@@ -222,11 +224,11 @@ export default function ActiveIngredientsPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Buscar por nome, classe ou CAS..."
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -257,7 +259,7 @@ export default function ActiveIngredientsPage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
@@ -327,19 +329,19 @@ export default function ActiveIngredientsPage() {
             onBlur={activeOnBlur}
             checked={!!activeValue}
             onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true })
+              setValue('active', e.target.checked, { shouldDirty: true });
             }}
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
@@ -355,5 +357,5 @@ export default function ActiveIngredientsPage() {
         onClose={() => setIsImportModalOpen(false)}
       />
     </div>
-  )
+  );
 }

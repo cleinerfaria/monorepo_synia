@@ -4,8 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/stores/authStore';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
-import { Input, Card } from '@/components/ui';
-import { ButtonNew } from '@/components/ui/ButtonNew';
+import { Input, Card, Button } from '@synia/ui';
 import PremiumHeroPanel from '@/components/auth/PremiumHeroPanel';
 import ForgotPasswordModal from '@/components/auth/ForgotPasswordModal';
 import { DEFAULT_COMPANY_COLOR } from '@/lib/themeConstants';
@@ -217,7 +216,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   autoComplete="current-password"
                   data-form-type="login"
-                  className="!border-primary-500/70 pr-10 focus:!border-primary-500 focus:!ring-primary-500/25"
+                  className="!border-primary-500/70 focus:!border-primary-500 focus:!ring-primary-500/25 pr-10"
                   {...register('password', {
                     required: 'Senha é obrigatória',
                     minLength: {
@@ -284,8 +283,7 @@ export default function LoginPage() {
               </div>
 
               <div style={loginPrimaryVars} className="[&>div]:w-full">
-                <ButtonNew
-                  type="submit"
+                <Button
                   label={isSubmitting ? 'Entrando...' : 'Entrar'}
                   variant="solid"
                   size="lg"

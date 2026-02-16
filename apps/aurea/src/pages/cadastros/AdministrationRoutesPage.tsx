@@ -1,11 +1,12 @@
-﻿import { useEffect, useMemo, useState } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Route, Search, FunnelX } from 'lucide-react'
+﻿import { useEffect, useMemo, useState } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Pencil, Route, Search, FunnelX } from 'lucide-react';
 import {
   Badge,
-  ButtonNew,
+  Button,
   Card,
   DataTable,
+  ListPagination,
   EmptyState,
   Input,
   Modal,
@@ -13,34 +14,39 @@ import {
   SwitchNew,
   Textarea,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useAdministrationRoutes,
   useCreateAdministrationRoute,
   useUpdateAdministrationRoute,
-} from '@/hooks/useAdministrationRoutes'
-import { useForm } from 'react-hook-form'
-import type { Tables } from '@/types/database'
+} from '@/hooks/useAdministrationRoutes';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { useForm } from 'react-hook-form';
+import type { Tables } from '@/types/database';
 
-type AdministrationRoute = Tables<'administration_routes'>
+type AdministrationRoute = Tables<'administration_routes'>;
 
 interface AdministrationRouteFormData {
-  name: string
-  abbreviation: string
-  description: string
-  prescription_order: number
-  active: boolean
+  name: string;
+  abbreviation: string;
+  description: string;
+  prescription_order: number;
+  active: boolean;
 }
 
-export default function AdministrationRoutesPage() {
-  const { data: routes = [], isLoading } = useAdministrationRoutes()
-  const createRoute = useCreateAdministrationRoute()
-  const updateRoute = useUpdateAdministrationRoute()
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedRoute, setSelectedRoute] = useState<AdministrationRoute | null>(null)
+export default function AdministrationRoutesPage() {
+  const { data: routes = [], isLoading } = useAdministrationRoutes();
+  const createRoute = useCreateAdministrationRoute();
+  const updateRoute = useUpdateAdministrationRoute();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [currentPage, setCurrentPage] = useListPageState();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState<AdministrationRoute | null>(null);
 
   const {
     register,
@@ -49,62 +55,77 @@ export default function AdministrationRoutesPage() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<AdministrationRouteFormData>()
+  } = useForm<AdministrationRouteFormData>();
 
-  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active')
-  const activeValue = watch('active')
+  const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active');
+  const activeValue = watch('active');
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setSearchTerm(searchInput)
-    }, 300)
+      setSearchTerm(searchInput);
+      setCurrentPage(1);
+    }, 300);
 
-    return () => clearTimeout(timeout)
-  }, [searchInput])
+    return () => clearTimeout(timeout);
+  }, [searchInput, setCurrentPage]);
 
   const filteredRoutes = useMemo(() => {
-    if (!searchTerm) return routes
+    if (!searchTerm) return routes;
 
-    const normalizedSearch = searchTerm.toLowerCase()
+    const normalizedSearch = searchTerm.toLowerCase();
     return routes.filter((route) =>
       [route.name, route.abbreviation, route.description].some((value) =>
         String(value ?? '')
           .toLowerCase()
           .includes(normalizedSearch)
       )
-    )
-  }, [routes, searchTerm])
+    );
+  }, [routes, searchTerm]);
 
-  const hasActiveSearch = searchTerm.trim().length > 0
+  const hasActiveSearch = searchTerm.trim().length > 0;
 
   const handleClearSearch = () => {
-    setSearchInput('')
-    setSearchTerm('')
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
+
+  const totalCount = filteredRoutes.length;
+  const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
+  const paginatedRoutes = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredRoutes.slice(start, start + PAGE_SIZE);
+  }, [filteredRoutes, currentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages, setCurrentPage]);
 
   const openCreateModal = () => {
-    setSelectedRoute(null)
+    setSelectedRoute(null);
     reset({
       name: '',
       abbreviation: '',
       description: '',
       prescription_order: 999,
       active: true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = (route: AdministrationRoute) => {
-    setSelectedRoute(route)
+    setSelectedRoute(route);
     reset({
       name: route.name,
       abbreviation: route.abbreviation || '',
       description: route.description || '',
       prescription_order: route.prescription_order ?? 999,
       active: route.active ?? true,
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const onSubmit = async (data: AdministrationRouteFormData) => {
     const payload = {
@@ -113,18 +134,18 @@ export default function AdministrationRoutesPage() {
       description: data.description || null,
       prescription_order: data.prescription_order,
       active: data.active,
-    }
+    };
 
     if (selectedRoute) {
       await updateRoute.mutateAsync({
         id: selectedRoute.id,
         ...payload,
-      })
+      });
     } else {
-      await createRoute.mutateAsync(payload)
+      await createRoute.mutateAsync(payload);
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const columns: ColumnDef<AdministrationRoute>[] = useMemo(
     () => [
@@ -186,8 +207,8 @@ export default function AdministrationRoutesPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                openEditModal(row.original)
+                e.stopPropagation();
+                openEditModal(row.original);
               }}
               title="Editar via"
             >
@@ -199,7 +220,7 @@ export default function AdministrationRoutesPage() {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -211,7 +232,7 @@ export default function AdministrationRoutesPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <ButtonNew onClick={openCreateModal} variant="solid" label="Nova Via" />
+          <Button onClick={openCreateModal} variant="solid" label="Nova Via" />
         </div>
       </div>
 
@@ -226,11 +247,11 @@ export default function AdministrationRoutesPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Buscar por nome, abreviação ou descrição..."
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             {hasActiveSearch && (
-              <ButtonNew
+              <Button
                 onClick={handleClearSearch}
                 variant="outline"
                 size="md"
@@ -244,8 +265,9 @@ export default function AdministrationRoutesPage() {
             )}
           </div>
           <DataTable
-            data={filteredRoutes}
+            data={paginatedRoutes}
             columns={columns}
+            showPagination={false}
             isLoading={isLoading}
             onRowClick={openEditModal}
             emptyState={
@@ -259,7 +281,7 @@ export default function AdministrationRoutesPage() {
                 }
                 action={
                   !searchTerm && (
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
@@ -269,6 +291,16 @@ export default function AdministrationRoutesPage() {
                 }
               />
             }
+          />
+          <ListPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            itemLabel="vias"
+            onPreviousPage={() => setCurrentPage((page) => page - 1)}
+            onNextPage={() => setCurrentPage((page) => page + 1)}
+            isLoading={isLoading}
           />
         </div>
       </Card>
@@ -320,19 +352,19 @@ export default function AdministrationRoutesPage() {
             onBlur={activeOnBlur}
             checked={!!activeValue}
             onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true })
+              setValue('active', e.target.checked, { shouldDirty: true });
             }}
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={() => setIsModalOpen(false)}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
@@ -343,5 +375,5 @@ export default function AdministrationRoutesPage() {
         </form>
       </Modal>
     </div>
-  )
+  );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Modal, Input, Button, Textarea } from '@/components/ui';
+import { Modal, Input, Button, Textarea } from '@synia/ui';
 import {
   CreateWhatsappInstanceInput,
   UpdateWhatsappInstanceInput,

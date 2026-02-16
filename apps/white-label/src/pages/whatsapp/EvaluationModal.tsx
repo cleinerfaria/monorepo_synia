@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Modal, Input, Button, Switch } from '@/components/ui';
+import { Modal, Input, Button, Switch } from '@synia/ui';
 import {
   EvaluationDefinition,
   useCreateEvaluation,

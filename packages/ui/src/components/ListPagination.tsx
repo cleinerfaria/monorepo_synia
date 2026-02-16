@@ -1,18 +1,18 @@
-import { ReactNode } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { DEFAULT_LIST_PAGE_SIZE } from './Pagination'
-import { Button } from './Button'
+import { ReactNode } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { DEFAULT_LIST_PAGE_SIZE } from './Pagination';
+import { Button } from './Button';
 
 interface ListPaginationProps {
-  currentPage: number
-  totalPages: number
-  totalCount: number
-  pageSize?: number
-  itemLabel?: string
-  onPreviousPage: () => void
-  onNextPage: () => void
-  isLoading?: boolean
-  trailingContent?: ReactNode
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  pageSize?: number;
+  itemLabel?: string;
+  onPreviousPage: () => void;
+  onNextPage: () => void;
+  isLoading?: boolean;
+  trailingContent?: ReactNode;
 }
 
 export function ListPagination({
@@ -26,13 +26,13 @@ export function ListPagination({
   isLoading = false,
   trailingContent,
 }: ListPaginationProps) {
-  const safeTotalPages = Math.max(totalPages, 1)
-  const safeCurrentPage = Math.min(Math.max(currentPage, 1), safeTotalPages)
-  const hasRecords = totalCount > 0
-  const startRecord = hasRecords ? (safeCurrentPage - 1) * pageSize + 1 : 0
-  const endRecord = hasRecords ? Math.min(safeCurrentPage * pageSize, totalCount) : 0
-  const previousDisabled = safeCurrentPage === 1 || isLoading
-  const nextDisabled = safeCurrentPage === safeTotalPages || isLoading
+  const safeTotalPages = Math.max(totalPages, 1);
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), safeTotalPages);
+  const hasRecords = totalCount > 0;
+  const startRecord = hasRecords ? (safeCurrentPage - 1) * pageSize + 1 : 0;
+  const endRecord = hasRecords ? Math.min(safeCurrentPage * pageSize, totalCount) : 0;
+  const previousDisabled = safeCurrentPage === 1 || isLoading;
+  const nextDisabled = safeCurrentPage === safeTotalPages || isLoading;
 
   return (
     <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
@@ -44,8 +44,9 @@ export function ListPagination({
 
       <div className="flex items-center gap-2">
         <Button
-          variant="secondary"
+          variant="neutral"
           size="sm"
+          showIcon={false}
           aria-label="Página anterior"
           onClick={onPreviousPage}
           disabled={previousDisabled}
@@ -58,8 +59,9 @@ export function ListPagination({
         </span>
 
         <Button
-          variant="secondary"
+          variant="neutral"
           size="sm"
+          showIcon={false}
           aria-label="Próxima página"
           onClick={onNextPage}
           disabled={nextDisabled}
@@ -70,5 +72,5 @@ export function ListPagination({
         {trailingContent}
       </div>
     </div>
-  )
+  );
 }

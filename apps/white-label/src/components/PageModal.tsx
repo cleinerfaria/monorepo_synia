@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Button, Select } from '@/components/ui';
+import { Modal, Input, Button, Select } from '@synia/ui';
 import usePages from '@/hooks/usePages';
 import { useCompanyDatabases } from '@/hooks/useCompanyDatabases';
 import { useAuthStore } from '@/stores/authStore';

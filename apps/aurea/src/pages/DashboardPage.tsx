@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
-import { useAuthStore } from '@/stores/authStore'
-import { Users, FileText, Archive, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react'
+import { Link } from 'react-router-dom';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { useAuthStore } from '@/stores/authStore';
+import { Users, FileText, Archive, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
 // Simulated stats for MVP
 const stats = [
   {
@@ -36,7 +36,7 @@ const stats = [
     icon: AlertTriangle,
     href: '/estoque/saldos',
   },
-]
+];
 
 const recentActivities = [
   {
@@ -69,23 +69,23 @@ const recentActivities = [
     description: 'Equipamento alocado: Concentrador O2 para Ana Lima',
     time: 'Há 5 horas',
   },
-]
+];
 
 const lowStockItems = [
   { name: 'Dipirona 500mg', current: 15, minimum: 50, unit: 'UN' },
   { name: 'Seringa 10ml', current: 20, minimum: 100, unit: 'UN' },
   { name: 'Dieta Enteral Padrão', current: 5, minimum: 20, unit: 'L' },
   { name: 'Gaze Estéril', current: 30, minimum: 100, unit: 'PCT' },
-]
+];
 
 export default function DashboardPage() {
-  const { appUser, company } = useAuthStore()
+  const { appUser, company } = useAuthStore();
 
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
       <div>
-        <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white lg:text-3xl">
+        <h1 className="font-display text-2xl font-bold text-gray-900 lg:text-3xl dark:text-white">
           Olá, {appUser?.name?.split(' ')[0]} 👋
         </h1>
         <p className="mt-1 text-gray-500 dark:text-gray-400">
@@ -123,8 +123,8 @@ export default function DashboardPage() {
                       <span className="text-sm text-gray-400">vs mês anterior</span>
                     </div>
                   </div>
-                  <div className="rounded-xl bg-gold-100 p-3 dark:bg-gold-900/20">
-                    <stat.icon className="h-6 w-6 text-gold-600 dark:text-gold-400" />
+                  <div className="bg-gold-100 dark:bg-gold-900/20 rounded-xl p-3">
+                    <stat.icon className="text-gold-600 dark:text-gold-400 h-6 w-6" />
                   </div>
                 </div>
               </CardContent>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                   key={activity.id}
                   className="flex items-start gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0 dark:border-gray-700"
                 >
-                  <div className="mt-2 h-2 w-2 rounded-full bg-primary-500" />
+                  <div className="bg-primary-500 mt-2 h-2 w-2 rounded-full" />
                   <div className="flex-1">
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       {activity.description}
@@ -166,7 +166,7 @@ export default function DashboardPage() {
             action={
               <Link
                 to="/estoque/saldos"
-                className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                className="text-primary-600 hover:text-primary-700 dark:text-primary-400 text-sm"
               >
                 Ver todos
               </Link>
@@ -177,7 +177,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-4">
               {lowStockItems.map((item) => {
-                const percentage = (item.current / item.minimum) * 100
+                const percentage = (item.current / item.minimum) * 100;
                 return (
                   <div key={item.name} className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -201,7 +201,7 @@ export default function DashboardPage() {
                       />
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </CardContent>
@@ -219,7 +219,7 @@ export default function DashboardPage() {
               to="/cadastros/pacientes"
               className="flex flex-col items-center gap-2 rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100 dark:bg-gray-700/30 dark:hover:bg-gray-700/50"
             >
-              <Users className="h-8 w-8 text-primary-500" />
+              <Users className="text-primary-500 h-8 w-8" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Novo Paciente
               </span>
@@ -228,7 +228,7 @@ export default function DashboardPage() {
               to="/prescricoes"
               className="flex flex-col items-center gap-2 rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100 dark:bg-gray-700/30 dark:hover:bg-gray-700/50"
             >
-              <FileText className="h-8 w-8 text-primary-500" />
+              <FileText className="text-primary-500 h-8 w-8" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Nova Prescrição
               </span>
@@ -237,7 +237,7 @@ export default function DashboardPage() {
               to="/estoque/movimentacoes"
               className="flex flex-col items-center gap-2 rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100 dark:bg-gray-700/30 dark:hover:bg-gray-700/50"
             >
-              <Archive className="h-8 w-8 text-primary-500" />
+              <Archive className="text-primary-500 h-8 w-8" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Lançar Estoque
               </span>
@@ -246,7 +246,7 @@ export default function DashboardPage() {
               to="/nfe"
               className="flex flex-col items-center gap-2 rounded-xl bg-gray-50 p-4 transition-colors hover:bg-gray-100 dark:bg-gray-700/30 dark:hover:bg-gray-700/50"
             >
-              <FileText className="h-8 w-8 text-primary-500" />
+              <FileText className="text-primary-500 h-8 w-8" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Importar NFe
               </span>
@@ -255,5 +255,5 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

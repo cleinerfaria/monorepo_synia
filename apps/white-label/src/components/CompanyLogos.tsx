@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Button } from '@synia/ui';
 import toast from 'react-hot-toast';
 
 interface LogoType {

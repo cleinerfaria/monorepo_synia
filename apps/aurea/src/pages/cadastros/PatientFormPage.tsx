@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+﻿import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import {
   Card,
-  ButtonNew,
+  Button,
   TabButton,
   Input,
   DatePicker,
@@ -11,47 +11,47 @@ import {
   Loading,
   Breadcrumbs,
   SwitchNew,
-} from '@/components/ui'
+} from '@/components/ui';
 
-// Função de máscara para CPF
+// FunÃ§Ã£o de mÃ¡scara para CPF
 const formatCPF = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
-  if (digits.length <= 3) return digits
-  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`
-  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`
-  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
-}
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+};
 
-// Função de validação de CPF (algoritmo dos dígitos verificadores)
+// FunÃ§Ã£o de validaÃ§Ã£o de CPF (algoritmo dos dÃ­gitos verificadores)
 const validateCPF = (cpf: string): boolean => {
-  const digits = cpf.replace(/\D/g, '')
+  const digits = cpf.replace(/\D/g, '');
 
-  // CPF deve ter 11 dígitos
-  if (digits.length !== 11) return false
+  // CPF deve ter 11 dÃ­gitos
+  if (digits.length !== 11) return false;
 
-  // Verifica se todos os dígitos são iguais (CPFs inválidos conhecidos)
-  if (/^(\d)\1{10}$/.test(digits)) return false
+  // Verifica se todos os dÃ­gitos sÃ£o iguais (CPFs invÃ¡lidos conhecidos)
+  if (/^(\d)\1{10}$/.test(digits)) return false;
 
-  // Calcula o primeiro dígito verificador
-  let sum = 0
+  // Calcula o primeiro dÃ­gito verificador
+  let sum = 0;
   for (let i = 0; i < 9; i++) {
-    sum += parseInt(digits[i]) * (10 - i)
+    sum += parseInt(digits[i]) * (10 - i);
   }
-  let remainder = (sum * 10) % 11
-  if (remainder === 10 || remainder === 11) remainder = 0
-  if (remainder !== parseInt(digits[9])) return false
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(digits[9])) return false;
 
-  // Calcula o segundo dígito verificador
-  sum = 0
+  // Calcula o segundo dÃ­gito verificador
+  sum = 0;
   for (let i = 0; i < 10; i++) {
-    sum += parseInt(digits[i]) * (11 - i)
+    sum += parseInt(digits[i]) * (11 - i);
   }
-  remainder = (sum * 10) % 11
-  if (remainder === 10 || remainder === 11) remainder = 0
-  if (remainder !== parseInt(digits[10])) return false
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(digits[10])) return false;
 
-  return true
-}
+  return true;
+};
 import {
   usePatient,
   useCreatePatient,
@@ -62,133 +62,133 @@ import {
   useSavePatientAddresses,
   useSavePatientContacts,
   useSavePatientPayers,
-} from '@/hooks/usePatients'
-import { useClients } from '@/hooks/useClients'
-import { useForm } from 'react-hook-form'
+} from '@/hooks/usePatients';
+import { useClients } from '@/hooks/useClients';
+import { useForm } from 'react-hook-form';
 import type {
   Client,
   PatientAddress,
   PatientContact,
   PatientPayer,
   GenderType,
-} from '@/types/database'
-import { useNavigationGuard } from '@/contexts/NavigationGuardContext'
-import { useAuthStore } from '@/stores/authStore'
-import toast from 'react-hot-toast'
-import PatientAddressForm from '@/components/patient/PatientAddressForm'
-import PatientContactForm from '@/components/patient/PatientContactForm'
-import PatientPayerForm from '@/components/patient/PatientPayerForm'
-import { differenceInYears, parse, differenceInMonths, differenceInDays } from 'date-fns'
-import { todayDateOnly } from '@/lib/dateOnly'
+} from '@/types/database';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
+import { useAuthStore } from '@/stores/authStore';
+import toast from 'react-hot-toast';
+import PatientAddressForm from '@/components/patient/PatientAddressForm';
+import PatientContactForm from '@/components/patient/PatientContactForm';
+import PatientPayerForm from '@/components/patient/PatientPayerForm';
+import { differenceInYears, parse, differenceInMonths, differenceInDays } from 'date-fns';
+import { todayDateOnly } from '@/lib/dateOnly';
 
-type FormTab = 'basic' | 'address' | 'contact' | 'payers'
+type FormTab = 'basic' | 'address' | 'contact' | 'payers';
 
 interface PatientFormData {
-  code: string
-  name: string
-  cpf: string
-  birth_date: string
-  gender: GenderType | ''
-  father_name: string
-  mother_name: string
-  phone: string
-  email: string
-  address: string
-  billing_client_id: string
-  active: boolean
+  code: string;
+  name: string;
+  cpf: string;
+  birth_date: string;
+  gender: GenderType | '';
+  father_name: string;
+  mother_name: string;
+  phone: string;
+  email: string;
+  address: string;
+  billing_client_id: string;
+  active: boolean;
 }
 
 export default function PatientFormPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const isEditing = id && id !== 'novo'
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const isEditing = id && id !== 'novo';
 
-  // Contexto de navegação protegida
+  // Contexto de navegaÃ§Ã£o protegida
   const {
     setHasUnsavedChanges: setGlobalUnsavedChanges,
     safeNavigate,
     handleLinkClick: handleBreadcrumbNavigate,
-  } = useNavigationGuard()
-  const { company } = useAuthStore()
+  } = useNavigationGuard();
+  const { company } = useAuthStore();
 
-  // Estado de abas e formulário
-  const [activeTab, setActiveTab] = useState<FormTab>('basic')
-  const [localUnsavedChanges, setLocalUnsavedChanges] = useState(false)
+  // Estado de abas e formulÃ¡rio
+  const [activeTab, setActiveTab] = useState<FormTab>('basic');
+  const [localUnsavedChanges, setLocalUnsavedChanges] = useState(false);
   const [patientAge, setPatientAge] = useState<{
-    years: number
-    months: number
-    days: number
-  } | null>(null)
+    years: number;
+    months: number;
+    days: number;
+  } | null>(null);
 
-  // Função para calcular idade detalhada a partir da data de nascimento
+  // FunÃ§Ã£o para calcular idade detalhada a partir da data de nascimento
   const calculateAge = (
     birthDateStr: string
   ): { years: number; months: number; days: number } | null => {
-    if (!birthDateStr) return null
+    if (!birthDateStr) return null;
     try {
-      const birthDate = parse(birthDateStr, 'yyyy-MM-dd', new Date())
-      const today = new Date()
+      const birthDate = parse(birthDateStr, 'yyyy-MM-dd', new Date());
+      const today = new Date();
 
-      const years = differenceInYears(today, birthDate)
-      // Para calcular meses, precisamos ajustar para depois do último aniversário
-      const afterLastBirthday = new Date(birthDate)
-      afterLastBirthday.setFullYear(afterLastBirthday.getFullYear() + years)
-      const months = differenceInMonths(today, afterLastBirthday)
+      const years = differenceInYears(today, birthDate);
+      // Para calcular meses, precisamos ajustar para depois do Ãºltimo aniversÃ¡rio
+      const afterLastBirthday = new Date(birthDate);
+      afterLastBirthday.setFullYear(afterLastBirthday.getFullYear() + years);
+      const months = differenceInMonths(today, afterLastBirthday);
 
-      // Para calcular dias, precisamos ajustar para depois do último mês
-      const afterLastMonth = new Date(afterLastBirthday)
-      afterLastMonth.setMonth(afterLastMonth.getMonth() + months)
-      const days = differenceInDays(today, afterLastMonth)
+      // Para calcular dias, precisamos ajustar para depois do Ãºltimo mÃªs
+      const afterLastMonth = new Date(afterLastBirthday);
+      afterLastMonth.setMonth(afterLastMonth.getMonth() + months);
+      const days = differenceInDays(today, afterLastMonth);
 
-      return { years, months, days }
+      return { years, months, days };
     } catch {
-      return null
+      return null;
     }
-  }
+  };
 
-  // Função para formatar a exibição da idade
+  // FunÃ§Ã£o para formatar a exibiÃ§Ã£o da idade
   const formatAge = (age: { years: number; months: number; days: number } | null): string => {
-    if (!age) return ''
+    if (!age) return '';
 
     if (age.years === 0) {
-      // Recém-nascido: mostrar meses e dias
+      // RecÃ©m-nascido: mostrar meses e dias
       if (age.months === 0) {
-        return `${age.days} ${age.days === 1 ? 'dia' : 'dias'}`
+        return `${age.days} ${age.days === 1 ? 'dia' : 'dias'}`;
       }
-      return `${age.months} ${age.months === 1 ? 'mês' : 'meses'} e ${age.days} ${age.days === 1 ? 'dia' : 'dias'}`
+      return `${age.months} ${age.months === 1 ? 'mÃªs' : 'meses'} e ${age.days} ${age.days === 1 ? 'dia' : 'dias'}`;
     } else {
       // Maior de 1 ano: mostrar anos e meses
-      return `${age.years} ${age.years === 1 ? 'ano' : 'anos'} e ${age.months} ${age.months === 1 ? 'mês' : 'meses'}`
+      return `${age.years} ${age.years === 1 ? 'ano' : 'anos'} e ${age.months} ${age.months === 1 ? 'mÃªs' : 'meses'}`;
     }
-  }
+  };
 
   // Busca o paciente se estiver editando
-  const { data: patient, isLoading: isLoadingPatient } = usePatient(isEditing ? id : undefined)
+  const { data: patient, isLoading: isLoadingPatient } = usePatient(isEditing ? id : undefined);
 
-  const createPatient = useCreatePatient()
-  const updatePatient = useUpdatePatient()
+  const createPatient = useCreatePatient();
+  const updatePatient = useUpdatePatient();
 
-  const { data: clientsData = [] } = useClients()
-  const clients = clientsData as Client[]
+  const { data: clientsData = [] } = useClients();
+  const clients = clientsData as Client[];
 
   // Estados para dados relacionados
-  const [addresses, setAddresses] = useState<PatientAddress[]>([])
-  const [contacts, setContacts] = useState<PatientContact[]>([])
-  const [payers, setPayers] = useState<PatientPayer[]>([])
+  const [addresses, setAddresses] = useState<PatientAddress[]>([]);
+  const [contacts, setContacts] = useState<PatientContact[]>([]);
+  const [payers, setPayers] = useState<PatientPayer[]>([]);
 
   // Hooks para carregar dados relacionados (somente ao editar)
-  const { data: existingAddresses = [] } = usePatientAddresses(isEditing ? id : undefined)
-  const { data: existingContacts = [] } = usePatientContacts(isEditing ? id : undefined)
-  const { data: existingPayers = [] } = usePatientPayers(isEditing ? id : undefined)
+  const { data: existingAddresses = [] } = usePatientAddresses(isEditing ? id : undefined);
+  const { data: existingContacts = [] } = usePatientContacts(isEditing ? id : undefined);
+  const { data: existingPayers = [] } = usePatientPayers(isEditing ? id : undefined);
 
   // Hooks para salvar dados relacionados
-  const saveAddresses = useSavePatientAddresses()
-  const saveContacts = useSavePatientContacts()
-  const savePayers = useSavePatientPayers()
+  const saveAddresses = useSavePatientAddresses();
+  const saveContacts = useSavePatientContacts();
+  const savePayers = useSavePatientPayers();
 
-  const [selectedClientId, setSelectedClientId] = useState('')
-  const [cpfValue, setCpfValue] = useState('')
-  const [cpfError, setCpfError] = useState<string | undefined>(undefined)
+  const [selectedClientId, setSelectedClientId] = useState('');
+  const [cpfValue, setCpfValue] = useState('');
+  const [cpfError, setCpfError] = useState<string | undefined>(undefined);
 
   const {
     register,
@@ -212,135 +212,135 @@ export default function PatientFormPage() {
       billing_client_id: '',
       active: true,
     },
-  })
+  });
 
   const {
     ref: birthDateRef,
     min: _birthDateMin,
     max: _birthDateMax,
     ...birthDateField
-  } = register('birth_date')
+  } = register('birth_date');
 
-  // Assistir mudanças na data de nascimento
-  const birthDate = watch('birth_date')
-  const gender = watch('gender')
-  const activeValue = watch('active')
-  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active')
+  // Assistir mudanÃ§as na data de nascimento
+  const birthDate = watch('birth_date');
+  const gender = watch('gender');
+  const activeValue = watch('active');
+  const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
 
-  // Handler para aplicar máscara de CPF
+  // Handler para aplicar mÃ¡scara de CPF
   const handleCPFChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const formatted = formatCPF(e.target.value)
-      setCpfValue(formatted)
-      setValue('cpf', formatted, { shouldDirty: true })
-      // Limpa o erro enquanto está digitando
-      if (cpfError) setCpfError(undefined)
+      const formatted = formatCPF(e.target.value);
+      setCpfValue(formatted);
+      setValue('cpf', formatted, { shouldDirty: true });
+      // Limpa o erro enquanto estÃ¡ digitando
+      if (cpfError) setCpfError(undefined);
     },
     [setValue, cpfError]
-  )
+  );
 
-  // Validação de CPF ao sair do campo
+  // ValidaÃ§Ã£o de CPF ao sair do campo
   const handleCPFBlur = useCallback(() => {
     if (cpfValue) {
-      const digits = cpfValue.replace(/\D/g, '')
+      const digits = cpfValue.replace(/\D/g, '');
       if (digits.length > 0 && digits.length < 11) {
-        setCpfError('CPF incompleto')
+        setCpfError('CPF incompleto');
       } else if (digits.length === 11 && !validateCPF(cpfValue)) {
-        setCpfError('CPF inválido')
+        setCpfError('CPF invÃ¡lido');
       } else {
-        setCpfError(undefined)
+        setCpfError(undefined);
       }
     } else {
-      setCpfError(undefined)
+      setCpfError(undefined);
     }
-  }, [cpfValue])
+  }, [cpfValue]);
 
-  // Funções para salvar dados relacionados individualmente
+  // FunÃ§Ãµes para salvar dados relacionados individualmente
   const handleSaveAddresses = async (addressesToSave: PatientAddress[]) => {
     if (!isEditing || !id) {
-      toast.error('É necessário salvar o paciente primeiro')
-      return
+      toast.error('Ã‰ necessÃ¡rio salvar o paciente primeiro');
+      return;
     }
 
     try {
       await saveAddresses.mutateAsync({
         patientId: id,
         addresses: addressesToSave,
-      })
-      toast.success('Endereços salvos com sucesso!')
+      });
+      toast.success('EndereÃ§os salvos com sucesso!');
     } catch {
-      toast.error('Erro ao salvar endereços')
+      toast.error('Erro ao salvar endereÃ§os');
     }
-  }
+  };
 
   const handleSaveContacts = async (contactsToSave: PatientContact[]) => {
     if (!isEditing || !id) {
-      toast.error('É necessário salvar o paciente primeiro')
-      return
+      toast.error('Ã‰ necessÃ¡rio salvar o paciente primeiro');
+      return;
     }
 
     try {
       await saveContacts.mutateAsync({
         patientId: id,
         contacts: contactsToSave,
-      })
-      toast.success('Contatos salvos com sucesso!')
+      });
+      toast.success('Contatos salvos com sucesso!');
     } catch {
-      toast.error('Erro ao salvar contatos')
+      toast.error('Erro ao salvar contatos');
     }
-  }
+  };
 
   const handleSavePayers = async (payersToSave: PatientPayer[]) => {
     if (!isEditing || !id) {
-      toast.error('É necessário salvar o paciente primeiro')
-      return
+      toast.error('Ã‰ necessÃ¡rio salvar o paciente primeiro');
+      return;
     }
 
     try {
       await savePayers.mutateAsync({
         patientId: id,
         payers: payersToSave,
-      })
-      toast.success('Fontes pagadoras salvas com sucesso!')
+      });
+      toast.success('Fontes pagadoras salvas com sucesso!');
     } catch {
-      toast.error('Erro ao salvar fontes pagadoras')
+      toast.error('Erro ao salvar fontes pagadoras');
     }
-  }
+  };
 
-  // Sincronizar estado de mudanças não salvas com o contexto global
+  // Sincronizar estado de mudanÃ§as nÃ£o salvas com o contexto global
   useEffect(() => {
-    setGlobalUnsavedChanges(isDirty || localUnsavedChanges)
+    setGlobalUnsavedChanges(isDirty || localUnsavedChanges);
     return () => {
-      setGlobalUnsavedChanges(false)
-    }
-  }, [isDirty, localUnsavedChanges, setGlobalUnsavedChanges])
+      setGlobalUnsavedChanges(false);
+    };
+  }, [isDirty, localUnsavedChanges, setGlobalUnsavedChanges]);
 
   // Atualizar idade quando data de nascimento muda
   useEffect(() => {
     if (birthDate) {
-      setPatientAge(calculateAge(birthDate))
+      setPatientAge(calculateAge(birthDate));
     } else {
-      setPatientAge(null)
+      setPatientAge(null);
     }
-  }, [birthDate])
+  }, [birthDate]);
 
-  // Alerta do browser ao fechar/recarregar a página
+  // Alerta do browser ao fechar/recarregar a pÃ¡gina
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty || localUnsavedChanges) {
-        e.preventDefault()
-        e.returnValue = ''
+        e.preventDefault();
+        e.returnValue = '';
       }
-    }
+    };
 
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isDirty, localUnsavedChanges])
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty, localUnsavedChanges]);
 
-  // Inicializa o formulário quando o paciente é carregado
+  // Inicializa o formulÃ¡rio quando o paciente Ã© carregado
   useEffect(() => {
     if (isEditing && patient) {
-      const formattedCPF = patient.cpf ? formatCPF(patient.cpf) : ''
+      const formattedCPF = patient.cpf ? formatCPF(patient.cpf) : '';
 
       reset({
         code: patient.code || '',
@@ -355,13 +355,13 @@ export default function PatientFormPage() {
         address: patient.address || '',
         billing_client_id: patient.billing_client_id || '',
         active: patient.active ?? true,
-      })
+      });
 
-      setCpfValue(formattedCPF)
-      setSelectedClientId(patient.billing_client_id || '')
+      setCpfValue(formattedCPF);
+      setSelectedClientId(patient.billing_client_id || '');
       // Calcular idade ao carregar o paciente
       if (patient.birth_date) {
-        setPatientAge(calculateAge(patient.birth_date))
+        setPatientAge(calculateAge(patient.birth_date));
       }
     } else if (!isEditing) {
       // Novo paciente
@@ -378,82 +378,82 @@ export default function PatientFormPage() {
         address: '',
         billing_client_id: '',
         active: true,
-      })
+      });
 
-      setCpfValue('')
-      setSelectedClientId('')
-      setPatientAge(null)
+      setCpfValue('');
+      setSelectedClientId('');
+      setPatientAge(null);
     }
-  }, [isEditing, patient, reset])
+  }, [isEditing, patient, reset]);
 
   // Carregar dados relacionados ao editar
   useEffect(() => {
     if (isEditing && existingAddresses.length > 0) {
-      setAddresses(existingAddresses)
+      setAddresses(existingAddresses);
     }
-  }, [isEditing, existingAddresses])
+  }, [isEditing, existingAddresses]);
 
   useEffect(() => {
     if (isEditing && existingContacts.length > 0) {
-      setContacts(existingContacts)
+      setContacts(existingContacts);
     }
-  }, [isEditing, existingContacts])
+  }, [isEditing, existingContacts]);
 
   useEffect(() => {
     if (isEditing && existingPayers.length > 0) {
-      setPayers(existingPayers)
+      setPayers(existingPayers);
     }
-  }, [isEditing, existingPayers])
+  }, [isEditing, existingPayers]);
 
   const _clientOptions = [
     { value: '', label: 'Nenhum' },
     ...clients.filter((c) => c.active).map((c) => ({ value: c.id, label: c.name })),
-  ]
+  ];
 
   const genderOptions = [
     { value: 'male', label: 'Masculino' },
     { value: 'female', label: 'Feminino' },
     { value: 'other', label: 'Outro' },
-  ]
+  ];
 
   const onSubmit = async (data: PatientFormData) => {
     // Validar CPF antes de salvar
     if (cpfValue) {
-      const digits = cpfValue.replace(/\D/g, '')
+      const digits = cpfValue.replace(/\D/g, '');
       if (digits.length > 0 && digits.length < 11) {
-        setCpfError('CPF incompleto')
-        toast.error('CPF incompleto')
-        return
+        setCpfError('CPF incompleto');
+        toast.error('CPF incompleto');
+        return;
       }
       if (digits.length === 11 && !validateCPF(cpfValue)) {
-        setCpfError('CPF inválido')
-        toast.error('CPF inválido')
-        return
+        setCpfError('CPF invÃ¡lido');
+        toast.error('CPF invÃ¡lido');
+        return;
       }
     }
 
     const patientData = {
       ...data,
       code: data.code || null,
-      cpf: cpfValue ? cpfValue.replace(/\D/g, '') : null, // Salvar apenas dígitos
+      cpf: cpfValue ? cpfValue.replace(/\D/g, '') : null, // Salvar apenas dÃ­gitos
       gender: data.gender || null,
       father_name: data.father_name || null,
       mother_name: data.mother_name || null,
       billing_client_id: selectedClientId || null,
-    }
+    };
 
     try {
-      let savedPatientId: string
+      let savedPatientId: string;
 
       if (isEditing && patient) {
         await updatePatient.mutateAsync({
           id: patient.id,
           ...patientData,
-        })
-        savedPatientId = patient.id
+        });
+        savedPatientId = patient.id;
       } else {
-        const newPatient = await createPatient.mutateAsync(patientData)
-        savedPatientId = newPatient.id
+        const newPatient = await createPatient.mutateAsync(patientData);
+        savedPatientId = newPatient.id;
       }
 
       // Salvar dados relacionados
@@ -461,67 +461,67 @@ export default function PatientFormPage() {
         await saveAddresses.mutateAsync({
           patientId: savedPatientId,
           addresses,
-        })
+        });
       }
 
       if (contacts.length > 0) {
         await saveContacts.mutateAsync({
           patientId: savedPatientId,
           contacts,
-        })
+        });
       }
 
       if (payers.length > 0) {
         await savePayers.mutateAsync({
           patientId: savedPatientId,
           payers,
-        })
+        });
       }
 
-      setLocalUnsavedChanges(false)
-      setGlobalUnsavedChanges(false)
-      navigate('/pacientes')
+      setLocalUnsavedChanges(false);
+      setGlobalUnsavedChanges(false);
+      navigate('/pacientes');
     } catch {
-      // Erro já tratado pelo hook
+      // Erro jÃ¡ tratado pelo hook
     }
-  }
+  };
 
   const handleBack = () => {
-    safeNavigate('/pacientes')
-  }
+    safeNavigate('/pacientes');
+  };
 
   const breadcrumbItems = [
     { label: 'Pacientes', href: '/pacientes' },
     { label: isEditing ? patient?.name || 'Carregando...' : 'Novo Paciente' },
-  ]
+  ];
 
   if (isEditing && isLoadingPatient) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loading size="lg" />
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-4">
-      {/* Header com Breadcrumbs e Botões */}
+      {/* Header com Breadcrumbs e BotÃµes */}
       <div className="flex items-center justify-between px-4 lg:px-4">
         <Breadcrumbs items={breadcrumbItems} onNavigate={handleBreadcrumbNavigate} />
         <div className="flex items-center gap-3">
-          <ButtonNew
+          <Button
             onClick={handleBack}
             variant="outline"
             icon={<ArrowLeft className="h-5 w-5" />}
             showIcon
             label="Voltar"
           />
-          <ButtonNew
+          <Button
             onClick={handleSubmit(onSubmit)}
             variant="solid"
             showIcon={false}
             disabled={createPatient.isPending || updatePatient.isPending}
-            label={isEditing ? 'Salvar Alterações' : 'Cadastrar Paciente'}
+            label={isEditing ? 'Salvar AlteraÃ§Ãµes' : 'Cadastrar Paciente'}
           />
         </div>
       </div>
@@ -531,10 +531,10 @@ export default function PatientFormPage() {
         <div className="border-b border-gray-200 dark:border-gray-700">
           <div className="flex px-6">
             <TabButton active={activeTab === 'basic'} onClick={() => setActiveTab('basic')}>
-              Dados Básicos
+              Dados BÃ¡sicos
             </TabButton>
             <TabButton active={activeTab === 'address'} onClick={() => setActiveTab('address')}>
-              Endereços
+              EndereÃ§os
             </TabButton>
             <TabButton active={activeTab === 'contact'} onClick={() => setActiveTab('contact')}>
               Contatos
@@ -547,18 +547,18 @@ export default function PatientFormPage() {
 
         <div className="p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Aba: Dados Básicos */}
+            {/* Aba: Dados BÃ¡sicos */}
             {activeTab === 'basic' && (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
                   <div className="md:col-span-1">
-                    <Input label="Código" placeholder="Código" {...register('code')} />
+                    <Input label="CÃ³digo" placeholder="CÃ³digo" {...register('code')} />
                   </div>
                   <div className="md:col-span-5">
                     <Input
                       label="Nome Completo"
                       placeholder="Nome do paciente"
-                      {...register('name', { required: 'Nome é obrigatório' })}
+                      {...register('name', { required: 'Nome Ã© obrigatÃ³rio' })}
                       error={errors.name?.message}
                       required
                     />
@@ -570,7 +570,7 @@ export default function PatientFormPage() {
                     label="Sexo"
                     options={genderOptions}
                     value={gender}
-                    {...register('gender', { required: 'Sexo é obrigatório' })}
+                    {...register('gender', { required: 'Sexo Ã© obrigatÃ³rio' })}
                     error={errors.gender?.message}
                     required
                   />
@@ -610,8 +610,8 @@ export default function PatientFormPage() {
                     {...register('father_name')}
                   />
                   <Input
-                    label="Nome da Mãe"
-                    placeholder="Nome completo da mãe"
+                    label="Nome da MÃ£e"
+                    placeholder="Nome completo da mÃ£e"
                     {...register('mother_name')}
                   />
                 </div>
@@ -625,14 +625,14 @@ export default function PatientFormPage() {
                     onBlur={activeOnBlur}
                     checked={!!activeValue}
                     onChange={(e) => {
-                      setValue('active', e.target.checked, { shouldDirty: true })
+                      setValue('active', e.target.checked, { shouldDirty: true });
                     }}
                   />
                 </div>
               </div>
             )}
 
-            {/* Aba: Endereços */}
+            {/* Aba: EndereÃ§os */}
             {activeTab === 'address' && (
               <PatientAddressForm
                 addresses={addresses}
@@ -672,5 +672,5 @@ export default function PatientFormPage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

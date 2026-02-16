@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Input, Button } from '@/components/ui';
+import { Modal, Input, Button } from '@synia/ui';
 import { useCreateCompany } from '@/hooks/useCompanies';
 import { useInitSuperadmin } from '@/hooks/useAppUsers';
 import { useAuthStore } from '@/stores/authStore';

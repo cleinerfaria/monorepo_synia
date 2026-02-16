@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Card, CardContent, Button, Input, Loading, EmptyState, Badge } from '@/components/ui';
+import { Card, CardContent, Button, Input, Loading, EmptyState, Badge } from '@synia/ui';
 import { useCompanies, Company, useUpdateCompany } from '@/hooks/useCompanies';
 import { PRESET_COLORS } from '@/lib/themeConstants';
 import { useAppUsers, AppUser } from '@/hooks/useAppUsers';
@@ -884,11 +884,8 @@ function CompaniesTab({
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {companies.map((company) => (
-            <div key={company.id}>
-              <Card
-                className="h-full cursor-pointer transition-shadow hover:shadow-lg"
-                onClick={() => onEnter(company)}
-              >
+            <div key={company.id} onClick={() => onEnter(company)}>
+              <Card className="h-full cursor-pointer transition-shadow hover:shadow-lg">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -1062,8 +1059,8 @@ function UsersTab({
                     >
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 flex-shrink-0">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-                            <span className="text-lg font-medium text-primary-600 dark:text-primary-400">
+                          <div className="bg-primary-100 dark:bg-primary-900/30 flex h-12 w-12 items-center justify-center rounded-full">
+                            <span className="text-primary-600 dark:text-primary-400 text-lg font-medium">
                               {user.name.charAt(0).toUpperCase()}
                             </span>
                           </div>

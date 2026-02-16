@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Button } from '@/components/ui';
+import { Modal, Input, Button } from '@synia/ui';
 import {
   SystemUser,
   useCreateSystemUser,
@@ -256,7 +256,7 @@ export default function SystemUserModal({ isOpen, onClose, user }: SystemUserMod
                 name="is_superadmin"
                 checked={formData.is_superadmin === true}
                 onChange={() => setFormData((prev) => ({ ...prev, is_superadmin: true }))}
-                className="h-4 w-4 text-primary-600"
+                className="text-primary-600 h-4 w-4"
               />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Superadmin</p>
@@ -269,7 +269,7 @@ export default function SystemUserModal({ isOpen, onClose, user }: SystemUserMod
                 name="is_superadmin"
                 checked={formData.is_superadmin === false}
                 onChange={() => setFormData((prev) => ({ ...prev, is_superadmin: false }))}
-                className="h-4 w-4 text-primary-600"
+                className="text-primary-600 h-4 w-4"
               />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">

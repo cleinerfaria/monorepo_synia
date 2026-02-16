@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(wc:*)",
+      "Bash(supabase status:*)",
+      "Bash(supabase start:*)",
+      "Bash(supabase:*)"
+    ]
+  }
+}

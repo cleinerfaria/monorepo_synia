@@ -107,7 +107,7 @@ export function SimpleChart({
     if (isLoading) {
       return (
         <div className={clsx('flex items-center justify-center', className)} style={{ height }}>
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent dark:border-primary-400 dark:border-t-transparent" />
+          <div className="border-primary-500 dark:border-primary-400 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent dark:border-t-transparent" />
         </div>
       );
     }
@@ -164,7 +164,7 @@ export function SimpleChart({
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/60 backdrop-blur-[1px] dark:bg-gray-800/60">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent dark:border-primary-400 dark:border-t-transparent" />
+          <div className="border-primary-500 dark:border-primary-400 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent dark:border-t-transparent" />
         </div>
       )}
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height }}>
@@ -401,7 +401,7 @@ function HorizontalBarChart({
           className={clsx('flex items-center justify-center', className)}
           style={{ minHeight: height }}
         >
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent dark:border-primary-400 dark:border-t-transparent" />
+          <div className="border-primary-500 dark:border-primary-400 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent dark:border-t-transparent" />
         </div>
       );
     }
@@ -425,7 +425,7 @@ function HorizontalBarChart({
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/60 backdrop-blur-[1px] dark:bg-gray-800/60">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent dark:border-primary-400 dark:border-t-transparent" />
+          <div className="border-primary-500 dark:border-primary-400 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent dark:border-t-transparent" />
         </div>
       )}
       {data.map((item, i) => {
@@ -439,7 +439,7 @@ function HorizontalBarChart({
               >
                 {item.name}
               </span>
-              <span className="flex-shrink-0 font-semibold tabular-nums text-primary-600 dark:text-primary-400">
+              <span className="text-primary-600 dark:text-primary-400 flex-shrink-0 font-semibold tabular-nums">
                 {toBRL(item.value)}
               </span>
             </div>
@@ -487,7 +487,7 @@ function DonutChart({
     if (isLoading) {
       return (
         <div className={clsx('flex items-center justify-center', className)} style={{ height }}>
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent dark:border-primary-400 dark:border-t-transparent" />
+          <div className="border-primary-500 dark:border-primary-400 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent dark:border-t-transparent" />
         </div>
       );
     }
@@ -554,7 +554,7 @@ function DonutChart({
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/60 backdrop-blur-[1px] dark:bg-gray-800/60">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent dark:border-primary-400 dark:border-t-transparent" />
+          <div className="border-primary-500 dark:border-primary-400 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent dark:border-t-transparent" />
         </div>
       )}
       <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>

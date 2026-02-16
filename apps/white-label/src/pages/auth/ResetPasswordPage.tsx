@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
-import { Button, Input, Card } from '@/components/ui';
+import { Button, Input, Card } from '@synia/ui';
 import PremiumHeroPanel from '@/components/auth/PremiumHeroPanel';
 
 interface ResetPasswordForm {
@@ -97,7 +97,7 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="mb-8 text-center">
-            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-lg">
+            <div className="from-primary-400 to-primary-600 mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg">
               <svg
                 className="h-10 w-10 text-white"
                 xmlns="http://www.w3.org/2000/svg"

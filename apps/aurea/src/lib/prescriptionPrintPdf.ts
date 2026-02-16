@@ -1,41 +1,41 @@
-import { format } from 'date-fns'
+import { format } from 'date-fns';
 import type {
   PrescriptionPrintOrientation,
   PrescriptionPrintSnapshot,
-} from '@/types/prescriptionPrint'
-import { buildPrescriptionWeekColumns } from '@/lib/prescriptionPrintUtils'
-import { getProfessionalSignatureSignedUrl } from '@/lib/professionalSignatureStorage'
+} from '@/types/prescriptionPrint';
+import { buildPrescriptionWeekColumns } from '@/lib/prescriptionPrintUtils';
+import { getProfessionalSignatureSignedUrl } from '@/lib/professionalSignatureStorage';
 
-export type PrescriptionPrintOutputMode = 'print' | 'preview' | 'download'
+export type PrescriptionPrintOutputMode = 'print' | 'preview' | 'download';
 
 interface OpenPrescriptionPrintPreviewOptions {
-  mode?: PrescriptionPrintOutputMode
-  targetWindow?: Window | null
-  companyLogoUrl?: string | null
-  orientation?: PrescriptionPrintOrientation
+  mode?: PrescriptionPrintOutputMode;
+  targetWindow?: Window | null;
+  companyLogoUrl?: string | null;
+  orientation?: PrescriptionPrintOrientation;
 }
 
 interface ResolvedWeekColumn {
-  date: string
-  dayShortLabel: string
-  dayMonthLabel: string
+  date: string;
+  dayShortLabel: string;
+  dayMonthLabel: string;
 }
 
 interface TableWidthConfig {
-  num: number
-  med: number
-  via: number
-  freq: number
-  day: number
+  num: number;
+  med: number;
+  via: number;
+  freq: number;
+  day: number;
 }
 
 interface HtmlContext {
-  weekColumns: ResolvedWeekColumn[]
-  rows: string
-  professionalIdentityLine: string
-  professionalSignatureUrl: string | null
-  companyLogoUrl: string | null
-  orientation: PrescriptionPrintOrientation
+  weekColumns: ResolvedWeekColumn[];
+  rows: string;
+  professionalIdentityLine: string;
+  professionalSignatureUrl: string | null;
+  companyLogoUrl: string | null;
+  orientation: PrescriptionPrintOrientation;
 }
 
 function escapeHtml(value: unknown): string {
@@ -44,50 +44,50 @@ function escapeHtml(value: unknown): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
+    .replace(/'/g, '&#039;');
 }
 
 function escapeMultilineText(value: unknown): string {
-  return escapeHtml(value).replace(/\n/g, '<br />')
+  return escapeHtml(value).replace(/\n/g, '<br />');
 }
 
 function parseDateValue(value: string): Date {
-  const [year, month, day] = value.split('-').map(Number)
-  return new Date(year, (month || 1) - 1, day || 1, 12, 0, 0, 0)
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, (month || 1) - 1, day || 1, 12, 0, 0, 0);
 }
 
 function formatDateLabel(value: string): string {
-  return format(parseDateValue(value), 'dd/MM/yyyy')
+  return format(parseDateValue(value), 'dd/MM/yyyy');
 }
 
 function resolveWeekColumns(snapshot: PrescriptionPrintSnapshot): ResolvedWeekColumn[] {
-  const periodStart = parseDateValue(snapshot.period_start)
-  const periodEnd = parseDateValue(snapshot.period_end)
+  const periodStart = parseDateValue(snapshot.period_start);
+  const periodEnd = parseDateValue(snapshot.period_end);
   return buildPrescriptionWeekColumns(periodStart, periodEnd).map((column) => ({
     date: column.date,
     dayShortLabel: column.dayShortLabel,
     dayMonthLabel: column.dayMonthLabel,
-  }))
+  }));
 }
 
 function getGridValue(item: PrescriptionPrintSnapshot['items'][number], index: number): string {
   if (Array.isArray(item.grid_snapshot)) {
-    return item.grid_snapshot[index]?.mark || ''
+    return item.grid_snapshot[index]?.mark || '';
   }
 
-  const legacyColumns = (item.grid_snapshot as any)?.columns
+  const legacyColumns = (item.grid_snapshot as any)?.columns;
   if (Array.isArray(legacyColumns)) {
-    return legacyColumns[index]?.value || ''
+    return legacyColumns[index]?.value || '';
   }
 
-  return ''
+  return '';
 }
 
 function renderGridCell(value: string): string {
   if (value === '###HATCHED###') {
-    return '<td class="day-cell day-cell-hatched"></td>'
+    return '<td class="day-cell day-cell-hatched"></td>';
   }
-  return `<td class="day-cell">${escapeHtml(value)}</td>`
+  return `<td class="day-cell">${escapeHtml(value)}</td>`;
 }
 
 function buildProfessionalIdentityLine(
@@ -98,121 +98,123 @@ function buildProfessionalIdentityLine(
   return [professionalName, professionalTitle, professionalCouncil]
     .map((value) => String(value || '').trim())
     .filter(Boolean)
-    .join(' | ')
+    .join(' | ');
 }
 
-const PRINT_IMAGE_WAIT_TIMEOUT_MS = 6000
+const PRINT_IMAGE_WAIT_TIMEOUT_MS = 6000;
 
 function waitForImageToSettle(image: HTMLImageElement, timeoutMs: number): Promise<void> {
   if (image.complete) {
     if (typeof image.decode === 'function' && image.naturalWidth > 0) {
-      return image.decode().catch(() => undefined)
+      return image.decode().catch(() => undefined);
     }
-    return Promise.resolve()
+    return Promise.resolve();
   }
 
   return new Promise((resolve) => {
-    let settled = false
-    let timeoutId: number | null = null
+    let settled = false;
+    let timeoutId: number | null = null;
 
     const finalize = () => {
-      if (settled) return
-      settled = true
-      image.removeEventListener('load', finalize)
-      image.removeEventListener('error', finalize)
+      if (settled) return;
+      settled = true;
+      image.removeEventListener('load', finalize);
+      image.removeEventListener('error', finalize);
       if (timeoutId !== null) {
-        window.clearTimeout(timeoutId)
+        window.clearTimeout(timeoutId);
       }
-      resolve()
-    }
+      resolve();
+    };
 
-    image.addEventListener('load', finalize, { once: true })
-    image.addEventListener('error', finalize, { once: true })
-    timeoutId = window.setTimeout(finalize, timeoutMs)
-  })
+    image.addEventListener('load', finalize, { once: true });
+    image.addEventListener('error', finalize, { once: true });
+    timeoutId = window.setTimeout(finalize, timeoutMs);
+  });
 }
 
 async function waitForPrintableImages(targetWindow: Window): Promise<void> {
-  const images = Array.from(targetWindow.document.images || [])
-  if (images.length === 0) return
-  await Promise.all(images.map((image) => waitForImageToSettle(image, PRINT_IMAGE_WAIT_TIMEOUT_MS)))
+  const images = Array.from(targetWindow.document.images || []);
+  if (images.length === 0) return;
+  await Promise.all(
+    images.map((image) => waitForImageToSettle(image, PRINT_IMAGE_WAIT_TIMEOUT_MS))
+  );
 }
 
 function renderDocumentInWindow(targetWindow: Window, html: string, autoPrint: boolean): void {
-  targetWindow.document.open()
-  targetWindow.document.write(html)
-  targetWindow.document.close()
+  targetWindow.document.open();
+  targetWindow.document.write(html);
+  targetWindow.document.close();
 
   if (!autoPrint) {
-    targetWindow.focus()
-    return
+    targetWindow.focus();
+    return;
   }
 
-  let hasPrinted = false
+  let hasPrinted = false;
   const printAction = async () => {
-    if (hasPrinted) return
-    hasPrinted = true
-    await waitForPrintableImages(targetWindow)
-    targetWindow.focus()
-    targetWindow.print()
-  }
+    if (hasPrinted) return;
+    hasPrinted = true;
+    await waitForPrintableImages(targetWindow);
+    targetWindow.focus();
+    targetWindow.print();
+  };
 
   targetWindow.onload = () => {
-    void printAction()
-  }
+    void printAction();
+  };
   window.setTimeout(() => {
-    void printAction()
-  }, 300)
+    void printAction();
+  }, 300);
 }
 
 function renderPrintDocumentInIframe(html: string): boolean {
-  const iframe = document.createElement('iframe')
-  iframe.setAttribute('aria-hidden', 'true')
-  iframe.style.position = 'fixed'
-  iframe.style.right = '0'
-  iframe.style.bottom = '0'
-  iframe.style.width = '0'
-  iframe.style.height = '0'
-  iframe.style.border = '0'
-  iframe.style.visibility = 'hidden'
-  document.body.appendChild(iframe)
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.visibility = 'hidden';
+  document.body.appendChild(iframe);
 
-  const iframeWindow = iframe.contentWindow
+  const iframeWindow = iframe.contentWindow;
   if (!iframeWindow) {
-    iframe.remove()
-    return false
+    iframe.remove();
+    return false;
   }
 
-  let hasPrinted = false
+  let hasPrinted = false;
   const cleanup = () => {
     window.setTimeout(() => {
-      iframe.remove()
-    }, 1000)
-  }
+      iframe.remove();
+    }, 1000);
+  };
   const printAction = async () => {
-    if (hasPrinted) return
-    hasPrinted = true
-    await waitForPrintableImages(iframeWindow)
-    iframeWindow.focus()
-    iframeWindow.print()
-    cleanup()
-  }
+    if (hasPrinted) return;
+    hasPrinted = true;
+    await waitForPrintableImages(iframeWindow);
+    iframeWindow.focus();
+    iframeWindow.print();
+    cleanup();
+  };
 
-  iframeWindow.document.open()
-  iframeWindow.document.write(html)
-  iframeWindow.document.close()
+  iframeWindow.document.open();
+  iframeWindow.document.write(html);
+  iframeWindow.document.close();
   iframe.onload = () => {
-    void printAction()
-  }
+    void printAction();
+  };
   window.setTimeout(() => {
-    void printAction()
-  }, 300)
-  return true
+    void printAction();
+  }, 300);
+  return true;
 }
 
 function resolveCompanyLogoUrl(companyLogoUrl?: string | null): string | null {
-  const normalizedLogoUrl = String(companyLogoUrl || '').trim()
-  return normalizedLogoUrl || null
+  const normalizedLogoUrl = String(companyLogoUrl || '').trim();
+  return normalizedLogoUrl || null;
 }
 
 function resolveOrientation(
@@ -220,15 +222,15 @@ function resolveOrientation(
   requestedOrientation?: PrescriptionPrintOrientation
 ): PrescriptionPrintOrientation {
   if (requestedOrientation === 'portrait' || requestedOrientation === 'landscape') {
-    return requestedOrientation
+    return requestedOrientation;
   }
 
-  const snapshotOrientation = snapshot.metadata_snapshot?.page_orientation
+  const snapshotOrientation = snapshot.metadata_snapshot?.page_orientation;
   if (snapshotOrientation === 'portrait' || snapshotOrientation === 'landscape') {
-    return snapshotOrientation
+    return snapshotOrientation;
   }
 
-  return 'landscape'
+  return 'landscape';
 }
 
 function resolveTableWidths(
@@ -238,21 +240,21 @@ function resolveTableWidths(
   const base =
     orientation === 'portrait'
       ? { num: 4.5, med: 31.5, via: 7.5, freq: 8.5 }
-      : { num: 3.5, med: 41.5, via: 6.5, freq: 7.0 }
+      : { num: 3.5, med: 41.5, via: 6.5, freq: 7.0 };
 
-  const remaining = 100 - base.num - base.med - base.via - base.freq
-  const safeDayCount = Math.max(1, dayCount)
+  const remaining = 100 - base.num - base.med - base.via - base.freq;
+  const safeDayCount = Math.max(1, dayCount);
 
   return {
     ...base,
     day: remaining / safeDayCount,
-  }
+  };
 }
 
 function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContext): string {
-  const widths = resolveTableWidths(context.weekColumns.length, context.orientation)
-  const dayCellFontSize = context.weekColumns.length > 10 ? 8 : 10
-  const pageTitleSize = context.orientation === 'portrait' ? 14 : 16
+  const widths = resolveTableWidths(context.weekColumns.length, context.orientation);
+  const dayCellFontSize = context.weekColumns.length > 10 ? 8 : 10;
+  const pageTitleSize = context.orientation === 'portrait' ? 14 : 16;
 
   return `
 <!DOCTYPE html>
@@ -475,22 +477,22 @@ function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContex
     </div>
   </body>
 </html>
-`
+`;
 }
 
 async function resolveProfessionalSignatureUrl(
   snapshot: PrescriptionPrintSnapshot
 ): Promise<string | null> {
-  const signaturePath = snapshot.metadata_snapshot?.professional_signature_path
+  const signaturePath = snapshot.metadata_snapshot?.professional_signature_path;
   if (!signaturePath || typeof signaturePath !== 'string') {
-    return null
+    return null;
   }
 
   try {
-    return await getProfessionalSignatureSignedUrl(signaturePath)
+    return await getProfessionalSignatureSignedUrl(signaturePath);
   } catch (error) {
-    console.error('Erro ao criar assinatura do profissional:', error)
-    return null
+    console.error('Erro ao criar assinatura do profissional:', error);
+    return null;
   }
 }
 
@@ -498,21 +500,21 @@ export async function openPrescriptionPrintPreview(
   snapshot: PrescriptionPrintSnapshot,
   options?: OpenPrescriptionPrintPreviewOptions
 ): Promise<void> {
-  const mode = options?.mode || 'print'
-  const orientation = resolveOrientation(snapshot, options?.orientation)
+  const mode = options?.mode || 'print';
+  const orientation = resolveOrientation(snapshot, options?.orientation);
   const targetWindow =
     mode !== 'download'
       ? (options?.targetWindow ?? window.open('', '_blank', 'width=1240,height=900'))
-      : null
+      : null;
 
-  const weekColumns = resolveWeekColumns(snapshot)
+  const weekColumns = resolveWeekColumns(snapshot);
   const rows = snapshot.items
     .slice()
     .sort((a, b) => a.order_index - b.order_index)
     .map((item) => {
       const gridCells = weekColumns
         .map((_column, index) => renderGridCell(getGridValue(item, index)))
-        .join('')
+        .join('');
 
       return `
         <tr>
@@ -522,20 +524,20 @@ export async function openPrescriptionPrintPreview(
           <td class="freq-cell">${escapeHtml(item.frequency_snapshot || '')}</td>
           ${gridCells}
         </tr>
-      `
+      `;
     })
-    .join('')
+    .join('');
 
-  const professionalName = snapshot.metadata_snapshot?.professional_name || ''
-  const professionalTitle = snapshot.metadata_snapshot?.professional_title || ''
-  const professionalCouncil = snapshot.metadata_snapshot?.professional_council || ''
+  const professionalName = snapshot.metadata_snapshot?.professional_name || '';
+  const professionalTitle = snapshot.metadata_snapshot?.professional_title || '';
+  const professionalCouncil = snapshot.metadata_snapshot?.professional_council || '';
   const professionalIdentityLine = buildProfessionalIdentityLine(
     professionalName,
     professionalTitle,
     professionalCouncil
-  )
-  const professionalSignatureUrl = await resolveProfessionalSignatureUrl(snapshot)
-  const companyLogoUrl = resolveCompanyLogoUrl(options?.companyLogoUrl)
+  );
+  const professionalSignatureUrl = await resolveProfessionalSignatureUrl(snapshot);
+  const companyLogoUrl = resolveCompanyLogoUrl(options?.companyLogoUrl);
 
   const html = buildPrintHtml(snapshot, {
     weekColumns,
@@ -544,26 +546,26 @@ export async function openPrescriptionPrintPreview(
     professionalSignatureUrl,
     companyLogoUrl,
     orientation,
-  })
+  });
   // Keep visual parity: download reuses the exact same HTML/CSS print layout.
-  const shouldAutoPrint = mode === 'print' || mode === 'download'
+  const shouldAutoPrint = mode === 'print' || mode === 'download';
 
   if (targetWindow) {
-    renderDocumentInWindow(targetWindow, html, shouldAutoPrint)
-    return
+    renderDocumentInWindow(targetWindow, html, shouldAutoPrint);
+    return;
   }
 
   if (mode === 'preview') {
-    throw new Error('Nao foi possivel abrir a visualização da prescrição.')
+    throw new Error('Nao foi possivel abrir a visualização da prescrição.');
   }
 
   if (renderPrintDocumentInIframe(html)) {
-    return
+    return;
   }
 
   if (mode === 'download') {
-    throw new Error('Não foi possível abrir o dialogo para salvar o PDF.')
+    throw new Error('Não foi possível abrir o dialogo para salvar o PDF.');
   }
 
-  throw new Error('Não foi possível abrir a janela de impressão.')
+  throw new Error('Não foi possível abrir a janela de impressão.');
 }

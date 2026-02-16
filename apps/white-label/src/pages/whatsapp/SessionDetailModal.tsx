@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Modal, Button, Badge, Loading, Select } from '@/components/ui';
+import { Modal, Button, Badge, Loading, Select } from '@synia/ui';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useWhatsappMessages, WhatsappMessage } from '@/hooks/useWhatsappMessages';

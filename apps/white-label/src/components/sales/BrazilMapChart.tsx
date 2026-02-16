@@ -307,7 +307,7 @@ export function BrazilMapChart({
       >
         <div className="flex h-full min-h-[400px] items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
+            <div className="border-primary-500 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
             <span className="text-sm text-gray-400">Carregando mapa...</span>
           </div>
         </div>
@@ -333,7 +333,7 @@ export function BrazilMapChart({
           </div>
           <div className="text-right">
             <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Total</p>
-            <p className="text-lg font-bold text-primary-500">{formatCurrency(totalRevenue)}</p>
+            <p className="text-primary-500 text-lg font-bold">{formatCurrency(totalRevenue)}</p>
           </div>
         </div>
       </div>
@@ -343,7 +343,7 @@ export function BrazilMapChart({
         <div className="relative flex-1 p-4 lg:p-6" style={{ minHeight: height - 80 }}>
           {isLoading && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 dark:bg-gray-800/70">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
+              <div className="border-primary-500 h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
             </div>
           )}
 
@@ -357,7 +357,7 @@ export function BrazilMapChart({
         </div>
 
         {/* Ranking */}
-        <div className="w-full border-t border-gray-100 p-5 dark:border-gray-700/50 lg:w-[820px] lg:border-l lg:border-t-0">
+        <div className="w-full border-t border-gray-100 p-5 lg:w-[820px] lg:border-l lg:border-t-0 dark:border-gray-700/50">
           <h4 className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -393,7 +393,7 @@ export function BrazilMapChart({
                     <span className="text-[10px] text-gray-400">{share.toFixed(1)}%</span>
                   </div>
                   <div className="mt-1 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-primary-500">
+                    <span className="text-primary-500 text-sm font-semibold">
                       {formatCurrency(state.faturamento)}
                     </span>
                   </div>

@@ -1,10 +1,10 @@
-import { useState, useMemo, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ColumnDef } from '@tanstack/react-table'
-import { format, parse } from 'date-fns'
+﻿import { useState, useMemo, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
+import { format, parse } from 'date-fns';
 import {
   Card,
-  ButtonNew,
+  Button,
   DataTable,
   Modal,
   ModalFooter,
@@ -14,21 +14,20 @@ import {
   Textarea,
   StatusBadge,
   EmptyState,
-  FilterToggleButton,
   getStatusBadgeConfig,
   IconButton,
   ColorBadge,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   usePrescriptions,
   useCreatePrescription,
   useDeletePrescription,
   useUpdatePrescription,
-} from '@/hooks/usePrescriptions'
-import { usePatients } from '@/hooks/usePatients'
-import { useProfessionals } from '@/hooks/useProfessionals'
-import { useForm } from 'react-hook-form'
-import type { Prescription, Patient, Professional, PrescriptionType } from '@/types/database'
+} from '@/hooks/usePrescriptions';
+import { usePatients } from '@/hooks/usePatients';
+import { useProfessionals } from '@/hooks/useProfessionals';
+import { useForm } from 'react-hook-form';
+import type { Prescription, Patient, Professional, PrescriptionType } from '@/types/database';
 import {
   Pencil,
   Trash2,
@@ -40,45 +39,45 @@ import {
   Funnel,
   FunnelX,
   X,
-} from 'lucide-react'
+} from 'lucide-react';
 interface PrescriptionFormData {
-  patient_id: string
-  professional_id: string
-  status: 'draft' | 'active' | 'suspended' | 'finished'
-  type: PrescriptionType | ''
-  start_date: string
-  end_date: string
-  notes: string
+  patient_id: string;
+  professional_id: string;
+  status: 'draft' | 'active' | 'suspended' | 'finished';
+  type: PrescriptionType | '';
+  start_date: string;
+  end_date: string;
+  notes: string;
 }
 
 function parseDateOnly(value: string): Date {
-  return parse(value, 'yyyy-MM-dd', new Date())
+  return parse(value, 'yyyy-MM-dd', new Date());
 }
 
 export default function PrescriptionsPage() {
-  const navigate = useNavigate()
-  const { data: prescriptionsData = [], isLoading } = usePrescriptions()
-  const prescriptions = prescriptionsData as Prescription[]
-  const { data: patientsData = [] } = usePatients()
-  const patients = patientsData as Patient[]
-  const { data: professionalsData = [] } = useProfessionals()
-  const professionals = professionalsData as Professional[]
-  const createPrescription = useCreatePrescription()
-  const updatePrescription = useUpdatePrescription()
-  const deletePrescription = useDeletePrescription()
+  const navigate = useNavigate();
+  const { data: prescriptionsData = [], isLoading } = usePrescriptions();
+  const prescriptions = prescriptionsData as Prescription[];
+  const { data: patientsData = [] } = usePatients();
+  const patients = patientsData as Patient[];
+  const { data: professionalsData = [] } = useProfessionals();
+  const professionals = professionalsData as Professional[];
+  const createPrescription = useCreatePrescription();
+  const updatePrescription = useUpdatePrescription();
+  const deletePrescription = useDeletePrescription();
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null)
-  const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchInput, setSearchInput] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  const [typeFilter, setTypeFilter] = useState('')
-  const [professionalFilter, setProfessionalFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [periodStartFilter, setPeriodStartFilter] = useState('')
-  const [periodEndFilter, setPeriodEndFilter] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [typeFilter, setTypeFilter] = useState('');
+  const [professionalFilter, setProfessionalFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [periodStartFilter, setPeriodStartFilter] = useState('');
+  const [periodEndFilter, setPeriodEndFilter] = useState('');
 
   const {
     register,
@@ -86,27 +85,27 @@ export default function PrescriptionsPage() {
     reset,
     watch,
     formState: { errors },
-  } = useForm<PrescriptionFormData>()
+  } = useForm<PrescriptionFormData>();
 
-  const watchType = watch('type')
-  const watchPatientId = watch('patient_id')
-  const watchProfessionalId = watch('professional_id')
+  const watchType = watch('type');
+  const watchPatientId = watch('patient_id');
+  const watchProfessionalId = watch('professional_id');
 
   const {
     ref: startDateRef,
     min: _startDateMin,
     max: _startDateMax,
     ...startDateField
-  } = register('start_date')
+  } = register('start_date');
   const {
     ref: endDateRef,
     min: _endDateMin,
     max: _endDateMax,
     ...endDateField
-  } = register('end_date')
+  } = register('end_date');
 
   const openCreateModal = () => {
-    setEditingPrescription(null)
+    setEditingPrescription(null);
     reset({
       patient_id: '',
       professional_id: '',
@@ -115,13 +114,13 @@ export default function PrescriptionsPage() {
       start_date: format(new Date(), 'yyyy-MM-dd'),
       end_date: '',
       notes: '',
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = useCallback(
     (prescription: Prescription) => {
-      setEditingPrescription(prescription)
+      setEditingPrescription(prescription);
       reset({
         patient_id: prescription.patient_id || '',
         professional_id: prescription.professional_id || '',
@@ -130,21 +129,21 @@ export default function PrescriptionsPage() {
         start_date: prescription.start_date || '',
         end_date: prescription.end_date || '',
         notes: prescription.notes || '',
-      })
-      setIsModalOpen(true)
+      });
+      setIsModalOpen(true);
     },
     [reset]
-  )
+  );
 
   const openDeleteModal = (prescription: Prescription) => {
-    setSelectedPrescription(prescription)
-    setIsDeleteModalOpen(true)
-  }
+    setSelectedPrescription(prescription);
+    setIsDeleteModalOpen(true);
+  };
 
   const closeFormModal = () => {
-    setIsModalOpen(false)
-    setEditingPrescription(null)
-  }
+    setIsModalOpen(false);
+    setEditingPrescription(null);
+  };
 
   const onSubmit = async (data: PrescriptionFormData) => {
     if (editingPrescription) {
@@ -154,10 +153,10 @@ export default function PrescriptionsPage() {
         type: data.type || null,
         professional_id: data.professional_id || null,
         end_date: data.end_date || data.start_date,
-      })
-      setIsModalOpen(false)
-      setEditingPrescription(null)
-      return
+      });
+      setIsModalOpen(false);
+      setEditingPrescription(null);
+      return;
     }
 
     const result = await createPrescription.mutateAsync({
@@ -168,76 +167,76 @@ export default function PrescriptionsPage() {
       end_date: data.end_date || data.start_date,
       professional_id: data.professional_id || null,
       notes: data.notes || null,
-    })
-    setIsModalOpen(false)
+    });
+    setIsModalOpen(false);
     // Navigate to prescription detail to add items
     if (result?.id) {
-      navigate(`/prescricoes/${result.id}`)
+      navigate(`/prescricoes/${result.id}`);
     }
-  }
+  };
 
   const handleDelete = async () => {
     if (selectedPrescription) {
-      await deletePrescription.mutateAsync(selectedPrescription.id)
-      setIsDeleteModalOpen(false)
+      await deletePrescription.mutateAsync(selectedPrescription.id);
+      setIsDeleteModalOpen(false);
     }
-  }
+  };
 
   const handleSearch = useCallback(() => {
-    setSearchTerm(searchInput.trim())
-  }, [searchInput])
+    setSearchTerm(searchInput.trim());
+  }, [searchInput]);
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleSearch()
+      handleSearch();
     }
-  }
+  };
 
   const clearFilters = () => {
-    setSearchInput('')
-    setSearchTerm('')
-    setTypeFilter('')
-    setProfessionalFilter('')
-    setStatusFilter('')
-    setPeriodStartFilter('')
-    setPeriodEndFilter('')
-  }
+    setSearchInput('');
+    setSearchTerm('');
+    setTypeFilter('');
+    setProfessionalFilter('');
+    setStatusFilter('');
+    setPeriodStartFilter('');
+    setPeriodEndFilter('');
+  };
 
   const filteredPrescriptions = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase()
-    const filterStart = periodStartFilter ? parseDateOnly(periodStartFilter) : null
-    const filterEnd = periodEndFilter ? parseDateOnly(periodEndFilter) : null
+    const term = searchTerm.trim().toLowerCase();
+    const filterStart = periodStartFilter ? parseDateOnly(periodStartFilter) : null;
+    const filterEnd = periodEndFilter ? parseDateOnly(periodEndFilter) : null;
 
     return prescriptions.filter((prescription) => {
-      if (typeFilter && prescription.type !== typeFilter) return false
-      if (statusFilter && prescription.status !== statusFilter) return false
+      if (typeFilter && prescription.type !== typeFilter) return false;
+      if (statusFilter && prescription.status !== statusFilter) return false;
 
       if (professionalFilter) {
         const professionalId =
-          (prescription as any).professional?.id || (prescription as any).professional_id
-        if (professionalId !== professionalFilter) return false
+          (prescription as any).professional?.id || (prescription as any).professional_id;
+        if (professionalId !== professionalFilter) return false;
       }
 
       if (filterStart || filterEnd) {
-        const start = prescription.start_date ? parseDateOnly(prescription.start_date) : null
-        const end = prescription.end_date ? parseDateOnly(prescription.end_date) : null
+        const start = prescription.start_date ? parseDateOnly(prescription.start_date) : null;
+        const end = prescription.end_date ? parseDateOnly(prescription.end_date) : null;
 
-        if (filterStart && end && end < filterStart) return false
-        if (filterEnd && start && start > filterEnd) return false
+        if (filterStart && end && end < filterStart) return false;
+        if (filterEnd && start && start > filterEnd) return false;
       }
 
       if (term) {
-        const patientName = (prescription as any).patient?.name || ''
-        const professionalName = (prescription as any).professional?.name || ''
-        const notes = prescription.notes || ''
-        const typeLabel = prescription.type ? getStatusBadgeConfig(prescription.type).label : ''
+        const patientName = (prescription as any).patient?.name || '';
+        const professionalName = (prescription as any).professional?.name || '';
+        const notes = prescription.notes || '';
+        const typeLabel = prescription.type ? getStatusBadgeConfig(prescription.type).label : '';
 
-        const haystack = `${patientName} ${professionalName} ${notes} ${typeLabel}`.toLowerCase()
-        if (!haystack.includes(term)) return false
+        const haystack = `${patientName} ${professionalName} ${notes} ${typeLabel}`.toLowerCase();
+        if (!haystack.includes(term)) return false;
       }
 
-      return true
-    })
+      return true;
+    });
   }, [
     prescriptions,
     searchTerm,
@@ -246,7 +245,7 @@ export default function PrescriptionsPage() {
     statusFilter,
     periodStartFilter,
     periodEndFilter,
-  ])
+  ]);
 
   const hasActiveFilters =
     searchTerm ||
@@ -254,7 +253,7 @@ export default function PrescriptionsPage() {
     professionalFilter ||
     statusFilter ||
     periodStartFilter ||
-    periodEndFilter
+    periodEndFilter;
 
   const columns: ColumnDef<any>[] = useMemo(
     () => [
@@ -278,12 +277,12 @@ export default function PrescriptionsPage() {
         accessorKey: 'operadora',
         header: () => <span className="block w-full text-center">Operadora</span>,
         cell: ({ row }) => {
-          const patient = row.original.patient
+          const patient = row.original.patient;
           // Buscar o client da fonte pagadora principal
-          const primaryPayer = patient?.patient_payer?.find((payer: any) => payer.is_primary)
-          const client = primaryPayer?.client
-          const operatoraName = client?.name
-          const operatoraColor = client?.color
+          const primaryPayer = patient?.patient_payer?.find((payer: any) => payer.is_primary);
+          const client = primaryPayer?.client;
+          const operatoraName = client?.name;
+          const operatoraColor = client?.color;
 
           return (
             <div className="flex justify-center">
@@ -293,14 +292,14 @@ export default function PrescriptionsPage() {
                 <span className="text-gray-400 dark:text-gray-500">-</span>
               )}
             </div>
-          )
+          );
         },
       },
       {
         accessorKey: 'professional',
         header: 'Profissional',
         cell: ({ row }) => {
-          const prof = row.original.professional
+          const prof = row.original.professional;
           return prof ? (
             <div>
               <p className="text-gray-700 dark:text-gray-300">{prof.name}</p>
@@ -308,36 +307,36 @@ export default function PrescriptionsPage() {
             </div>
           ) : (
             '-'
-          )
+          );
         },
       },
       {
         accessorKey: 'type',
         header: () => <span className="block w-full text-center">Tipo</span>,
         cell: ({ row }) => {
-          const type = row.original.type
-          if (!type) return '-'
+          const type = row.original.type;
+          if (!type) return '-';
           return (
             <div className="text-center">
               <StatusBadge status={type} />
             </div>
-          )
+          );
         },
       },
       {
         accessorKey: 'period',
-        header: 'Período',
+        header: 'PerÃ­odo',
         cell: ({ row }) => {
-          const start = row.original.start_date
-          const end = row.original.end_date
-          if (!start && !end) return '-'
+          const start = row.original.start_date;
+          const end = row.original.end_date;
+          if (!start && !end) return '-';
           return (
             <span className="text-gray-700 dark:text-gray-300">
               {start ? format(parseDateOnly(start), 'dd/MM/yyyy') : '...'}
               {' - '}
               {end ? format(parseDateOnly(end), 'dd/MM/yyyy') : 'Indeterminado'}
             </span>
-          )
+          );
         },
       },
       {
@@ -352,8 +351,8 @@ export default function PrescriptionsPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                openEditModal(row.original)
+                e.stopPropagation();
+                openEditModal(row.original);
               }}
               title="Editar"
             >
@@ -361,15 +360,15 @@ export default function PrescriptionsPage() {
             </IconButton>
             <Link
               to={`/prescricoes/${row.original.id}`}
-              className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-border-focus/40 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+              className="focus:ring-border-focus/40 rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
             >
               <Eye className="h-4 w-4" />
             </Link>
             <IconButton
               variant="danger"
               onClick={(e) => {
-                e.stopPropagation()
-                openDeleteModal(row.original)
+                e.stopPropagation();
+                openDeleteModal(row.original);
               }}
             >
               <Trash2 className="h-4 w-4" />
@@ -379,32 +378,32 @@ export default function PrescriptionsPage() {
       },
     ],
     [openEditModal]
-  )
+  );
 
   const patientOptions = patients
     .filter((p) => p.active)
-    .map((p) => ({ value: p.id, label: p.name }))
+    .map((p) => ({ value: p.id, label: p.name }));
 
   const professionalOptions = professionals
     .filter((p) => p.active)
     .map((p) => ({
       value: p.id,
       label: `${p.name} (${p.role || 'Profissional'})`,
-    }))
+    }));
 
   const statusOptions = [
     { value: 'draft', label: 'Rascunho' },
     { value: 'active', label: 'Ativa' },
     { value: 'suspended', label: 'Suspensa' },
     { value: 'finished', label: 'Finalizada' },
-  ]
+  ];
 
   const prescriptionTypeOptions = [
     {
       value: 'medical',
-      label: 'Médica',
+      label: 'MÃ©dica',
       icon: ClipboardList,
-      description: 'Prescrição médica tradicional',
+      description: 'PrescriÃ§Ã£o mÃ©dica tradicional',
     },
     {
       value: 'nursing',
@@ -414,11 +413,11 @@ export default function PrescriptionsPage() {
     },
     {
       value: 'nutrition',
-      label: 'Nutrição',
+      label: 'NutriÃ§Ã£o',
       icon: FlaskConical,
-      description: 'Dietas e suplementação nutricional',
+      description: 'Dietas e suplementaÃ§Ã£o nutricional',
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -426,10 +425,10 @@ export default function PrescriptionsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            Prescrições
+            PrescriÃ§Ãµes
           </h1>
         </div>
-        <ButtonNew onClick={openCreateModal} variant="solid" label="Nova Prescrição" />
+        <Button onClick={openCreateModal} variant="solid" label="Nova PrescriÃ§Ã£o" />
       </div>
 
       {/* Stats Cards */}
@@ -462,21 +461,21 @@ export default function PrescriptionsPage() {
       {/* Table */}
       <Card padding="none">
         <div className="space-y-4 p-6">
-          {/* Barra de pesquisa e botão de filtros */}
+          {/* Barra de pesquisa e botÃ£o de filtros */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por paciente, profissional ou observações..."
+                placeholder="Buscar por paciente, profissional ou observaÃ§Ãµes..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             <div className="flex items-center gap-2">
-              <ButtonNew
+              <Button
                 onClick={handleSearch}
                 variant="outline"
                 size="md"
@@ -485,7 +484,8 @@ export default function PrescriptionsPage() {
                 label=""
                 className="w-9 justify-center pr-3"
               />
-              <FilterToggleButton
+              <Button
+                variant="filter"
                 active={Boolean(showFilters || hasActiveFilters)}
                 onClick={() => setShowFilters(!showFilters)}
                 icon={<Funnel className="mr-1 h-4 w-4" />}
@@ -502,7 +502,7 @@ export default function PrescriptionsPage() {
                 className="min-w-24 justify-center"
               />
               {hasActiveFilters && (
-                <ButtonNew
+                <Button
                   onClick={clearFilters}
                   variant="outline"
                   size="md"
@@ -525,15 +525,15 @@ export default function PrescriptionsPage() {
                   label="Tipo"
                   options={[
                     { value: '', label: 'Todos' },
-                    { value: 'medical', label: 'Médica' },
+                    { value: 'medical', label: 'MÃ©dica' },
                     { value: 'nursing', label: 'Enfermagem' },
-                    { value: 'nutrition', label: 'Nutrição' },
+                    { value: 'nutrition', label: 'NutriÃ§Ã£o' },
                   ]}
                   placeholder="Selecione..."
                   searchPlaceholder="Buscar tipo..."
                   value={typeFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setTypeFilter(e.target.value)
+                    setTypeFilter(e.target.value);
                   }}
                 />
 
@@ -544,7 +544,7 @@ export default function PrescriptionsPage() {
                   searchPlaceholder="Buscar profissional..."
                   value={professionalFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setProfessionalFilter(e.target.value)
+                    setProfessionalFilter(e.target.value);
                   }}
                 />
 
@@ -555,27 +555,27 @@ export default function PrescriptionsPage() {
                   searchPlaceholder="Buscar status..."
                   value={statusFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setStatusFilter(e.target.value)
+                    setStatusFilter(e.target.value);
                   }}
                 />
 
                 <DatePicker
-                  label="Período (de)"
+                  label="PerÃ­odo (de)"
                   value={periodStartFilter}
                   onChange={(value: any) => {
                     const nextValue =
-                      typeof value === 'string' ? value : (value as any)?.target?.value || ''
-                    setPeriodStartFilter(nextValue)
+                      typeof value === 'string' ? value : (value as any)?.target?.value || '';
+                    setPeriodStartFilter(nextValue);
                   }}
                 />
 
                 <DatePicker
-                  label="Período (até)"
+                  label="PerÃ­odo (atÃ©)"
                   value={periodEndFilter}
                   onChange={(value: any) => {
                     const nextValue =
-                      typeof value === 'string' ? value : (value as any)?.target?.value || ''
-                    setPeriodEndFilter(nextValue)
+                      typeof value === 'string' ? value : (value as any)?.target?.value || '';
+                    setPeriodEndFilter(nextValue);
                   }}
                 />
               </div>
@@ -591,10 +591,10 @@ export default function PrescriptionsPage() {
               hasActiveFilters ? (
                 <EmptyState
                   icon={<Funnel className="h-12 w-12 text-gray-400" />}
-                  title="Nenhuma prescrição encontrada"
-                  description="Nenhuma prescrição corresponde aos filtros selecionados"
+                  title="Nenhuma prescriÃ§Ã£o encontrada"
+                  description="Nenhuma prescriÃ§Ã£o corresponde aos filtros selecionados"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={clearFilters}
                       variant="solid"
                       size="sm"
@@ -605,14 +605,14 @@ export default function PrescriptionsPage() {
                 />
               ) : (
                 <EmptyState
-                  title="Nenhuma prescrição encontrada"
-                  description="Crie uma nova prescrição para começar"
+                  title="Nenhuma prescriÃ§Ã£o encontrada"
+                  description="Crie uma nova prescriÃ§Ã£o para comeÃ§ar"
                   action={
-                    <ButtonNew
+                    <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
-                      label="Nova Prescrição"
+                      label="Nova PrescriÃ§Ã£o"
                     />
                   }
                 />
@@ -626,12 +626,12 @@ export default function PrescriptionsPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeFormModal}
-        title={editingPrescription ? 'Editar Prescrição' : 'Nova Prescrição'}
+        title={editingPrescription ? 'Editar PrescriÃ§Ã£o' : 'Nova PrescriÃ§Ã£o'}
         size="lg"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Select
-            label="Tipo de Prescrição"
+            label="Tipo de PrescriÃ§Ã£o"
             options={prescriptionTypeOptions}
             value={watchType}
             {...register('type')}
@@ -644,7 +644,7 @@ export default function PrescriptionsPage() {
             placeholder="Selecione o paciente..."
             searchPlaceholder="Buscar paciente..."
             value={watchPatientId || ''}
-            {...register('patient_id', { required: 'Paciente é obrigatório' })}
+            {...register('patient_id', { required: 'Paciente Ã© obrigatÃ³rio' })}
             error={errors.patient_id?.message}
             required
           />
@@ -655,38 +655,38 @@ export default function PrescriptionsPage() {
             placeholder="Selecione o profissional..."
             searchPlaceholder="Buscar profissional..."
             value={watchProfessionalId || ''}
-            {...register('professional_id', { required: 'Profissional é obrigatório' })}
+            {...register('professional_id', { required: 'Profissional Ã© obrigatÃ³rio' })}
             error={errors.professional_id?.message}
             required
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <DatePicker label="Data de Início" {...startDateField} ref={startDateRef} />
-            <DatePicker label="Data de Término" {...endDateField} ref={endDateRef} />
+            <DatePicker label="Data de InÃ­cio" {...startDateField} ref={startDateRef} />
+            <DatePicker label="Data de TÃ©rmino" {...endDateField} ref={endDateRef} />
           </div>
 
           <Select label="Status" options={statusOptions} {...register('status')} />
 
           <Textarea
-            label="Observações"
-            placeholder="Observações gerais sobre a prescrição..."
+            label="ObservaÃ§Ãµes"
+            placeholder="ObservaÃ§Ãµes gerais sobre a prescriÃ§Ã£o..."
             {...register('notes')}
           />
 
           <ModalFooter>
-            <ButtonNew
+            <Button
               type="button"
               variant="outline"
               showIcon={false}
               onClick={closeFormModal}
               label="Cancelar"
             />
-            <ButtonNew
+            <Button
               type="submit"
               variant="solid"
               showIcon={false}
               disabled={createPrescription.isPending || updatePrescription.isPending}
-              label={editingPrescription ? 'Salvar Alterações' : 'Criar e Adicionar Itens'}
+              label={editingPrescription ? 'Salvar AlteraÃ§Ãµes' : 'Criar e Adicionar Itens'}
             />
           </ModalFooter>
         </form>
@@ -696,23 +696,23 @@ export default function PrescriptionsPage() {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Excluir Prescrição"
+        title="Excluir PrescriÃ§Ã£o"
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja excluir esta prescrição? Todos os itens também serão removidos.
-          Esta ação não pode ser desfeita.
+          Tem certeza que deseja excluir esta prescriÃ§Ã£o? Todos os itens tambÃ©m serÃ£o removidos.
+          Esta aÃ§Ã£o nÃ£o pode ser desfeita.
         </p>
 
         <ModalFooter>
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             showIcon={false}
             onClick={() => setIsDeleteModalOpen(false)}
             label="Cancelar"
           />
-          <ButtonNew
+          <Button
             type="button"
             variant="danger"
             onClick={handleDelete}
@@ -723,5 +723,5 @@ export default function PrescriptionsPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

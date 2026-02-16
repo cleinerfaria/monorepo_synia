@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   buildPrescriptionPrintGridSnapshot,
   buildPrescriptionPrintPatientSnapshot,
@@ -8,23 +8,23 @@ import {
   formatPrescriptionItemDescriptionSnapshot,
   formatPrescriptionPrintFrequency,
   getPrescriptionGridValueForDate,
-} from '@/lib/prescriptionPrintUtils'
-import type { PrescriptionPrintSourceItem } from '@/types/prescriptionPrint'
+} from '@/lib/prescriptionPrintUtils';
+import type { PrescriptionPrintSourceItem } from '@/types/prescriptionPrint';
 
 describe('prescriptionPrintUtils', () => {
   it('calculates week period using sunday as start day', () => {
-    const { periodStart, periodEnd } = calculatePrescriptionWeekPeriod('2026-02-08', 0)
+    const { periodStart, periodEnd } = calculatePrescriptionWeekPeriod('2026-02-08', 0);
 
-    expect(periodStart.toISOString().slice(0, 10)).toBe('2026-02-08')
-    expect(periodEnd.toISOString().slice(0, 10)).toBe('2026-02-14')
-  })
+    expect(periodStart.toISOString().slice(0, 10)).toBe('2026-02-08');
+    expect(periodEnd.toISOString().slice(0, 10)).toBe('2026-02-14');
+  });
 
   it('calculates week period for custom start day', () => {
-    const { periodStart, periodEnd } = calculatePrescriptionWeekPeriod('2026-02-08', 3)
+    const { periodStart, periodEnd } = calculatePrescriptionWeekPeriod('2026-02-08', 3);
 
-    expect(periodStart.toISOString().slice(0, 10)).toBe('2026-02-04')
-    expect(periodEnd.toISOString().slice(0, 10)).toBe('2026-02-10')
-  })
+    expect(periodStart.toISOString().slice(0, 10)).toBe('2026-02-04');
+    expect(periodEnd.toISOString().slice(0, 10)).toBe('2026-02-10');
+  });
 
   it('generates day grid for every mode item', () => {
     const item: PrescriptionPrintSourceItem = {
@@ -34,11 +34,11 @@ describe('prescriptionPrintUtils', () => {
       interval_minutes: 720,
       time_start: '08:00:00',
       is_active: true,
-    }
+    };
 
-    const value = getPrescriptionGridValueForDate(item, new Date(2026, 1, 8))
-    expect(value).toBe('08 20')
-  })
+    const value = getPrescriptionGridValueForDate(item, new Date(2026, 1, 8));
+    expect(value).toBe('08 20');
+  });
 
   it('formats shift checks in order', () => {
     const item: PrescriptionPrintSourceItem = {
@@ -47,11 +47,11 @@ describe('prescriptionPrintUtils', () => {
       frequency_mode: 'shift',
       time_checks: ['N', 'M'],
       is_active: true,
-    }
+    };
 
-    const value = getPrescriptionGridValueForDate(item, new Date(2026, 1, 9))
-    expect(value).toBe('M N')
-  })
+    const value = getPrescriptionGridValueForDate(item, new Date(2026, 1, 9));
+    expect(value).toBe('M N');
+  });
 
   it('returns SN for PRN items', () => {
     const item: PrescriptionPrintSourceItem = {
@@ -59,11 +59,11 @@ describe('prescriptionPrintUtils', () => {
       item_type: 'medication',
       is_prn: true,
       is_active: true,
-    }
+    };
 
-    const value = getPrescriptionGridValueForDate(item, new Date(2026, 1, 9))
-    expect(value).toBe('SN')
-  })
+    const value = getPrescriptionGridValueForDate(item, new Date(2026, 1, 9));
+    expect(value).toBe('SN');
+  });
 
   it('formats frequency snapshot labels', () => {
     const everyItem: PrescriptionPrintSourceItem = {
@@ -72,7 +72,7 @@ describe('prescriptionPrintUtils', () => {
       frequency_mode: 'every',
       interval_minutes: 720,
       is_active: true,
-    }
+    };
 
     const timesPerItem: PrescriptionPrintSourceItem = {
       id: 'item-5',
@@ -81,27 +81,27 @@ describe('prescriptionPrintUtils', () => {
       times_value: 3,
       times_unit: 'day',
       is_active: true,
-    }
+    };
 
-    expect(formatPrescriptionPrintFrequency(everyItem)).toBe('12/12h')
-    expect(formatPrescriptionPrintFrequency(timesPerItem)).toBe('3xDIA')
-  })
+    expect(formatPrescriptionPrintFrequency(everyItem)).toBe('12/12h');
+    expect(formatPrescriptionPrintFrequency(timesPerItem)).toBe('3xDIA');
+  });
 
   it('filters inactive and out-of-period items', () => {
     const items: PrescriptionPrintSourceItem[] = [
       { id: 'a', item_type: 'medication', is_active: true, start_date: '2026-02-01' },
       { id: 'b', item_type: 'medication', is_active: false },
       { id: 'c', item_type: 'medication', is_active: true, start_date: '2026-03-01' },
-    ]
+    ];
 
     const filtered = filterPrescriptionItemsForWeek(
       items,
       new Date(2026, 1, 8),
       new Date(2026, 1, 14)
-    )
+    );
 
-    expect(filtered.map((item) => item.id)).toEqual(['a'])
-  })
+    expect(filtered.map((item) => item.id)).toEqual(['a']);
+  });
 
   it('does not include active item when end_date is before prescription period start', () => {
     const items: PrescriptionPrintSourceItem[] = [
@@ -112,16 +112,16 @@ describe('prescriptionPrintUtils', () => {
         start_date: '2026-02-01',
         end_date: '2026-02-07',
       },
-    ]
+    ];
 
     const filtered = filterPrescriptionItemsForWeek(
       items,
       new Date(2026, 1, 8),
       new Date(2026, 1, 14)
-    )
+    );
 
-    expect(filtered).toHaveLength(0)
-  })
+    expect(filtered).toHaveLength(0);
+  });
 
   it('builds grid snapshot with range length', () => {
     const item: PrescriptionPrintSourceItem = {
@@ -130,13 +130,13 @@ describe('prescriptionPrintUtils', () => {
       frequency_mode: 'times_per',
       time_checks: ['08:00:00', '20:00:00'],
       is_active: true,
-    }
-    const columns = buildPrescriptionWeekColumns(new Date(2026, 1, 8), new Date(2026, 1, 10))
-    const snapshot = buildPrescriptionPrintGridSnapshot(item, columns)
+    };
+    const columns = buildPrescriptionWeekColumns(new Date(2026, 1, 8), new Date(2026, 1, 10));
+    const snapshot = buildPrescriptionPrintGridSnapshot(item, columns);
 
-    expect(snapshot).toHaveLength(3)
-    expect(snapshot[0]?.mark).toBe('08 20')
-  })
+    expect(snapshot).toHaveLength(3);
+    expect(snapshot[0]?.mark).toBe('08 20');
+  });
 
   it('includes end date in item period range', () => {
     const item: PrescriptionPrintSourceItem = {
@@ -147,12 +147,12 @@ describe('prescriptionPrintUtils', () => {
       start_date: '2026-02-17',
       end_date: '2026-02-18',
       is_active: true,
-    }
+    };
 
-    expect(getPrescriptionGridValueForDate(item, new Date(2026, 1, 17))).toBe('08')
-    expect(getPrescriptionGridValueForDate(item, new Date(2026, 1, 18))).toBe('08')
-    expect(getPrescriptionGridValueForDate(item, new Date(2026, 1, 19))).toBe('###HATCHED###')
-  })
+    expect(getPrescriptionGridValueForDate(item, new Date(2026, 1, 17))).toBe('08');
+    expect(getPrescriptionGridValueForDate(item, new Date(2026, 1, 18))).toBe('08');
+    expect(getPrescriptionGridValueForDate(item, new Date(2026, 1, 19))).toBe('###HATCHED###');
+  });
 
   it('builds patient snapshot using primary payer', () => {
     const snapshot = buildPrescriptionPrintPatientSnapshot(
@@ -171,12 +171,12 @@ describe('prescriptionPrintUtils', () => {
         },
       },
       '2026-02-08'
-    )
+    );
 
-    expect(snapshot.name).toBe('Maria da Silva')
-    expect(snapshot.operadora).toBe('Plano Principal')
-    expect(snapshot.age_label).not.toBe('')
-  })
+    expect(snapshot.name).toBe('Maria da Silva');
+    expect(snapshot.operadora).toBe('Plano Principal');
+    expect(snapshot.age_label).not.toBe('');
+  });
 
   it('formats description with instructions and components without hyphen between product and concentration', () => {
     const description = formatPrescriptionItemDescriptionSnapshot({
@@ -199,11 +199,11 @@ describe('prescriptionPrintUtils', () => {
           },
         },
       ],
-    })
+    });
 
-    expect(description).toContain('Bromoprida 4mg/ml 40 gts')
-    expect(description).toContain('- Administrar apos refeicao')
-    expect(description).toContain('* Componente A 1mg - 10 ml')
-    expect(description).not.toContain('Bromoprida - 4mg/ml')
-  })
-})
+    expect(description).toContain('Bromoprida 4mg/ml 40 gts');
+    expect(description).toContain('- Administrar apos refeicao');
+    expect(description).toContain('* Componente A 1mg - 10 ml');
+    expect(description).not.toContain('Bromoprida - 4mg/ml');
+  });
+});

@@ -44,7 +44,7 @@ const SalesMetaPage = lazy(() => import('@/pages/dashboard/SalesMetaPage'));
 const DynamicPage = lazy(() => import('@/pages/dashboard/DynamicPage'));
 
 // Loading
-import { Loading } from '@/components/ui';
+import { Loading } from '@synia/ui';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -248,7 +248,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           <p className="mb-6 text-gray-600 dark:text-gray-400">{authError}</p>
           <button
             onClick={() => window.location.reload()}
-            className="rounded-lg bg-primary-500 px-6 py-2 text-white transition-colors hover:bg-primary-600"
+            className="bg-primary-500 hover:bg-primary-600 rounded-lg px-6 py-2 text-white transition-colors"
           >
             Recarregar Página
           </button>

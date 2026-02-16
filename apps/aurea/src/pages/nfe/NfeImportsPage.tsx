@@ -1,7 +1,7 @@
-import { useState, useMemo, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ColumnDef } from '@tanstack/react-table'
-import { format } from 'date-fns'
+import { useState, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -15,19 +15,18 @@ import {
   DatePicker,
   SearchableSelect,
   Badge,
-  FilterToggleButton,
   IconButton,
-} from '@/components/ui'
+} from '@/components/ui';
 import {
   useNfeImports,
   useNfeStats,
   useDeleteNfeImport,
   useImportNfeFromXml,
   type NfeImportWithStats,
-} from '@/hooks/useNfeImport'
-import { useSuppliers } from '@/hooks/useSuppliers'
-import type { NfeImport } from '@/types/database'
-import { formatDateOnly, parseDateOnlyOrNull } from '@/lib/dateOnly'
+} from '@/hooks/useNfeImport';
+import { useSuppliers } from '@/hooks/useSuppliers';
+import type { NfeImport } from '@/types/database';
+import { formatDateOnly, parseDateOnlyOrNull } from '@/lib/dateOnly';
 import {
   FileText,
   Upload,
@@ -41,157 +40,157 @@ import {
   Search,
   X,
   Link,
-} from 'lucide-react'
+} from 'lucide-react';
 export default function NfeImportsPage() {
-  const navigate = useNavigate()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: imports = [], isLoading } = useNfeImports()
-  const { data: stats } = useNfeStats()
-  const { data: suppliers = [] } = useSuppliers()
+  const { data: imports = [], isLoading } = useNfeImports();
+  const { data: stats } = useNfeStats();
+  const { data: suppliers = [] } = useSuppliers();
 
-  const deleteNfe = useDeleteNfeImport()
-  const importNfe = useImportNfeFromXml()
+  const deleteNfe = useDeleteNfeImport();
+  const importNfe = useImportNfeFromXml();
 
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [selectedNfe, setSelectedNfe] = useState<NfeImport | null>(null)
-  const [importError, setImportError] = useState<string | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedNfe, setSelectedNfe] = useState<NfeImport | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Filtros
-  const [searchFilter, setSearchFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [supplierFilter, setSupplierFilter] = useState('')
-  const [startDateFilter, setStartDateFilter] = useState('')
-  const [endDateFilter, setEndDateFilter] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [searchFilter, setSearchFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [supplierFilter, setSupplierFilter] = useState('');
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   const handleSearch = () => {
-    setSearchFilter((prev) => prev.trim())
-  }
+    setSearchFilter((prev) => prev.trim());
+  };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSearch()
+      handleSearch();
     }
-  }
+  };
 
   const openImportModal = () => {
-    setImportError(null)
-    setIsImportModalOpen(true)
-  }
+    setImportError(null);
+    setIsImportModalOpen(true);
+  };
 
   const openDeleteModal = (nfe: NfeImport) => {
-    setSelectedNfe(nfe)
-    setIsDeleteModalOpen(true)
-  }
+    setSelectedNfe(nfe);
+    setIsDeleteModalOpen(true);
+  };
 
   const handleXmlImport = async (file: File) => {
     try {
-      setImportError(null)
-      const result = await importNfe.mutateAsync(file)
-      setIsImportModalOpen(false)
+      setImportError(null);
+      const result = await importNfe.mutateAsync(file);
+      setIsImportModalOpen(false);
       // Navigate to detail page to map items
-      navigate(`/nfe/${result.nfe.id}`)
+      navigate(`/nfe/${result.nfe.id}`);
     } catch (error: any) {
-      setImportError(error.message || 'Erro ao importar XML')
+      setImportError(error.message || 'Erro ao importar XML');
     }
-  }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      handleXmlImport(file)
+      handleXmlImport(file);
     }
     // Reset input
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = '';
     }
-  }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const file = e.dataTransfer.files?.[0]
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
     if (file && file.name.toLowerCase().endsWith('.xml')) {
-      handleXmlImport(file)
+      handleXmlImport(file);
     } else {
-      setImportError('Por favor, selecione um arquivo XML válido')
+      setImportError('Por favor, selecione um arquivo XML válido');
     }
-  }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
   const handleDragLeave = () => {
-    setIsDragging(false)
-  }
+    setIsDragging(false);
+  };
 
   // Filtragem de NFes
   const filteredImports = useMemo(() => {
     return imports.filter((nfe) => {
       // Filtro de busca (número ou emitente)
       if (searchFilter) {
-        const search = searchFilter.toLowerCase()
-        const numberMatch = nfe.number?.toLowerCase().includes(search)
-        const issuerMatch = nfe.issuer_name?.toLowerCase().includes(search)
-        if (!numberMatch && !issuerMatch) return false
+        const search = searchFilter.toLowerCase();
+        const numberMatch = nfe.number?.toLowerCase().includes(search);
+        const issuerMatch = nfe.issuer_name?.toLowerCase().includes(search);
+        if (!numberMatch && !issuerMatch) return false;
       }
 
       // Filtro por status
-      if (statusFilter && nfe.status !== statusFilter) return false
+      if (statusFilter && nfe.status !== statusFilter) return false;
 
       // Filtro por fornecedor
-      if (supplierFilter && (nfe as any).supplier_id !== supplierFilter) return false
+      if (supplierFilter && (nfe as any).supplier_id !== supplierFilter) return false;
 
       // Filtro por data de início
       if (startDateFilter && nfe.issued_at) {
-        const nfeDate = parseDateOnlyOrNull(nfe.issued_at)
-        const startDate = parseDateOnlyOrNull(startDateFilter)
-        if (nfeDate && startDate && nfeDate < startDate) return false
+        const nfeDate = parseDateOnlyOrNull(nfe.issued_at);
+        const startDate = parseDateOnlyOrNull(startDateFilter);
+        if (nfeDate && startDate && nfeDate < startDate) return false;
       }
 
       // Filtro por data de fim
       if (endDateFilter && nfe.issued_at) {
-        const nfeDate = parseDateOnlyOrNull(nfe.issued_at)
-        const endDate = parseDateOnlyOrNull(endDateFilter)
-        if (nfeDate && endDate && nfeDate > endDate) return false
+        const nfeDate = parseDateOnlyOrNull(nfe.issued_at);
+        const endDate = parseDateOnlyOrNull(endDateFilter);
+        if (nfeDate && endDate && nfeDate > endDate) return false;
       }
 
-      return true
-    })
-  }, [imports, searchFilter, statusFilter, supplierFilter, startDateFilter, endDateFilter])
+      return true;
+    });
+  }, [imports, searchFilter, statusFilter, supplierFilter, startDateFilter, endDateFilter]);
 
   const clearFilters = () => {
-    setSearchFilter('')
-    setStatusFilter('')
-    setSupplierFilter('')
-    setStartDateFilter('')
-    setEndDateFilter('')
-  }
+    setSearchFilter('');
+    setStatusFilter('');
+    setSupplierFilter('');
+    setStartDateFilter('');
+    setEndDateFilter('');
+  };
 
   const hasActiveFilters =
-    searchFilter || statusFilter || supplierFilter || startDateFilter || endDateFilter
+    searchFilter || statusFilter || supplierFilter || startDateFilter || endDateFilter;
 
   const handleDelete = async () => {
     if (selectedNfe) {
-      await deleteNfe.mutateAsync(selectedNfe.id)
-      setIsDeleteModalOpen(false)
+      await deleteNfe.mutateAsync(selectedNfe.id);
+      setIsDeleteModalOpen(false);
     }
-  }
+  };
 
   // Função para formatar CNPJ
   const formatCnpj = (cnpj?: string | null) => {
-    if (!cnpj) return '-'
-    const numbers = cnpj.replace(/\D/g, '')
+    if (!cnpj) return '-';
+    const numbers = cnpj.replace(/\D/g, '');
     if (numbers.length === 14) {
-      return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+      return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
     }
-    return cnpj
-  }
+    return cnpj;
+  };
 
   const columns: ColumnDef<NfeImportWithStats>[] = useMemo(
     () => [
@@ -249,19 +248,19 @@ export default function NfeImportsPage() {
         accessorKey: 'mapping_status',
         header: 'Mapeamento',
         cell: ({ row }) => {
-          const totalItems = row.original.total_items || 0
-          const mappedItems = row.original.mapped_items || 0
-          const percentage = totalItems > 0 ? (mappedItems / totalItems) * 100 : 0
+          const totalItems = row.original.total_items || 0;
+          const mappedItems = row.original.mapped_items || 0;
+          const percentage = totalItems > 0 ? (mappedItems / totalItems) * 100 : 0;
 
-          let badgeVariant: 'success' | 'warning' | 'danger' | 'neutral' = 'neutral'
+          let badgeVariant: 'success' | 'warning' | 'danger' | 'neutral' = 'neutral';
           if (totalItems === 0) {
-            badgeVariant = 'neutral'
+            badgeVariant = 'neutral';
           } else if (percentage === 100) {
-            badgeVariant = 'success'
+            badgeVariant = 'success';
           } else if (percentage >= 50) {
-            badgeVariant = 'warning'
+            badgeVariant = 'warning';
           } else {
-            badgeVariant = 'danger'
+            badgeVariant = 'danger';
           }
 
           return (
@@ -273,7 +272,7 @@ export default function NfeImportsPage() {
                 {totalItems === 0 ? '0 itens' : `${percentage.toFixed(0)}%`}
               </Badge>
             </div>
-          )
+          );
         },
       },
       {
@@ -313,7 +312,7 @@ export default function NfeImportsPage() {
       },
     ],
     [navigate, hasActiveFilters]
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -406,13 +405,14 @@ export default function NfeImportsPage() {
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
             <Button variant="secondary" onClick={handleSearch}>
               Buscar
             </Button>
-            <FilterToggleButton
+            <Button
+              variant="filter"
               active={Boolean(showFilters || hasActiveFilters)}
               onClick={() => setShowFilters(!showFilters)}
               icon={<Filter className="h-5 w-5" />}
@@ -633,5 +633,5 @@ export default function NfeImportsPage() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

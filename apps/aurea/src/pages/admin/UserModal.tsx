@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Modal, Input, Button } from '@/components/ui'
+import { useState, useEffect } from 'react';
+import { Modal, Input, Button } from '@/components/ui';
 import {
   AppUser,
   UserRole,
@@ -9,22 +9,22 @@ import {
   useDeactivateAppUser,
   useReactivateAppUser,
   useResetUserPassword,
-} from '@/hooks/useAppUsers'
-import { useAccessProfiles } from '@/hooks/useAccessProfiles'
-import { Company } from '@/hooks/useCompanies'
-import toast from 'react-hot-toast'
-import { Eye, EyeOff, Key } from 'lucide-react'
+} from '@/hooks/useAppUsers';
+import { useAccessProfiles } from '@/hooks/useAccessProfiles';
+import { Company } from '@/hooks/useCompanies';
+import toast from 'react-hot-toast';
+import { Eye, EyeOff, Key } from 'lucide-react';
 interface UserModalProps {
-  isOpen: boolean
-  onClose: () => void
-  user: AppUser | null
-  companies: Company[]
+  isOpen: boolean;
+  onClose: () => void;
+  user: AppUser | null;
+  companies: Company[];
 }
 
-const roles: UserRole[] = ['admin', 'manager', 'clinician', 'stock', 'finance', 'viewer']
+const roles: UserRole[] = ['admin', 'manager', 'clinician', 'stock', 'finance', 'viewer'];
 
 export default function UserModal({ isOpen, onClose, user, companies }: UserModalProps) {
-  const isEditing = !!user
+  const isEditing = !!user;
 
   const [formData, setFormData] = useState({
     company_id: '',
@@ -33,27 +33,27 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
     password: '',
     role: 'viewer' as UserRole,
     access_profile_id: '',
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [showPassword, setShowPassword] = useState(false)
-  const [showResetPassword, setShowResetPassword] = useState(false)
-  const [newPassword, setNewPassword] = useState('')
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
 
   // Buscar perfis de acesso
-  const { data: accessProfiles = [] } = useAccessProfiles(formData.company_id || undefined)
+  const { data: accessProfiles = [] } = useAccessProfiles(formData.company_id || undefined);
 
-  const createMutation = useCreateAppUser()
-  const updateMutation = useUpdateAppUser()
-  const deactivateMutation = useDeactivateAppUser()
-  const reactivateMutation = useReactivateAppUser()
-  const resetPasswordMutation = useResetUserPassword()
+  const createMutation = useCreateAppUser();
+  const updateMutation = useUpdateAppUser();
+  const deactivateMutation = useDeactivateAppUser();
+  const reactivateMutation = useReactivateAppUser();
+  const resetPasswordMutation = useResetUserPassword();
 
   const isLoading =
     createMutation.isPending ||
     updateMutation.isPending ||
     deactivateMutation.isPending ||
     reactivateMutation.isPending ||
-    resetPasswordMutation.isPending
+    resetPasswordMutation.isPending;
 
   useEffect(() => {
     if (user) {
@@ -64,7 +64,7 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
         password: '',
         role: user.role,
         access_profile_id: user.access_profile_id || '',
-      })
+      });
     } else {
       setFormData({
         company_id: companies.length > 0 ? companies[0].id : '',
@@ -73,47 +73,47 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
         password: '',
         role: 'viewer',
         access_profile_id: '',
-      })
+      });
     }
-    setErrors({})
-    setShowPassword(false)
-    setShowResetPassword(false)
-    setNewPassword('')
-  }, [user, isOpen, companies])
+    setErrors({});
+    setShowPassword(false);
+    setShowResetPassword(false);
+    setNewPassword('');
+  }, [user, isOpen, companies]);
 
   const validate = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Nome é obrigatório'
+      newErrors.name = 'Nome é obrigatório';
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'E-mail é obrigatório'
+      newErrors.email = 'E-mail é obrigatório';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'E-mail inválido'
+      newErrors.email = 'E-mail inválido';
     }
 
     if (!isEditing) {
       if (!formData.password) {
-        newErrors.password = 'Senha é obrigatória'
+        newErrors.password = 'Senha é obrigatória';
       } else if (formData.password.length < 6) {
-        newErrors.password = 'Senha deve ter pelo menos 6 caracteres'
+        newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
       }
 
       if (!formData.company_id) {
-        newErrors.company_id = 'Empresa é obrigatória'
+        newErrors.company_id = 'Empresa é obrigatória';
       }
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!validate()) return
+    if (!validate()) return;
 
     try {
       if (isEditing) {
@@ -122,8 +122,8 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
           name: formData.name,
           role: formData.role,
           access_profile_id: formData.access_profile_id || undefined,
-        })
-        toast.success('Usuário atualizado com sucesso!')
+        });
+        toast.success('Usuário atualizado com sucesso!');
       } else {
         await createMutation.mutateAsync({
           company_id: formData.company_id,
@@ -132,64 +132,64 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
           name: formData.name,
           role: formData.role,
           access_profile_id: formData.access_profile_id || undefined,
-        })
-        toast.success('Usuário criado com sucesso!')
+        });
+        toast.success('Usuário criado com sucesso!');
       }
-      onClose()
+      onClose();
     } catch (error: any) {
-      console.error('Erro ao salvar usuário:', error)
-      const message = error.message || 'Erro ao salvar usuário'
-      setErrors({ submit: message })
-      toast.error(message)
+      console.error('Erro ao salvar usuário:', error);
+      const message = error.message || 'Erro ao salvar usuário';
+      setErrors({ submit: message });
+      toast.error(message);
     }
-  }
+  };
 
   const handleToggleActive = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
       if (user.active) {
-        await deactivateMutation.mutateAsync(user.id)
-        toast.success('Usuário desativado!')
+        await deactivateMutation.mutateAsync(user.id);
+        toast.success('Usuário desativado!');
       } else {
-        await reactivateMutation.mutateAsync(user.id)
-        toast.success('Usuário reativado!')
+        await reactivateMutation.mutateAsync(user.id);
+        toast.success('Usuário reativado!');
       }
-      onClose()
+      onClose();
     } catch (error: any) {
-      console.error('Erro ao alterar status:', error)
-      const message = error.message || 'Erro ao alterar status'
-      setErrors({ submit: message })
-      toast.error(message)
+      console.error('Erro ao alterar status:', error);
+      const message = error.message || 'Erro ao alterar status';
+      setErrors({ submit: message });
+      toast.error(message);
     }
-  }
+  };
 
   const handleResetPassword = async () => {
-    if (!user || !newPassword) return
+    if (!user || !newPassword) return;
 
     if (newPassword.length < 6) {
-      setErrors({ newPassword: 'Senha deve ter pelo menos 6 caracteres' })
-      return
+      setErrors({ newPassword: 'Senha deve ter pelo menos 6 caracteres' });
+      return;
     }
 
     try {
       await resetPasswordMutation.mutateAsync({
         userId: user.id,
         newPassword: newPassword,
-      })
-      toast.success('Senha alterada com sucesso!')
-      setShowResetPassword(false)
-      setNewPassword('')
+      });
+      toast.success('Senha alterada com sucesso!');
+      setShowResetPassword(false);
+      setNewPassword('');
     } catch (error: any) {
-      console.error('Erro ao resetar senha:', error)
-      const message = error.message || 'Erro ao resetar senha'
-      setErrors({ newPassword: message })
-      toast.error(message)
+      console.error('Erro ao resetar senha:', error);
+      const message = error.message || 'Erro ao resetar senha';
+      setErrors({ newPassword: message });
+      toast.error(message);
     }
-  }
+  };
 
   // Filtrar perfis ativos
-  const activeProfiles = accessProfiles.filter((p) => p.active)
+  const activeProfiles = accessProfiles.filter((p) => p.active);
 
   return (
     <Modal
@@ -341,9 +341,9 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      setShowResetPassword(false)
-                      setNewPassword('')
-                      setErrors({})
+                      setShowResetPassword(false);
+                      setNewPassword('');
+                      setErrors({});
                     }}
                   >
                     Cancelar
@@ -362,12 +362,12 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
           <select
             value={formData.access_profile_id}
             onChange={(e) => {
-              const profile = activeProfiles.find((p) => p.id === e.target.value)
+              const profile = activeProfiles.find((p) => p.id === e.target.value);
               setFormData({
                 ...formData,
                 access_profile_id: e.target.value,
                 role: (profile?.code as UserRole) || formData.role,
-              })
+              });
             }}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
           >
@@ -434,5 +434,5 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
         </div>
       </form>
     </Modal>
-  )
+  );
 }

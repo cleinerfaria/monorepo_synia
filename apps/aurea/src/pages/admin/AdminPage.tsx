@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -9,24 +9,24 @@ import {
   EmptyState,
   Badge,
   TabButton,
-} from '@/components/ui'
-import { useCompanies, Company } from '@/hooks/useCompanies'
-import { useAppUsers, AppUser, roleLabels, roleColors, UserRole } from '@/hooks/useAppUsers'
+} from '@/components/ui';
+import { useCompanies, Company } from '@/hooks/useCompanies';
+import { useAppUsers, AppUser, roleLabels, roleColors, UserRole } from '@/hooks/useAppUsers';
 import {
   useAccessProfiles,
   useAccessProfile,
   useDeleteAccessProfile,
   AccessProfile,
-} from '@/hooks/useAccessProfiles'
-import { useAuthStore } from '@/stores/authStore'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import toast from 'react-hot-toast'
-import CompanyModal from './CompanyModal'
-import UserModal from './UserModal'
-import LinkUserModal from './LinkUserModal'
-import AccessProfileModal from './AccessProfileModal'
-import AdminUiTab from './AdminUiTab'
+} from '@/hooks/useAccessProfiles';
+import { useAuthStore } from '@/stores/authStore';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import toast from 'react-hot-toast';
+import CompanyModal from './CompanyModal';
+import UserModal from './UserModal';
+import LinkUserModal from './LinkUserModal';
+import AccessProfileModal from './AccessProfileModal';
+import AdminUiTab from './AdminUiTab';
 import {
   Building2,
   Users,
@@ -40,92 +40,94 @@ import {
   Home,
   ShieldCheck,
   Palette,
-} from 'lucide-react'
+} from 'lucide-react';
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'companies' | 'users' | 'profiles' | 'ui'>('companies')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCompanyFilter, setSelectedCompanyFilter] = useState<string>('')
+  const [activeTab, setActiveTab] = useState<'companies' | 'users' | 'profiles' | 'ui'>(
+    'companies'
+  );
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCompanyFilter, setSelectedCompanyFilter] = useState<string>('');
 
   // Modals
-  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false)
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
-  const [isUserModalOpen, setIsUserModalOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<AppUser | null>(null)
-  const [isLinkUserModalOpen, setIsLinkUserModalOpen] = useState(false)
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
-  const [selectedProfile, setSelectedProfile] = useState<AccessProfile | null>(null)
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<AppUser | null>(null);
+  const [isLinkUserModalOpen, setIsLinkUserModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<AccessProfile | null>(null);
 
   // Data
-  const { data: companies = [], isLoading: isLoadingCompanies } = useCompanies()
+  const { data: companies = [], isLoading: isLoadingCompanies } = useCompanies();
   const { data: users = [], isLoading: isLoadingUsers } = useAppUsers(
     selectedCompanyFilter || undefined
-  )
+  );
   const { data: accessProfiles = [], isLoading: isLoadingProfiles } = useAccessProfiles(
     selectedCompanyFilter || undefined
-  )
+  );
 
   // Get permissions for selected profile
-  const { data: selectedProfileWithPermissions } = useAccessProfile(selectedProfile?.id)
+  const { data: selectedProfileWithPermissions } = useAccessProfile(selectedProfile?.id);
 
   // Filtered data
   const filteredCompanies = companies.filter(
     (c) =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.document?.includes(searchTerm)
-  )
+  );
 
   const filteredUsers = users.filter(
     (u) =>
       u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  );
 
   const filteredProfiles = accessProfiles.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.code.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  );
 
   const handleEditCompany = (company: Company) => {
-    setSelectedCompany(company)
-    setIsCompanyModalOpen(true)
-  }
+    setSelectedCompany(company);
+    setIsCompanyModalOpen(true);
+  };
 
   const handleNewCompany = () => {
-    setSelectedCompany(null)
-    setIsCompanyModalOpen(true)
-  }
+    setSelectedCompany(null);
+    setIsCompanyModalOpen(true);
+  };
 
   const handleEditUser = (user: AppUser) => {
-    setSelectedUser(user)
-    setIsUserModalOpen(true)
-  }
+    setSelectedUser(user);
+    setIsUserModalOpen(true);
+  };
 
   const handleNewUser = () => {
-    setSelectedUser(null)
-    setIsUserModalOpen(true)
-  }
+    setSelectedUser(null);
+    setIsUserModalOpen(true);
+  };
 
   const handleEditProfile = (profile: AccessProfile) => {
-    setSelectedProfile(profile)
-    setIsProfileModalOpen(true)
-  }
+    setSelectedProfile(profile);
+    setIsProfileModalOpen(true);
+  };
 
   const handleNewProfile = () => {
-    setSelectedProfile(null)
-    setIsProfileModalOpen(true)
-  }
+    setSelectedProfile(null);
+    setIsProfileModalOpen(true);
+  };
 
-  const navigate = useNavigate()
-  const { company, signOut } = useAuthStore()
+  const navigate = useNavigate();
+  const { company, signOut } = useAuthStore();
 
   const handleSignOut = async () => {
-    await signOut()
-    navigate('/login')
-  }
+    await signOut();
+    navigate('/login');
+  };
 
   const handleGoToDashboard = () => {
-    navigate('/')
-  }
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -197,8 +199,8 @@ export default function AdminPage() {
               <TabButton
                 active={activeTab === 'companies'}
                 onClick={() => {
-                  setActiveTab('companies')
-                  setSearchTerm('')
+                  setActiveTab('companies');
+                  setSearchTerm('');
                 }}
                 icon={<Building2 className="h-5 w-5" />}
                 hoverBorder
@@ -210,8 +212,8 @@ export default function AdminPage() {
               <TabButton
                 active={activeTab === 'users'}
                 onClick={() => {
-                  setActiveTab('users')
-                  setSearchTerm('')
+                  setActiveTab('users');
+                  setSearchTerm('');
                 }}
                 icon={<Users className="h-5 w-5" />}
                 hoverBorder
@@ -223,8 +225,8 @@ export default function AdminPage() {
               <TabButton
                 active={activeTab === 'profiles'}
                 onClick={() => {
-                  setActiveTab('profiles')
-                  setSearchTerm('')
+                  setActiveTab('profiles');
+                  setSearchTerm('');
                 }}
                 icon={<ShieldCheck className="h-5 w-5" />}
                 hoverBorder
@@ -236,8 +238,8 @@ export default function AdminPage() {
               <TabButton
                 active={activeTab === 'ui'}
                 onClick={() => {
-                  setActiveTab('ui')
-                  setSearchTerm('')
+                  setActiveTab('ui');
+                  setSearchTerm('');
                 }}
                 icon={<Palette className="h-5 w-5" />}
                 hoverBorder
@@ -319,7 +321,7 @@ export default function AdminPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================
@@ -327,12 +329,12 @@ export default function AdminPage() {
 // ============================================
 
 interface CompaniesTabProps {
-  companies: Company[]
-  isLoading: boolean
-  searchTerm: string
-  onSearchChange: (value: string) => void
-  onNew: () => void
-  onEdit: (company: Company) => void
+  companies: Company[];
+  isLoading: boolean;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  onNew: () => void;
+  onEdit: (company: Company) => void;
 }
 
 function CompaniesTab({
@@ -349,7 +351,7 @@ function CompaniesTab({
         <Loading size="lg" />
         <p className="mt-4 text-sm text-gray-500">Carregando empresas...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -419,8 +421,8 @@ function CompaniesTab({
                       variant="ghost"
                       size="sm"
                       onClick={(e) => {
-                        e.stopPropagation()
-                        onEdit(company)
+                        e.stopPropagation();
+                        onEdit(company);
                       }}
                     >
                       <Pencil className="h-4 w-4" />
@@ -441,7 +443,7 @@ function CompaniesTab({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 // ============================================
@@ -449,15 +451,15 @@ function CompaniesTab({
 // ============================================
 
 interface UsersTabProps {
-  users: AppUser[]
-  companies: Company[]
-  isLoading: boolean
-  searchTerm: string
-  onSearchChange: (value: string) => void
-  selectedCompanyFilter: string
-  onCompanyFilterChange: (value: string) => void
-  onNew: () => void
-  onEdit: (user: AppUser) => void
+  users: AppUser[];
+  companies: Company[];
+  isLoading: boolean;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  selectedCompanyFilter: string;
+  onCompanyFilterChange: (value: string) => void;
+  onNew: () => void;
+  onEdit: (user: AppUser) => void;
 }
 
 function UsersTab({
@@ -477,7 +479,7 @@ function UsersTab({
         <Loading size="lg" />
         <p className="mt-4 text-sm text-gray-500">Carregando usuários...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -558,7 +560,7 @@ function UsersTab({
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
                 {users.map((user) => {
-                  const roleColor = roleColors[user.role as UserRole]
+                  const roleColor = roleColors[user.role as UserRole];
                   return (
                     <tr
                       key={user.id}
@@ -568,8 +570,8 @@ function UsersTab({
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-                              <span className="font-medium text-primary-600 dark:text-primary-400">
+                            <div className="bg-primary-100 dark:bg-primary-900/30 flex h-10 w-10 items-center justify-center rounded-full">
+                              <span className="text-primary-600 dark:text-primary-400 font-medium">
                                 {user.name.charAt(0).toUpperCase()}
                               </span>
                             </div>
@@ -612,15 +614,15 @@ function UsersTab({
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation()
-                            onEdit(user)
+                            e.stopPropagation();
+                            onEdit(user);
                           }}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </td>
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
@@ -628,7 +630,7 @@ function UsersTab({
         </Card>
       )}
     </div>
-  )
+  );
 }
 
 // ============================================
@@ -636,15 +638,15 @@ function UsersTab({
 // ============================================
 
 interface ProfilesTabProps {
-  profiles: AccessProfile[]
-  companies: Company[]
-  isLoading: boolean
-  searchTerm: string
-  onSearchChange: (value: string) => void
-  selectedCompanyFilter: string
-  onCompanyFilterChange: (value: string) => void
-  onNew: () => void
-  onEdit: (profile: AccessProfile) => void
+  profiles: AccessProfile[];
+  companies: Company[];
+  isLoading: boolean;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  selectedCompanyFilter: string;
+  onCompanyFilterChange: (value: string) => void;
+  onNew: () => void;
+  onEdit: (profile: AccessProfile) => void;
 }
 
 function ProfilesTab({
@@ -658,27 +660,27 @@ function ProfilesTab({
   onNew,
   onEdit,
 }: ProfilesTabProps) {
-  const deleteMutation = useDeleteAccessProfile()
+  const deleteMutation = useDeleteAccessProfile();
 
   const handleDelete = async (e: React.MouseEvent, profile: AccessProfile) => {
-    e.stopPropagation()
+    e.stopPropagation();
 
     if (profile.is_system) {
-      toast.error('Perfis do sistema não podem ser excluídos')
-      return
+      toast.error('Perfis do sistema não podem ser excluídos');
+      return;
     }
 
     if (!confirm(`Tem certeza que deseja excluir o perfil "${profile.name}"?`)) {
-      return
+      return;
     }
 
     try {
-      await deleteMutation.mutateAsync(profile.id)
-      toast.success('Perfil excluído com sucesso!')
+      await deleteMutation.mutateAsync(profile.id);
+      toast.success('Perfil excluído com sucesso!');
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao excluir perfil')
+      toast.error(error.message || 'Erro ao excluir perfil');
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -686,7 +688,7 @@ function ProfilesTab({
         <Loading size="lg" />
         <p className="mt-4 text-sm text-gray-500">Carregando perfis...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -806,5 +808,5 @@ function ProfilesTab({
         </div>
       )}
     </div>
-  )
+  );
 }

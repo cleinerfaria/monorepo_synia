@@ -1,54 +1,54 @@
-import { useState } from 'react'
-import toast from 'react-hot-toast'
-import { Button, Input, Card } from '@/components/ui'
-import { supabase } from '@/lib/supabase'
-import { X } from 'lucide-react'
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { Button, Input, Card } from '@/components/ui';
+import { supabase } from '@/lib/supabase';
+import { X } from 'lucide-react';
 interface ForgotPasswordModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
-  const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isEmailSent, setIsEmailSent] = useState(false)
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEmailSent, setIsEmailSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!email.trim()) {
-      toast.error('Por favor, digite seu e-mail')
-      return
+      toast.error('Por favor, digite seu e-mail');
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
-      })
+      });
 
       if (error) {
-        throw error
+        throw error;
       }
 
-      setIsEmailSent(true)
-      toast.success('E-mail de recuperação enviado com sucesso!')
+      setIsEmailSent(true);
+      toast.success('E-mail de recuperação enviado com sucesso!');
     } catch (error) {
-      console.error('Erro ao enviar e-mail de recuperação:', error)
-      toast.error('Erro ao enviar e-mail de recuperação. Tente novamente.')
+      console.error('Erro ao enviar e-mail de recuperação:', error);
+      toast.error('Erro ao enviar e-mail de recuperação. Tente novamente.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    setEmail('')
-    setIsEmailSent(false)
-    onClose()
-  }
+    setEmail('');
+    setIsEmailSent(false);
+    onClose();
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -122,5 +122,5 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
         </div>
       </Card>
     </div>
-  )
+  );
 }

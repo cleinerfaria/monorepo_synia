@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Card,
   CardHeader,
@@ -10,52 +10,52 @@ import {
   Select,
   Switch,
   TabButton,
-} from '@/components/ui'
-import { useTheme } from '@/contexts/ThemeContext'
-import { useAuthStore } from '@/stores/authStore'
-import { supabase } from '@/lib/supabase'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
-import { Building, SwatchBook, Landmark, Layers, Plus } from 'lucide-react'
+} from '@/components/ui';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useAuthStore } from '@/stores/authStore';
+import { supabase } from '@/lib/supabase';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { Building, SwatchBook, Landmark, Layers, Plus } from 'lucide-react';
 import {
   useCompanyParents,
   useCreateCompanyParent,
   useUpdateCompanyParent,
   CompanyParent,
-} from '@/hooks/useCompanyParents'
+} from '@/hooks/useCompanyParents';
 
-type ActiveTab = 'company' | 'fiscal' | 'parent' | 'theme'
+type ActiveTab = 'company' | 'fiscal' | 'parent' | 'theme';
 
 interface CompanyFormData {
-  name: string
-  trade_name: string
-  document: string
-  email: string
-  website: string
-  state_registration: string
+  name: string;
+  trade_name: string;
+  document: string;
+  email: string;
+  website: string;
+  state_registration: string;
 }
 
 interface FiscalFormData {
-  care_modality: string
-  tax_regime: string
-  special_tax_regime: string
-  taxation_nature: string
-  cnae: string
-  cnes: string
+  care_modality: string;
+  tax_regime: string;
+  special_tax_regime: string;
+  taxation_nature: string;
+  cnae: string;
+  cnes: string;
 }
 
 interface CompanyParentFormData {
-  name: string
-  trade_name: string
-  document: string
-  postal_code: string
-  address: string
-  neiborhood: string
-  number: string
-  city: string
-  state: string
-  complement: string
-  is_active: boolean
+  name: string;
+  trade_name: string;
+  document: string;
+  postal_code: string;
+  address: string;
+  neiborhood: string;
+  number: string;
+  city: string;
+  state: string;
+  complement: string;
+  is_active: boolean;
 }
 
 const emptyParentForm: CompanyParentFormData = {
@@ -70,33 +70,33 @@ const emptyParentForm: CompanyParentFormData = {
   state: '',
   complement: '',
   is_active: true,
-}
+};
 
-const toNull = (value: string) => (value?.trim() ? value.trim() : null)
+const toNull = (value: string) => (value?.trim() ? value.trim() : null);
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('company')
-  const [isUploadingCollapsed, setIsUploadingCollapsed] = useState(false)
-  const [isUploadingExpanded, setIsUploadingExpanded] = useState(false)
-  const [isCreatingParent, setIsCreatingParent] = useState(false)
-  const [previousParentId, setPreviousParentId] = useState('')
-  const [selectedParentId, setSelectedParentId] = useState('')
-  const fileInputCollapsedRef = useRef<HTMLInputElement>(null)
-  const fileInputExpandedRef = useRef<HTMLInputElement>(null)
+  const [activeTab, setActiveTab] = useState<ActiveTab>('company');
+  const [isUploadingCollapsed, setIsUploadingCollapsed] = useState(false);
+  const [isUploadingExpanded, setIsUploadingExpanded] = useState(false);
+  const [isCreatingParent, setIsCreatingParent] = useState(false);
+  const [previousParentId, setPreviousParentId] = useState('');
+  const [selectedParentId, setSelectedParentId] = useState('');
+  const fileInputCollapsedRef = useRef<HTMLInputElement>(null);
+  const fileInputExpandedRef = useRef<HTMLInputElement>(null);
 
   // Image crop states
-  const [isCropModalOpen, setIsCropModalOpen] = useState(false)
-  const [imageToCrop, setImageToCrop] = useState<string | null>(null)
-  const [cropAspect, setCropAspect] = useState(1)
-  const [cropType, setCropType] = useState<'collapsed' | 'expanded' | null>(null)
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [cropAspect, setCropAspect] = useState(1);
+  const [cropType, setCropType] = useState<'collapsed' | 'expanded' | null>(null);
 
-  const { primaryColor, setPrimaryColor, theme, setTheme } = useTheme()
-  const { company } = useAuthStore()
-  const queryClient = useQueryClient()
+  const { primaryColor, setPrimaryColor, theme, setTheme } = useTheme();
+  const { company } = useAuthStore();
+  const queryClient = useQueryClient();
 
-  const { data: parents = [], isLoading: isLoadingParents } = useCompanyParents()
-  const createParent = useCreateCompanyParent()
-  const updateParent = useUpdateCompanyParent()
+  const { data: parents = [], isLoading: isLoadingParents } = useCompanyParents();
+  const createParent = useCreateCompanyParent();
+  const updateParent = useUpdateCompanyParent();
 
   const companyForm = useForm<CompanyFormData>({
     defaultValues: {
@@ -107,7 +107,7 @@ export default function SettingsPage() {
       website: '',
       state_registration: '',
     },
-  })
+  });
 
   const fiscalForm = useForm<FiscalFormData>({
     defaultValues: {
@@ -118,16 +118,16 @@ export default function SettingsPage() {
       cnae: '',
       cnes: '',
     },
-  })
+  });
 
   const parentForm = useForm<CompanyParentFormData>({
     defaultValues: emptyParentForm,
-  })
+  });
 
   const selectedParent = useMemo<CompanyParent | undefined>(
     () => parents.find((parent) => parent.id === selectedParentId),
     [parents, selectedParentId]
-  )
+  );
 
   const parentOptions = useMemo(
     () => [
@@ -138,10 +138,10 @@ export default function SettingsPage() {
       })),
     ],
     [parents]
-  )
+  );
 
   useEffect(() => {
-    if (!company) return
+    if (!company) return;
 
     companyForm.reset({
       name: company.name || '',
@@ -150,7 +150,7 @@ export default function SettingsPage() {
       email: company.email || '',
       website: company.website || '',
       state_registration: company.state_registration || '',
-    })
+    });
 
     fiscalForm.reset({
       care_modality: company.care_modality || '',
@@ -159,15 +159,15 @@ export default function SettingsPage() {
       taxation_nature: company.taxation_nature || '',
       cnae: company.cnae || '',
       cnes: company.cnes || '',
-    })
+    });
 
-    setSelectedParentId(company.company_parent_id || '')
-  }, [company, companyForm, fiscalForm])
+    setSelectedParentId(company.company_parent_id || '');
+  }, [company, companyForm, fiscalForm]);
 
   useEffect(() => {
     if (isCreatingParent) {
-      parentForm.reset(emptyParentForm)
-      return
+      parentForm.reset(emptyParentForm);
+      return;
     }
 
     if (selectedParent) {
@@ -183,28 +183,28 @@ export default function SettingsPage() {
         state: selectedParent.state || '',
         complement: selectedParent.complement || '',
         is_active: selectedParent.is_active ?? true,
-      })
+      });
     } else {
-      parentForm.reset(emptyParentForm)
+      parentForm.reset(emptyParentForm);
     }
-  }, [isCreatingParent, parentForm, selectedParent])
+  }, [isCreatingParent, parentForm, selectedParent]);
 
   const updateCompany = useMutation({
     mutationFn: async (updates: Record<string, any>) => {
-      if (!company?.id) throw new Error('Company not found')
+      if (!company?.id) throw new Error('Company not found');
 
-      const { error } = await supabase.from('company').update(updates).eq('id', company.id)
+      const { error } = await supabase.from('company').update(updates).eq('id', company.id);
 
-      if (error) throw error
-      return updates
+      if (error) throw error;
+      return updates;
     },
     onSuccess: (data) => {
-      const authStore = useAuthStore.getState()
-      authStore.updateCompany(data)
+      const authStore = useAuthStore.getState();
+      authStore.updateCompany(data);
 
-      queryClient.invalidateQueries({ queryKey: ['company'] })
+      queryClient.invalidateQueries({ queryKey: ['company'] });
     },
-  })
+  });
 
   const handleCompanySubmit = (data: CompanyFormData) => {
     updateCompany.mutate({
@@ -214,8 +214,8 @@ export default function SettingsPage() {
       email: toNull(data.email),
       website: toNull(data.website),
       state_registration: toNull(data.state_registration),
-    })
-  }
+    });
+  };
 
   const handleFiscalSubmit = (data: FiscalFormData) => {
     updateCompany.mutate({
@@ -225,24 +225,24 @@ export default function SettingsPage() {
       taxation_nature: toNull(data.taxation_nature),
       cnae: toNull(data.cnae),
       cnes: toNull(data.cnes),
-    })
-  }
+    });
+  };
 
   const handleSaveParentLink = () => {
-    updateCompany.mutate({ company_parent_id: selectedParentId || null })
-  }
+    updateCompany.mutate({ company_parent_id: selectedParentId || null });
+  };
 
   const handleStartCreateParent = () => {
-    setPreviousParentId(selectedParentId || '')
-    setIsCreatingParent(true)
-    setSelectedParentId('')
-  }
+    setPreviousParentId(selectedParentId || '');
+    setIsCreatingParent(true);
+    setSelectedParentId('');
+  };
 
   const handleCancelCreateParent = () => {
-    setIsCreatingParent(false)
-    setSelectedParentId(previousParentId)
-    setPreviousParentId('')
-  }
+    setIsCreatingParent(false);
+    setSelectedParentId(previousParentId);
+    setPreviousParentId('');
+  };
 
   const handleParentSubmit = async (data: CompanyParentFormData) => {
     const payload = {
@@ -257,154 +257,154 @@ export default function SettingsPage() {
       state: toNull(data.state),
       complement: toNull(data.complement),
       is_active: data.is_active,
-    }
+    };
 
     if (isCreatingParent) {
-      const created = await createParent.mutateAsync(payload)
-      setIsCreatingParent(false)
-      setSelectedParentId(created.id)
-      updateCompany.mutate({ company_parent_id: created.id })
-      return
+      const created = await createParent.mutateAsync(payload);
+      setIsCreatingParent(false);
+      setSelectedParentId(created.id);
+      updateCompany.mutate({ company_parent_id: created.id });
+      return;
     }
 
     if (selectedParentId) {
-      await updateParent.mutateAsync({ id: selectedParentId, ...payload })
+      await updateParent.mutateAsync({ id: selectedParentId, ...payload });
     }
-  }
+  };
 
   // Upload logo collapsed (quadrada)
   const handleLogoCollapsedUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !company?.id) return
+    const file = e.target.files?.[0];
+    if (!file || !company?.id) return;
 
     // Read file and open crop modal
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = () => {
-      setImageToCrop(reader.result as string)
-      setCropAspect(1) // Quadrado
-      setCropType('collapsed')
-      setIsCropModalOpen(true)
-    }
-    reader.readAsDataURL(file)
+      setImageToCrop(reader.result as string);
+      setCropAspect(1); // Quadrado
+      setCropType('collapsed');
+      setIsCropModalOpen(true);
+    };
+    reader.readAsDataURL(file);
 
     // Reset input
-    e.target.value = ''
-  }
+    e.target.value = '';
+  };
 
   // Upload logo expanded (2:1)
   const handleLogoExpandedUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !company?.id) return
+    const file = e.target.files?.[0];
+    if (!file || !company?.id) return;
 
     // Read file and open crop modal
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = () => {
-      setImageToCrop(reader.result as string)
-      setCropAspect(2 / 1) // Proporção 2:1
-      setCropType('expanded')
-      setIsCropModalOpen(true)
-    }
-    reader.readAsDataURL(file)
+      setImageToCrop(reader.result as string);
+      setCropAspect(2 / 1); // Proporção 2:1
+      setCropType('expanded');
+      setIsCropModalOpen(true);
+    };
+    reader.readAsDataURL(file);
 
     // Reset input
-    e.target.value = ''
-  }
+    e.target.value = '';
+  };
 
   // Handle cropped image
   const handleCroppedImage = async (croppedBlob: Blob) => {
-    if (!company?.id || !cropType) return
+    if (!company?.id || !cropType) return;
 
-    const isCollapsed = cropType === 'collapsed'
-    const setLoading = isCollapsed ? setIsUploadingCollapsed : setIsUploadingExpanded
+    const isCollapsed = cropType === 'collapsed';
+    const setLoading = isCollapsed ? setIsUploadingCollapsed : setIsUploadingExpanded;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const fileExt = 'png'
+      const fileExt = 'png';
       const fileName = isCollapsed
         ? `${company.id}_collapsed.${fileExt}`
-        : `${company.id}_expanded.${fileExt}`
+        : `${company.id}_expanded.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('company-logos')
-        .upload(fileName, croppedBlob, { upsert: true, contentType: 'image/png' })
+        .upload(fileName, croppedBlob, { upsert: true, contentType: 'image/png' });
 
-      if (uploadError) throw uploadError
+      if (uploadError) throw uploadError;
 
       const {
         data: { publicUrl },
-      } = supabase.storage.from('company-logos').getPublicUrl(fileName)
+      } = supabase.storage.from('company-logos').getPublicUrl(fileName);
 
       // Add timestamp to force browser cache refresh
-      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`
+      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
 
-      const updateField = isCollapsed ? 'logo_url_collapsed' : 'logo_url_expanded'
+      const updateField = isCollapsed ? 'logo_url_collapsed' : 'logo_url_expanded';
 
       // Update database with URL including timestamp
       const { error: updateError } = await supabase
         .from('company')
         .update({ [updateField]: urlWithTimestamp })
-        .eq('id', company.id)
+        .eq('id', company.id);
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
       // Update authStore to reflect changes immediately
-      const authStore = useAuthStore.getState()
-      await authStore.updateCompany({ [updateField]: urlWithTimestamp })
+      const authStore = useAuthStore.getState();
+      await authStore.updateCompany({ [updateField]: urlWithTimestamp });
 
-      queryClient.invalidateQueries({ queryKey: ['company'] })
+      queryClient.invalidateQueries({ queryKey: ['company'] });
     } catch (error) {
-      console.error(`Error uploading ${cropType} logo:`, error)
+      console.error(`Error uploading ${cropType} logo:`, error);
     } finally {
-      setLoading(false)
-      setCropType(null)
+      setLoading(false);
+      setCropType(null);
     }
-  }
+  };
 
   // Update primary color in database
   const savePrimaryColor = async (color: string) => {
-    if (!company?.id) return
+    if (!company?.id) return;
 
-    await supabase.from('company').update({ primary_color: color }).eq('id', company.id)
+    await supabase.from('company').update({ primary_color: color }).eq('id', company.id);
 
     // Update authStore to reflect changes immediately
-    const authStore = useAuthStore.getState()
-    await authStore.updateCompany({ primary_color: color })
-  }
+    const authStore = useAuthStore.getState();
+    await authStore.updateCompany({ primary_color: color });
+  };
 
   // Update theme preference in database
   const saveThemePreference = async (themeValue: string) => {
-    if (!company?.id) return
+    if (!company?.id) return;
 
-    await supabase.from('company').update({ theme_preference: themeValue }).eq('id', company.id)
+    await supabase.from('company').update({ theme_preference: themeValue }).eq('id', company.id);
 
     // Update authStore to reflect changes immediately
-    const authStore = useAuthStore.getState()
-    await authStore.updateCompany({ theme_preference: themeValue })
-  }
+    const authStore = useAuthStore.getState();
+    await authStore.updateCompany({ theme_preference: themeValue });
+  };
 
   const tabs = [
     { id: 'company' as const, name: 'Empresa', icon: Building },
     { id: 'fiscal' as const, name: 'Fiscal', icon: Landmark },
     { id: 'parent' as const, name: 'Matriz', icon: Layers },
     { id: 'theme' as const, name: 'Aparência', icon: SwatchBook },
-  ]
+  ];
 
   const colorOptions = [
-    { name: 'Gold', value: '#D4AF37' },
+    { name: 'Azure', value: '#1aa2ff' },
     { name: 'Blue', value: '#3B82F6' },
     { name: 'Green', value: '#10B981' },
     { name: 'Purple', value: '#8B5CF6' },
     { name: 'Rose', value: '#F43F5E' },
     { name: 'Orange', value: '#F97316' },
     { name: 'Teal', value: '#56A6B4' },
-  ]
+  ];
 
   const {
     name: parentActiveName,
     ref: parentActiveRef,
     onBlur: parentActiveOnBlur,
-  } = parentForm.register('is_active')
-  const parentIsActive = parentForm.watch('is_active')
+  } = parentForm.register('is_active');
+  const parentIsActive = parentForm.watch('is_active');
 
   return (
     <div className="space-y-6">
@@ -729,8 +729,8 @@ export default function SettingsPage() {
                   <button
                     key={color.value}
                     onClick={() => {
-                      setPrimaryColor(color.value)
-                      savePrimaryColor(color.value)
+                      setPrimaryColor(color.value);
+                      savePrimaryColor(color.value);
                     }}
                     className={`h-12 w-12 rounded-xl transition-transform hover:scale-110 ${
                       primaryColor === color.value
@@ -763,12 +763,12 @@ export default function SettingsPage() {
                   <button
                     key={option.value}
                     onClick={() => {
-                      setTheme(option.value as any)
-                      saveThemePreference(option.value)
+                      setTheme(option.value as any);
+                      saveThemePreference(option.value);
                     }}
                     className={`rounded-xl border-2 px-4 py-3 font-medium transition-colors ${
                       theme === option.value
-                        ? 'border-primary-500 bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700'
+                        ? 'border-primary-500 bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white'
                         : 'border-gray-300 bg-white text-gray-900 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-gray-500'
                     }`}
                   >
@@ -786,9 +786,9 @@ export default function SettingsPage() {
         <ImageCropper
           isOpen={isCropModalOpen}
           onClose={() => {
-            setIsCropModalOpen(false)
-            setImageToCrop(null)
-            setCropType(null)
+            setIsCropModalOpen(false);
+            setImageToCrop(null);
+            setCropType(null);
           }}
           imageSrc={imageToCrop}
           onCropComplete={handleCroppedImage}
@@ -797,5 +797,5 @@ export default function SettingsPage() {
         />
       )}
     </div>
-  )
+  );
 }

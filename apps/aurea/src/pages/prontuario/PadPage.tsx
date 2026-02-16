@@ -1,5 +1,5 @@
-﻿import { Card, EmptyState } from '@/components/ui'
-import { FileText } from 'lucide-react'
+﻿import { Card, EmptyState } from '@/components/ui';
+import { FileText } from 'lucide-react';
 export default function PadPage() {
   return (
     <div className="space-y-6">
@@ -17,5 +17,5 @@ export default function PadPage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react';
 import {
   Modal,
   ModalFooter,
@@ -7,103 +7,103 @@ import {
   Badge,
   EmptyState,
   ListPagination,
-} from '@/components/ui'
-import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/stores/authStore'
-import { useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
-import { useListPageState } from '@/hooks/useListPageState'
-import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination'
-import { FlaskConical, Search, Check, Download } from 'lucide-react'
+} from '@/components/ui';
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/authStore';
+import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { useListPageState } from '@/hooks/useListPageState';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { FlaskConical, Search, Check, Download } from 'lucide-react';
 interface CmedSubstance {
-  name: string
-  count: number
-  therapeutic_class: string | null
-  already_exists: boolean
+  name: string;
+  count: number;
+  therapeutic_class: string | null;
+  already_exists: boolean;
 }
 
 interface SubstanceStats {
-  total: number
-  newCount: number
-  existingCount: number
+  total: number;
+  newCount: number;
+  existingCount: number;
 }
 
 interface ImportActiveIngredientsFromCmedModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE
+const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 export function ImportActiveIngredientsFromCmedModal({
   isOpen,
   onClose,
 }: ImportActiveIngredientsFromCmedModalProps) {
-  const { company } = useAuthStore()
-  const queryClient = useQueryClient()
+  const { company } = useAuthStore();
+  const queryClient = useQueryClient();
 
-  const [substances, setSubstances] = useState<CmedSubstance[]>([])
-  const [stats, setStats] = useState<SubstanceStats>({ total: 0, newCount: 0, existingCount: 0 })
-  const [isLoading, setIsLoading] = useState(false)
-  const [isLoadingStats, setIsLoadingStats] = useState(false)
-  const [isImporting, setIsImporting] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [substances, setSubstances] = useState<CmedSubstance[]>([]);
+  const [stats, setStats] = useState<SubstanceStats>({ total: 0, newCount: 0, existingCount: 0 });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useListPageState({
     storageKey: 'import-active-ingredients-cmed-page',
-  })
-  const [selectedSubstances, setSelectedSubstances] = useState<Set<string>>(new Set())
-  const [, setCmedSourceId] = useState<string | null>(null)
-  const [, setExistingNamesSet] = useState<Set<string>>(new Set())
+  });
+  const [selectedSubstances, setSelectedSubstances] = useState<Set<string>>(new Set());
+  const [, setCmedSourceId] = useState<string | null>(null);
+  const [, setExistingNamesSet] = useState<Set<string>>(new Set());
 
   // Cache all substances for pagination (computed once)
-  const [allSubstancesCache, setAllSubstancesCache] = useState<CmedSubstance[]>([])
+  const [allSubstancesCache, setAllSubstancesCache] = useState<CmedSubstance[]>([]);
 
   const fetchAllExistingNames = useCallback(async (): Promise<Set<string>> => {
-    if (!company?.id) return new Set()
+    if (!company?.id) return new Set();
 
-    const PAGE_SIZE_LARGE = 1000
-    let allNames: string[] = []
-    let hasMore = true
-    let offset = 0
+    const PAGE_SIZE_LARGE = 1000;
+    let allNames: string[] = [];
+    let hasMore = true;
+    let offset = 0;
 
     while (hasMore) {
       const { data, error } = await supabase
         .from('active_ingredient')
         .select('name')
         .eq('company_id', company.id)
-        .range(offset, offset + PAGE_SIZE_LARGE - 1)
+        .range(offset, offset + PAGE_SIZE_LARGE - 1);
 
-      if (error) throw error
+      if (error) throw error;
 
       if (data && data.length > 0) {
-        allNames = [...allNames, ...data.map((d) => d.name.toLowerCase().trim())]
-        offset += PAGE_SIZE_LARGE
-        hasMore = data.length === PAGE_SIZE_LARGE
+        allNames = [...allNames, ...data.map((d) => d.name.toLowerCase().trim())];
+        offset += PAGE_SIZE_LARGE;
+        hasMore = data.length === PAGE_SIZE_LARGE;
       } else {
-        hasMore = false
+        hasMore = false;
       }
     }
 
-    return new Set(allNames)
-  }, [company?.id])
+    return new Set(allNames);
+  }, [company?.id]);
 
   const fetchAllSubstances = useCallback(
     async (sourceId: string, existingNames: Set<string>) => {
-      if (!company?.id) return
+      if (!company?.id) return;
 
-      const PAGE_SIZE_LARGE = 1000
+      const PAGE_SIZE_LARGE = 1000;
       const substanceMap = new Map<
         string,
         {
-          displayName: string
-          count: number
-          therapeutic_class: string | null
+          displayName: string;
+          count: number;
+          therapeutic_class: string | null;
         }
-      >()
+      >();
 
-      let hasMore = true
-      let offset = 0
+      let hasMore = true;
+      let offset = 0;
 
       while (hasMore) {
         const { data, error } = await supabase
@@ -112,36 +112,36 @@ export function ImportActiveIngredientsFromCmedModal({
           .eq('company_id', company.id)
           .eq('source_id', sourceId)
           .eq('is_active', true)
-          .range(offset, offset + PAGE_SIZE_LARGE - 1)
+          .range(offset, offset + PAGE_SIZE_LARGE - 1);
 
-        if (error) throw error
+        if (error) throw error;
 
         if (data && data.length > 0) {
           for (const item of data) {
-            const extraData = item.extra_data as Record<string, unknown> | null
-            const substancia = extraData?.substancia as string | null
-            const classeTerapeutica = extraData?.classe_terapeutica as string | null
+            const extraData = item.extra_data as Record<string, unknown> | null;
+            const substancia = extraData?.substancia as string | null;
+            const classeTerapeutica = extraData?.classe_terapeutica as string | null;
 
             if (substancia && substancia.trim()) {
-              const displayName = substancia.trim()
-              const normalizedKey = displayName.toLowerCase()
+              const displayName = substancia.trim();
+              const normalizedKey = displayName.toLowerCase();
 
-              const existing = substanceMap.get(normalizedKey)
+              const existing = substanceMap.get(normalizedKey);
               if (existing) {
-                existing.count++
+                existing.count++;
               } else {
                 substanceMap.set(normalizedKey, {
                   displayName,
                   count: 1,
                   therapeutic_class: classeTerapeutica || null,
-                })
+                });
               }
             }
           }
-          offset += PAGE_SIZE_LARGE
-          hasMore = data.length === PAGE_SIZE_LARGE
+          offset += PAGE_SIZE_LARGE;
+          hasMore = data.length === PAGE_SIZE_LARGE;
         } else {
-          hasMore = false
+          hasMore = false;
         }
       }
 
@@ -153,151 +153,151 @@ export function ImportActiveIngredientsFromCmedModal({
           therapeutic_class: data.therapeutic_class,
           already_exists: existingNames.has(normalizedKey),
         }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+        .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 
       // Cache all substances
-      setAllSubstancesCache(allSubstances)
+      setAllSubstancesCache(allSubstances);
 
       // Calculate stats
-      const newCount = allSubstances.filter((s) => !s.already_exists).length
-      const existingCount = allSubstances.filter((s) => s.already_exists).length
+      const newCount = allSubstances.filter((s) => !s.already_exists).length;
+      const existingCount = allSubstances.filter((s) => s.already_exists).length;
 
       setStats({
         total: allSubstances.length,
         newCount,
         existingCount,
-      })
+      });
 
       // Apply initial pagination
-      setSubstances(allSubstances.slice(0, PAGE_SIZE))
+      setSubstances(allSubstances.slice(0, PAGE_SIZE));
     },
     [company?.id]
-  )
+  );
 
   const applyPaginationAndFilter = useCallback(() => {
-    const searchFilter = debouncedSearch.trim().toLowerCase()
+    const searchFilter = debouncedSearch.trim().toLowerCase();
 
     // Filter by search term
-    let filtered = allSubstancesCache
+    let filtered = allSubstancesCache;
     if (searchFilter) {
       filtered = allSubstancesCache.filter(
         (s) =>
           s.name.toLowerCase().includes(searchFilter) ||
           s.therapeutic_class?.toLowerCase().includes(searchFilter)
-      )
+      );
     }
 
     // Update stats for filtered results
-    const newCount = filtered.filter((s) => !s.already_exists).length
-    const existingCount = filtered.filter((s) => s.already_exists).length
+    const newCount = filtered.filter((s) => !s.already_exists).length;
+    const existingCount = filtered.filter((s) => s.already_exists).length;
     setStats({
       total: filtered.length,
       newCount,
       existingCount,
-    })
+    });
 
     // Apply pagination
-    const offset = (currentPage - 1) * PAGE_SIZE
-    setSubstances(filtered.slice(offset, offset + PAGE_SIZE))
-  }, [currentPage, debouncedSearch, allSubstancesCache])
+    const offset = (currentPage - 1) * PAGE_SIZE;
+    setSubstances(filtered.slice(offset, offset + PAGE_SIZE));
+  }, [currentPage, debouncedSearch, allSubstancesCache]);
 
   const initializeData = useCallback(async () => {
-    if (!company?.id) return
+    if (!company?.id) return;
 
-    setIsLoadingStats(true)
-    setIsLoading(true)
+    setIsLoadingStats(true);
+    setIsLoading(true);
     try {
       // Get the CMED source id
       const { data: cmedSource } = await supabase
         .from('ref_source')
         .select('id')
         .eq('code', 'cmed')
-        .single()
+        .single();
 
       if (!cmedSource) {
-        toast.error('Fonte CMED não encontrada')
-        return
+        toast.error('Fonte CMED não encontrada');
+        return;
       }
 
-      setCmedSourceId(cmedSource.id)
+      setCmedSourceId(cmedSource.id);
 
       // Get all existing active ingredients names (with pagination)
-      const existingNames = await fetchAllExistingNames()
-      setExistingNamesSet(existingNames)
+      const existingNames = await fetchAllExistingNames();
+      setExistingNamesSet(existingNames);
 
       // Fetch and aggregate all substances
-      await fetchAllSubstances(cmedSource.id, existingNames)
+      await fetchAllSubstances(cmedSource.id, existingNames);
     } catch (error) {
-      console.error('Error initializing:', error)
-      toast.error('Erro ao carregar dados')
+      console.error('Error initializing:', error);
+      toast.error('Erro ao carregar dados');
     } finally {
-      setIsLoadingStats(false)
-      setIsLoading(false)
+      setIsLoadingStats(false);
+      setIsLoading(false);
     }
-  }, [company?.id, fetchAllExistingNames, fetchAllSubstances])
+  }, [company?.id, fetchAllExistingNames, fetchAllSubstances]);
 
   // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm)
-      setCurrentPage(1) // Reset to first page on search
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchTerm, setCurrentPage])
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // Reset to first page on search
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm, setCurrentPage]);
 
   // Initialize when modal opens
   useEffect(() => {
     if (isOpen && company?.id) {
-      initializeData()
+      initializeData();
     }
-  }, [isOpen, company?.id, initializeData])
+  }, [isOpen, company?.id, initializeData]);
 
   // Apply pagination when page or search changes
   useEffect(() => {
     if (allSubstancesCache.length > 0) {
-      applyPaginationAndFilter()
+      applyPaginationAndFilter();
     }
-  }, [currentPage, debouncedSearch, allSubstancesCache, applyPaginationAndFilter])
+  }, [currentPage, debouncedSearch, allSubstancesCache, applyPaginationAndFilter]);
 
-  const totalPages = Math.ceil(stats.total / PAGE_SIZE)
+  const totalPages = Math.ceil(stats.total / PAGE_SIZE);
 
   const handleToggleSubstance = (name: string) => {
-    const newSelected = new Set(selectedSubstances)
+    const newSelected = new Set(selectedSubstances);
     if (newSelected.has(name)) {
-      newSelected.delete(name)
+      newSelected.delete(name);
     } else {
-      newSelected.add(name)
+      newSelected.add(name);
     }
-    setSelectedSubstances(newSelected)
-  }
+    setSelectedSubstances(newSelected);
+  };
 
   const handleSelectAllOnPage = () => {
-    const newSelected = new Set(selectedSubstances)
-    substances.filter((s) => !s.already_exists).forEach((s) => newSelected.add(s.name))
-    setSelectedSubstances(newSelected)
-  }
+    const newSelected = new Set(selectedSubstances);
+    substances.filter((s) => !s.already_exists).forEach((s) => newSelected.add(s.name));
+    setSelectedSubstances(newSelected);
+  };
 
   const handleDeselectAll = () => {
-    setSelectedSubstances(new Set())
-  }
+    setSelectedSubstances(new Set());
+  };
 
   const handleImport = async () => {
-    if (!company?.id || selectedSubstances.size === 0) return
+    if (!company?.id || selectedSubstances.size === 0) return;
 
-    setIsImporting(true)
+    setIsImporting(true);
     try {
       // Refresh existing names before import
-      const existingNames = await fetchAllExistingNames()
+      const existingNames = await fetchAllExistingNames();
 
       // Filter selected substances that don't already exist
       const toImportNames = Array.from(selectedSubstances).filter(
         (name) => !existingNames.has(name.toLowerCase().trim())
-      )
+      );
 
       if (toImportNames.length === 0) {
-        toast.success('Todos os princípios ativos selecionados já existem.')
-        onClose()
-        return
+        toast.success('Todos os princípios ativos selecionados já existem.');
+        onClose();
+        return;
       }
 
       // Prepare data with truncated names (max 255 chars for varchar)
@@ -305,58 +305,58 @@ export function ImportActiveIngredientsFromCmedModal({
         company_id: company.id,
         name: name.trim().substring(0, 255),
         active: true,
-      }))
+      }));
 
       // Insert in batches
-      const BATCH_SIZE = 50
-      let inserted = 0
-      let errors = 0
+      const BATCH_SIZE = 50;
+      let inserted = 0;
+      let errors = 0;
 
       for (let i = 0; i < insertData.length; i += BATCH_SIZE) {
-        const batch = insertData.slice(i, i + BATCH_SIZE)
+        const batch = insertData.slice(i, i + BATCH_SIZE);
 
-        const { data, error } = await supabase.from('active_ingredient').insert(batch).select('id')
+        const { data, error } = await supabase.from('active_ingredient').insert(batch).select('id');
 
         if (error) {
-          console.error('Error inserting batch:', error)
-          errors += batch.length
+          console.error('Error inserting batch:', error);
+          errors += batch.length;
         } else {
-          inserted += data?.length || batch.length
+          inserted += data?.length || batch.length;
         }
       }
 
-      queryClient.invalidateQueries({ queryKey: ['active_ingredients'] })
+      queryClient.invalidateQueries({ queryKey: ['active_ingredients'] });
 
-      const skipped = selectedSubstances.size - toImportNames.length
+      const skipped = selectedSubstances.size - toImportNames.length;
       if (errors > 0 || skipped > 0) {
         toast.success(
           `Importados ${inserted} princípios ativos.${skipped > 0 ? ` ${skipped} já existiam.` : ''}${errors > 0 ? ` ${errors} com erro.` : ''}`
-        )
+        );
       } else {
-        toast.success(`${inserted} princípios ativos importados com sucesso!`)
+        toast.success(`${inserted} princípios ativos importados com sucesso!`);
       }
 
-      onClose()
+      onClose();
     } catch (error) {
-      console.error('Error importing substances:', error)
-      toast.error('Erro ao importar princípios ativos')
+      console.error('Error importing substances:', error);
+      toast.error('Erro ao importar princípios ativos');
     } finally {
-      setIsImporting(false)
+      setIsImporting(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    setSearchTerm('')
-    setDebouncedSearch('')
-    setSelectedSubstances(new Set())
-    setCurrentPage(1)
-    setSubstances([])
-    setAllSubstancesCache([])
-    setStats({ total: 0, newCount: 0, existingCount: 0 })
-    onClose()
-  }
+    setSearchTerm('');
+    setDebouncedSearch('');
+    setSelectedSubstances(new Set());
+    setCurrentPage(1);
+    setSubstances([]);
+    setAllSubstancesCache([]);
+    setStats({ total: 0, newCount: 0, existingCount: 0 });
+    onClose();
+  };
 
-  const selectedCount = selectedSubstances.size
+  const selectedCount = selectedSubstances.size;
 
   return (
     <Modal
@@ -439,7 +439,7 @@ export function ImportActiveIngredientsFromCmedModal({
           <div className="max-h-[400px] overflow-y-auto">
             {isLoading || isLoadingStats ? (
               <div className="p-8 text-center text-gray-500">
-                <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-primary-500"></div>
+                <div className="border-primary-500 mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
                 <p>Carregando substâncias do CMED...</p>
               </div>
             ) : substances.length === 0 ? (
@@ -487,7 +487,7 @@ export function ImportActiveIngredientsFromCmedModal({
                       }`}
                       onClick={() => {
                         if (!substance.already_exists) {
-                          handleToggleSubstance(substance.name)
+                          handleToggleSubstance(substance.name);
                         }
                       }}
                     >
@@ -497,7 +497,7 @@ export function ImportActiveIngredientsFromCmedModal({
                           checked={selectedSubstances.has(substance.name)}
                           onChange={() => handleToggleSubstance(substance.name)}
                           disabled={substance.already_exists}
-                          className="h-4 w-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500 disabled:opacity-50"
+                          className="text-primary-500 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 disabled:opacity-50"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </td>
@@ -567,5 +567,5 @@ export function ImportActiveIngredientsFromCmedModal({
         </Button>
       </ModalFooter>
     </Modal>
-  )
+  );
 }

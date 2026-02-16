@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Modal,
   ModalFooter,
@@ -8,51 +8,51 @@ import {
   Select,
   SearchableSelect,
   Textarea,
-} from '@/components/ui'
-import { useCreateProduct, useUpdateProduct } from '@/hooks/useProducts'
-import { useActiveIngredients, useCreateActiveIngredient } from '@/hooks/useActiveIngredients'
-import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure'
-import { useProductGroups, useCreateProductGroup } from '@/hooks/useProductGroups'
-import type { Product } from '@/types/database'
-import { Plus } from 'lucide-react'
+} from '@/components/ui';
+import { useCreateProduct, useUpdateProduct } from '@/hooks/useProducts';
+import { useActiveIngredients, useCreateActiveIngredient } from '@/hooks/useActiveIngredients';
+import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure';
+import { useProductGroups, useCreateProductGroup } from '@/hooks/useProductGroups';
+import type { Product } from '@/types/database';
+import { Plus } from 'lucide-react';
 export interface ProductFormData {
-  name: string
-  description: string
-  unit_stock_id: string
-  item_type: 'medication' | 'material' | 'diet'
-  min_stock: number
-  active_ingredient_id: string
-  concentration: string
-  group_id: string
-  active: boolean
+  name: string;
+  description: string;
+  unit_stock_id: string;
+  item_type: 'medication' | 'material' | 'diet';
+  min_stock: number;
+  active_ingredient_id: string;
+  concentration: string;
+  group_id: string;
+  active: boolean;
 }
 
 interface NewActiveIngredientFormData {
-  name: string
-  description: string
+  name: string;
+  description: string;
 }
 
 interface NewGroupFormData {
-  name: string
-  code: string
-  color: string
+  name: string;
+  code: string;
+  color: string;
 }
 
 export interface ProductModalProps {
-  isOpen: boolean
-  onClose: () => void
-  item?: Product | null
-  defaultItemType?: 'medication' | 'material' | 'diet'
+  isOpen: boolean;
+  onClose: () => void;
+  item?: Product | null;
+  defaultItemType?: 'medication' | 'material' | 'diet';
   /** Pre-fill data when creating from NFe */
   prefillData?: {
-    name?: string
-    unit_stock_id?: string
-    description?: string
-  }
+    name?: string;
+    unit_stock_id?: string;
+    description?: string;
+  };
   /** Called after successful create/update with the created/updated item */
-  onSuccess?: (item: Product) => void
+  onSuccess?: (item: Product) => void;
   /** Title override */
-  title?: string
+  title?: string;
 }
 
 export default function ProductModal({
@@ -64,20 +64,20 @@ export default function ProductModal({
   onSuccess,
   title,
 }: ProductModalProps) {
-  const [isNewActiveIngredientModalOpen, setIsNewActiveIngredientModalOpen] = useState(false)
-  const [isNewGroupModalOpen, setIsNewGroupModalOpen] = useState(false)
-  const [selectedActiveIngredientId, setSelectedActiveIngredientId] = useState('')
-  const [selectedGroupId, setSelectedGroupId] = useState('')
-  const [selectedUnit, setSelectedUnit] = useState('')
+  const [isNewActiveIngredientModalOpen, setIsNewActiveIngredientModalOpen] = useState(false);
+  const [isNewGroupModalOpen, setIsNewGroupModalOpen] = useState(false);
+  const [selectedActiveIngredientId, setSelectedActiveIngredientId] = useState('');
+  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [selectedUnit, setSelectedUnit] = useState('');
 
-  const { data: activeIngredients = [] } = useActiveIngredients()
-  const createActiveIngredient = useCreateActiveIngredient()
-  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure()
-  const { data: productGroups = [] } = useProductGroups()
-  const createProductGroup = useCreateProductGroup()
+  const { data: activeIngredients = [] } = useActiveIngredients();
+  const createActiveIngredient = useCreateActiveIngredient();
+  const { data: unitsOfMeasure = [] } = useUnitsOfMeasure();
+  const { data: productGroups = [] } = useProductGroups();
+  const createProductGroup = useCreateProductGroup();
 
-  const createItem = useCreateProduct()
-  const updateItem = useUpdateProduct()
+  const createItem = useCreateProduct();
+  const updateItem = useUpdateProduct();
 
   const {
     register,
@@ -86,23 +86,23 @@ export default function ProductModal({
     watch,
     setValue,
     formState: { errors },
-  } = useForm<ProductFormData>()
+  } = useForm<ProductFormData>();
 
   const {
     register: registerNewActiveIngredient,
     handleSubmit: handleSubmitNewActiveIngredient,
     reset: resetNewActiveIngredient,
     formState: { errors: newActiveIngredientErrors },
-  } = useForm<NewActiveIngredientFormData>()
+  } = useForm<NewActiveIngredientFormData>();
 
   const {
     register: registerNewGroup,
     handleSubmit: handleSubmitNewGroup,
     reset: resetNewGroup,
     formState: { errors: newGroupErrors },
-  } = useForm<NewGroupFormData>()
+  } = useForm<NewGroupFormData>();
 
-  const watchItemType = watch('item_type')
+  const watchItemType = watch('item_type');
 
   // Reset form when modal opens
   useEffect(() => {
@@ -119,10 +119,10 @@ export default function ProductModal({
           concentration: item.concentration || '',
           group_id: item.group_id || '',
           active: item.active ?? true,
-        })
-        setSelectedActiveIngredientId(item.active_ingredient_id || '')
-        setSelectedGroupId(item.group_id || '')
-        setSelectedUnit(item.unit_stock_id || '')
+        });
+        setSelectedActiveIngredientId(item.active_ingredient_id || '');
+        setSelectedGroupId(item.group_id || '');
+        setSelectedUnit(item.unit_stock_id || '');
       } else {
         // Creating new item
         reset({
@@ -135,40 +135,40 @@ export default function ProductModal({
           concentration: '',
           group_id: '',
           active: true,
-        })
-        setSelectedActiveIngredientId('')
-        setSelectedGroupId('')
-        setSelectedUnit(prefillData?.unit_stock_id || '')
+        });
+        setSelectedActiveIngredientId('');
+        setSelectedGroupId('');
+        setSelectedUnit(prefillData?.unit_stock_id || '');
       }
     }
-  }, [isOpen, item, defaultItemType, prefillData, reset])
+  }, [isOpen, item, defaultItemType, prefillData, reset]);
 
   const openNewActiveIngredientModal = () => {
     resetNewActiveIngredient({
       name: '',
       description: '',
-    })
-    setIsNewActiveIngredientModalOpen(true)
-  }
+    });
+    setIsNewActiveIngredientModalOpen(true);
+  };
 
   const openNewGroupModal = () => {
     resetNewGroup({
       name: '',
       code: '',
       color: '#6366f1',
-    })
-    setIsNewGroupModalOpen(true)
-  }
+    });
+    setIsNewGroupModalOpen(true);
+  };
 
   const handleCreateActiveIngredient = async (data: NewActiveIngredientFormData) => {
     const newActiveIngredient = await createActiveIngredient.mutateAsync({
       name: data.name,
       description: data.description || null,
       active: true,
-    })
-    setSelectedActiveIngredientId(newActiveIngredient.id)
-    setIsNewActiveIngredientModalOpen(false)
-  }
+    });
+    setSelectedActiveIngredientId(newActiveIngredient.id);
+    setIsNewActiveIngredientModalOpen(false);
+  };
 
   const handleCreateGroup = async (data: NewGroupFormData) => {
     const newGroup = await createProductGroup.mutateAsync({
@@ -180,15 +180,15 @@ export default function ProductModal({
       icon: null,
       sort_order: null,
       active: true,
-    })
-    setSelectedGroupId(newGroup.id)
-    setIsNewGroupModalOpen(false)
-  }
+    });
+    setSelectedGroupId(newGroup.id);
+    setIsNewGroupModalOpen(false);
+  };
 
   const onSubmit = async (data: ProductFormData) => {
     // Validação manual da unidade já que estamos usando estado controlado
     if (!selectedUnit) {
-      return
+      return;
     }
 
     const payload = {
@@ -202,32 +202,32 @@ export default function ProductModal({
       concentration: data.item_type === 'medication' ? data.concentration || null : null,
       group_id: selectedGroupId || null,
       active: data.active,
-    }
+    };
 
-    let result: Product
+    let result: Product;
     if (item) {
-      result = await updateItem.mutateAsync({ id: item.id, ...payload })
+      result = await updateItem.mutateAsync({ id: item.id, ...payload });
     } else {
-      result = await createItem.mutateAsync(payload)
+      result = await createItem.mutateAsync(payload);
     }
 
-    onSuccess?.(result)
-    onClose()
-  }
+    onSuccess?.(result);
+    onClose();
+  };
 
   const unitOptions = unitsOfMeasure.map((u) => ({
     value: u.id,
     label: `${u.name} (${u.code})`,
-  }))
+  }));
 
   const itemTypeOptions = [
     { value: '', label: 'Selecione o tipo...' },
     { value: 'medication', label: 'Medicamento' },
     { value: 'material', label: 'Material' },
     { value: 'diet', label: 'Dieta' },
-  ]
+  ];
 
-  const modalTitle = title || (item ? 'Editar Produto' : 'Novo Produto')
+  const modalTitle = title || (item ? 'Editar Produto' : 'Novo Produto');
 
   return (
     <>
@@ -263,7 +263,7 @@ export default function ProductModal({
             <div className="flex items-center gap-3 pb-3">
               <label className="relative inline-flex cursor-pointer items-center">
                 <input type="checkbox" {...register('active')} className="peer sr-only" />
-                <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-primary-800"></div>
+                <div className="peer-checked:bg-primary-600 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 dark:border-gray-600 dark:bg-gray-700"></div>
                 <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                   Ativo
                 </span>
@@ -300,9 +300,9 @@ export default function ProductModal({
               searchPlaceholder="Buscar unidade..."
               value={selectedUnit}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const newValue = e.target.value
-                setSelectedUnit(newValue)
-                setValue('unit_stock_id', newValue)
+                const newValue = e.target.value;
+                setSelectedUnit(newValue);
+                setValue('unit_stock_id', newValue);
               }}
               error={errors.unit_stock_id?.message}
               required
@@ -480,5 +480,5 @@ export default function ProductModal({
         </form>
       </Modal>
     </>
-  )
+  );
 }

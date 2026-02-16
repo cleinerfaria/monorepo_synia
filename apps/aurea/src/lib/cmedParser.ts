@@ -6,7 +6,7 @@
  * O parser detecta automaticamente a linha de cabeçalho buscando "SUBSTÂNCIA"
  */
 
-import ExcelJS from 'exceljs'
+import ExcelJS from 'exceljs';
 
 // Mapeamento das colunas do CSV CMED para nosso modelo
 export const CMED_COLUMN_MAPPING = {
@@ -91,7 +91,7 @@ export const CMED_COLUMN_MAPPING = {
   'COMERCIALIZAÇÃO 2024': 'comercializacao_2024',
   TARJA: 'tarja',
   'DESTINAÇÃO COMERCIAL': 'destinacao_comercial',
-} as const
+} as const;
 
 // Tipos de preço que salvamos no histórico
 export const CMED_PRICE_TYPES = [
@@ -99,7 +99,7 @@ export const CMED_PRICE_TYPES = [
   { type: 'pf_18', label: 'PF 18%' },
   { type: 'pmc_sem_impostos', label: 'PMC Sem Impostos' },
   { type: 'pmc_18', label: 'PMC 18%' },
-] as const
+] as const;
 
 // Opções de colunas PF disponíveis para seleção
 export const CMED_PF_OPTIONS = [
@@ -129,7 +129,7 @@ export const CMED_PF_OPTIONS = [
   { value: 'pf_22_5_alc', label: 'PF 22,5% ALC' },
   { value: 'pf_23', label: 'PF 23%' },
   { value: 'pf_23_alc', label: 'PF 23% ALC' },
-] as const
+] as const;
 
 // Opções de colunas PMC disponíveis para seleção
 export const CMED_PMC_OPTIONS = [
@@ -159,7 +159,7 @@ export const CMED_PMC_OPTIONS = [
   { value: 'pmc_22_5_alc', label: 'PMC 22,5% ALC' },
   { value: 'pmc_23', label: 'PMC 23%' },
   { value: 'pmc_23_alc', label: 'PMC 23% ALC' },
-] as const
+] as const;
 
 // Mapeamento de alíquota por UF
 export const UF_ICMS_MAPPING: Record<string, string> = {
@@ -190,53 +190,53 @@ export const UF_ICMS_MAPPING: Record<string, string> = {
   SP: '18',
   SE: '18',
   TO: '18',
-}
+};
 
 export interface CmedParsedRow {
   // Identificação
-  substancia: string
-  cnpj: string
-  laboratorio: string
-  codigo_ggrem: string
-  registro: string
-  ean_1: string | null
-  ean_2: string | null
-  ean_3: string | null
-  produto: string
-  apresentacao: string
-  classe_terapeutica: string
-  tipo_produto: string
-  regime_preco: string
+  substancia: string;
+  cnpj: string;
+  laboratorio: string;
+  codigo_ggrem: string;
+  registro: string;
+  ean_1: string | null;
+  ean_2: string | null;
+  ean_3: string | null;
+  produto: string;
+  apresentacao: string;
+  classe_terapeutica: string;
+  tipo_produto: string;
+  regime_preco: string;
 
   // Preços (todos os valores numéricos)
-  prices: Record<string, number | null>
+  prices: Record<string, number | null>;
 
   // Regulatório
-  restricao_hospitalar: boolean
-  cap: boolean
-  confaz_87: boolean
-  icms_0: boolean
-  analise_recursal: string | null
-  lista_concessao_credito_tributario: string | null
-  comercializacao_2024: boolean
-  tarja: string | null
-  destinacao_comercial: string | null
+  restricao_hospitalar: boolean;
+  cap: boolean;
+  confaz_87: boolean;
+  icms_0: boolean;
+  analise_recursal: string | null;
+  lista_concessao_credito_tributario: string | null;
+  comercializacao_2024: boolean;
+  tarja: string | null;
+  destinacao_comercial: string | null;
 }
 
 export interface CmedParseResult {
-  success: boolean
-  rows: CmedParsedRow[]
-  referenceDate: string | null // Date in yyyy-MM-dd format extracted from file
+  success: boolean;
+  rows: CmedParsedRow[];
+  referenceDate: string | null; // Date in yyyy-MM-dd format extracted from file
   errors: Array<{
-    row: number
-    message: string
-    data?: Record<string, unknown>
-  }>
+    row: number;
+    message: string;
+    data?: Record<string, unknown>;
+  }>;
   stats: {
-    total: number
-    parsed: number
-    errors: number
-  }
+    total: number;
+    parsed: number;
+    errors: number;
+  };
 }
 
 /**
@@ -251,16 +251,16 @@ export interface CmedParseResult {
 function extractReferenceDateFromRows(rows: string[][]): string | null {
   // Check first 10 rows for date patterns
   for (let i = 0; i < Math.min(10, rows.length); i++) {
-    const rowText = rows[i].join(' ').trim()
+    const rowText = rows[i].join(' ').trim();
 
     // Pattern 1: "dd/mm/yyyy" standalone date format
-    const dateMatch = rowText.match(/(\d{2})\/(\d{2})\/(\d{4})/)
+    const dateMatch = rowText.match(/(\d{2})\/(\d{2})\/(\d{4})/);
     if (dateMatch) {
-      const [, day, month, year] = dateMatch
+      const [, day, month, year] = dateMatch;
       // Validate reasonable date
-      const dayNum = parseInt(day, 10)
-      const monthNum = parseInt(month, 10)
-      const yearNum = parseInt(year, 10)
+      const dayNum = parseInt(day, 10);
+      const monthNum = parseInt(month, 10);
+      const yearNum = parseInt(year, 10);
       if (
         dayNum >= 1 &&
         dayNum <= 31 &&
@@ -269,7 +269,7 @@ function extractReferenceDateFromRows(rows: string[][]): string | null {
         yearNum >= 2020 &&
         yearNum <= 2100
       ) {
-        return `${year}-${month}-${day}`
+        return `${year}-${month}-${day}`;
       }
     }
 
@@ -288,23 +288,23 @@ function extractReferenceDateFromRows(rows: string[][]): string | null {
       'outubro',
       'novembro',
       'dezembro',
-    ]
-    const monthPattern = new RegExp(`(${monthNames.join('|')})[\\s/de]*(\\d{4})`, 'i')
-    const monthMatch = rowText.match(monthPattern)
+    ];
+    const monthPattern = new RegExp(`(${monthNames.join('|')})[\\s/de]*(\\d{4})`, 'i');
+    const monthMatch = rowText.match(monthPattern);
     if (monthMatch) {
-      const monthName = monthMatch[1].toLowerCase().replace('marco', 'março')
-      const year = monthMatch[2]
+      const monthName = monthMatch[1].toLowerCase().replace('marco', 'março');
+      const year = monthMatch[2];
       const monthIndex = monthNames.findIndex(
         (m) => m === monthName || (monthName === 'março' && m === 'marco')
-      )
+      );
       if (monthIndex !== -1) {
-        const month = String(monthIndex + 1).padStart(2, '0')
-        return `${year}-${month}-01`
+        const month = String(monthIndex + 1).padStart(2, '0');
+        return `${year}-${month}-01`;
       }
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -313,15 +313,15 @@ function extractReferenceDateFromRows(rows: string[][]): string | null {
 function extractReferenceDateFromCsvLines(lines: string[]): string | null {
   // Check first 10 lines for date patterns
   for (let i = 0; i < Math.min(10, lines.length); i++) {
-    const lineText = lines[i]
+    const lineText = lines[i];
 
     // Pattern 1: "dd/mm/yyyy" standalone date format
-    const dateMatch = lineText.match(/(\d{2})\/(\d{2})\/(\d{4})/)
+    const dateMatch = lineText.match(/(\d{2})\/(\d{2})\/(\d{4})/);
     if (dateMatch) {
-      const [, day, month, year] = dateMatch
-      const dayNum = parseInt(day, 10)
-      const monthNum = parseInt(month, 10)
-      const yearNum = parseInt(year, 10)
+      const [, day, month, year] = dateMatch;
+      const dayNum = parseInt(day, 10);
+      const monthNum = parseInt(month, 10);
+      const yearNum = parseInt(year, 10);
       if (
         dayNum >= 1 &&
         dayNum <= 31 &&
@@ -330,7 +330,7 @@ function extractReferenceDateFromCsvLines(lines: string[]): string | null {
         yearNum >= 2020 &&
         yearNum <= 2100
       ) {
-        return `${year}-${month}-${day}`
+        return `${year}-${month}-${day}`;
       }
     }
 
@@ -349,23 +349,23 @@ function extractReferenceDateFromCsvLines(lines: string[]): string | null {
       'outubro',
       'novembro',
       'dezembro',
-    ]
-    const monthPattern = new RegExp(`(${monthNames.join('|')})[\\s/de]*(\\d{4})`, 'i')
-    const monthMatch = lineText.match(monthPattern)
+    ];
+    const monthPattern = new RegExp(`(${monthNames.join('|')})[\\s/de]*(\\d{4})`, 'i');
+    const monthMatch = lineText.match(monthPattern);
     if (monthMatch) {
-      const monthName = monthMatch[1].toLowerCase().replace('marco', 'março')
-      const year = monthMatch[2]
+      const monthName = monthMatch[1].toLowerCase().replace('marco', 'março');
+      const year = monthMatch[2];
       const monthIndex = monthNames.findIndex(
         (m) => m === monthName || (monthName === 'março' && m === 'marco')
-      )
+      );
       if (monthIndex !== -1) {
-        const month = String(monthIndex + 1).padStart(2, '0')
-        return `${year}-${month}-01`
+        const month = String(monthIndex + 1).padStart(2, '0');
+        return `${year}-${month}-01`;
       }
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -373,32 +373,32 @@ function extractReferenceDateFromCsvLines(lines: string[]): string | null {
  */
 function parseDecimal(value: string | undefined | null): number | null {
   if (!value || value.trim() === '' || value.trim() === '-') {
-    return null
+    return null;
   }
 
   // Remove spaces and convert comma to dot
-  const cleaned = value.trim().replace(/\s/g, '').replace(',', '.')
-  const parsed = parseFloat(cleaned)
+  const cleaned = value.trim().replace(/\s/g, '').replace(',', '.');
+  const parsed = parseFloat(cleaned);
 
-  return isNaN(parsed) ? null : parsed
+  return isNaN(parsed) ? null : parsed;
 }
 
 /**
  * Parse boolean from Portuguese text
  */
 function parseBoolean(value: string | undefined | null): boolean {
-  if (!value) return false
-  const v = value.trim().toLowerCase()
-  return v === 'sim' || v === 's' || v === 'yes' || v === 'true' || v === '1'
+  if (!value) return false;
+  const v = value.trim().toLowerCase();
+  return v === 'sim' || v === 's' || v === 'yes' || v === 'true' || v === '1';
 }
 
 /**
  * Clean EAN value
  */
 function cleanEan(value: string | undefined | null): string | null {
-  if (!value) return null
-  const cleaned = value.trim().replace(/\s+/g, '').replace(/-/g, '')
-  return cleaned && cleaned !== '-' ? cleaned : null
+  if (!value) return null;
+  const cleaned = value.trim().replace(/\s+/g, '').replace(/-/g, '');
+  return cleaned && cleaned !== '-' ? cleaned : null;
 }
 
 /**
@@ -407,12 +407,12 @@ function cleanEan(value: string | undefined | null): string | null {
  */
 function findHeaderRowIndex(rows: string[][]): number {
   for (let i = 0; i < rows.length; i++) {
-    const firstCell = rows[i][0]?.trim().toUpperCase()
+    const firstCell = rows[i][0]?.trim().toUpperCase();
     if (firstCell === 'SUBSTÂNCIA') {
-      return i
+      return i;
     }
   }
-  return -1
+  return -1;
 }
 
 /**
@@ -420,9 +420,9 @@ function findHeaderRowIndex(rows: string[][]): number {
  */
 export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResult> {
   try {
-    const workbook = new ExcelJS.Workbook()
-    await workbook.xlsx.load(buffer)
-    const worksheet = workbook.worksheets[0]
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+    const worksheet = workbook.worksheets[0];
 
     if (!worksheet) {
       return {
@@ -431,22 +431,22 @@ export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResul
         referenceDate: null,
         errors: [{ row: 0, message: 'Planilha não encontrada no arquivo' }],
         stats: { total: 0, parsed: 0, errors: 1 },
-      }
+      };
     }
 
     // Convert to array of arrays
-    const rows: string[][] = []
+    const rows: string[][] = [];
     worksheet.eachRow({ includeEmpty: false }, (row) => {
-      const rowValues: string[] = []
+      const rowValues: string[] = [];
       row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
         // Pad array if there are gaps
         while (rowValues.length < colNumber - 1) {
-          rowValues.push('')
+          rowValues.push('');
         }
-        rowValues.push(cell.text ?? '')
-      })
-      rows.push(rowValues)
-    })
+        rowValues.push(cell.text ?? '');
+      });
+      rows.push(rowValues);
+    });
 
     if (rows.length < 2) {
       return {
@@ -455,11 +455,11 @@ export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResul
         referenceDate: null,
         errors: [{ row: 0, message: 'Arquivo vazio ou sem dados' }],
         stats: { total: 0, parsed: 0, errors: 1 },
-      }
+      };
     }
 
     // Find header row (skip intro text)
-    const headerRowIndex = findHeaderRowIndex(rows)
+    const headerRowIndex = findHeaderRowIndex(rows);
     if (headerRowIndex === -1) {
       return {
         success: false,
@@ -469,42 +469,42 @@ export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResul
           { row: 0, message: 'Cabeçalho não encontrado. Procurando por coluna "SUBSTÂNCIA".' },
         ],
         stats: { total: 0, parsed: 0, errors: 1 },
-      }
+      };
     }
 
     // Extract reference date from header rows (before data starts)
-    const referenceDate = extractReferenceDateFromRows(rows.slice(0, headerRowIndex))
+    const referenceDate = extractReferenceDateFromRows(rows.slice(0, headerRowIndex));
 
-    const headers = rows[headerRowIndex].map((h) => String(h).trim())
+    const headers = rows[headerRowIndex].map((h) => String(h).trim());
 
     // Create column index mapping
-    const columnIndex: Record<string, number> = {}
+    const columnIndex: Record<string, number> = {};
     headers.forEach((header, index) => {
-      columnIndex[header] = index
-    })
+      columnIndex[header] = index;
+    });
 
-    const parsedRows: CmedParsedRow[] = []
-    const errors: Array<{ row: number; message: string; data?: Record<string, unknown> }> = []
+    const parsedRows: CmedParsedRow[] = [];
+    const errors: Array<{ row: number; message: string; data?: Record<string, unknown> }> = [];
 
     // Parse data rows (starting after header)
     for (let i = headerRowIndex + 1; i < rows.length; i++) {
-      const values = rows[i]
-      if (!values || values.length === 0 || !values.some((v) => v && String(v).trim())) continue
+      const values = rows[i];
+      if (!values || values.length === 0 || !values.some((v) => v && String(v).trim())) continue;
 
       try {
         // Get value by column name
         const getValue = (columnName: string): string | undefined => {
-          const index = columnIndex[columnName]
-          return index !== undefined ? String(values[index] ?? '').trim() : undefined
-        }
+          const index = columnIndex[columnName];
+          return index !== undefined ? String(values[index] ?? '').trim() : undefined;
+        };
 
         // Extract all price columns
-        const prices: Record<string, number | null> = {}
+        const prices: Record<string, number | null> = {};
         Object.entries(CMED_COLUMN_MAPPING).forEach(([csvCol, dbCol]) => {
           if (dbCol.startsWith('pf_') || dbCol.startsWith('pmc_')) {
-            prices[dbCol] = parseDecimal(getValue(csvCol))
+            prices[dbCol] = parseDecimal(getValue(csvCol));
           }
-        })
+        });
 
         const row: CmedParsedRow = {
           substancia: (getValue('SUBSTÂNCIA') || '').replace(/;/g, ' + '),
@@ -531,7 +531,7 @@ export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResul
           comercializacao_2024: parseBoolean(getValue('COMERCIALIZAÇÃO 2024')),
           tarja: getValue('TARJA')?.trim() || null,
           destinacao_comercial: getValue('DESTINAÇÃO COMERCIAL')?.trim() || null,
-        }
+        };
 
         // Validate required fields
         if (!row.codigo_ggrem) {
@@ -539,16 +539,16 @@ export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResul
             row: i + 1,
             message: 'Código GGREM ausente',
             data: { produto: row.produto },
-          })
-          continue
+          });
+          continue;
         }
 
-        parsedRows.push(row)
+        parsedRows.push(row);
       } catch (error: any) {
         errors.push({
           row: i + 1,
           message: error.message || 'Erro ao processar linha',
-        })
+        });
       }
     }
 
@@ -562,7 +562,7 @@ export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResul
         parsed: parsedRows.length,
         errors: errors.length,
       },
-    }
+    };
   } catch (error: any) {
     return {
       success: false,
@@ -570,7 +570,7 @@ export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResul
       referenceDate: null,
       errors: [{ row: 0, message: `Erro ao ler arquivo XLSX: ${error.message}` }],
       stats: { total: 0, parsed: 0, errors: 1 },
-    }
+    };
   }
 }
 
@@ -579,7 +579,7 @@ export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResul
  * Detects header row automatically by looking for "SUBSTÂNCIA"
  */
 export function parseCmedCsv(content: string): CmedParseResult {
-  const lines = content.split('\n')
+  const lines = content.split('\n');
 
   if (lines.length < 2) {
     return {
@@ -588,16 +588,16 @@ export function parseCmedCsv(content: string): CmedParseResult {
       referenceDate: null,
       errors: [{ row: 0, message: 'Arquivo vazio ou sem dados' }],
       stats: { total: 0, parsed: 0, errors: 1 },
-    }
+    };
   }
 
   // Find header row by looking for "SUBSTÂNCIA"
-  let headerRowIndex = -1
+  let headerRowIndex = -1;
   for (let i = 0; i < lines.length; i++) {
-    const firstCol = lines[i].split(';')[0]?.trim().toUpperCase()
+    const firstCol = lines[i].split(';')[0]?.trim().toUpperCase();
     if (firstCol === 'SUBSTÂNCIA') {
-      headerRowIndex = i
-      break
+      headerRowIndex = i;
+      break;
     }
   }
 
@@ -610,46 +610,46 @@ export function parseCmedCsv(content: string): CmedParseResult {
         { row: 0, message: 'Cabeçalho não encontrado. Procurando por coluna "SUBSTÂNCIA".' },
       ],
       stats: { total: 0, parsed: 0, errors: 1 },
-    }
+    };
   }
 
   // Extract reference date from header lines (before data starts)
-  const referenceDate = extractReferenceDateFromCsvLines(lines.slice(0, headerRowIndex))
+  const referenceDate = extractReferenceDateFromCsvLines(lines.slice(0, headerRowIndex));
 
   // Parse header
-  const headerLine = lines[headerRowIndex]
-  const headers = headerLine.split(';').map((h) => h.trim())
+  const headerLine = lines[headerRowIndex];
+  const headers = headerLine.split(';').map((h) => h.trim());
 
   // Create column index mapping
-  const columnIndex: Record<string, number> = {}
+  const columnIndex: Record<string, number> = {};
   headers.forEach((header, index) => {
-    columnIndex[header] = index
-  })
+    columnIndex[header] = index;
+  });
 
-  const rows: CmedParsedRow[] = []
-  const errors: Array<{ row: number; message: string; data?: Record<string, unknown> }> = []
+  const rows: CmedParsedRow[] = [];
+  const errors: Array<{ row: number; message: string; data?: Record<string, unknown> }> = [];
 
   // Parse data rows (starting after header)
   for (let i = headerRowIndex + 1; i < lines.length; i++) {
-    const line = lines[i]
-    if (!line.trim()) continue
+    const line = lines[i];
+    if (!line.trim()) continue;
 
     try {
-      const values = line.split(';')
+      const values = line.split(';');
 
       // Get value by column name
       const getValue = (columnName: string): string | undefined => {
-        const index = columnIndex[columnName]
-        return index !== undefined ? values[index]?.trim() : undefined
-      }
+        const index = columnIndex[columnName];
+        return index !== undefined ? values[index]?.trim() : undefined;
+      };
 
       // Extract all price columns
-      const prices: Record<string, number | null> = {}
+      const prices: Record<string, number | null> = {};
       Object.entries(CMED_COLUMN_MAPPING).forEach(([csvCol, dbCol]) => {
         if (dbCol.startsWith('pf_') || dbCol.startsWith('pmc_')) {
-          prices[dbCol] = parseDecimal(getValue(csvCol))
+          prices[dbCol] = parseDecimal(getValue(csvCol));
         }
-      })
+      });
 
       const row: CmedParsedRow = {
         substancia: (getValue('SUBSTÂNCIA') || '').replace(/;/g, ' + '),
@@ -676,7 +676,7 @@ export function parseCmedCsv(content: string): CmedParseResult {
         comercializacao_2024: parseBoolean(getValue('COMERCIALIZAÇÃO 2024')),
         tarja: getValue('TARJA')?.trim() || null,
         destinacao_comercial: getValue('DESTINAÇÃO COMERCIAL')?.trim() || null,
-      }
+      };
 
       // Validate required fields
       if (!row.codigo_ggrem) {
@@ -684,16 +684,16 @@ export function parseCmedCsv(content: string): CmedParseResult {
           row: i + 1,
           message: 'Código GGREM ausente',
           data: { produto: row.produto },
-        })
-        continue
+        });
+        continue;
       }
 
-      rows.push(row)
+      rows.push(row);
     } catch (error: any) {
       errors.push({
         row: i + 1,
         message: error.message || 'Erro ao processar linha',
-      })
+      });
     }
   }
 
@@ -707,35 +707,35 @@ export function parseCmedCsv(content: string): CmedParseResult {
       parsed: rows.length,
       errors: errors.length,
     },
-  }
+  };
 }
 
 /**
  * Get the price field name for a given UF and type
  */
 export function getPriceFieldForUF(uf: string, type: 'pf' | 'pmc', alc: boolean = false): string {
-  const icms = UF_ICMS_MAPPING[uf] || '18'
-  const suffix = alc ? '_alc' : ''
-  const icmsNormalized = icms.replace('.', '_')
-  return `${type}_${icmsNormalized}${suffix}`
+  const icms = UF_ICMS_MAPPING[uf] || '18';
+  const suffix = alc ? '_alc' : '';
+  const icmsNormalized = icms.replace('.', '_');
+  return `${type}_${icmsNormalized}${suffix}`;
 }
 
 /**
  * Get primary EAN from parsed row (first non-null)
  */
 export function getPrimaryEan(row: CmedParsedRow): string | null {
-  return row.ean_1 || row.ean_2 || row.ean_3
+  return row.ean_1 || row.ean_2 || row.ean_3;
 }
 
 /**
  * Build description for ref_item from CMED row (legacy - concatenated)
  */
 export function buildItemDescription(row: CmedParsedRow): string {
-  const parts = [row.produto]
+  const parts = [row.produto];
   if (row.apresentacao) {
-    parts.push(row.apresentacao)
+    parts.push(row.apresentacao);
   }
-  return parts.join(' - ')
+  return parts.join(' - ');
 }
 
 /**
@@ -752,38 +752,38 @@ export function buildItemDescription(row: CmedParsedRow): string {
  * - "KIT 2 FA VD INC PÓ LIOF + 2 FA DIL X 5 ML" -> null (no concentration at start)
  */
 export function extractConcentration(row: CmedParsedRow): string | null {
-  const apresentacao = row.apresentacao?.trim()
-  if (!apresentacao) return null
+  const apresentacao = row.apresentacao?.trim();
+  if (!apresentacao) return null;
 
   // Pattern for concentrations like "(2 + 0,03) MG" or "(50000 + 10000) UI/ML"
   // These are expressions in parentheses followed by a unit
   const parenPattern =
-    /^(\([^)]+\)\s*(?:MG|MCG|G|ML|UI|UG|MEQ|%|L|KG)(?:\s*\/\s*(?:ML|L|G|KG|DOSE|GOTA|HORA|DIA|H))?)/i
-  const parenMatch = apresentacao.match(parenPattern)
+    /^(\([^)]+\)\s*(?:MG|MCG|G|ML|UI|UG|MEQ|%|L|KG)(?:\s*\/\s*(?:ML|L|G|KG|DOSE|GOTA|HORA|DIA|H))?)/i;
+  const parenMatch = apresentacao.match(parenPattern);
   if (parenMatch) {
-    return parenMatch[1].trim().toUpperCase()
+    return parenMatch[1].trim().toUpperCase();
   }
 
   // Pattern for simple concentrations at the start like "2 MEQ/ML", "500 MG/ML", "10 MG"
   // Must include a unit indicator that's NOT just ML (to avoid "5 ML" being matched)
   // Concentration must have a divisor (like /ML) or be a non-ML unit
   const simplePattern =
-    /^(\d+(?:[,.]\d+)?\s*(?:MG|MCG|G|UI|UG|MEQ|%|KG)(?:\s*\/\s*(?:ML|L|G|KG|DOSE|GOTA|HORA|DIA|H))?)/i
-  const simpleMatch = apresentacao.match(simplePattern)
+    /^(\d+(?:[,.]\d+)?\s*(?:MG|MCG|G|UI|UG|MEQ|%|KG)(?:\s*\/\s*(?:ML|L|G|KG|DOSE|GOTA|HORA|DIA|H))?)/i;
+  const simpleMatch = apresentacao.match(simplePattern);
   if (simpleMatch) {
-    return simpleMatch[1].trim().toUpperCase().replace(/\s+/g, '')
+    return simpleMatch[1].trim().toUpperCase().replace(/\s+/g, '');
   }
 
   // Pattern for concentrations with divisor like "X MG/ML" or "X UI/ML" at start
   // This catches patterns where there's a number followed by unit/divisor
   const divisorPattern =
-    /^(\d+(?:[,.]\d+)?\s*(?:MG|MCG|G|ML|UI|UG|MEQ|%|L|KG)\s*\/\s*(?:ML|L|G|KG|DOSE|GOTA|HORA|DIA|H))/i
-  const divisorMatch = apresentacao.match(divisorPattern)
+    /^(\d+(?:[,.]\d+)?\s*(?:MG|MCG|G|ML|UI|UG|MEQ|%|L|KG)\s*\/\s*(?:ML|L|G|KG|DOSE|GOTA|HORA|DIA|H))/i;
+  const divisorMatch = apresentacao.match(divisorPattern);
   if (divisorMatch) {
-    return divisorMatch[1].trim().toUpperCase().replace(/\s+/g, '')
+    return divisorMatch[1].trim().toUpperCase().replace(/\s+/g, '');
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -791,10 +791,10 @@ export function extractConcentration(row: CmedParsedRow): string | null {
  * Examples: "CX C/ 30 COM" -> { unit: "COM", quantity: 30 }
  */
 export function extractUnitAndQuantity(row: CmedParsedRow): {
-  unit: string | null
-  quantity: number | null
+  unit: string | null;
+  quantity: number | null;
 } {
-  const text = row.apresentacao || ''
+  const text = row.apresentacao || '';
 
   // Common units in CMED
   const units = [
@@ -823,60 +823,60 @@ export function extractUnitAndQuantity(row: CmedParsedRow): {
     'POTE',
     'UN',
     'UNID',
-  ]
+  ];
 
   // Pattern: quantity + unit (e.g., "30 COM", "X 30", "C/ 30")
   const patterns = [
     /(?:C\/|COM|X|C)\s*(\d+)\s*(COM|COMP|CAPS|CAP|CPR|DRG|AMP|FA|FR|FAMP|ML|G|SER|BLIST|BL|ENV|SAC|TB|UN|UNID)/i,
     /(\d+)\s*(COM|COMP|CAPS|CAP|CPR|DRG|AMP|FA|FR|FAMP|ML|G|SER|BLIST|BL|ENV|SAC|TB|UN|UNID)/i,
     /(COM|COMP|CAPS|CAP|CPR|DRG|AMP|FA|FR|FAMP|SER|BLIST|BL|ENV|SAC|TB|UN|UNID)\s*(?:C\/|X|COM)?\s*(\d+)/i,
-  ]
+  ];
 
   for (const pattern of patterns) {
-    const match = text.match(pattern)
+    const match = text.match(pattern);
     if (match) {
-      const isReversed = isNaN(parseInt(match[1]))
+      const isReversed = isNaN(parseInt(match[1]));
       if (isReversed) {
         return {
           unit: match[1].toUpperCase(),
           quantity: parseInt(match[2]),
-        }
+        };
       }
       return {
         unit: match[2].toUpperCase(),
         quantity: parseInt(match[1]),
-      }
+      };
     }
   }
 
   // Try to find just the unit
   for (const unit of units) {
     if (text.toUpperCase().includes(unit)) {
-      return { unit: unit, quantity: null }
+      return { unit: unit, quantity: null };
     }
   }
 
-  return { unit: null, quantity: null }
+  return { unit: null, quantity: null };
 }
 
 /**
  * Build structured item data for ref_item from CMED row
  */
 export interface CmedRefItemData {
-  product_name: string
-  presentation: string | null
-  concentration: string | null
-  entry_unit: string | null
-  base_unit: string | null
-  quantity: number | null
-  tiss: string | null
-  tuss: string | null
-  ean: string | null
-  manufacturer_code: string | null
-  manufacturer_name: string
-  category: string | null
-  subcategory: string | null
-  extra_data: Record<string, unknown>
+  product_name: string;
+  presentation: string | null;
+  concentration: string | null;
+  entry_unit: string | null;
+  base_unit: string | null;
+  quantity: number | null;
+  tiss: string | null;
+  tuss: string | null;
+  ean: string | null;
+  manufacturer_code: string | null;
+  manufacturer_name: string;
+  category: string | null;
+  subcategory: string | null;
+  extra_data: Record<string, unknown>;
 }
 
 export function buildCmedRefItemData(row: CmedParsedRow): CmedRefItemData {
@@ -898,7 +898,7 @@ export function buildCmedRefItemData(row: CmedParsedRow): CmedRefItemData {
     category: row.classe_terapeutica || null,
     subcategory: null,
     extra_data: buildExtraData(row),
-  }
+  };
 }
 
 /**
@@ -922,7 +922,7 @@ export function buildExtraData(row: CmedParsedRow): Record<string, unknown> {
     destinacao_comercial: row.destinacao_comercial,
     ean_2: row.ean_2,
     ean_3: row.ean_3,
-  }
+  };
 }
 
 /**
@@ -930,51 +930,51 @@ export function buildExtraData(row: CmedParsedRow): Record<string, unknown> {
  * Supports: .xlsx, .xls, .csv
  */
 export async function parseCmedFile(file: File): Promise<CmedParseResult> {
-  const fileName = file.name.toLowerCase()
+  const fileName = file.name.toLowerCase();
 
   if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-    const buffer = await file.arrayBuffer()
-    return parseCmedXlsx(buffer)
+    const buffer = await file.arrayBuffer();
+    return parseCmedXlsx(buffer);
   } else if (fileName.endsWith('.csv')) {
-    const content = await file.text()
-    return parseCmedCsv(content)
+    const content = await file.text();
+    return parseCmedCsv(content);
   } else {
     // Try to detect by content - read first bytes
-    const buffer = await file.arrayBuffer()
-    const bytes = new Uint8Array(buffer.slice(0, 4))
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer.slice(0, 4));
 
     // XLSX/ZIP magic number: 50 4B 03 04 (PK..)
     if (bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04) {
-      return parseCmedXlsx(buffer)
+      return parseCmedXlsx(buffer);
     }
 
     // Otherwise treat as CSV
-    const decoder = new TextDecoder('utf-8')
-    const content = decoder.decode(buffer)
-    return parseCmedCsv(content)
+    const decoder = new TextDecoder('utf-8');
+    const content = decoder.decode(buffer);
+    return parseCmedCsv(content);
   }
 }
 
 export async function validateCmedFile(file: File): Promise<{
-  isValid: boolean
-  rowCount: number
-  errorCount: number
-  fileSizeKb: number
-  estimatedDurationSeconds: number
-  message: string
+  isValid: boolean;
+  rowCount: number;
+  errorCount: number;
+  fileSizeKb: number;
+  estimatedDurationSeconds: number;
+  message: string;
 }> {
   try {
-    const fileSizeKb = Math.round(file.size / 1024)
+    const fileSizeKb = Math.round(file.size / 1024);
 
     // Parse file to count rows
-    const result = await parseCmedFile(file)
-    const rowCount = result.stats.parsed
-    const errorCount = result.stats.errors
+    const result = await parseCmedFile(file);
+    const rowCount = result.stats.parsed;
+    const errorCount = result.stats.errors;
 
     // Estimate: ~200 rows per second on average (includes DB operations)
-    const estimatedDurationSeconds = Math.ceil(rowCount / 200)
+    const estimatedDurationSeconds = Math.ceil(rowCount / 200);
 
-    const isValid = result.success || result.stats.parsed > 0
+    const isValid = result.success || result.stats.parsed > 0;
 
     return {
       isValid,
@@ -985,7 +985,7 @@ export async function validateCmedFile(file: File): Promise<{
       message: isValid
         ? `${rowCount.toLocaleString('pt-BR')} produtos, ~${estimatedDurationSeconds}s de processamento`
         : `${errorCount} erros encontrados`,
-    }
+    };
   } catch (error: any) {
     return {
       isValid: false,
@@ -994,6 +994,6 @@ export async function validateCmedFile(file: File): Promise<{
       fileSizeKb: Math.round(file.size / 1024),
       estimatedDurationSeconds: 0,
       message: `Erro ao validar arquivo: ${error.message || 'Formato inválido'}`,
-    }
+    };
   }
 }

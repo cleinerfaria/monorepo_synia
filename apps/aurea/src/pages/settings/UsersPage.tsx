@@ -1,48 +1,48 @@
-import { useState, useMemo, useCallback } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { Card, Button, DataTable, EmptyState, Badge, IconButton } from '@/components/ui'
-import { useAppUsers, AppUser, roleLabels, roleBadgeVariants } from '@/hooks/useAppUsers'
-import { useAccessProfiles } from '@/hooks/useAccessProfiles'
-import type { Company } from '@/hooks/useCompanies'
-import { useAuthStore } from '@/stores/authStore'
-import { DEFAULT_PRIMARY_COLOR } from '@/design-system/theme/constants'
-import UserModal from '@/pages/admin/UserModal'
-import { Users, Plus, Pencil, Search } from 'lucide-react'
+import { useState, useMemo, useCallback } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Card, Button, DataTable, EmptyState, Badge, IconButton } from '@/components/ui';
+import { useAppUsers, AppUser, roleLabels, roleBadgeVariants } from '@/hooks/useAppUsers';
+import { useAccessProfiles } from '@/hooks/useAccessProfiles';
+import type { Company } from '@/hooks/useCompanies';
+import { useAuthStore } from '@/stores/authStore';
+import { DEFAULT_PRIMARY_COLOR } from '@/design-system/theme/constants';
+import UserModal from '@/pages/admin/UserModal';
+import { Users, Plus, Pencil, Search } from 'lucide-react';
 export default function UsersPage() {
-  const [searchInput, setSearchInput] = useState('')
-  const [isUserModalOpen, setIsUserModalOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<AppUser | null>(null)
+  const [searchInput, setSearchInput] = useState('');
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<AppUser | null>(null);
 
-  const { company } = useAuthStore()
-  const { data: users = [], isLoading: isLoadingUsers } = useAppUsers(company?.id)
-  const { data: accessProfiles = [] } = useAccessProfiles(company?.id)
+  const { company } = useAuthStore();
+  const { data: users = [], isLoading: isLoadingUsers } = useAppUsers(company?.id);
+  const { data: accessProfiles = [] } = useAccessProfiles(company?.id);
 
   const filteredUsers = useMemo(() => {
-    if (!searchInput.trim()) return users
-    const query = searchInput.toLowerCase()
+    if (!searchInput.trim()) return users;
+    const query = searchInput.toLowerCase();
     return users.filter(
       (user) => user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query)
-    )
-  }, [users, searchInput])
+    );
+  }, [users, searchInput]);
 
   const handleEditUser = useCallback((user: AppUser) => {
-    setSelectedUser(user)
-    setIsUserModalOpen(true)
-  }, [])
+    setSelectedUser(user);
+    setIsUserModalOpen(true);
+  }, []);
 
   const handleNewUser = useCallback(() => {
-    setSelectedUser(null)
-    setIsUserModalOpen(true)
-  }, [])
+    setSelectedUser(null);
+    setIsUserModalOpen(true);
+  }, []);
 
   const getProfileName = useCallback(
     (profileId?: string) => {
-      if (!profileId) return null
-      const profile = accessProfiles.find((p) => p.id === profileId)
-      return profile?.name
+      if (!profileId) return null;
+      const profile = accessProfiles.find((p) => p.id === profileId);
+      return profile?.name;
     },
     [accessProfiles]
-  )
+  );
 
   const columns: ColumnDef<AppUser>[] = useMemo(
     () => [
@@ -98,8 +98,8 @@ export default function UsersPage() {
           <div className="flex items-center justify-end gap-2">
             <IconButton
               onClick={(e) => {
-                e.stopPropagation()
-                handleEditUser(row.original)
+                e.stopPropagation();
+                handleEditUser(row.original);
               }}
             >
               <Pencil className="h-4 w-4" />
@@ -109,7 +109,7 @@ export default function UsersPage() {
       },
     ],
     [handleEditUser, getProfileName]
-  )
+  );
 
   const emptyState = searchInput.trim() ? (
     <EmptyState
@@ -129,7 +129,7 @@ export default function UsersPage() {
         </Button>
       }
     />
-  )
+  );
 
   const companiesForModal: Company[] = company
     ? [
@@ -158,7 +158,7 @@ export default function UsersPage() {
           updated_at: company.updated_at || '',
         },
       ]
-    : []
+    : [];
 
   return (
     <div className="space-y-6">
@@ -186,7 +186,7 @@ export default function UsersPage() {
                 placeholder="Buscar por nome ou e-mail..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
           </div>
@@ -204,12 +204,12 @@ export default function UsersPage() {
       <UserModal
         isOpen={isUserModalOpen}
         onClose={() => {
-          setIsUserModalOpen(false)
-          setSelectedUser(null)
+          setIsUserModalOpen(false);
+          setSelectedUser(null);
         }}
         user={selectedUser}
         companies={companiesForModal}
       />
     </div>
-  )
+  );
 }

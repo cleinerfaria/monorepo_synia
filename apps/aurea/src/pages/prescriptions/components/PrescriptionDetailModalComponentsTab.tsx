@@ -1,26 +1,26 @@
-import { ButtonNew, Input, SearchableSelect } from '@/components/ui'
-import { Pencil, Pill, Trash2 } from 'lucide-react'
-import type { Dispatch, SetStateAction } from 'react'
+﻿import { Button, Input, SearchableSelect } from '@/components/ui';
+import { Pencil, Pill, Trash2 } from 'lucide-react';
+import type { Dispatch, SetStateAction } from 'react';
 
 interface PrescriptionDetailModalComponentsTabProps {
-  activeModalTab: 'item' | 'components' | 'optionals'
-  componentProductOptions: Array<{ value: string; label: string }>
-  selectedComponentProductId: string
-  setSelectedComponentProductId: (value: string) => void
-  setComponentProductSearchTerm: (value: string) => void
-  componentProductsIsLoading: boolean
-  debouncedComponentSearch: string
-  selectedComponentQuantity: number | string
-  setSelectedComponentQuantity: Dispatch<SetStateAction<number | ''>>
-  componentProducts: any[]
-  localComponents: any[]
-  setLocalComponents: (updater: (prev: any[]) => any[]) => void
-  selectedItem: any
-  addComponent: { mutate: (payload: any) => void }
-  editingComponentIndex: number | null
-  setEditingComponentIndex: (value: number | null) => void
-  updateComponent: { mutate: (payload: any) => void }
-  deleteComponent: { mutate: (payload: any) => void }
+  activeModalTab: 'item' | 'components' | 'optionals';
+  componentProductOptions: Array<{ value: string; label: string }>;
+  selectedComponentProductId: string;
+  setSelectedComponentProductId: (value: string) => void;
+  setComponentProductSearchTerm: (value: string) => void;
+  componentProductsIsLoading: boolean;
+  debouncedComponentSearch: string;
+  selectedComponentQuantity: number | string;
+  setSelectedComponentQuantity: Dispatch<SetStateAction<number | ''>>;
+  componentProducts: any[];
+  localComponents: any[];
+  setLocalComponents: (updater: (prev: any[]) => any[]) => void;
+  selectedItem: any;
+  addComponent: { mutate: (payload: any) => void };
+  editingComponentIndex: number | null;
+  setEditingComponentIndex: (value: number | null) => void;
+  updateComponent: { mutate: (payload: any) => void };
+  deleteComponent: { mutate: (payload: any) => void };
 }
 
 export function PrescriptionDetailModalComponentsTab({
@@ -43,17 +43,17 @@ export function PrescriptionDetailModalComponentsTab({
   updateComponent,
   deleteComponent,
 }: PrescriptionDetailModalComponentsTabProps) {
-  if (activeModalTab !== 'components') return null
+  if (activeModalTab !== 'components') return null;
 
   return (
     <div className="space-y-6 p-2">
-      <div className="rounded-xl border-2 border-dashed border-primary-300 bg-gradient-to-br from-primary-50/50 to-primary-100/30 p-5 dark:border-primary-700 dark:from-primary-900/20 dark:to-primary-800/10">
+      <div className="border-primary-300 from-primary-50/50 to-primary-100/30 dark:border-primary-700 dark:from-primary-900/20 dark:to-primary-800/10 rounded-xl border-2 border-dashed bg-gradient-to-br p-5">
         <div className="space-y-4">
           <SearchableSelect
             label="Produto"
             options={componentProductOptions}
             placeholder="Buscar e selecionar produto..."
-            searchPlaceholder="Buscar por produto ou apresentação..."
+            searchPlaceholder="Buscar por produto ou apresentaÃ§Ã£o..."
             value={selectedComponentProductId}
             onChange={(e: any) => setSelectedComponentProductId(e.target.value)}
             onSearch={(term: string) => setComponentProductSearchTerm(term)}
@@ -74,8 +74,8 @@ export function PrescriptionDetailModalComponentsTab({
                 inputMode="numeric"
                 value={selectedComponentQuantity}
                 onChange={(e) => {
-                  const value = e.target.value
-                  setSelectedComponentQuantity(value === '' ? '' : parseFloat(value))
+                  const value = e.target.value;
+                  setSelectedComponentQuantity(value === '' ? '' : parseFloat(value));
                 }}
               />
             </div>
@@ -83,10 +83,12 @@ export function PrescriptionDetailModalComponentsTab({
               <Input
                 label="Unidade"
                 value={(() => {
-                  const product = componentProducts.find((p) => p.id === selectedComponentProductId)
-                  if (!product) return '--'
-                  const productData = product as any
-                  return productData?.unit_prescription?.symbol || 'UN'
+                  const product = componentProducts.find(
+                    (p) => p.id === selectedComponentProductId
+                  );
+                  if (!product) return '--';
+                  const productData = product as any;
+                  return productData?.unit_prescription?.symbol || 'UN';
                 })()}
                 placeholder="--"
                 readOnly
@@ -94,22 +96,26 @@ export function PrescriptionDetailModalComponentsTab({
               />
             </div>
             <div className="col-span-5 flex items-end">
-              <ButtonNew
+              <Button
                 type="button"
                 onClick={() => {
-                  if (!selectedComponentProductId) return
+                  if (!selectedComponentProductId) return;
 
-                  const product = componentProducts.find((p) => p.id === selectedComponentProductId)
-                  const productData = product as any
+                  const product = componentProducts.find(
+                    (p) => p.id === selectedComponentProductId
+                  );
+                  const productData = product as any;
 
                   if (localComponents.some((c) => c.product_id === selectedComponentProductId)) {
-                    setSelectedComponentProductId('')
-                    setSelectedComponentQuantity('')
-                    return
+                    setSelectedComponentProductId('');
+                    setSelectedComponentQuantity('');
+                    return;
                   }
 
                   const quantity =
-                    typeof selectedComponentQuantity === 'number' ? selectedComponentQuantity : null
+                    typeof selectedComponentQuantity === 'number'
+                      ? selectedComponentQuantity
+                      : null;
 
                   const newComponent = {
                     product_id: selectedComponentProductId,
@@ -124,20 +130,20 @@ export function PrescriptionDetailModalComponentsTab({
                         }
                       : null,
                     isNew: true,
-                  }
+                  };
 
                   if (selectedItem?.id) {
                     addComponent.mutate({
                       prescription_item_id: selectedItem.id,
                       product_id: selectedComponentProductId,
                       quantity: quantity,
-                    })
+                    });
                   } else {
-                    setLocalComponents((prev) => [...prev, newComponent])
+                    setLocalComponents((prev) => [...prev, newComponent]);
                   }
 
-                  setSelectedComponentProductId('')
-                  setSelectedComponentQuantity('')
+                  setSelectedComponentProductId('');
+                  setSelectedComponentQuantity('');
                 }}
                 disabled={!selectedComponentProductId}
                 className="w-full"
@@ -154,7 +160,7 @@ export function PrescriptionDetailModalComponentsTab({
             Componentes Adicionados
           </h4>
           {localComponents.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-400">
+            <span className="bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
               {localComponents.length} {localComponents.length === 1 ? 'item' : 'itens'}
             </span>
           )}
@@ -163,28 +169,28 @@ export function PrescriptionDetailModalComponentsTab({
         {localComponents.length > 0 ? (
           <div className="space-y-2">
             {localComponents.map((component, index) => {
-              const componentProduct = componentProducts.find((p) => p.id === component.product_id)
-              const componentProductData = componentProduct as any
-              const localProductData = component.product as any
+              const componentProduct = componentProducts.find((p) => p.id === component.product_id);
+              const componentProductData = componentProduct as any;
+              const localProductData = component.product as any;
               const productName =
-                componentProduct?.name || component.product?.name || 'Produto não encontrado'
+                componentProduct?.name || component.product?.name || 'Produto nÃ£o encontrado';
               const concentration =
-                componentProduct?.concentration || component.product?.concentration || ''
+                componentProduct?.concentration || component.product?.concentration || '';
               const unitSymbol =
                 componentProductData?.unit_prescription?.symbol ||
                 componentProductData?.unit_stock?.symbol ||
                 localProductData?.unit_prescription?.symbol ||
                 localProductData?.unit_stock?.symbol ||
-                'UN'
-              const isEditing = editingComponentIndex === index
+                'UN';
+              const isEditing = editingComponentIndex === index;
 
               return (
                 <div
                   key={component.id || `new-${index}`}
-                  className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm transition-all hover:border-primary-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/50 dark:hover:border-primary-600"
+                  className="hover:border-primary-300 dark:hover:border-primary-600 group relative overflow-hidden rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800/50"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <span className="w-6 flex-shrink-0 text-sm font-bold text-primary-500">
+                    <span className="text-primary-500 w-6 flex-shrink-0 text-sm font-bold">
                       {index + 1}.
                     </span>
 
@@ -209,12 +215,14 @@ export function PrescriptionDetailModalComponentsTab({
                             value={component.quantity ?? ''}
                             autoFocus
                             onChange={(e) => {
-                              const newQuantity = e.target.value ? parseFloat(e.target.value) : null
+                              const newQuantity = e.target.value
+                                ? parseFloat(e.target.value)
+                                : null;
                               setLocalComponents((prev) =>
                                 prev.map((c, i) =>
                                   i === index ? { ...c, quantity: newQuantity } : c
                                 )
-                              )
+                              );
                             }}
                             onBlur={() => {
                               if (component.id && !component.isNew) {
@@ -222,24 +230,24 @@ export function PrescriptionDetailModalComponentsTab({
                                   id: component.id,
                                   prescriptionItemId: selectedItem?.id || '',
                                   quantity: component.quantity,
-                                })
+                                });
                               }
-                              setEditingComponentIndex(null)
+                              setEditingComponentIndex(null);
                             }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                e.preventDefault()
+                                e.preventDefault();
                                 if (component.id && !component.isNew) {
                                   updateComponent.mutate({
                                     id: component.id,
                                     prescriptionItemId: selectedItem?.id || '',
                                     quantity: component.quantity,
-                                  })
+                                  });
                                 }
-                                setEditingComponentIndex(null)
+                                setEditingComponentIndex(null);
                               }
                               if (e.key === 'Escape') {
-                                setEditingComponentIndex(null)
+                                setEditingComponentIndex(null);
                               }
                             }}
                           />
@@ -249,7 +257,7 @@ export function PrescriptionDetailModalComponentsTab({
                         <button
                           type="button"
                           onClick={() => setEditingComponentIndex(index)}
-                          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm transition-all hover:border-primary-300 hover:bg-primary-50 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-primary-500 dark:hover:bg-primary-900/20"
+                          className="hover:border-primary-300 hover:bg-primary-50 dark:hover:border-primary-500 dark:hover:bg-primary-900/20 flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm transition-all dark:border-gray-600 dark:bg-gray-700"
                         >
                           <span className="font-semibold text-gray-900 dark:text-white">
                             {component.quantity ?? '--'}
@@ -268,9 +276,9 @@ export function PrescriptionDetailModalComponentsTab({
                             deleteComponent.mutate({
                               id: component.id,
                               prescriptionItemId: selectedItem?.id || '',
-                            })
+                            });
                           }
-                          setLocalComponents((prev) => prev.filter((_, i) => i !== index))
+                          setLocalComponents((prev) => prev.filter((_, i) => i !== index));
                         }}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-gray-400 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-500 dark:hover:border-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                       >
@@ -279,7 +287,7 @@ export function PrescriptionDetailModalComponentsTab({
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         ) : (
@@ -297,5 +305,5 @@ export function PrescriptionDetailModalComponentsTab({
         )}
       </div>
     </div>
-  )
+  );
 }

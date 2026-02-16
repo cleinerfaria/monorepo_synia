@@ -1,23 +1,23 @@
-import { useState } from 'react'
-import { ButtonNew, Input, Select, Switch } from '@/components/ui'
-import type { PatientAddress, PatientAddressType } from '@/types/database'
-import AddressMapModal from './AddressMapModal'
-import { Plus, Trash2, Home, MapPin } from 'lucide-react'
+﻿import { useState } from 'react';
+import { Button, Input, Select, Switch } from '@/components/ui';
+import type { PatientAddress, PatientAddressType } from '@/types/database';
+import AddressMapModal from './AddressMapModal';
+import { Plus, Trash2, Home, MapPin } from 'lucide-react';
 interface PatientAddressFormProps {
-  addresses: PatientAddress[]
-  onChange: (addresses: PatientAddress[]) => void
-  companyId: string
-  patientId?: string
-  onSave?: (addresses: PatientAddress[]) => Promise<void>
-  isSaving?: boolean
+  addresses: PatientAddress[];
+  onChange: (addresses: PatientAddress[]) => void;
+  companyId: string;
+  patientId?: string;
+  onSave?: (addresses: PatientAddress[]) => Promise<void>;
+  isSaving?: boolean;
 }
 
 const ADDRESS_TYPE_OPTIONS = [
   { value: 'home' as PatientAddressType, label: 'Residencial' },
-  { value: 'billing' as PatientAddressType, label: 'Cobrança' },
+  { value: 'billing' as PatientAddressType, label: 'CobranÃ§a' },
   { value: 'service' as PatientAddressType, label: 'Atendimento' },
   { value: 'other' as PatientAddressType, label: 'Outro' },
-]
+];
 
 const BRAZILIAN_STATES = [
   { value: 'AC', label: 'AC' },
@@ -47,41 +47,41 @@ const BRAZILIAN_STATES = [
   { value: 'SP', label: 'SP' },
   { value: 'SE', label: 'SE' },
   { value: 'TO', label: 'TO' },
-]
+];
 
 const formatCEP = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 8)
-  if (digits.length <= 5) return digits
-  return `${digits.slice(0, 5)}-${digits.slice(5)}`
-}
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+};
 
 interface ViaCEPResponse {
-  cep: string
-  logradouro: string
-  complemento: string
-  bairro: string
-  localidade: string
-  uf: string
-  erro?: boolean
+  cep: string;
+  logradouro: string;
+  complemento: string;
+  bairro: string;
+  localidade: string;
+  uf: string;
+  erro?: boolean;
 }
 
 const fetchCEP = async (cep: string): Promise<ViaCEPResponse | null> => {
-  const digits = cep.replace(/\D/g, '')
-  if (digits.length !== 8) return null
+  const digits = cep.replace(/\D/g, '');
+  if (digits.length !== 8) return null;
 
   try {
-    const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
-    if (!response.ok) return null
+    const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+    if (!response.ok) return null;
 
-    const data = await response.json()
-    if (data.erro) return null
+    const data = await response.json();
+    if (data.erro) return null;
 
-    return data
+    return data;
   } catch (error) {
-    console.error('Erro ao buscar CEP:', error)
-    return null
+    console.error('Erro ao buscar CEP:', error);
+    return null;
   }
-}
+};
 
 export default function PatientAddressForm({
   addresses,
@@ -91,11 +91,15 @@ export default function PatientAddressForm({
   onSave,
   isSaving,
 }: PatientAddressFormProps) {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(addresses.length > 0 ? 0 : null)
-  const [loadingCEP, setLoadingCEP] = useState<number | null>(null)
-  const [mapModalOpen, setMapModalOpen] = useState(false)
-  const [mapModalAddressIndex, setMapModalAddressIndex] = useState<number | null>(null)
-  const [manuallyEditedCoordinates, setManuallyEditedCoordinates] = useState<Set<string>>(new Set())
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(
+    addresses.length > 0 ? 0 : null
+  );
+  const [loadingCEP, setLoadingCEP] = useState<number | null>(null);
+  const [mapModalOpen, setMapModalOpen] = useState(false);
+  const [mapModalAddressIndex, setMapModalAddressIndex] = useState<number | null>(null);
+  const [manuallyEditedCoordinates, setManuallyEditedCoordinates] = useState<Set<string>>(
+    new Set()
+  );
 
   const handleAddAddress = () => {
     const newAddress: Partial<PatientAddress> = {
@@ -109,78 +113,78 @@ export default function PatientAddressForm({
       country: 'BR',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    }
-    onChange([...addresses, newAddress as PatientAddress])
-    setExpandedIndex(addresses.length)
-  }
+    };
+    onChange([...addresses, newAddress as PatientAddress]);
+    setExpandedIndex(addresses.length);
+  };
 
   const handleRemoveAddress = (index: number) => {
-    const newAddresses = addresses.filter((_, i) => i !== index)
-    onChange(newAddresses)
+    const newAddresses = addresses.filter((_, i) => i !== index);
+    onChange(newAddresses);
     if (expandedIndex === index) {
-      setExpandedIndex(null)
+      setExpandedIndex(null);
     }
-  }
+  };
 
   const handleUpdateAddress = (index: number, field: keyof PatientAddress, value: any) => {
-    const newAddresses = [...addresses]
+    const newAddresses = [...addresses];
 
     // Se editando latitude ou longitude manualmente, marcar como editado
     if (field === 'latitude' || field === 'longitude') {
-      setManuallyEditedCoordinates((prev) => new Set(prev).add(`${index}`))
+      setManuallyEditedCoordinates((prev) => new Set(prev).add(`${index}`));
 
-      // Arredondar para 6 dígitos decimais se for número
+      // Arredondar para 6 dÃ­gitos decimais se for nÃºmero
       if (typeof value === 'number') {
-        value = Math.round(value * 1000000) / 1000000
+        value = Math.round(value * 1000000) / 1000000;
       }
     }
 
-    console.warn('Valores específicos antes da atualização:')
-    console.warn('  latitude:', newAddresses[index].latitude)
-    console.warn('  longitude:', newAddresses[index].longitude)
+    console.warn('Valores especÃ­ficos antes da atualizaÃ§Ã£o:');
+    console.warn('  latitude:', newAddresses[index].latitude);
+    console.warn('  longitude:', newAddresses[index].longitude);
 
-    // Se marcando como primário, desmarcar os outros
+    // Se marcando como primÃ¡rio, desmarcar os outros
     if (field === 'is_primary' && value === true) {
       newAddresses.forEach((addr, i) => {
         if (i !== index) {
-          addr.is_primary = false
+          addr.is_primary = false;
         }
-      })
+      });
     }
 
     newAddresses[index] = {
       ...newAddresses[index],
       [field]: value,
       updated_at: new Date().toISOString(),
-    }
+    };
 
-    console.warn('Valores específicos depois da atualização:')
-    console.warn('  latitude:', newAddresses[index].latitude)
-    console.warn('  longitude:', newAddresses[index].longitude)
-    console.warn('Campo atualizado:', field, '=', value)
+    console.warn('Valores especÃ­ficos depois da atualizaÃ§Ã£o:');
+    console.warn('  latitude:', newAddresses[index].latitude);
+    console.warn('  longitude:', newAddresses[index].longitude);
+    console.warn('Campo atualizado:', field, '=', value);
 
-    onChange(newAddresses)
-  }
+    onChange(newAddresses);
+  };
 
   const handleCEPChange = async (index: number, value: string) => {
-    const formatted = formatCEP(value)
-    handleUpdateAddress(index, 'zip', formatted)
+    const formatted = formatCEP(value);
+    handleUpdateAddress(index, 'zip', formatted);
 
     // Buscar dados do CEP quando completo
-    const digits = formatted.replace(/\D/g, '')
+    const digits = formatted.replace(/\D/g, '');
     if (digits.length === 8) {
-      // Remover marcação de editado manualmente pois vai buscar novas coordenadas
+      // Remover marcaÃ§Ã£o de editado manualmente pois vai buscar novas coordenadas
       setManuallyEditedCoordinates((prev) => {
-        const newSet = new Set(prev)
-        newSet.delete(`${index}`)
-        return newSet
-      })
+        const newSet = new Set(prev);
+        newSet.delete(`${index}`);
+        return newSet;
+      });
 
-      setLoadingCEP(index)
-      const cepData = await fetchCEP(formatted)
+      setLoadingCEP(index);
+      const cepData = await fetchCEP(formatted);
 
       if (cepData) {
-        const newAddresses = [...addresses]
+        const newAddresses = [...addresses];
         newAddresses[index] = {
           ...newAddresses[index],
           street: cepData.logradouro || newAddresses[index].street,
@@ -190,74 +194,74 @@ export default function PatientAddressForm({
           complement: cepData.complemento || newAddresses[index].complement,
           zip: formatted,
           updated_at: new Date().toISOString(),
-        }
-        onChange(newAddresses)
+        };
+        onChange(newAddresses);
       }
 
-      setLoadingCEP(null)
+      setLoadingCEP(null);
     }
-  }
+  };
 
   const handleOpenMapModal = (index: number) => {
-    setMapModalAddressIndex(index)
-    setMapModalOpen(true)
-  }
+    setMapModalAddressIndex(index);
+    setMapModalOpen(true);
+  };
 
   const handleMapConfirm = (latitude: number, longitude: number) => {
     if (mapModalAddressIndex !== null) {
       // Marcar como editado manualmente
-      setManuallyEditedCoordinates((prev) => new Set(prev).add(`${mapModalAddressIndex}`))
+      setManuallyEditedCoordinates((prev) => new Set(prev).add(`${mapModalAddressIndex}`));
 
-      // Arredondar coordenadas para 6 dígitos decimais
-      const roundedLatitude = Math.round(latitude * 1000000) / 1000000
-      const roundedLongitude = Math.round(longitude * 1000000) / 1000000
+      // Arredondar coordenadas para 6 dÃ­gitos decimais
+      const roundedLatitude = Math.round(latitude * 1000000) / 1000000;
+      const roundedLongitude = Math.round(longitude * 1000000) / 1000000;
 
-      // Fazer uma única atualização com ambos os valores
-      const newAddresses = [...addresses]
+      // Fazer uma Ãºnica atualizaÃ§Ã£o com ambos os valores
+      const newAddresses = [...addresses];
       newAddresses[mapModalAddressIndex] = {
         ...newAddresses[mapModalAddressIndex],
         latitude: roundedLatitude,
         longitude: roundedLongitude,
         updated_at: new Date().toISOString(),
-      }
+      };
 
-      onChange(newAddresses)
+      onChange(newAddresses);
     }
-    setMapModalOpen(false)
-    setMapModalAddressIndex(null)
-  }
+    setMapModalOpen(false);
+    setMapModalAddressIndex(null);
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Endereços</h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">EndereÃ§os</h3>
         <div className="flex items-center gap-2">
           {patientId && onSave && addresses.length > 0 && (
-            <ButtonNew
+            <Button
               type="button"
               variant="solid"
               size="sm"
               onClick={() => onSave(addresses)}
               disabled={Boolean(isSaving)}
               showIcon={false}
-              label={isSaving ? 'Salvando...' : 'Salvar Endereços'}
+              label={isSaving ? 'Salvando...' : 'Salvar EndereÃ§os'}
             />
           )}
-          <ButtonNew
+          <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleAddAddress}
             icon={<Plus className="h-4 w-4" />}
             showIcon
-            label="Adicionar Endereço"
+            label="Adicionar EndereÃ§o"
           />
         </div>
       </div>
 
       {addresses.length === 0 && (
         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-          Nenhum endereço cadastrado
+          Nenhum endereÃ§o cadastrado
         </div>
       )}
 
@@ -280,7 +284,7 @@ export default function PatientAddressForm({
                         address.type}
                     </span>
                     {address.is_primary && (
-                      <span className="rounded border border-primary-500/30 bg-primary-500/10 px-2 py-0.5 text-xs font-semibold text-primary-700 dark:bg-primary-400/20 dark:text-primary-300">
+                      <span className="border-primary-500/30 bg-primary-500/10 text-primary-700 dark:bg-primary-400/20 dark:text-primary-300 rounded border px-2 py-0.5 text-xs font-semibold">
                         Principal
                       </span>
                     )}
@@ -293,14 +297,14 @@ export default function PatientAddressForm({
                 </div>
                 <div className="col-span-4">
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {address.label || 'Sem rótulo'}
+                    {address.label || 'Sem rÃ³tulo'}
                   </p>
                 </div>
                 <div className="col-span-10">
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     {address.street
                       ? `${address.street}${address.number ? `, ${address.number}` : ''}${address.district ? `, ${address.district}` : ''}${address.city ? `, ${address.city}` : ''}${address.state ? `/${address.state}` : ''}`
-                      : 'Sem endereço'}
+                      : 'Sem endereÃ§o'}
                   </p>
                 </div>
                 <div className="col-span-4">
@@ -312,20 +316,20 @@ export default function PatientAddressForm({
             </div>
             <div className="flex items-center gap-2">
               {address.latitude && address.longitude && (
-                <MapPin className="h-5 w-5 text-primary-600/70 dark:text-primary-400/70" />
+                <MapPin className="text-primary-600/70 dark:text-primary-400/70 h-5 w-5" />
               )}
-              <ButtonNew
+              <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={(e) => {
-                  e.stopPropagation()
-                  handleRemoveAddress(index)
+                  e.stopPropagation();
+                  handleRemoveAddress(index);
                 }}
                 icon={<Trash2 className="h-4 w-4" />}
                 label=""
-                aria-label="Remover endereço"
-                title="Remover endereço"
+                aria-label="Remover endereÃ§o"
+                title="Remover endereÃ§o"
                 className="w-8 justify-center px-2 pr-2"
               />
             </div>
@@ -333,7 +337,7 @@ export default function PatientAddressForm({
 
           {expandedIndex === index && (
             <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-700">
-              {/* Linha 1: Tipo (6) + Rótulo (6) + vazio (12) */}
+              {/* Linha 1: Tipo (6) + RÃ³tulo (6) + vazio (12) */}
               <div className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4">
                 <div className="col-span-6">
                   <Select
@@ -351,7 +355,7 @@ export default function PatientAddressForm({
                 </div>
                 <div className="col-span-6">
                   <Input
-                    label="Rótulo (opcional)"
+                    label="RÃ³tulo (opcional)"
                     placeholder="Ex: Casa da praia"
                     value={address.label || ''}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -361,7 +365,7 @@ export default function PatientAddressForm({
                 </div>
               </div>
 
-              {/* Linha 2: CEP (4) + Logradouro (18) + Número (2) */}
+              {/* Linha 2: CEP (4) + Logradouro (18) + NÃºmero (2) */}
               <div className="grid grid-cols-12 gap-4">
                 <div className="relative col-span-4">
                   <Input
@@ -375,7 +379,7 @@ export default function PatientAddressForm({
                   {loadingCEP === index && (
                     <div className="absolute right-3 top-9 flex items-center gap-2">
                       <svg
-                        className="h-4 w-4 animate-spin text-primary-500"
+                        className="text-primary-500 h-4 w-4 animate-spin"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -410,7 +414,7 @@ export default function PatientAddressForm({
                 </div>
                 <div className="col-span-2">
                   <Input
-                    label="Número"
+                    label="NÃºmero"
                     placeholder="123"
                     value={address.number || ''}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -468,12 +472,12 @@ export default function PatientAddressForm({
                 </div>
               </div>
 
-              {/* Linha 4: Referência (12) + Latitude (6) + Longitude (6) */}
+              {/* Linha 4: ReferÃªncia (12) + Latitude (6) + Longitude (6) */}
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-6">
                   <Input
-                    label="Referência"
-                    placeholder="Ponto de referência"
+                    label="ReferÃªncia"
+                    placeholder="Ponto de referÃªncia"
                     value={address.reference || ''}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       handleUpdateAddress(index, 'reference', e.target.value)
@@ -515,7 +519,7 @@ export default function PatientAddressForm({
                   />
                 </div>
                 <div className="col-span-2 flex items-end">
-                  <ButtonNew
+                  <Button
                     type="button"
                     variant="outline"
                     size="sm"
@@ -530,7 +534,7 @@ export default function PatientAddressForm({
 
               <div className="flex gap-4 pt-2">
                 <Switch
-                  label="Endereço Principal"
+                  label="EndereÃ§o Principal"
                   checked={address.is_primary}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleUpdateAddress(index, 'is_primary', e.target.checked)
@@ -560,8 +564,8 @@ export default function PatientAddressForm({
         <AddressMapModal
           isOpen={mapModalOpen}
           onClose={() => {
-            setMapModalOpen(false)
-            setMapModalAddressIndex(null)
+            setMapModalOpen(false);
+            setMapModalAddressIndex(null);
           }}
           latitude={addresses[mapModalAddressIndex]?.latitude || null}
           longitude={addresses[mapModalAddressIndex]?.longitude || null}
@@ -571,5 +575,5 @@ export default function PatientAddressForm({
         />
       )}
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ClipboardCheck, Eye, SlidersHorizontal } from 'lucide-react';
-import { Card, Button, DataTable, EmptyState, Badge } from '@/components/ui';
+import { Card, Button, DataTable, EmptyState, Badge } from '@synia/ui';
 import { useAuthStore } from '@/stores/authStore';
 import { useWhatsappPermissions } from '@/hooks/useWhatsappPermissions';
 import { useWhatsappSessions, WhatsappSession } from '@/hooks/useWhatsappSessions';
@@ -156,7 +156,7 @@ export default function EvaluationsPage() {
                 placeholder="Buscar atendimento..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
           </div>

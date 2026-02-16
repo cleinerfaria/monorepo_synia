@@ -1,5 +1,5 @@
-﻿import { Card, EmptyState } from '@/components/ui'
-import { BarChart3 } from 'lucide-react'
+﻿import { Card, EmptyState } from '@/components/ui';
+import { BarChart3 } from 'lucide-react';
 export default function RelatoriosPage() {
   return (
     <div className="space-y-6">
@@ -19,5 +19,5 @@ export default function RelatoriosPage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

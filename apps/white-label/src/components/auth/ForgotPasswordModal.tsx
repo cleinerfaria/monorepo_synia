@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Button, Input, Card } from '@/components/ui';
+import { Button, Input, Card } from '@synia/ui';
 import { supabase } from '@/lib/supabase';
 import { X } from 'lucide-react';
 
@@ -104,8 +104,8 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
             </form>
           ) : (
             <div className="space-y-4">
-              <div className="rounded-lg bg-primary-50 p-4 dark:bg-primary-900/20">
-                <p className="text-sm text-primary-800 dark:text-primary-300">
+              <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-4">
+                <p className="text-primary-800 dark:text-primary-300 text-sm">
                   Um e-mail foi enviado para <strong>{email}</strong> com as instruções para
                   recuperar sua senha.
                 </p>
