@@ -41,6 +41,7 @@
     "commitmsg:check": "node scripts/validate-commit-msg.cjs",
     "hooks:install": "node scripts/setup-git-hooks.cjs",
     "prepare": "npm run hooks:install",
+    "test:migrations": "node scripts/test-migrations.cjs",
     "build": "npm run build --workspaces",
     "test": "npm run test:run --workspaces",
     "lint": "npm run lint --workspaces"
