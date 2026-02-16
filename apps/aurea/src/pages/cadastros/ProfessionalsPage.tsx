@@ -280,7 +280,7 @@ export default function ProfessionalsPage() {
         <p className="text-gray-600 dark:text-gray-400">
           Tem certeza que deseja excluir o profissional{' '}
           <strong className="text-gray-900 dark:text-white">{selectedProfessional?.name}</strong>?
-          Esta aÃ§Ã£o nÃ£o pode ser desfeita.
+          Esta ação não pode ser desfeita.
         </p>
 
         <ModalFooter>

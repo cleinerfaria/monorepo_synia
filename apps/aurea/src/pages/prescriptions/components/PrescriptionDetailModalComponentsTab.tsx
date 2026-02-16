@@ -53,7 +53,7 @@ export function PrescriptionDetailModalComponentsTab({
             label="Produto"
             options={componentProductOptions}
             placeholder="Buscar e selecionar produto..."
-            searchPlaceholder="Buscar por produto ou apresentaÃ§Ã£o..."
+            searchPlaceholder="Buscar por produto ou apresentação..."
             value={selectedComponentProductId}
             onChange={(e: any) => setSelectedComponentProductId(e.target.value)}
             onSearch={(term: string) => setComponentProductSearchTerm(term)}
@@ -173,7 +173,7 @@ export function PrescriptionDetailModalComponentsTab({
               const componentProductData = componentProduct as any;
               const localProductData = component.product as any;
               const productName =
-                componentProduct?.name || component.product?.name || 'Produto nÃ£o encontrado';
+                componentProduct?.name || component.product?.name || 'Produto não encontrado';
               const concentration =
                 componentProduct?.concentration || component.product?.concentration || '';
               const unitSymbol =

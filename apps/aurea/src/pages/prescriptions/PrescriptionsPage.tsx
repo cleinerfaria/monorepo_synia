@@ -403,7 +403,7 @@ export default function PrescriptionsPage() {
       value: 'medical',
       label: 'MÃ©dica',
       icon: ClipboardList,
-      description: 'PrescriÃ§Ã£o mÃ©dica tradicional',
+      description: 'Prescrição mÃ©dica tradicional',
     },
     {
       value: 'nursing',
@@ -413,9 +413,9 @@ export default function PrescriptionsPage() {
     },
     {
       value: 'nutrition',
-      label: 'NutriÃ§Ã£o',
+      label: 'Nutrição',
       icon: FlaskConical,
-      description: 'Dietas e suplementaÃ§Ã£o nutricional',
+      description: 'Dietas e suplementação nutricional',
     },
   ];
 
@@ -425,10 +425,10 @@ export default function PrescriptionsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            PrescriÃ§Ãµes
+            PrescriçÃµes
           </h1>
         </div>
-        <Button onClick={openCreateModal} variant="solid" label="Nova PrescriÃ§Ã£o" />
+        <Button onClick={openCreateModal} variant="solid" label="Nova Prescrição" />
       </div>
 
       {/* Stats Cards */}
@@ -461,13 +461,13 @@ export default function PrescriptionsPage() {
       {/* Table */}
       <Card padding="none">
         <div className="space-y-4 p-6">
-          {/* Barra de pesquisa e botÃ£o de filtros */}
+          {/* Barra de pesquisa e botão de filtros */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por paciente, profissional ou observaÃ§Ãµes..."
+                placeholder="Buscar por paciente, profissional ou observaçÃµes..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
@@ -527,7 +527,7 @@ export default function PrescriptionsPage() {
                     { value: '', label: 'Todos' },
                     { value: 'medical', label: 'MÃ©dica' },
                     { value: 'nursing', label: 'Enfermagem' },
-                    { value: 'nutrition', label: 'NutriÃ§Ã£o' },
+                    { value: 'nutrition', label: 'Nutrição' },
                   ]}
                   placeholder="Selecione..."
                   searchPlaceholder="Buscar tipo..."
@@ -591,8 +591,8 @@ export default function PrescriptionsPage() {
               hasActiveFilters ? (
                 <EmptyState
                   icon={<Funnel className="h-12 w-12 text-gray-400" />}
-                  title="Nenhuma prescriÃ§Ã£o encontrada"
-                  description="Nenhuma prescriÃ§Ã£o corresponde aos filtros selecionados"
+                  title="Nenhuma prescrição encontrada"
+                  description="Nenhuma prescrição corresponde aos filtros selecionados"
                   action={
                     <Button
                       onClick={clearFilters}
@@ -605,14 +605,14 @@ export default function PrescriptionsPage() {
                 />
               ) : (
                 <EmptyState
-                  title="Nenhuma prescriÃ§Ã£o encontrada"
-                  description="Crie uma nova prescriÃ§Ã£o para comeÃ§ar"
+                  title="Nenhuma prescrição encontrada"
+                  description="Crie uma nova prescrição para começar"
                   action={
                     <Button
                       onClick={openCreateModal}
                       size="sm"
                       variant="solid"
-                      label="Nova PrescriÃ§Ã£o"
+                      label="Nova Prescrição"
                     />
                   }
                 />
@@ -626,12 +626,12 @@ export default function PrescriptionsPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeFormModal}
-        title={editingPrescription ? 'Editar PrescriÃ§Ã£o' : 'Nova PrescriÃ§Ã£o'}
+        title={editingPrescription ? 'Editar Prescrição' : 'Nova Prescrição'}
         size="lg"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Select
-            label="Tipo de PrescriÃ§Ã£o"
+            label="Tipo de Prescrição"
             options={prescriptionTypeOptions}
             value={watchType}
             {...register('type')}
@@ -644,7 +644,7 @@ export default function PrescriptionsPage() {
             placeholder="Selecione o paciente..."
             searchPlaceholder="Buscar paciente..."
             value={watchPatientId || ''}
-            {...register('patient_id', { required: 'Paciente Ã© obrigatÃ³rio' })}
+            {...register('patient_id', { required: 'Paciente Ã© obrigatório' })}
             error={errors.patient_id?.message}
             required
           />
@@ -655,7 +655,7 @@ export default function PrescriptionsPage() {
             placeholder="Selecione o profissional..."
             searchPlaceholder="Buscar profissional..."
             value={watchProfessionalId || ''}
-            {...register('professional_id', { required: 'Profissional Ã© obrigatÃ³rio' })}
+            {...register('professional_id', { required: 'Profissional Ã© obrigatório' })}
             error={errors.professional_id?.message}
             required
           />
@@ -668,8 +668,8 @@ export default function PrescriptionsPage() {
           <Select label="Status" options={statusOptions} {...register('status')} />
 
           <Textarea
-            label="ObservaÃ§Ãµes"
-            placeholder="ObservaÃ§Ãµes gerais sobre a prescriÃ§Ã£o..."
+            label="ObservaçÃµes"
+            placeholder="ObservaçÃµes gerais sobre a prescrição..."
             {...register('notes')}
           />
 
@@ -686,7 +686,7 @@ export default function PrescriptionsPage() {
               variant="solid"
               showIcon={false}
               disabled={createPrescription.isPending || updatePrescription.isPending}
-              label={editingPrescription ? 'Salvar AlteraÃ§Ãµes' : 'Criar e Adicionar Itens'}
+              label={editingPrescription ? 'Salvar AlteraçÃµes' : 'Criar e Adicionar Itens'}
             />
           </ModalFooter>
         </form>
@@ -696,12 +696,12 @@ export default function PrescriptionsPage() {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Excluir PrescriÃ§Ã£o"
+        title="Excluir Prescrição"
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja excluir esta prescriÃ§Ã£o? Todos os itens tambÃ©m serÃ£o removidos.
-          Esta aÃ§Ã£o nÃ£o pode ser desfeita.
+          Tem certeza que deseja excluir esta prescrição? Todos os itens tambÃ©m serão removidos.
+          Esta ação não pode ser desfeita.
         </p>
 
         <ModalFooter>

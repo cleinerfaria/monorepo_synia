@@ -199,8 +199,8 @@ export function useConnectWhatsappInstance() {
 
   return useMutation({
     mutationFn: async ({ instance, phone }: { instance: WhatsappInstance; phone?: string }) => {
-      // NÃ£o Ã© necessÃ¡rio verificar limite aqui pois a instÃ¢ncia jÃ¡ foi criada e estÃ¡ ativa
-      // O limite Ã© verificado apenas na criaÃ§Ã£o de novas instÃ¢ncias
+      // Não Ã© necessário verificar limite aqui pois a instÃ¢ncia já foi criada e está ativa
+      // O limite Ã© verificado apenas na criação de novas instÃ¢ncias
 
       const response = await connectInstance(instance.id, phone ? { phone } : undefined);
       const uazapi = response.instance;
@@ -346,7 +346,7 @@ export function mapInstanceStatus(value?: string | null) {
 }
 
 /**
- * @deprecated O token nÃ£o estÃ¡ mais disponÃ­vel no frontend.
+ * @deprecated O token não está mais disponÃ­vel no frontend.
  */
 export function getUazapiToken(_instance?: WhatsappInstance | null) {
   console.warn('getUazapiToken is deprecated. Tokens are resolved only in edge functions.');

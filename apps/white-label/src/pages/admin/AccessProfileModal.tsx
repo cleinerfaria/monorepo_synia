@@ -175,7 +175,7 @@ export default function AccessProfileModal({
 
         {isSystemProfile && (
           <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-            â„¹ï¸ Este Ã© um perfil do sistema e nÃ£o pode ser modificado.
+            â„¹ï¸ Este Ã© um perfil do sistema e não pode ser modificado.
           </div>
         )}
 

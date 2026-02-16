@@ -1,12 +1,12 @@
 ﻿/**
  * Utility para carregar e atualizar dinamicamente o favicon e meta tags
- * com base nas configuraÃ§Ãµes globais do sistema
+ * com base nas configuraçÃµes globais do sistema
  */
 
 import { supabase } from '@/lib/supabase';
 
 /**
- * Busca as configuraÃ§Ãµes do sistema e atualiza o favicon
+ * Busca as configuraçÃµes do sistema e atualiza o favicon
  */
 export async function loadSystemFavicon() {
   try {
@@ -23,7 +23,7 @@ export async function loadSystemFavicon() {
       .maybeSingle();
 
     if (error || !data) {
-      console.log('Usando favicon padrÃ£o do pÃºblico');
+      console.log('Usando favicon padrão do pÃºblico');
       return;
     }
 
@@ -52,6 +52,6 @@ export async function loadSystemFavicon() {
     }
   } catch (error) {
     console.error('Erro ao carregar favicon do sistema:', error);
-    // Continuar com valores padrÃ£o
+    // Continuar com valores padrão
   }
 }

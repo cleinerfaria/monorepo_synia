@@ -50,7 +50,7 @@ interface SupplierFormData {
 
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
-// FunÃ§Ã£o para formatar CNPJ/CPF
+// Função para formatar CNPJ/CPF
 const formatCNPJCPF = (value: string | null | undefined): string => {
   if (!value) return '-';
 
@@ -348,7 +348,7 @@ export default function SuppliersPage() {
       },
       {
         accessorKey: 'location',
-        header: 'LocalizaÃ§Ã£o',
+        header: 'Localização',
         cell: ({ row }) => {
           const { city, state } = row.original;
           if (!city && !state) return '-';
@@ -490,18 +490,18 @@ export default function SuppliersPage() {
         size="xl"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Dados BÃ¡sicos */}
+          {/* Dados Básicos */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Dados BÃ¡sicos</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Dados Básicos</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
               <div className="col-span-4">
-                <Input label="CÃ³digo" placeholder="CÃ³digo" {...register('code')} />
+                <Input label="Código" placeholder="Código" {...register('code')} />
               </div>
               <div className="col-span-12">
                 <Input
-                  label="RazÃ£o Social"
+                  label="Razão Social"
                   placeholder="Nome oficial da empresa"
-                  {...register('name', { required: 'RazÃ£o social Ã© obrigatÃ³ria' })}
+                  {...register('name', { required: 'Razão social Ã© obrigatória' })}
                   error={errors.name?.message}
                   required
                 />
@@ -529,25 +529,25 @@ export default function SuppliersPage() {
                 }}
               />
               <Input
-                label="InscriÃ§Ã£o Estadual"
+                label="Inscrição Estadual"
                 placeholder="NÃºmero IE"
                 {...register('state_registration')}
               />
               <Input
-                label="InscriÃ§Ã£o Municipal"
+                label="Inscrição Municipal"
                 placeholder="NÃºmero IM"
                 {...register('municipal_registration')}
               />
             </div>
           </div>
 
-          {/* EndereÃ§o */}
+          {/* Endereço */}
           <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">EndereÃ§o</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Endereço</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
               <div className="md:col-span-10">
                 <Input
-                  label="EndereÃ§o"
+                  label="Endereço"
                   placeholder="Rua, nÃºmero, complemento"
                   {...register('address')}
                 />
@@ -631,24 +631,24 @@ export default function SuppliersPage() {
             </div>
           </div>
 
-          {/* ObservaÃ§Ãµes */}
+          {/* ObservaçÃµes */}
           <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              InformaÃ§Ãµes Adicionais
+              InformaçÃµes Adicionais
             </h3>
             <div className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4">
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="CondiÃ§Ãµes de Pagamento"
-                  placeholder="Ex: 30/60/90 dias, boleto bancÃ¡rio"
+                  label="CondiçÃµes de Pagamento"
+                  placeholder="Ex: 30/60/90 dias, boleto bancário"
                   rows={2}
                   {...register('payment_terms')}
                 />
               </div>
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="ObservaÃ§Ãµes"
-                  placeholder="ObservaÃ§Ãµes adicionais..."
+                  label="ObservaçÃµes"
+                  placeholder="ObservaçÃµes adicionais..."
                   rows={2}
                   {...register('notes')}
                 />
@@ -681,7 +681,7 @@ export default function SuppliersPage() {
               variant="solid"
               showIcon={false}
               disabled={createSupplier.isPending || updateSupplier.isPending}
-              label={selectedSupplier ? 'Salvar AlteraÃ§Ãµes' : 'Cadastrar'}
+              label={selectedSupplier ? 'Salvar AlteraçÃµes' : 'Cadastrar'}
             />
           </ModalFooter>
         </form>
@@ -697,7 +697,7 @@ export default function SuppliersPage() {
         <p className="text-gray-600 dark:text-gray-400">
           Tem certeza que deseja excluir o fornecedor{' '}
           <strong className="text-gray-900 dark:text-white">{selectedSupplier?.name}</strong>? Esta
-          aÃ§Ã£o nÃ£o pode ser desfeita.
+          ação não pode ser desfeita.
         </p>
 
         <ModalFooter>

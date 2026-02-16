@@ -14,7 +14,7 @@ interface PatientAddressFormProps {
 
 const ADDRESS_TYPE_OPTIONS = [
   { value: 'home' as PatientAddressType, label: 'Residencial' },
-  { value: 'billing' as PatientAddressType, label: 'CobranÃ§a' },
+  { value: 'billing' as PatientAddressType, label: 'Cobrança' },
   { value: 'service' as PatientAddressType, label: 'Atendimento' },
   { value: 'other' as PatientAddressType, label: 'Outro' },
 ];
@@ -139,11 +139,11 @@ export default function PatientAddressForm({
       }
     }
 
-    console.warn('Valores especÃ­ficos antes da atualizaÃ§Ã£o:');
+    console.warn('Valores especÃ­ficos antes da atualização:');
     console.warn('  latitude:', newAddresses[index].latitude);
     console.warn('  longitude:', newAddresses[index].longitude);
 
-    // Se marcando como primÃ¡rio, desmarcar os outros
+    // Se marcando como primário, desmarcar os outros
     if (field === 'is_primary' && value === true) {
       newAddresses.forEach((addr, i) => {
         if (i !== index) {
@@ -158,7 +158,7 @@ export default function PatientAddressForm({
       updated_at: new Date().toISOString(),
     };
 
-    console.warn('Valores especÃ­ficos depois da atualizaÃ§Ã£o:');
+    console.warn('Valores especÃ­ficos depois da atualização:');
     console.warn('  latitude:', newAddresses[index].latitude);
     console.warn('  longitude:', newAddresses[index].longitude);
     console.warn('Campo atualizado:', field, '=', value);
@@ -173,7 +173,7 @@ export default function PatientAddressForm({
     // Buscar dados do CEP quando completo
     const digits = formatted.replace(/\D/g, '');
     if (digits.length === 8) {
-      // Remover marcaÃ§Ã£o de editado manualmente pois vai buscar novas coordenadas
+      // Remover marcação de editado manualmente pois vai buscar novas coordenadas
       setManuallyEditedCoordinates((prev) => {
         const newSet = new Set(prev);
         newSet.delete(`${index}`);
@@ -216,7 +216,7 @@ export default function PatientAddressForm({
       const roundedLatitude = Math.round(latitude * 1000000) / 1000000;
       const roundedLongitude = Math.round(longitude * 1000000) / 1000000;
 
-      // Fazer uma Ãºnica atualizaÃ§Ã£o com ambos os valores
+      // Fazer uma Ãºnica atualização com ambos os valores
       const newAddresses = [...addresses];
       newAddresses[mapModalAddressIndex] = {
         ...newAddresses[mapModalAddressIndex],
@@ -234,7 +234,7 @@ export default function PatientAddressForm({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">EndereÃ§os</h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Endereços</h3>
         <div className="flex items-center gap-2">
           {patientId && onSave && addresses.length > 0 && (
             <Button
@@ -244,7 +244,7 @@ export default function PatientAddressForm({
               onClick={() => onSave(addresses)}
               disabled={Boolean(isSaving)}
               showIcon={false}
-              label={isSaving ? 'Salvando...' : 'Salvar EndereÃ§os'}
+              label={isSaving ? 'Salvando...' : 'Salvar Endereços'}
             />
           )}
           <Button
@@ -254,14 +254,14 @@ export default function PatientAddressForm({
             onClick={handleAddAddress}
             icon={<Plus className="h-4 w-4" />}
             showIcon
-            label="Adicionar EndereÃ§o"
+            label="Adicionar Endereço"
           />
         </div>
       </div>
 
       {addresses.length === 0 && (
         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-          Nenhum endereÃ§o cadastrado
+          Nenhum endereço cadastrado
         </div>
       )}
 
@@ -297,14 +297,14 @@ export default function PatientAddressForm({
                 </div>
                 <div className="col-span-4">
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {address.label || 'Sem rÃ³tulo'}
+                    {address.label || 'Sem rótulo'}
                   </p>
                 </div>
                 <div className="col-span-10">
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     {address.street
                       ? `${address.street}${address.number ? `, ${address.number}` : ''}${address.district ? `, ${address.district}` : ''}${address.city ? `, ${address.city}` : ''}${address.state ? `/${address.state}` : ''}`
-                      : 'Sem endereÃ§o'}
+                      : 'Sem endereço'}
                   </p>
                 </div>
                 <div className="col-span-4">
@@ -328,8 +328,8 @@ export default function PatientAddressForm({
                 }}
                 icon={<Trash2 className="h-4 w-4" />}
                 label=""
-                aria-label="Remover endereÃ§o"
-                title="Remover endereÃ§o"
+                aria-label="Remover endereço"
+                title="Remover endereço"
                 className="w-8 justify-center px-2 pr-2"
               />
             </div>
@@ -337,7 +337,7 @@ export default function PatientAddressForm({
 
           {expandedIndex === index && (
             <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-700">
-              {/* Linha 1: Tipo (6) + RÃ³tulo (6) + vazio (12) */}
+              {/* Linha 1: Tipo (6) + Rótulo (6) + vazio (12) */}
               <div className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4">
                 <div className="col-span-6">
                   <Select
@@ -355,7 +355,7 @@ export default function PatientAddressForm({
                 </div>
                 <div className="col-span-6">
                   <Input
-                    label="RÃ³tulo (opcional)"
+                    label="Rótulo (opcional)"
                     placeholder="Ex: Casa da praia"
                     value={address.label || ''}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -534,7 +534,7 @@ export default function PatientAddressForm({
 
               <div className="flex gap-4 pt-2">
                 <Switch
-                  label="EndereÃ§o Principal"
+                  label="Endereço Principal"
                   checked={address.is_primary}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleUpdateAddress(index, 'is_primary', e.target.checked)

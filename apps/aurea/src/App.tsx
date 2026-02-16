@@ -38,6 +38,8 @@ const PresentationsPage = lazy(() => import('@/pages/cadastros/PresentationsPage
 const CensoPage = lazy(() => import('@/pages/prontuario/CensoPage'));
 const ProntuarioRelatoriosPage = lazy(() => import('@/pages/prontuario/RelatoriosPage'));
 const PadPage = lazy(() => import('@/pages/prontuario/PadPage'));
+const PadFormPage = lazy(() => import('@/pages/prontuario/PadFormPage'));
+const PadPreviewPage = lazy(() => import('@/pages/prontuario/PadPreviewPage'));
 const PrescriptionsPage = lazy(() => import('@/pages/prescriptions/PrescriptionsPage'));
 const PrescriptionDetailPage = lazy(() => import('@/pages/prescriptions/PrescriptionDetailPage'));
 const StockPage = lazy(() => import('@/pages/stock/StockPage'));
@@ -561,6 +563,30 @@ function App() {
                   element={
                     <Suspense fallback={<RouteLoader />}>
                       <PadPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="prontuario/pad/novo"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <PadFormPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="prontuario/pad/:demandId"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <PadFormPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="prontuario/pad/:demandId/plantoes"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <PadPreviewPage />
                     </Suspense>
                   }
                 />

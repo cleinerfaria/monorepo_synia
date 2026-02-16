@@ -7,7 +7,7 @@ import { useGoogleMapsApiError } from '@/hooks/useGoogleMapsApiError';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix para os Ã­cones padrÃ£o do Leaflet
+// Fix para os Ã­cones padrão do Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -56,7 +56,7 @@ function MapCenterUpdater({ center }: { center: [number, number] }) {
   return null;
 }
 
-// FunÃ§Ã£o para buscar endereÃ§os usando Nominatim (OpenStreetMap - gratuito)
+// Função para buscar endereços usando Nominatim (OpenStreetMap - gratuito)
 const searchAddressNominatim = async (
   query: string
 ): Promise<{ lat: number; lng: number; display_name: string } | null> => {
@@ -84,7 +84,7 @@ const searchAddressNominatim = async (
   }
 };
 
-// FunÃ§Ã£o para geocodificar endereÃ§o usando Google Maps ou fallback
+// Função para geocodificar endereço usando Google Maps ou fallback
 const geocodeAddress = async (
   address: string,
   hasApiKey: boolean
@@ -114,7 +114,7 @@ const geocodeAddress = async (
   }
 };
 
-// FunÃ§Ã£o para comparar coordenadas com tolerÃ¢ncia (4 casas decimais = ~11 metros de precisÃ£o)
+// Função para comparar coordenadas com tolerÃ¢ncia (4 casas decimais = ~11 metros de precisão)
 const coordinatesAreEqual = (
   coord1: { lat: number; lng: number },
   coord2: { lat: number; lng: number },
@@ -125,7 +125,7 @@ const coordinatesAreEqual = (
   return latDiff <= tolerance && lngDiff <= tolerance;
 };
 
-// FunÃ§Ã£o para reverse geocoding (coordenadas -> endereÃ§o) usando Nominatim
+// Função para reverse geocoding (coordenadas -> endereço) usando Nominatim
 const reverseGeocodeNominatim = async (lat: number, lng: number): Promise<string | null> => {
   try {
     const response = await fetch(
@@ -145,7 +145,7 @@ const reverseGeocodeNominatim = async (lat: number, lng: number): Promise<string
   }
 };
 
-// FunÃ§Ã£o para reverse geocoding usando Google Maps ou fallback
+// Função para reverse geocoding usando Google Maps ou fallback
 const _reverseGeocode = async (
   lat: number,
   lng: number,
@@ -184,24 +184,24 @@ export default function AddressMapModal({
     lat: number;
     lng: number;
   }>(() => {
-    // Garantir que sempre temos coordenadas vÃ¡lidas na inicializaÃ§Ã£o
+    // Garantir que sempre temos coordenadas válidas na inicialização
     const initialLat = latitude && !isNaN(latitude) ? latitude : defaultCenter.lat;
     const initialLng = longitude && !isNaN(longitude) ? longitude : defaultCenter.lng;
     return { lat: initialLat, lng: initialLng };
   });
 
-  // Estado local para controlar se foi editado manualmente nesta sessÃ£o
+  // Estado local para controlar se foi editado manualmente nesta sessão
   const [isEditedInSession, setIsEditedInSession] = useState(false);
 
-  // Estado para forÃ§ar re-render do marcador
+  // Estado para forçar re-render do marcador
   const [markerKey, setMarkerKey] = useState(0);
 
-  // Estado para armazenar coordenadas do endereÃ§o (para comparaÃ§Ã£o)
+  // Estado para armazenar coordenadas do endereço (para comparação)
   const [addressCoordinates, setAddressCoordinates] = useState<{ lat: number; lng: number } | null>(
     null
   );
 
-  // Estado para controlar exibiÃ§Ã£o do alerta de confirmaÃ§Ã£o
+  // Estado para controlar exibição do alerta de confirmação
   const [showSearchConfirm, setShowSearchConfirm] = useState(false);
 
   const [searchAddress, setSearchAddress] = useState(address || '');
@@ -252,20 +252,20 @@ export default function AddressMapModal({
     }
   };
 
-  // FunÃ§Ã£o que verifica se precisa confirmar antes de buscar
+  // Função que verifica se precisa confirmar antes de buscar
   const handleSearchWithConfirm = () => {
-    // Usar a mesma lÃ³gica da tag de "Editado Manualmente"
+    // Usar a mesma lógica da tag de "Editado Manualmente"
     const isShowingManualTag = (() => {
-      // Se foi editado nesta sessÃ£o, Ã© manual
+      // Se foi editado nesta sessão, Ã© manual
       if (isEditedInSession) return true;
 
-      // Se jÃ¡ estava marcado como manual anteriormente e temos coordenadas do endereÃ§o para comparar
+      // Se já estava marcado como manual anteriormente e temos coordenadas do endereço para comparar
       if (isManuallyEdited && addressCoordinates) {
-        // Verificar se as coordenadas atuais ainda sÃ£o diferentes das do endereÃ§o
+        // Verificar se as coordenadas atuais ainda são diferentes das do endereço
         return !coordinatesAreEqual(markerPosition, addressCoordinates);
       }
 
-      // Se nÃ£o foi marcado como manual anteriormente, Ã© automÃ¡tico
+      // Se não foi marcado como manual anteriormente, Ã© automático
       return false;
     })();
 
@@ -277,7 +277,7 @@ export default function AddressMapModal({
     handleSearch();
   };
 
-  // FunÃ§Ã£o chamada quando o usuÃ¡rio confirma a busca
+  // Função chamada quando o usuário confirma a busca
   const confirmSearch = () => {
     setShowSearchConfirm(false);
     handleSearch();
@@ -304,7 +304,7 @@ export default function AddressMapModal({
           setMarkerPosition(newPosition);
           setCenter(newPosition);
           setSearchResult(`Encontrado: ${result.results[0].formatted_address}`);
-          // Resetar ediÃ§Ã£o manual pois Ã© resultado de busca automÃ¡tica
+          // Resetar edição manual pois Ã© resultado de busca automática
           setIsEditedInSession(false);
         } else {
           setSearchResult('Nenhum resultado encontrado');
@@ -321,14 +321,14 @@ export default function AddressMapModal({
           setMarkerPosition(newPosition);
           setCenter(newPosition);
           setSearchResult(`Encontrado: ${result.display_name}`);
-          // Resetar ediÃ§Ã£o manual pois Ã© resultado de busca automÃ¡tica
+          // Resetar edição manual pois Ã© resultado de busca automática
           setIsEditedInSession(false);
         } else {
           setSearchResult('Nenhum resultado encontrado');
         }
       }
     } catch {
-      setSearchResult('Erro ao buscar endereÃ§o');
+      setSearchResult('Erro ao buscar endereço');
 
       // Se falhou com Google Maps, tentar fallback
       if (!shouldUseFallback) {
@@ -347,9 +347,9 @@ export default function AddressMapModal({
   };
 
   const handleConfirm = () => {
-    // Validar se os valores sÃ£o nÃºmeros vÃ¡lidos
+    // Validar se os valores são nÃºmeros válidos
     if (isNaN(markerPosition.lat) || isNaN(markerPosition.lng)) {
-      console.error('Coordenadas invÃ¡lidas!', markerPosition);
+      console.error('Coordenadas inválidas!', markerPosition);
       return;
     }
 
@@ -361,7 +361,7 @@ export default function AddressMapModal({
     onClose();
   };
 
-  // Verificar se as coordenadas atuais correspondem ao endereÃ§o ao abrir o modal
+  // Verificar se as coordenadas atuais correspondem ao endereço ao abrir o modal
   useEffect(() => {
     const checkAddressCoordinates = async () => {
       if (isOpen && address && address.trim() !== '' && latitude && longitude) {
@@ -381,11 +381,11 @@ export default function AddressMapModal({
   }, [isOpen, address, latitude, longitude, hasApiKey]);
 
   useEffect(() => {
-    // Apenas atualizar se temos coordenadas vÃ¡lidas e diferentes das atuais
+    // Apenas atualizar se temos coordenadas válidas e diferentes das atuais
     if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
       const newPosition = { lat: latitude, lng: longitude };
 
-      // Verificar se Ã© realmente diferente para evitar atualizaÃ§Ãµes desnecessÃ¡rias
+      // Verificar se Ã© realmente diferente para evitar atualizaçÃµes desnecessárias
       if (
         Math.abs(newPosition.lat - markerPosition.lat) > 0.000001 ||
         Math.abs(newPosition.lng - markerPosition.lng) > 0.000001
@@ -395,20 +395,20 @@ export default function AddressMapModal({
       }
     }
 
-    // Resetar estado de ediÃ§Ã£o quando modal abrir
+    // Resetar estado de edição quando modal abrir
     if (isOpen) {
       setIsEditedInSession(false);
     }
   }, [latitude, longitude, isOpen, markerPosition.lat, markerPosition.lng]);
 
-  // Sincronizar centro do mapa com posiÃ§Ã£o do marcador
+  // Sincronizar centro do mapa com posição do marcador
   useEffect(() => {
     setCenter(markerPosition);
   }, [markerPosition]);
 
-  // Buscar endereÃ§o automaticamente quando o modal abrir com um endereÃ§o, mas SÃ“ se nÃ£o houver coordenadas jÃ¡ definidas
+  // Buscar endereço automaticamente quando o modal abrir com um endereço, mas SÃ“ se não houver coordenadas já definidas
   useEffect(() => {
-    // SÃ³ buscar automaticamente se nÃ£o hÃ¡ coordenadas jÃ¡ definidas
+    // Só buscar automaticamente se não há coordenadas já definidas
     if (isOpen && address && address.trim() !== '' && (!latitude || !longitude)) {
       const timer = setTimeout(() => {
         handleSearch();
@@ -418,7 +418,7 @@ export default function AddressMapModal({
   }, [isOpen, address, latitude, longitude, shouldUseFallback, isLoaded, hasApiKey, handleSearch]);
 
   // Executar busca para exibir marcador quando o modal abrir com coordenadas
-  // Posiciona nas coordenadas SALVAS e depois faz busca sÃ³ para comparaÃ§Ã£o
+  // Posiciona nas coordenadas SALVAS e depois faz busca só para comparação
   useEffect(() => {
     if (isOpen && latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
       const timer = setTimeout(async () => {
@@ -427,10 +427,10 @@ export default function AddressMapModal({
         setMarkerPosition(savedPosition);
         setCenter(savedPosition);
 
-        // ForÃ§ar re-render do marcador incrementando a key
+        // Forçar re-render do marcador incrementando a key
         setMarkerKey((prev) => prev + 1);
 
-        // Se tem endereÃ§o, buscar coordenadas do endereÃ§o para comparar (nÃ£o para usar)
+        // Se tem endereço, buscar coordenadas do endereço para comparar (não para usar)
         if (address && address.trim() !== '') {
           try {
             const coords = await geocodeAddress(address, hasApiKey);
@@ -440,7 +440,7 @@ export default function AddressMapModal({
               setIsEditedInSession(!areEqual);
             }
           } catch {
-            // Erro ao verificar endereÃ§o
+            // Erro ao verificar endereço
           }
         }
       }, 800);
@@ -456,7 +456,7 @@ export default function AddressMapModal({
       <div className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-lg dark:bg-gray-900">
         <div className="border-b border-gray-200 p-6 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Localizar EndereÃ§o no Mapa
+            Localizar Endereço no Mapa
           </h2>
         </div>
 
@@ -484,7 +484,7 @@ export default function AddressMapModal({
                       Usando mapa alternativo
                     </h3>
                     <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                      O Google Maps nÃ£o estÃ¡ disponÃ­vel. Usando OpenStreetMap como alternativa.
+                      O Google Maps não está disponÃ­vel. Usando OpenStreetMap como alternativa.
                       {hasApiKey && (
                         <button
                           onClick={() => {
@@ -506,7 +506,7 @@ export default function AddressMapModal({
                 <div className="flex items-end gap-2">
                   <div className="flex-1">
                     <Input
-                      placeholder="Digite um endereÃ§o para buscar..."
+                      placeholder="Digite um endereço para buscar..."
                       value={searchAddress}
                       onChange={(e) => setSearchAddress(e.target.value)}
                       onKeyPress={(e) => {
@@ -574,7 +574,7 @@ export default function AddressMapModal({
                 <div className="flex items-end gap-2">
                   <div className="flex-1">
                     <Input
-                      placeholder="Digite um endereÃ§o para buscar..."
+                      placeholder="Digite um endereço para buscar..."
                       value={searchAddress}
                       onChange={(e) => setSearchAddress(e.target.value)}
                       onKeyPress={(e) => {
@@ -597,7 +597,7 @@ export default function AddressMapModal({
                 {/* Dica */}
                 <div className="px-4 text-xs text-gray-600 dark:text-gray-400">
                   <strong>Dica:</strong> Clique no mapa para definir o ponto ou arraste o marcador
-                  para ajustar a posiÃ§Ã£o.
+                  para ajustar a posição.
                 </div>
               </div>
 
@@ -629,7 +629,7 @@ export default function AddressMapModal({
                       draggable={true}
                       onDragEnd={handleMarkerDragEnd}
                       onLoad={(marker) => {
-                        // ForÃ§ar visibilidade
+                        // Forçar visibilidade
                         marker.setVisible(true);
                       }}
                       visible={true}
@@ -664,16 +664,16 @@ export default function AddressMapModal({
               {/* Indicador de origem das coordenadas */}
               <div className="mt-3 flex items-center">
                 {(() => {
-                  // Se foi editado nesta sessÃ£o, Ã© manual
+                  // Se foi editado nesta sessão, Ã© manual
                   if (isEditedInSession) return true;
 
-                  // Se jÃ¡ estava marcado como manual anteriormente e temos coordenadas do endereÃ§o para comparar
+                  // Se já estava marcado como manual anteriormente e temos coordenadas do endereço para comparar
                   if (isManuallyEdited && addressCoordinates) {
-                    // Verificar se as coordenadas atuais ainda sÃ£o diferentes das do endereÃ§o
+                    // Verificar se as coordenadas atuais ainda são diferentes das do endereço
                     return !coordinatesAreEqual(markerPosition, addressCoordinates);
                   }
 
-                  // Se nÃ£o foi marcado como manual anteriormente, Ã© automÃ¡tico
+                  // Se não foi marcado como manual anteriormente, Ã© automático
                   return false;
                 })() ? (
                   <div
@@ -692,7 +692,7 @@ export default function AddressMapModal({
                 ) : (
                   <div
                     className="flex items-center rounded-md bg-green-50 px-2 py-1 text-green-600 dark:bg-green-900/20 dark:text-green-400"
-                    title="Coordenadas obtidas automaticamente do endereÃ§o"
+                    title="Coordenadas obtidas automaticamente do endereço"
                   >
                     <svg className="mr-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                       <path
@@ -701,7 +701,7 @@ export default function AddressMapModal({
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="text-xs font-medium">LocalizaÃ§Ã£o AutomÃ¡tica</span>
+                    <span className="text-xs font-medium">Localização Automática</span>
                   </div>
                 )}
               </div>
@@ -720,23 +720,23 @@ export default function AddressMapModal({
                 type="button"
                 onClick={handleConfirm}
                 showIcon={false}
-                label="Confirmar LocalizaÃ§Ã£o"
+                label="Confirmar Localização"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal de ConfirmaÃ§Ã£o de Busca */}
+      {/* Modal de Confirmação de Busca */}
       <Modal
         isOpen={showSearchConfirm}
         onClose={() => setShowSearchConfirm(false)}
-        title="LocalizaÃ§Ã£o Manual Detectada"
+        title="Localização Manual Detectada"
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          VocÃª possui uma localizaÃ§Ã£o salva manualmente. Ao buscar o endereÃ§o, as coordenadas
-          atuais serÃ£o substituÃ­das pelas novas coordenadas encontradas.
+          VocÃª possui uma localização salva manualmente. Ao buscar o endereço, as coordenadas
+          atuais serão substituÃ­das pelas novas coordenadas encontradas.
         </p>
         <p className="mt-2 text-gray-600 dark:text-gray-400">Deseja continuar com a busca?</p>
 

@@ -65,7 +65,7 @@ export default function PatientContactForm({
   const handleUpdateContact = (index: number, field: keyof PatientContact, value: any) => {
     const newContacts = [...contacts];
 
-    // Se marcando como primÃ¡rio, desmarcar os outros
+    // Se marcando como primário, desmarcar os outros
     if (field === 'is_primary' && value === true) {
       newContacts.forEach((contact, i) => {
         if (i !== index) {
@@ -231,8 +231,8 @@ export default function PatientContactForm({
               </div>
 
               <Textarea
-                label="ObservaÃ§Ãµes"
-                placeholder="InformaÃ§Ãµes adicionais sobre este contato"
+                label="ObservaçÃµes"
+                placeholder="InformaçÃµes adicionais sobre este contato"
                 value={contact.notes || ''}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   handleUpdateContact(index, 'notes', e.target.value)
@@ -249,7 +249,7 @@ export default function PatientContactForm({
                   }
                 />
                 <Switch
-                  label="Pode Receber AtualizaÃ§Ãµes"
+                  label="Pode Receber AtualizaçÃµes"
                   checked={contact.can_receive_updates}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleUpdateContact(index, 'can_receive_updates', e.target.checked)

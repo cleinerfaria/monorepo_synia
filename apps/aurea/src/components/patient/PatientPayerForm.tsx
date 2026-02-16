@@ -50,7 +50,7 @@ export default function PatientPayerForm({
   const handleUpdatePayer = (index: number, field: keyof PatientPayer, value: any) => {
     const newPayers = [...payers];
 
-    // Se marcando como primÃ¡rio, desmarcar os outros
+    // Se marcando como primário, desmarcar os outros
     if (field === 'is_primary' && value === true) {
       newPayers.forEach((payer, i) => {
         if (i !== index) {
@@ -78,12 +78,12 @@ export default function PatientPayerForm({
 
   const getClientName = (clientId: string): string => {
     const client = clients.find((c) => c.id === clientId);
-    return client?.name || 'Cliente nÃ£o encontrado';
+    return client?.name || 'Cliente não encontrado';
   };
 
   const getClientType = (clientId: string): string => {
     const client = clients.find((c) => c.id === clientId);
-    if (!client?.type) return 'NÃ£o definido';
+    if (!client?.type) return 'Não definido';
 
     const typeLabels: Record<string, string> = {
       pessoa_fisica: 'Pessoa FÃ­sica',
@@ -99,7 +99,7 @@ export default function PatientPayerForm({
       corporate: 'Empresa',
       insurance: 'Operadora',
       health_plan: 'Plano de SaÃºde',
-      government: 'Ã“rgÃ£o PÃºblico',
+      government: 'Ã“rgão PÃºblico',
     };
 
     return typeLabels[client.type.toLowerCase()] || client.type;
@@ -159,9 +159,7 @@ export default function PatientPayerForm({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {payer.client_id
-                        ? getClientName(payer.client_id)
-                        : 'Cliente nÃ£o selecionado'}
+                      {payer.client_id ? getClientName(payer.client_id) : 'Cliente não selecionado'}
                     </span>
                     {payer.is_primary && (
                       <span className="border-primary-500/30 bg-primary-500/10 text-primary-700 dark:bg-primary-400/20 dark:text-primary-300 rounded border px-2 py-0.5 text-xs font-semibold">
@@ -177,7 +175,7 @@ export default function PatientPayerForm({
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {payer.client_id ? getClientType(payer.client_id) : 'Tipo nÃ£o definido'}
+                    {payer.client_id ? getClientType(payer.client_id) : 'Tipo não definido'}
                   </p>
                 </div>
                 <div>
@@ -260,8 +258,8 @@ export default function PatientPayerForm({
               </div>
 
               <Textarea
-                label="ObservaÃ§Ãµes"
-                placeholder="InformaÃ§Ãµes adicionais sobre esta fonte pagadora"
+                label="ObservaçÃµes"
+                placeholder="InformaçÃµes adicionais sobre esta fonte pagadora"
                 value={payer.notes || ''}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   handleUpdatePayer(index, 'notes', e.target.value)

@@ -126,7 +126,7 @@ export default function ProductFormPage() {
     return location.search ? `/produtos${location.search}` : '/produtos';
   }, [location.search]);
 
-  // Contexto de navegaÃ§Ã£o protegida
+  // Contexto de navegação protegida
   const {
     setHasUnsavedChanges: setGlobalUnsavedChanges,
     safeNavigate,
@@ -153,7 +153,7 @@ export default function ProductFormPage() {
   const [selectedPresentationManufacturerId, setSelectedPresentationManufacturerId] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('');
 
-  // Estado para sugestÃ£o de cadastro de fabricante
+  // Estado para sugestão de cadastro de fabricante
   const [suggestedManufacturer, setSuggestedManufacturer] = useState<{
     name: string;
     cnpj: string;
@@ -162,11 +162,11 @@ export default function ProductFormPage() {
     null
   );
 
-  // Estado para controlar erros de validaÃ§Ã£o manual
+  // Estado para controlar erros de validação manual
   const [unitStockError, setUnitStockError] = useState(false);
   const [unitPrescriptionError, setUnitPrescriptionError] = useState(false);
 
-  // Estado para loading ao criar apresentaÃ§Ã£o a partir da ref
+  // Estado para loading ao criar apresentação a partir da ref
   const [isLoadingRefData, setIsLoadingRefData] = useState(false);
 
   // Busca o produto se estiver editando
@@ -180,7 +180,7 @@ export default function ProductFormPage() {
   const { data: searchedActiveIngredients = [] } = useSearchActiveIngredients(
     activeIngredientSearchTerm
   );
-  // Busca o item selecionado especificamente (para garantir que apareÃ§a no dropdown)
+  // Busca o item selecionado especificamente (para garantir que apareça no dropdown)
   const { data: selectedActiveIngredient } = useActiveIngredient(
     selectedActiveIngredientId || undefined
   );
@@ -212,7 +212,7 @@ export default function ProductFormPage() {
   const updatePresentation = useUpdatePresentation();
   const deletePresentation = useDeletePresentation();
 
-  // Estado local para rastrear mudanÃ§as nÃ£o salvas (alÃ©m do isDirty do formulÃ¡rio)
+  // Estado local para rastrear mudanças não salvas (alÃ©m do isDirty do formulário)
   const [localUnsavedChanges, setLocalUnsavedChanges] = useState(false);
 
   const {
@@ -224,7 +224,7 @@ export default function ProductFormPage() {
     formState: { errors, isDirty },
   } = useForm<ProductFormData>();
 
-  // Sincronizar estado de mudanÃ§as nÃ£o salvas com o contexto global
+  // Sincronizar estado de mudanças não salvas com o contexto global
   useEffect(() => {
     setGlobalUnsavedChanges(isDirty || localUnsavedChanges);
     return () => {
@@ -233,7 +233,7 @@ export default function ProductFormPage() {
     };
   }, [isDirty, localUnsavedChanges, setGlobalUnsavedChanges]);
 
-  // Alerta do browser ao fechar/recarregar a pÃ¡gina
+  // Alerta do browser ao fechar/recarregar a página
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty || localUnsavedChanges) {
@@ -285,7 +285,7 @@ export default function ProductFormPage() {
   const activeValue = watch('active');
   const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
 
-  // Inicializa o formulÃ¡rio quando o produto Ã© carregado
+  // Inicializa o formulário quando o produto Ã© carregado
   useEffect(() => {
     if (isEditing && product) {
       reset({
@@ -428,17 +428,17 @@ export default function ProductFormPage() {
   const normalizeUpper = (value: string) => value.toUpperCase();
 
   const onSubmit = async (data: ProductFormData) => {
-    // ValidaÃ§Ã£o manual da unidade jÃ¡ que estamos usando estado controlado
+    // Validação manual da unidade já que estamos usando estado controlado
     if (!selectedStockUnitId) {
       setUnitStockError(true);
-      toast.error('Preencha todos os campos obrigatÃ³rios');
+      toast.error('Preencha todos os campos obrigatórios');
       return;
     }
     setUnitStockError(false);
 
     if (!selectedPrescriptionUnitId) {
       setUnitPrescriptionError(true);
-      toast.error('Preencha todos os campos obrigatÃ³rios');
+      toast.error('Preencha todos os campos obrigatórios');
       return;
     }
     setUnitPrescriptionError(false);
@@ -472,24 +472,24 @@ export default function ProductFormPage() {
     } else {
       await createItem.mutateAsync(payload);
     }
-    // Resetar estados de alteraÃ§Ãµes nÃ£o salvas antes de navegar
+    // Resetar estados de alteraçÃµes não salvas antes de navegar
     setLocalUnsavedChanges(false);
     navigate(productsListPath);
   };
 
-  // FunÃ§Ã£o para salvar sem sair da pÃ¡gina
+  // Função para salvar sem sair da página
   const onSaveWithoutExit = async (data: ProductFormData) => {
-    // ValidaÃ§Ã£o manual da unidade jÃ¡ que estamos usando estado controlado
+    // Validação manual da unidade já que estamos usando estado controlado
     if (!selectedStockUnitId) {
       setUnitStockError(true);
-      toast.error('Preencha todos os campos obrigatÃ³rios');
+      toast.error('Preencha todos os campos obrigatórios');
       return;
     }
     setUnitStockError(false);
 
     if (!selectedPrescriptionUnitId) {
       setUnitPrescriptionError(true);
-      toast.error('Preencha todos os campos obrigatÃ³rios');
+      toast.error('Preencha todos os campos obrigatórios');
       return;
     }
     setUnitPrescriptionError(false);
@@ -523,7 +523,7 @@ export default function ProductFormPage() {
     } else {
       await createItem.mutateAsync(payload);
     }
-    // Resetar estado de alteraÃ§Ãµes nÃ£o salvas mas permanecer na pÃ¡gina
+    // Resetar estado de alteraçÃµes não salvas mas permanecer na página
     setLocalUnsavedChanges(false);
     toast.success(isEditing ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!');
   };
@@ -563,12 +563,12 @@ export default function ProductFormPage() {
   };
 
   /**
-   * Abre o modal para vincular uma apresentaÃ§Ã£o com as tabelas de referÃªncia
+   * Abre o modal para vincular uma apresentação com as tabelas de referÃªncia
    * Busca o item no EAN e mostra as fontes disponÃ­veis (CMED, BrasÃ­ndice, Simpro)
    */
   const openLinkPresentationModal = async (presentation: ProductPresentation) => {
     if (!presentation.barcode) {
-      toast.error('Esta apresentaÃ§Ã£o nÃ£o possui cÃ³digo de barras (EAN)');
+      toast.error('Esta apresentação não possui código de barras (EAN)');
       return;
     }
 
@@ -582,14 +582,14 @@ export default function ProductFormPage() {
       const unifiedData = await fetchRefItemUnifiedByEan(presentation.barcode);
 
       if (!unifiedData) {
-        toast.error('Item nÃ£o encontrado nas tabelas de referÃªncia');
+        toast.error('Item não encontrado nas tabelas de referÃªncia');
         setIsPresentationLinkModalOpen(false);
         return;
       }
 
       setPresentationLinkData(unifiedData);
     } catch (error) {
-      console.error('Erro ao buscar item para vinculaÃ§Ã£o:', error);
+      console.error('Erro ao buscar item para vinculação:', error);
       toast.error('Erro ao buscar item nas tabelas de referÃªncia');
       setIsPresentationLinkModalOpen(false);
     } finally {
@@ -598,8 +598,8 @@ export default function ProductFormPage() {
   };
 
   /**
-   * Abre o modal de apresentaÃ§Ã£o prÃ©-preenchido com dados da view vw_ref_item_unified
-   * Busca pelo EAN vinculado e preenche: nome, quantidade (fator de conversÃ£o), EAN (barcode), unidade
+   * Abre o modal de apresentação prÃ©-preenchido com dados da view vw_ref_item_unified
+   * Busca pelo EAN vinculado e preenche: nome, quantidade (fator de conversão), EAN (barcode), unidade
    */
   const _openPresentationFromRefItem = async (refItemEan: string) => {
     if (!product || !refItemEan) return;
@@ -611,7 +611,7 @@ export default function ProductFormPage() {
       console.warn('Dados da view unificada:', unifiedData);
 
       if (!unifiedData) {
-        toast.error('Dados nÃ£o encontrados na view unificada');
+        toast.error('Dados não encontrados na view unificada');
         return;
       }
 
@@ -625,15 +625,15 @@ export default function ProductFormPage() {
   };
 
   /**
-   * Callback quando um item Ã© selecionado no modal de busca de apresentaÃ§Ãµes
-   * Preenche os dados no formulÃ¡rio de apresentaÃ§Ã£o
+   * Callback quando um item Ã© selecionado no modal de busca de apresentaçÃµes
+   * Preenche os dados no formulário de apresentação
    */
   const handleSelectRefItemForPresentation = useCallback(
     (item: RefItemUnified) => {
       if (!product) return;
 
       // Determinar a unidade de entrada baseado na unidade do item
-      // Se a unidade for "ml", usar "Frasco", senÃ£o usar "Caixa"
+      // Se a unidade for "ml", usar "Frasco", senão usar "Caixa"
       let unitId = '';
       const itemUnidade = item.unit?.toLowerCase() || '';
 
@@ -646,7 +646,7 @@ export default function ProductFormPage() {
         }
       }
 
-      // Se nÃ£o encontrou Frasco ou a unidade nÃ£o Ã© ml, usar Caixa como padrÃ£o
+      // Se não encontrou Frasco ou a unidade não Ã© ml, usar Caixa como padrão
       if (!unitId) {
         const caixaUnit = unitsOfMeasure.find(
           (u) => u.code.toLowerCase() === 'cx' || u.name.toLowerCase() === 'caixa'
@@ -656,10 +656,10 @@ export default function ProductFormPage() {
         }
       }
 
-      // Busca por CNPJ removida pois nÃ£o existe fabricante_cnpj em item
+      // Busca por CNPJ removida pois não existe fabricante_cnpj em item
       let manufacturerId = '';
 
-      // Se nÃ£o encontrou pelo CNPJ, tentar pelo nome
+      // Se não encontrou pelo CNPJ, tentar pelo nome
       if (!manufacturerId && item.manufacturer) {
         const matchedManufacturer = manufacturers.find(
           (m) =>
@@ -671,7 +671,7 @@ export default function ProductFormPage() {
         }
       }
 
-      // Se nÃ£o encontrou fabricante, guardar sugestÃ£o para cadastro
+      // Se não encontrou fabricante, guardar sugestão para cadastro
       if (!manufacturerId && item.manufacturer) {
         setSuggestedManufacturer({
           name: item.manufacturer,
@@ -681,13 +681,13 @@ export default function ProductFormPage() {
         setSuggestedManufacturer(null);
       }
 
-      // Converter quantidade para nÃºmero vÃ¡lido
+      // Converter quantidade para nÃºmero válido
       const quantidade = item.quantity ? Number(item.quantity) : 1;
 
       // Fechar o modal de busca
       setIsPresentationSearchModalOpen(false);
 
-      // Preencher o formulÃ¡rio de apresentaÃ§Ã£o
+      // Preencher o formulário de apresentação
       setSelectedPresentation(null);
       setSelectedPresentationUnit(unitId);
       setSelectedPresentationManufacturerId(manufacturerId);
@@ -699,7 +699,7 @@ export default function ProductFormPage() {
         manufacturer_id: manufacturerId,
       });
 
-      // Abrir o modal de ediÃ§Ã£o
+      // Abrir o modal de edição
       setIsPresentationModalOpen(true);
     },
     [product, unitsOfMeasure, manufacturers, resetPresentation]
@@ -747,12 +747,12 @@ export default function ProductFormPage() {
               if (!selectedPrescriptionUnitId) {
                 setUnitPrescriptionError(true);
               }
-              toast.error('Preencha todos os campos obrigatÃ³rios');
+              toast.error('Preencha todos os campos obrigatórios');
             })}
             variant="solid"
             showIcon={false}
             disabled={createItem.isPending || updateItem.isPending}
-            label={isEditing ? 'Salvar AlteraÃ§Ãµes' : 'Criar Produto'}
+            label={isEditing ? 'Salvar AlteraçÃµes' : 'Criar Produto'}
           />
         </div>
       </div>
@@ -779,7 +779,7 @@ export default function ProductFormPage() {
                       ) : undefined
                     }
                   >
-                    ApresentaÃ§Ãµes
+                    ApresentaçÃµes
                   </TabButton>
                   <TabButton
                     active={activeTab === 'references'}
@@ -799,7 +799,7 @@ export default function ProductFormPage() {
               )}
             </div>
 
-            {/* BotÃ£o de salvar no canto direito */}
+            {/* Botão de salvar no canto direito */}
             <button
               type="button"
               onClick={handleSubmit(onSaveWithoutExit, () => {
@@ -809,11 +809,11 @@ export default function ProductFormPage() {
                 if (!selectedPrescriptionUnitId) {
                   setUnitPrescriptionError(true);
                 }
-                toast.error('Preencha todos os campos obrigatÃ³rios');
+                toast.error('Preencha todos os campos obrigatórios');
               })}
               disabled={createItem.isPending || updateItem.isPending}
               className="border-primary-300/50 bg-primary-100/30 text-primary-800 hover:bg-primary-100/50 hover:text-primary-900 dark:border-primary-700/50 dark:bg-primary-900/40 dark:text-primary-300 dark:hover:bg-primary-900/60 flex h-8 w-8 items-center justify-center rounded-md border transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-              title="Salvar alteraÃ§Ãµes"
+              title="Salvar alteraçÃµes"
             >
               {createItem.isPending || updateItem.isPending ? (
                 <Loading size="sm" />
@@ -837,18 +837,18 @@ export default function ProductFormPage() {
                   { value: 'diet', label: 'Dieta' },
                 ]}
                 value={watchItemType}
-                {...register('item_type', { required: 'Tipo Ã© obrigatÃ³rio' })}
+                {...register('item_type', { required: 'Tipo Ã© obrigatório' })}
                 required
               />
 
-              {/* Nome + ConcentraÃ§Ã£o na mesma linha */}
+              {/* Nome + Concentração na mesma linha */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-8">
-                <Input label="CÃ³digo" placeholder="CÃ³digo" {...register('code')} />
+                <Input label="Código" placeholder="Código" {...register('code')} />
                 <div className="md:col-span-5">
                   <Input
                     label="Nome"
                     placeholder="Nome do produto"
-                    {...register('name', { required: 'Nome Ã© obrigatÃ³rio' })}
+                    {...register('name', { required: 'Nome Ã© obrigatório' })}
                     error={errors.name?.message}
                     required
                   />
@@ -856,7 +856,7 @@ export default function ProductFormPage() {
                 {watchItemType === 'medication' && (
                   <div className="md:col-span-2">
                     <Input
-                      label="ConcentraÃ§Ã£o"
+                      label="Concentração"
                       placeholder="Ex: 25mg, 500mg/5ml"
                       {...register('concentration')}
                     />
@@ -877,13 +877,13 @@ export default function ProductFormPage() {
                     setSelectedStockUnitId(newValue);
                     if (newValue) setUnitStockError(false);
                   }}
-                  error={unitStockError ? 'ObrigatÃ³ria' : undefined}
+                  error={unitStockError ? 'Obrigatória' : undefined}
                   required
                   onCreateNew={openNewUnitModal}
                   createNewLabel="Cadastrar nova unidade"
                 />
                 <SearchableSelect
-                  label="Unidade de PrescriÃ§Ã£o"
+                  label="Unidade de Prescrição"
                   options={unitOptions}
                   placeholder="Selecione..."
                   searchPlaceholder="Buscar unidade..."
@@ -893,7 +893,7 @@ export default function ProductFormPage() {
                     setSelectedPrescriptionUnitId(newValue);
                     if (newValue) setUnitPrescriptionError(false);
                   }}
-                  error={unitPrescriptionError ? 'ObrigatÃ³ria' : undefined}
+                  error={unitPrescriptionError ? 'Obrigatória' : undefined}
                   required
                   onCreateNew={openNewUnitModal}
                   createNewLabel="Cadastrar nova unidade"
@@ -901,13 +901,13 @@ export default function ProductFormPage() {
                 <div className="w-full">
                   <div className="flex items-center gap-1">
                     <label htmlFor="unit_prescription_factor" className="label">
-                      Fator PrescriÃ§Ã£o
+                      Fator Prescrição
                       <span className="text-feedback-danger-fg ml-1">*</span>
                     </label>
                     <span
                       className="mb-1 inline-flex h-4 w-4 items-center justify-center text-gray-600 dark:border-gray-600 dark:text-gray-300"
-                      title="Informe quantas unidades de prescriÃ§Ã£o equivalem a 1 unidade base (estoque). Ex.: 1 frasco = 20 gotas â†’ fator 20."
-                      aria-label="InformaÃ§Ã£o sobre fator de prescriÃ§Ã£o"
+                      title="Informe quantas unidades de prescrição equivalem a 1 unidade base (estoque). Ex.: 1 frasco = 20 gotas â†’ fator 20."
+                      aria-label="Informação sobre fator de prescrição"
                     >
                       <Info className="h-3 w-3" />
                     </span>
@@ -919,7 +919,7 @@ export default function ProductFormPage() {
                     step="any"
                     placeholder="1"
                     {...register('unit_prescription_factor', {
-                      required: 'Fator Ã© obrigatÃ³rio',
+                      required: 'Fator Ã© obrigatório',
                       valueAsNumber: true,
                       min: { value: 0.001, message: 'MÃ­nimo: 0,001' },
                     })}
@@ -935,8 +935,8 @@ export default function ProductFormPage() {
                   placeholder="0"
                   {...register('min_stock', { valueAsNumber: true })}
                 />
-                <Input label="TUSS" placeholder="CÃ³digo TUSS" {...register('tuss_ref')} />
-                <Input label="TISS" placeholder="CÃ³digo TISS" {...register('tiss_ref')} />
+                <Input label="TUSS" placeholder="Código TUSS" {...register('tuss_ref')} />
+                <Input label="TISS" placeholder="Código TISS" {...register('tiss_ref')} />
               </div>
 
               {/* Campos especÃ­ficos para medicamentos - PrincÃ­pio Ativo + Grupo */}
@@ -951,7 +951,7 @@ export default function ProductFormPage() {
                         label: ai.name,
                       }));
 
-                      // Se hÃ¡ um item selecionado que nÃ£o estÃ¡ na busca, adiciona-o usando o hook dedicado
+                      // Se há um item selecionado que não está na busca, adiciona-o usando o hook dedicado
                       if (selectedActiveIngredientId && selectedActiveIngredient) {
                         const isInSearch = searchOptions.some(
                           (opt) => opt.value === selectedActiveIngredientId
@@ -998,18 +998,18 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* DescriÃ§Ã£o por Ãºltimo */}
+              {/* Descrição por Ãºltimo */}
               <Textarea
-                label="DescriÃ§Ã£o"
-                placeholder="DescriÃ§Ã£o detalhada, composiÃ§Ã£o, indicaÃ§Ãµes..."
+                label="Descrição"
+                placeholder="Descrição detalhada, composição, indicaçÃµes..."
                 {...register('description')}
               />
 
-              {/* Switches de classificaÃ§Ã£o - apenas para medicamentos */}
+              {/* Switches de classificação - apenas para medicamentos */}
               {watchItemType === 'medication' && (
                 <div className="flex items-center gap-6">
-                  <SwitchNew label="PsicotrÃ³pico" {...register('psychotropic')} />
-                  <SwitchNew label="AntibiÃ³tico" {...register('antibiotic')} />
+                  <SwitchNew label="Psicotrópico" {...register('psychotropic')} />
+                  <SwitchNew label="Antibiótico" {...register('antibiotic')} />
                   <SwitchNew
                     label="Status"
                     showStatus
@@ -1024,7 +1024,7 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* Status - quando nÃ£o Ã© medicamento */}
+              {/* Status - quando não Ã© medicamento */}
               {watchItemType !== 'medication' && (
                 <SwitchNew
                   label="Status"
@@ -1048,7 +1048,7 @@ export default function ProductFormPage() {
               <div>
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    ApresentaÃ§Ãµes Cadastradas
+                    ApresentaçÃµes Cadastradas
                   </h3>
                   <div className="flex items-center gap-2">
                     <Button
@@ -1093,13 +1093,13 @@ export default function ProductFormPage() {
                             Fabricante
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            ConversÃ£o
+                            Conversão
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                             EAN
                           </th>
                           <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            AÃ§Ãµes
+                            AçÃµes
                           </th>
                         </tr>
                       </thead>
@@ -1187,7 +1187,7 @@ export default function ProductFormPage() {
                 ) : (
                   <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center text-gray-500 dark:border-gray-700 dark:text-gray-400">
                     <Box className="mx-auto mb-3 h-12 w-12 opacity-50" />
-                    <p className="font-medium">Nenhuma apresentaÃ§Ã£o cadastrada</p>
+                    <p className="font-medium">Nenhuma apresentação cadastrada</p>
                     <p className="mt-1 text-sm">
                       Busque nas tabelas CMED, BrasÃ­ndice e Simpro ou cadastre manualmente
                     </p>
@@ -1275,7 +1275,7 @@ export default function ProductFormPage() {
                           className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
                         >
                           <div className="flex items-center gap-4">
-                            {/* BotÃ£o estrela para definir como principal */}
+                            {/* Botão estrela para definir como principal */}
                             <button
                               type="button"
                               onClick={() => {
@@ -1332,12 +1332,12 @@ export default function ProductFormPage() {
                                   <span className="font-medium">{refItem.manufacturer_name}</span>
                                 )}
                                 {refItem?.manufacturer_name && refItem?.external_code && ' â€¢ '}
-                                CÃ³d: {refItem?.external_code}
+                                Cód: {refItem?.external_code}
                                 {refItem?.ean && ` â€¢ EAN: ${refItem.ean}`}
                               </p>
                             </div>
 
-                            {/* Data de atualizaÃ§Ã£o */}
+                            {/* Data de atualização */}
                             <div className="mr-12 min-w-[70px] shrink-0 text-center">
                               <p className="text-[10px] uppercase text-gray-400">Atualizado</p>
                               <p className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -1375,7 +1375,7 @@ export default function ProductFormPage() {
                               </div>
                             </div>
 
-                            {/* BotÃ£o remover */}
+                            {/* Botão remover */}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -1408,7 +1408,7 @@ export default function ProductFormPage() {
                   <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Buscar por nome, cÃ³digo ou EAN nas tabelas de referÃªncia..."
+                    placeholder="Buscar por nome, código ou EAN nas tabelas de referÃªncia..."
                     value={refSearchTerm}
                     onChange={(e) => setRefSearchTerm(e.target.value)}
                     className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-4 text-gray-900 placeholder-gray-400 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -1428,7 +1428,7 @@ export default function ProductFormPage() {
                     ) : (
                       <div className="divide-y divide-gray-200 dark:divide-gray-700">
                         {searchResults.map((item: RefItemUnified) => {
-                          // Verifica quais fontes jÃ¡ estÃ£o vinculadas para este produto
+                          // Verifica quais fontes já estão vinculadas para este produto
                           const linkedSourceIds = productRefLinks.map((l: any) => l.ref_item_id);
                           const hasCmed =
                             item.cmed_item_id && linkedSourceIds.includes(item.cmed_item_id);
@@ -1470,7 +1470,7 @@ export default function ProductFormPage() {
                                   {item.name}
                                 </p>
 
-                                {/* Detalhes: substÃ¢ncia e concentraÃ§Ã£o */}
+                                {/* Detalhes: substÃ¢ncia e concentração */}
                                 {(item.substance || item.concentration) && (
                                   <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
                                     {item.substance}
@@ -1486,7 +1486,7 @@ export default function ProductFormPage() {
                                   </p>
                                 )}
 
-                                {/* CÃ³digos */}
+                                {/* Códigos */}
                                 <div className="mt-1 space-x-2 text-xs text-gray-500 dark:text-gray-400">
                                   <span>EAN: {item.ean}</span>
                                   {item.ggrem_code && <span>â€¢ GGREM: {item.ggrem_code}</span>}
@@ -1494,7 +1494,7 @@ export default function ProductFormPage() {
                                   {item.tuss && <span>â€¢ TUSS: {item.tuss}</span>}
                                 </div>
 
-                                {/* CÃ³digos por fonte */}
+                                {/* Códigos por fonte */}
                                 <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                   {item.brasindice_code && (
                                     <span>BrasÃ­ndice: {item.brasindice_code} </span>
@@ -1577,7 +1577,7 @@ export default function ProductFormPage() {
                                 )}
                                 {allLinked && (
                                   <span className="text-xs text-gray-400">
-                                    Todas as fontes jÃ¡ vinculadas
+                                    Todas as fontes já vinculadas
                                   </span>
                                 )}
                               </div>
@@ -1598,14 +1598,14 @@ export default function ProductFormPage() {
       <Modal
         isOpen={isPresentationModalOpen}
         onClose={() => setIsPresentationModalOpen(false)}
-        title={selectedPresentation ? 'Editar ApresentaÃ§Ã£o' : 'Nova ApresentaÃ§Ã£o'}
+        title={selectedPresentation ? 'Editar Apresentação' : 'Nova Apresentação'}
         size="lg"
       >
         <form onSubmit={handleSubmitPresentation(onSubmitPresentation)} className="space-y-4">
           {product && (
             <Alert tone="warning">
               <p>
-                ApresentaÃ§Ã£o para:{' '}
+                Apresentação para:{' '}
                 <strong>
                   {product.name}
                   {product.concentration && ` ${product.concentration}`}
@@ -1617,12 +1617,12 @@ export default function ProductFormPage() {
             </Alert>
           )}
 
-          {/* Linha 1: Nome da ApresentaÃ§Ã£o */}
+          {/* Linha 1: Nome da Apresentação */}
           <Input
-            label="Nome da ApresentaÃ§Ã£o"
+            label="Nome da Apresentação"
             placeholder="Ex: Caixa 30 comp, Blister 10 comp"
             {...registerPresentation('name', {
-              required: 'Nome Ã© obrigatÃ³rio',
+              required: 'Nome Ã© obrigatório',
             })}
             error={presentationErrors.name?.message}
             required
@@ -1632,7 +1632,7 @@ export default function ProductFormPage() {
           {suggestedManufacturer && !selectedPresentationManufacturerId && (
             <Alert tone="info">
               <p className="mb-2">
-                Fabricante <strong>"{suggestedManufacturer.name}"</strong> nÃ£o encontrado no
+                Fabricante <strong>"{suggestedManufacturer.name}"</strong> não encontrado no
                 cadastro.
               </p>
               <button
@@ -1674,16 +1674,16 @@ export default function ProductFormPage() {
               required
             />
             <Input
-              label="CÃ³digo de Barras (EAN)"
+              label="Código de Barras (EAN)"
               placeholder="7891234567890"
               {...registerPresentation('barcode')}
             />
           </div>
 
-          {/* Linha 3: ConversÃ£o visual - 1 [Unidade Entrada] = [Fator] [Unidade Base] */}
+          {/* Linha 3: Conversão visual - 1 [Unidade Entrada] = [Fator] [Unidade Base] */}
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
             <label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              ConversÃ£o de Unidades
+              Conversão de Unidades
             </label>
             <div className="flex flex-wrap items-center gap-3">
               {/* Numeral 1 */}
@@ -1719,7 +1719,7 @@ export default function ProductFormPage() {
                 <span className="text-xl font-bold text-gray-500 dark:text-gray-400">=</span>
               </div>
 
-              {/* Fator de ConversÃ£o */}
+              {/* Fator de Conversão */}
               <div className="w-24">
                 <Input
                   label="Fator"
@@ -1728,7 +1728,7 @@ export default function ProductFormPage() {
                   step="any"
                   placeholder="30"
                   {...registerPresentation('conversion_factor', {
-                    required: 'Fator Ã© obrigatÃ³rio',
+                    required: 'Fator Ã© obrigatório',
                     valueAsNumber: true,
                     min: { value: 0.001, message: 'MÃ­nimo: 0.001' },
                   })}
@@ -1787,22 +1787,20 @@ export default function ProductFormPage() {
           className="space-y-4"
         >
           <Alert tone="info">
-            <p>
-              ApÃ³s salvar, o princÃ­pio ativo serÃ¡ selecionado automaticamente no formulÃ¡rio.
-            </p>
+            <p>Após salvar, o princÃ­pio ativo será selecionado automaticamente no formulário.</p>
           </Alert>
 
           <Input
             label="Nome do PrincÃ­pio Ativo"
             placeholder="Ex: Dipirona, Paracetamol, Amoxicilina"
-            {...registerNewActiveIngredient('name', { required: 'Nome Ã© obrigatÃ³rio' })}
+            {...registerNewActiveIngredient('name', { required: 'Nome Ã© obrigatório' })}
             error={newActiveIngredientErrors.name?.message}
             required
           />
 
           <Textarea
-            label="DescriÃ§Ã£o (opcional)"
-            placeholder="DescriÃ§Ã£o, indicaÃ§Ãµes, observaÃ§Ãµes..."
+            label="Descrição (opcional)"
+            placeholder="Descrição, indicaçÃµes, observaçÃµes..."
             rows={3}
             {...registerNewActiveIngredient('description')}
           />
@@ -1838,13 +1836,13 @@ export default function ProductFormPage() {
           className="space-y-4"
         >
           <Alert tone="info">
-            <p>ApÃ³s salvar, o fabricante serÃ¡ selecionado automaticamente no formulÃ¡rio.</p>
+            <p>Após salvar, o fabricante será selecionado automaticamente no formulário.</p>
           </Alert>
 
           <Input
-            label="RazÃ£o Social"
+            label="Razão Social"
             placeholder="Nome completo da empresa"
-            {...registerNewManufacturer('name', { required: 'RazÃ£o social Ã© obrigatÃ³ria' })}
+            {...registerNewManufacturer('name', { required: 'Razão social Ã© obrigatória' })}
             error={newManufacturerErrors.name?.message}
             required
           />
@@ -1889,19 +1887,19 @@ export default function ProductFormPage() {
       >
         <form onSubmit={handleSubmitNewGroup(handleCreateGroup)} className="space-y-4">
           <Alert tone="info">
-            <p>ApÃ³s salvar, o grupo serÃ¡ selecionado automaticamente no formulÃ¡rio.</p>
+            <p>Após salvar, o grupo será selecionado automaticamente no formulário.</p>
           </Alert>
 
           <Input
-            label="CÃ³digo (opcional)"
-            placeholder="CÃ³digo do grupo"
+            label="Código (opcional)"
+            placeholder="Código do grupo"
             {...registerNewGroup('code')}
           />
 
           <Input
             label="Nome"
             placeholder="Nome do grupo"
-            {...registerNewGroup('name', { required: 'Nome Ã© obrigatÃ³rio' })}
+            {...registerNewGroup('name', { required: 'Nome Ã© obrigatório' })}
             error={newGroupErrors.name?.message}
             required
           />
@@ -1947,9 +1945,9 @@ export default function ProductFormPage() {
           <div className="grid grid-cols-2 gap-4 p-4">
             <div>
               <Input
-                label="CÃ³digo"
+                label="Código"
                 placeholder="UN, CX, FR..."
-                {...registerNewUnit('code', { required: 'CÃ³digo Ã© obrigatÃ³rio' })}
+                {...registerNewUnit('code', { required: 'Código Ã© obrigatório' })}
                 error={newUnitErrors.code?.message}
                 required
               />
@@ -1958,7 +1956,7 @@ export default function ProductFormPage() {
               <Input
                 label="SÃ­mbolo"
                 placeholder="un, cx, fr..."
-                {...registerNewUnit('symbol', { required: 'SÃ­mbolo Ã© obrigatÃ³rio' })}
+                {...registerNewUnit('symbol', { required: 'SÃ­mbolo Ã© obrigatório' })}
                 error={newUnitErrors.symbol?.message}
                 required
               />
@@ -1967,7 +1965,7 @@ export default function ProductFormPage() {
               <Input
                 label="Nome"
                 placeholder="Unidade, Caixa, Frasco..."
-                {...registerNewUnit('name', { required: 'Nome Ã© obrigatÃ³rio' })}
+                {...registerNewUnit('name', { required: 'Nome Ã© obrigatório' })}
                 error={newUnitErrors.name?.message}
                 required
               />
@@ -1975,8 +1973,8 @@ export default function ProductFormPage() {
           </div>
           <div className="px-4">
             <Input
-              label="DescriÃ§Ã£o"
-              placeholder="DescriÃ§Ã£o opcional"
+              label="Descrição"
+              placeholder="Descrição opcional"
               {...registerNewUnit('description')}
             />
           </div>
@@ -2000,7 +1998,7 @@ export default function ProductFormPage() {
         </form>
       </Modal>
 
-      {/* Modal Vincular ApresentaÃ§Ã£o com Tabelas de ReferÃªncia */}
+      {/* Modal Vincular Apresentação com Tabelas de ReferÃªncia */}
       <Modal
         isOpen={isPresentationLinkModalOpen}
         onClose={() => {
@@ -2009,7 +2007,7 @@ export default function ProductFormPage() {
           setPresentationForLinking(null);
           setIsLoadingRefData(false);
         }}
-        title="Vincular ApresentaÃ§Ã£o com Tabelas de ReferÃªncia"
+        title="Vincular Apresentação com Tabelas de ReferÃªncia"
         size="lg"
       >
         {isLoadingRefData ? (
@@ -2066,7 +2064,7 @@ export default function ProductFormPage() {
                         <div className="flex flex-1 flex-col items-start gap-1">
                           {presentationLinkData.cmed_pf_date && (
                             <span className="text-xs text-gray-600 dark:text-gray-400">
-                              Data de atualizaÃ§Ã£o:{' '}
+                              Data de atualização:{' '}
                               {formatDateOnly(presentationLinkData.cmed_pf_date)}
                             </span>
                           )}
@@ -2139,7 +2137,7 @@ export default function ProductFormPage() {
                         <div className="flex flex-1 flex-col items-start gap-1">
                           {presentationLinkData.brasindice_pf_date && (
                             <span className="text-xs text-gray-600 dark:text-gray-400">
-                              Data de atualizaÃ§Ã£o:{' '}
+                              Data de atualização:{' '}
                               {formatDateOnly(presentationLinkData.brasindice_pf_date)}
                             </span>
                           )}
@@ -2212,7 +2210,7 @@ export default function ProductFormPage() {
                         <div className="flex flex-1 flex-col items-start gap-1">
                           {presentationLinkData.simpro_pf_date && (
                             <span className="text-xs text-gray-600 dark:text-gray-400">
-                              Data de atualizaÃ§Ã£o:{' '}
+                              Data de atualização:{' '}
                               {formatDateOnly(presentationLinkData.simpro_pf_date)}
                             </span>
                           )}
