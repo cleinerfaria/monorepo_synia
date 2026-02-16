@@ -298,11 +298,11 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
             {!showResetPassword ? (
               <Button
                 type="button"
-                variant="secondary"
+                variant="neutral"
+                icon={<Key className="mr-2 h-4 w-4" />}
                 size="sm"
                 onClick={() => setShowResetPassword(true)}
               >
-                <Key className="mr-2 h-4 w-4" />
                 Redefinir Senha
               </Button>
             ) : (

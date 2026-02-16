@@ -98,6 +98,10 @@ test.describe('Fluxo Superadmin', () => {
     // 5. Verificar sucesso
     // Espera modal fechar e empresa aparecer na lista
     await expect(page.getByRole('heading', { name: /nova empresa/i })).not.toBeVisible();
-    await expect(page.getByText(companyName)).toBeVisible();
+
+    // Use precise matching for the success verification to avoid strict mode violation
+    // because trade_name matches partial text of company_name often or similar layout
+    // getByRole('heading') targets the card title specifically
+    await expect(page.getByRole('heading', { name: companyName, exact: true })).toBeVisible();
   });
 });
