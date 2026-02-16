@@ -1,5 +1,68 @@
 -- =====================================================
--- MIGRATION: Fix Security Definer Views
+-- MIGRATION: Security and RLS Fixes - Consolidated
+--
+-- Consolida 3 migrations de 15/02:
+-- 1. Enable RLS em prescription_item_occurrence
+-- 2. Add RLS policies para prescription_item_occurrence
+-- 3. Fix security definer views
+-- =====================================================
+
+BEGIN;
+
+-- =====================================================
+-- PARTE 1: Enable RLS on prescription_item_occurrence
+--    This table contains patient-related data (patient_id is sensitive)
+-- =====================================================
+
+ALTER TABLE public.prescription_item_occurrence ENABLE ROW LEVEL SECURITY;
+
+-- =====================================================
+-- PARTE 2: Safe RLS policies using LATERAL subqueries
+--    to avoid infinite recursion and maintain performance
+-- =====================================================
+
+-- SELECT: Users can view prescription_item_occurrence records from their company
+CREATE POLICY "prescription_item_occurrence_select_policy" 
+  ON public.prescription_item_occurrence
+  FOR SELECT 
+  USING (
+    company_id = (
+      SELECT get_user_company_id()
+    )
+  );
+
+-- INSERT: Users can create prescription_item_occurrence records for their company
+CREATE POLICY "prescription_item_occurrence_insert_policy" 
+  ON public.prescription_item_occurrence
+  FOR INSERT 
+  WITH CHECK (
+    company_id = (
+      SELECT get_user_company_id()
+    )
+  );
+
+-- UPDATE: Users can update prescription_item_occurrence records from their company
+CREATE POLICY "prescription_item_occurrence_update_policy" 
+  ON public.prescription_item_occurrence
+  FOR UPDATE 
+  USING (
+    company_id = (
+      SELECT get_user_company_id()
+    )
+  );
+
+-- DELETE: Users can delete prescription_item_occurrence records from their company
+CREATE POLICY "prescription_item_occurrence_delete_policy" 
+  ON public.prescription_item_occurrence
+  FOR DELETE 
+  USING (
+    company_id = (
+      SELECT get_user_company_id()
+    )
+  );
+
+-- =====================================================
+-- PARTE 3: Fix Security Definer Views
 --
 -- Corrige alertas do Supabase Linter (SECURITY DEFINER):
 -- 1. Remove vw_ref_source_stats (não utilizada)
@@ -9,17 +72,11 @@
 -- 4. Recria mv_known_products_ref (dependência de vw_ref_item_unified)
 -- =====================================================
 
-BEGIN;
-
--- =====================================================
 -- 1. Remover vw_ref_source_stats (não utilizada na aplicação)
--- =====================================================
 DROP VIEW IF EXISTS public.vw_ref_source_stats;
 
--- =====================================================
 -- 2. Recriar vw_ref_item_current_price com security_invoker
 --    RLS de ref_price_history filtra via item_id → ref_item.company_id
--- =====================================================
 DROP VIEW IF EXISTS public.vw_ref_item_current_price;
 CREATE VIEW public.vw_ref_item_current_price
 WITH (security_invoker = true)
@@ -37,12 +94,10 @@ SELECT DISTINCT ON (item_id, price_type)
 FROM ref_price_history
 ORDER BY item_id, price_type, valid_from DESC, created_at DESC;
 
--- =====================================================
 -- 3. Recriar vw_ref_item_unified
 --    - Adiciona security_invoker = true
 --    - Remove CROSS JOIN company (incorreto para multi-tenant)
 --    - Agrupa por (company_id, ean) usando company_id de ref_item
--- =====================================================
 
 -- Dropar materialized view dependente primeiro
 DROP MATERIALIZED VIEW IF EXISTS public.mv_known_products_ref;
@@ -174,10 +229,7 @@ FROM agg
 WHERE agg.name IS NOT NULL
 ORDER BY agg.company_id, agg.name;
 
--- =====================================================
 -- 4. Recriar mv_known_products_ref (dependência de vw_ref_item_unified)
---    Definição idêntica à original, sem mudanças necessárias
--- =====================================================
 
 CREATE MATERIALIZED VIEW mv_known_products_ref AS
 SELECT DISTINCT

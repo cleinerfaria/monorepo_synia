@@ -1,16 +1,107 @@
--- =============================================
--- FIX RLS PERFORMANCE ISSUES
+-- =====================================================
+-- MIGRATION: Schema, Linter and Performance Fixes - Consolidated
+--
+-- Consolida 2 migrations de 15/02:
+-- 1. Fix Supabase Database Linter Warnings
+-- 2. Fix RLS Performance Issues
+-- =====================================================
+
+BEGIN;
+
+-- =====================================================
+-- PARTE 1: function_search_path_mutable
+-- Adicionar SET search_path = public via ALTER FUNCTION/PROCEDURE.
+-- =====================================================
+
+-- 1.1 Trigger functions (sem parâmetros, retornam TRIGGER)
+ALTER FUNCTION public.update_updated_at_column()
+  SET search_path = public;
+
+ALTER FUNCTION public.update_ref_updated_at()
+  SET search_path = public;
+
+ALTER FUNCTION public.set_updated_at()
+  SET search_path = public;
+
+ALTER FUNCTION public.trg_app_user_profile_company_guard()
+  SET search_path = public;
+
+ALTER FUNCTION public.trg_prescription_item_component_company_guard()
+  SET search_path = public;
+
+ALTER FUNCTION public.update_stock_balance()
+  SET search_path = public;
+
+ALTER FUNCTION public.trigger_refresh_known_products_ref()
+  SET search_path = public;
+
+ALTER FUNCTION public.trigger_notify_refresh_known_products_ref_prices()
+  SET search_path = public;
+
+-- 1.2 Funções helper de segurança
+ALTER FUNCTION public.get_user_company_id()
+  SET search_path = public;
+
+ALTER FUNCTION public.is_user_admin()
+  SET search_path = public;
+
+-- 1.3 Funções com parâmetros
+ALTER FUNCTION public.get_paired_manufacturers(uuid)
+  SET search_path = public;
+
+ALTER FUNCTION public.refresh_known_products_ref_view()
+  SET search_path = public;
+
+ALTER FUNCTION public.refresh_known_products_ref_prices_view()
+  SET search_path = public;
+
+ALTER FUNCTION public.hash_print_payload_v1(jsonb, text, jsonb)
+  SET search_path = public;
+
+ALTER FUNCTION public.hash_print_item_v1(text, text, text, jsonb)
+  SET search_path = public;
+
+ALTER FUNCTION public.generate_prescription_occurrences(uuid, date, date)
+  SET search_path = public;
+
+-- 1.4 Procedure (sintaxe diferente de FUNCTION)
+ALTER PROCEDURE public.recalculate_stock_balances()
+  SET search_path = public;
+
+-- =====================================================
+-- PARTE 2: extension_in_public
+-- Mover extensão unaccent do schema public para extensions.
+-- =====================================================
+
+ALTER EXTENSION unaccent SET SCHEMA extensions;
+
+-- Wrapper para retrocompatibilidade com referências a public.unaccent()
+CREATE OR REPLACE FUNCTION public.unaccent(input text)
+RETURNS text
+LANGUAGE sql
+IMMUTABLE
+STRICT
+SET search_path = extensions
+AS $$
+  SELECT extensions.unaccent(input);
+$$;
+
+-- =====================================================
+-- PARTE 3: materialized_view_in_api
+-- Revogar SELECT do role anon nas materialized views.
+-- O role authenticated mantém acesso (usado pelo front-end).
+-- =====================================================
+
+REVOKE SELECT ON public.mv_known_products_ref FROM anon;
+REVOKE SELECT ON public.mv_known_products_ref_prices FROM anon;
+
+-- =====================================================
+-- PARTE 4: FIX RLS PERFORMANCE ISSUES
 -- Resolve auth_rls_initplan and multiple_permissive_policies warnings
--- =============================================
+-- Per Supabase docs: wrap auth.uid() and auth.role() in subqueries
+-- =====================================================
 
--- Per Supabase docs: wrap auth.uid() and auth.role() in subqueries to avoid
--- re-evaluation per row. See: https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select
-
--- =============================================
 -- 1) COMPANY TABLE - Fix auth.role() evaluation and remove duplicates
--- =============================================
-
--- Remove old policies if they exist
 DROP POLICY IF EXISTS "Users can view their own company" ON public.company;
 DROP POLICY IF EXISTS "Admins can update their company" ON public.company;
 
@@ -30,10 +121,7 @@ DROP POLICY IF EXISTS "company_delete_policy" ON public.company;
 CREATE POLICY "company_delete_policy" ON public.company
     FOR DELETE USING ((SELECT auth.role()) = 'authenticated');
 
--- =============================================
 -- 2) COMPANY_PARENT TABLE - Fix auth.role() evaluation
--- =============================================
-
 DROP POLICY IF EXISTS "company_parent_select_policy" ON public.company_parent;
 CREATE POLICY "company_parent_select_policy" ON public.company_parent
     FOR SELECT USING ((SELECT auth.role()) = 'authenticated');
@@ -50,13 +138,7 @@ DROP POLICY IF EXISTS "company_parent_delete_policy" ON public.company_parent;
 CREATE POLICY "company_parent_delete_policy" ON public.company_parent
     FOR DELETE USING ((SELECT auth.role()) = 'authenticated');
 
--- =============================================
--- 3) APP_USER TABLE
--- Fix auth.uid() and auth.role() evaluation
--- Remove old duplicate policies
--- =============================================
-
--- Remove old policies if they exist
+-- 3) APP_USER TABLE - Fix auth.uid() and auth.role() evaluation
 DROP POLICY IF EXISTS "Users can view users in their company" ON public.app_user;
 DROP POLICY IF EXISTS "Users can create own record or admins can insert" ON public.app_user;
 DROP POLICY IF EXISTS "Users can update own record or admins can update" ON public.app_user;
@@ -81,18 +163,12 @@ CREATE POLICY "app_user_update_policy" ON public.app_user
         (SELECT auth.role()) = 'authenticated'
     );
 
--- Remove duplicate DELETE policies and consolidate into one
 DROP POLICY IF EXISTS "Admins can delete users" ON public.app_user;
 DROP POLICY IF EXISTS "app_user_delete_policy" ON public.app_user;
 CREATE POLICY "app_user_delete_policy" ON public.app_user
     FOR DELETE USING ((SELECT auth.role()) = 'authenticated');
 
--- =============================================
--- 4) ADMINISTRATION_ROUTES TABLE
--- Fix auth.uid() evaluation and resolve duplicate policies
--- Split FOR ALL policy into specific operations (INSERT, UPDATE, DELETE)
--- =============================================
-
+-- 4) ADMINISTRATION_ROUTES TABLE - Fix auth.uid() evaluation
 DROP POLICY IF EXISTS "Users can view administration routes from their company" ON public.administration_routes;
 CREATE POLICY "Users can view administration routes from their company"
   ON public.administration_routes FOR SELECT
@@ -134,10 +210,7 @@ CREATE POLICY "Admin/managers can delete administration routes"
     )
   );
 
--- =============================================
 -- 5) REF_IMPORT_BATCH TABLE - Fix auth.uid() evaluation
--- =============================================
-
 DROP POLICY IF EXISTS "ref_import_batch_company" ON public.ref_import_batch;
 CREATE POLICY "ref_import_batch_company" ON public.ref_import_batch
     FOR ALL USING (
@@ -146,10 +219,7 @@ CREATE POLICY "ref_import_batch_company" ON public.ref_import_batch
         )
     );
 
--- =============================================
--- 6) REF_IMPORT_ERROR TABLE - Fix auth.uid() evaluation (nested subquery)
--- =============================================
-
+-- 6) REF_IMPORT_ERROR TABLE - Fix auth.uid() evaluation
 DROP POLICY IF EXISTS "ref_import_error_company" ON public.ref_import_error;
 CREATE POLICY "ref_import_error_company" ON public.ref_import_error
     FOR ALL USING (
@@ -160,10 +230,7 @@ CREATE POLICY "ref_import_error_company" ON public.ref_import_error
         )
     );
 
--- =============================================
 -- 7) REF_ITEM TABLE - Fix auth.uid() evaluation
--- =============================================
-
 DROP POLICY IF EXISTS "ref_item_company" ON public.ref_item;
 CREATE POLICY "ref_item_company" ON public.ref_item
     FOR ALL USING (
@@ -172,10 +239,7 @@ CREATE POLICY "ref_item_company" ON public.ref_item
         )
     );
 
--- =============================================
--- 8) REF_PRICE_HISTORY TABLE - Fix auth.uid() evaluation (complex nested subquery)
--- =============================================
-
+-- 8) REF_PRICE_HISTORY TABLE - Fix auth.uid() evaluation
 DROP POLICY IF EXISTS "ref_price_history_company" ON public.ref_price_history;
 CREATE POLICY "ref_price_history_company" ON public.ref_price_history
     FOR ALL USING (
@@ -192,10 +256,7 @@ CREATE POLICY "ref_price_history_company" ON public.ref_price_history
         )
     );
 
--- =============================================
 -- 9) PRODUCT_REF_LINK TABLE - Fix auth.uid() evaluation
--- =============================================
-
 DROP POLICY IF EXISTS "product_ref_link_company_isolation" ON public.product_ref_link;
 CREATE POLICY "product_ref_link_company_isolation" ON public.product_ref_link
     FOR ALL USING (
@@ -204,10 +265,7 @@ CREATE POLICY "product_ref_link_company_isolation" ON public.product_ref_link
         )
     );
 
--- =============================================
 -- 10) PRODUCT_GROUP TABLE - Fix auth.uid() evaluation
--- =============================================
-
 DROP POLICY IF EXISTS "Users can view global and company groups" ON public.product_group;
 CREATE POLICY "Users can view global and company groups"
     ON public.product_group FOR SELECT
@@ -250,10 +308,7 @@ CREATE POLICY "Users can delete company groups"
         )
     );
 
--- =============================================
 -- 11) USER_ACTION_LOGS TABLE - Fix auth.uid() evaluation
--- =============================================
-
 DROP POLICY IF EXISTS "Users can view logs from their company" ON public.user_action_logs;
 CREATE POLICY "Users can view logs from their company"
   ON public.user_action_logs
@@ -277,10 +332,7 @@ CREATE POLICY "Only admins can delete logs"
     )
   );
 
--- =============================================
 -- 12) ACCESS_PROFILE TABLE - Fix auth.uid() and auth.role() evaluation
--- =============================================
-
 DROP POLICY IF EXISTS "access_profile_select_policy" ON public.access_profile;
 CREATE POLICY "access_profile_select_policy" ON public.access_profile
     FOR SELECT USING (
@@ -329,10 +381,7 @@ CREATE POLICY "access_profile_delete_policy" ON public.access_profile
         )
     );
 
--- =============================================
 -- 13) ACCESS_PROFILE_PERMISSION TABLE - Fix auth.uid() and auth.role() evaluation
--- =============================================
-
 DROP POLICY IF EXISTS "access_profile_permission_select_policy" ON public.access_profile_permission;
 CREATE POLICY "access_profile_permission_select_policy" ON public.access_profile_permission
     FOR SELECT USING (
@@ -383,10 +432,7 @@ CREATE POLICY "access_profile_permission_delete_policy" ON public.access_profile
         )
     );
 
--- =============================================
 -- 14) UNIT_OF_MEASURE TABLE - Fix auth.uid() evaluation
--- =============================================
-
 DROP POLICY IF EXISTS unit_of_measure_select_policy ON public.unit_of_measure;
 CREATE POLICY unit_of_measure_select_policy
     ON public.unit_of_measure
@@ -431,9 +477,7 @@ CREATE POLICY unit_of_measure_delete_policy
         )
     );
 
--- =============================================
 -- 15) REF_PRICE_HISTORY TABLE - Remove duplicate index
--- =============================================
-
--- Remove one of the duplicate indexes (idx_ref_price_history_batch is the older one)
 DROP INDEX IF EXISTS public.idx_ref_price_history_batch;
+
+COMMIT;
