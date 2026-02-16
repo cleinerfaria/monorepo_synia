@@ -207,7 +207,7 @@ async function seedAureaDev() {
   ensureDevEnv();
 
   const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
-  const companyDocument = '11.111.111/0001-11';
+  const companyDocument = '00.000.000/0001-00'; // Utilize a empresa criada pela migration
   const adminEmail = process.env.E2E_ADMIN_EMAIL || 'e2e.admin@aurea.local';
   const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'AureaE2E!123';
   const managerEmail = process.env.E2E_MANAGER_EMAIL || 'e2e.manager@aurea.local';
@@ -215,20 +215,7 @@ async function seedAureaDev() {
   const userEmail = process.env.E2E_USER_EMAIL || 'e2e.user@aurea.local';
   const userPassword = process.env.E2E_USER_PASSWORD || 'AureaE2E!123';
 
-  await upsertRows({
-    supabaseUrl,
-    serviceRoleKey,
-    table: 'company',
-    rows: [
-      {
-        name: 'Aurea E2E Tenant',
-        trade_name: 'Aurea E2E',
-        document: companyDocument,
-      },
-    ],
-    onConflict: 'document',
-  });
-
+  // Buscar empresa criada pela migration
   const company = await getSingleRow({
     supabaseUrl,
     serviceRoleKey,
@@ -236,7 +223,7 @@ async function seedAureaDev() {
   });
 
   if (!company?.id) {
-    throw new Error('Could not resolve Aurea company for dev seed');
+    throw new Error('Could not resolve Aurea company for dev seed. Ensure migrations have run.');
   }
 
   const adminProfile = await getSingleRow({
@@ -355,7 +342,7 @@ async function seedAureaDev() {
         auth_user_id: systemAdminAuthId,
         name: 'Admin Master',
         email: systemAdminEmail,
-        role: 'superadmin',
+        role: 'admin', // Usa role 'admin' (válido na constraint)
         active: true,
         access_profile_id: adminProfile?.id || null,
       },

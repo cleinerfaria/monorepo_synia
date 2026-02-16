@@ -39,28 +39,28 @@ function ensureDevEnv() {
 }
 
 function run(command, args, options = {}) {
-  process.stdout.write(`\n⚙️  Running: ${command} ${args.join(' ')}\n`)
-  
+  process.stdout.write(`\n⚙️  Running: ${command} ${args.join(' ')}\n`);
+
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: options.cwd || process.cwd(),
       stdio: ['inherit', 'inherit', 'inherit'],
       env: options.env || process.env,
       timeout: options.timeout || 60_000,
-    })
+    });
 
     child.on('close', (code) => {
       if (code !== 0) {
-        reject(new Error(`Command failed with exit code ${code}`))
+        reject(new Error(`Command failed with exit code ${code}`));
       } else {
-        resolve()
+        resolve();
       }
-    })
+    });
 
     child.on('error', (error) => {
-      reject(error)
-    })
-  })
+      reject(error);
+    });
+  });
 }
 
 async function askConfirmation(message) {
@@ -68,13 +68,13 @@ async function askConfirmation(message) {
     const rl = createInterface({
       input: process.stdin,
       output: process.stdout,
-    })
+    });
 
     rl.question(`\n⚠️  ${message} (s/n): `, (answer) => {
-      rl.close()
-      resolve(answer.toLowerCase() === 's' || answer.toLowerCase() === 'y')
-    })
-  })
+      rl.close();
+      resolve(answer.toLowerCase() === 's' || answer.toLowerCase() === 'y');
+    });
+  });
 }
 
 async function requestJson(url, { method = 'GET', headers = {}, body } = {}) {

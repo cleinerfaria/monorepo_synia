@@ -442,13 +442,13 @@ FOR EACH ROW EXECUTE FUNCTION update_stock_balance();
 -- DADOS INICIAIS (Empresa de demonstração)
 -- =====================================================
 
--- Inserir empresa inicial "Vida em Casa" com UUID aleatório
+-- Inserir empresa inicial "Vida em Casa" com CNPJ-teste
 INSERT INTO company (id, name, trade_name, document, primary_color, theme_preference)
 VALUES (
     gen_random_uuid(),
-    'NOME DA EMPRESA LTDA',
-    'NOME DA EMPRESA',
-    '00.000.000/0001-00', -- não altere esse valor pois será usado em outras migrations
+    'Vida em Casa LTDA',
+    'Vida em Casa',
+    '00.000.000/0001-00', -- não altere esse valor pois será usado em outras migrations e em seeds
     '#D4AF37',
     'dark'
 );
