@@ -92,11 +92,9 @@ function dbReset() {
 
 function dbMigrate() {
   const dbUrl = getDbUrl();
-  run(
-    'supabase',
-    ['db', 'push', '--db-url', dbUrl, '--include-all', '--workdir', APP_DIR],
-    { timeout: 180_000 }
-  );
+  run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-all', '--workdir', APP_DIR], {
+    timeout: 180_000,
+  });
 }
 
 async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, name }) {
