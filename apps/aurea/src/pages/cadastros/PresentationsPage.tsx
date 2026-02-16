@@ -818,7 +818,7 @@ export default function PresentationsPage() {
             onClick={() => setIsDeleteModalOpen(false)}
             label="Cancelar"
           />
-          <Button type="button" variant="danger" onClick={handleDelete}>
+          <Button type="button" variant="danger" onClick={handleDelete} showIcon={false}>
             Excluir
           </Button>
         </ModalFooter>

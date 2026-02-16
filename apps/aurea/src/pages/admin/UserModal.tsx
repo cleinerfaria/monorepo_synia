@@ -333,6 +333,7 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
                     size="sm"
                     onClick={handleResetPassword}
                     disabled={isLoading || !newPassword}
+                    showIcon={false}
                   >
                     {resetPasswordMutation.isPending ? 'Salvando...' : 'Salvar Nova Senha'}
                   </Button>
@@ -345,6 +346,7 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
                       setNewPassword('');
                       setErrors({});
                     }}
+                    showIcon={false}
                   >
                     Cancelar
                   </Button>
@@ -424,10 +426,10 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
             )}
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+            <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} showIcon={false}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} showIcon={false}>
               {isLoading ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar Usuário'}
             </Button>
           </div>

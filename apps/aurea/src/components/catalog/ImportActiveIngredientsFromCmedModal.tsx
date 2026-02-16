@@ -558,7 +558,7 @@ export function ImportActiveIngredientsFromCmedModal({
       </div>
 
       <ModalFooter>
-        <Button variant="secondary" onClick={handleClose}>
+        <Button variant="secondary" onClick={handleClose} showIcon={false}>
           Cancelar
         </Button>
         <Button onClick={handleImport} disabled={selectedCount === 0} isLoading={isImporting}>

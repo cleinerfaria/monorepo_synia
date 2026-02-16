@@ -718,7 +718,7 @@ export default function ReferenceImportModal({
                 {/* Footer */}
                 <div className="flex items-center justify-end gap-3 border-t border-gray-200 p-6 dark:border-gray-700">
                   {step === 'upload' && (
-                    <Button variant="secondary" onClick={handleClose}>
+                    <Button variant="secondary" onClick={handleClose} showIcon={false}>
                       Cancelar
                     </Button>
                   )}

@@ -16,6 +16,13 @@ import {
   useCreateProfessional,
   useUpdateProfessional,
 } from '@/hooks/useProfessionals';
+import {
+  useProfessionalUser,
+  useAvailableAppUsers,
+  useLinkProfessionalUser,
+  useUnlinkProfessionalUser,
+  useCreateAndLinkProfessionalUser,
+} from '@/hooks/useProfessionalUser';
 import { useForm } from 'react-hook-form';
 import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { useAuthStore } from '@/stores/authStore';
@@ -38,7 +45,7 @@ interface ProfessionalFormData {
   active: boolean;
 }
 
-type FormTab = 'basic' | 'council' | 'contact';
+type FormTab = 'basic' | 'council' | 'contact' | 'user_link';
 
 const UF_OPTIONS = [
   'AC',
@@ -145,6 +152,20 @@ export default function ProfessionalFormPage() {
   const createProfessional = useCreateProfessional();
   const updateProfessional = useUpdateProfessional();
   const { company } = useAuthStore();
+
+  // Vínculo de usuário
+  const { data: professionalUserLink, isLoading: isLoadingLink } = useProfessionalUser(
+    isEditing ? id : undefined
+  );
+  const { data: availableUsers = [], isLoading: isLoadingAvailable } = useAvailableAppUsers();
+  const linkProfessionalUser = useLinkProfessionalUser();
+  const unlinkProfessionalUser = useUnlinkProfessionalUser();
+  const createAndLinkUser = useCreateAndLinkProfessionalUser();
+  const [linkMode, setLinkMode] = useState<'select' | 'create'>('select');
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserName, setNewUserName] = useState('');
 
   const {
     register,
@@ -410,6 +431,14 @@ export default function ProfessionalFormPage() {
             <TabButton active={activeTab === 'contact'} onClick={() => setActiveTab('contact')}>
               Escala
             </TabButton>
+            {isEditing && (
+              <TabButton
+                active={activeTab === 'user_link'}
+                onClick={() => setActiveTab('user_link')}
+              >
+                Vinculo de Usuario
+              </TabButton>
+            )}
           </div>
         </div>
 
@@ -575,6 +604,207 @@ export default function ProfessionalFormPage() {
             {activeTab === 'contact' && (
               <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
                 Funcionalidade em desenvolvimento.
+              </div>
+            )}
+
+            {activeTab === 'user_link' && isEditing && (
+              <div className="space-y-4">
+                {isLoadingLink ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loading size="md" />
+                  </div>
+                ) : professionalUserLink?.app_user ? (
+                  // Já vinculado - mostrar dados
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                      <h3 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+                        Usuario vinculado
+                      </h3>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Nome</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {professionalUserLink.app_user.name}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">E-mail</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {professionalUserLink.app_user.email}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Papel</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {professionalUserLink.app_user.role}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Status</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {professionalUserLink.app_user.active ? 'Ativo' : 'Inativo'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
+                      showIcon={false}
+                      disabled={unlinkProfessionalUser.isPending}
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            'Tem certeza que deseja desvincular este usuario do profissional?'
+                          )
+                        ) {
+                          unlinkProfessionalUser.mutate({ professionalId: id! });
+                        }
+                      }}
+                      label={
+                        unlinkProfessionalUser.isPending
+                          ? 'Desvinculando...'
+                          : 'Desvincular usuario'
+                      }
+                    />
+                  </div>
+                ) : (
+                  // Não vinculado - opções de vincular
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={linkMode === 'select' ? 'solid' : 'outline'}
+                        size="sm"
+                        showIcon={false}
+                        onClick={() => setLinkMode('select')}
+                        label="Selecionar existente"
+                      />
+                      <Button
+                        type="button"
+                        variant={linkMode === 'create' ? 'solid' : 'outline'}
+                        size="sm"
+                        showIcon={false}
+                        onClick={() => setLinkMode('create')}
+                        label="Criar novo usuario"
+                      />
+                    </div>
+
+                    {linkMode === 'select' && (
+                      <div className="space-y-3">
+                        {isLoadingAvailable ? (
+                          <Loading size="sm" />
+                        ) : availableUsers.length === 0 ? (
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Nenhum usuario disponivel para vinculacao.
+                          </p>
+                        ) : (
+                          <>
+                            <Select
+                              label="Usuario"
+                              placeholder="Selecione um usuario..."
+                              options={availableUsers.map((u) => ({
+                                value: u.auth_user_id,
+                                label: `${u.name} (${u.email})`,
+                              }))}
+                              value={selectedUserId}
+                              onChange={(value: string) => setSelectedUserId(value)}
+                            />
+                            <Button
+                              type="button"
+                              variant="solid"
+                              size="sm"
+                              showIcon={false}
+                              disabled={!selectedUserId || linkProfessionalUser.isPending}
+                              onClick={() => {
+                                linkProfessionalUser.mutate({
+                                  professionalId: id!,
+                                  userId: selectedUserId,
+                                });
+                                setSelectedUserId('');
+                              }}
+                              label={linkProfessionalUser.isPending ? 'Vinculando...' : 'Vincular'}
+                            />
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {linkMode === 'create' && (
+                      <div className="space-y-3">
+                        <Input
+                          label="Nome"
+                          placeholder="Nome do usuario"
+                          value={newUserName}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setNewUserName(e.target.value)
+                          }
+                          required
+                        />
+                        <Input
+                          label="E-mail"
+                          type="email"
+                          placeholder="email@exemplo.com"
+                          value={newUserEmail}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setNewUserEmail(e.target.value)
+                          }
+                          required
+                        />
+                        <Input
+                          label="Senha"
+                          type="password"
+                          placeholder="Minimo 6 caracteres"
+                          value={newUserPassword}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setNewUserPassword(e.target.value)
+                          }
+                          required
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          O usuario sera criado com a role &quot;Plantao&quot; (acesso exclusivo ao
+                          modulo de plantao).
+                        </p>
+                        <Button
+                          type="button"
+                          variant="solid"
+                          size="sm"
+                          showIcon={false}
+                          disabled={
+                            !newUserName ||
+                            !newUserEmail ||
+                            !newUserPassword ||
+                            newUserPassword.length < 6 ||
+                            createAndLinkUser.isPending
+                          }
+                          onClick={() => {
+                            createAndLinkUser.mutate(
+                              {
+                                professionalId: id!,
+                                email: newUserEmail,
+                                password: newUserPassword,
+                                name: newUserName,
+                              },
+                              {
+                                onSuccess: () => {
+                                  setNewUserName('');
+                                  setNewUserEmail('');
+                                  setNewUserPassword('');
+                                },
+                              }
+                            );
+                          }}
+                          label={
+                            createAndLinkUser.isPending
+                              ? 'Criando e vinculando...'
+                              : 'Criar e vincular'
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </form>

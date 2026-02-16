@@ -10,6 +10,7 @@ import type { AppUser, Company } from '@/types/database';
 
 // Layouts
 import DashboardLayout from '@/layouts/DashboardLayout';
+import ShiftLayout from '@/layouts/ShiftLayout';
 
 // Auth Pages
 import LoginPage from '@/pages/auth/LoginPage';
@@ -48,6 +49,8 @@ const UsersSettingsPage = lazy(() => import('@/pages/settings/UsersPage'));
 const AccessProfilesPage = lazy(() => import('@/pages/settings/AccessProfilesPage'));
 const LogsPage = lazy(() => import('@/pages/settings/LogsPage'));
 const AdminPage = lazy(() => import('@/pages/admin/AdminPage'));
+const MyShiftsPage = lazy(() => import('@/pages/shift/MyShiftsPage'));
+const ActiveShiftPage = lazy(() => import('@/pages/shift/ActiveShiftPage'));
 
 // Loading
 import { Loading } from '@/components/ui';
@@ -71,7 +74,7 @@ function RouteLoader() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, company } = useAuthStore();
+  const { session, isLoading, company, appUser } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -90,6 +93,35 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/admin" replace />;
   }
 
+  // Usuário shift_only deve usar o layout dedicado
+  if (appUser?.role === 'shift_only') {
+    return <Navigate to="/meu-plantao" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Rota exclusiva para usuários shift_only
+function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
+  const { session, isLoading, company } = useAuthStore();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Loading size="lg" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!company) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // Qualquer role pode acessar (admins testando, etc), mas shift_only é o principal
   return <>{children}</>;
 }
 
@@ -578,6 +610,35 @@ function App() {
                   </AdminRoute>
                 }
               />
+
+              {/* Meu Plantão - Layout dedicado para shift_only */}
+              <Route
+                path="/meu-plantao"
+                element={
+                  <ShiftOnlyRoute>
+                    <NavigationGuardProvider>
+                      <ShiftLayout />
+                    </NavigationGuardProvider>
+                  </ShiftOnlyRoute>
+                }
+              >
+                <Route
+                  index
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <MyShiftsPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="ativo"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <ActiveShiftPage />
+                    </Suspense>
+                  }
+                />
+              </Route>
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
