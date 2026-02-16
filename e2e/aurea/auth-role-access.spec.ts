@@ -4,7 +4,7 @@ const credentials = {
   system_admin: {
     email: process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@aurea.com',
     password: process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Aurea123',
-    roleLabel: 'admin', // Superadmin often sees 'admin' or specific label, checking AdminPage.tsx might reveal it's Badge variant="warning">Admin</Badge>
+    roleLabel: 'admin', // Superadmin often sees 'admin' or specific label
     modules: ['/', '/admin'],
   },
   admin: {
@@ -36,7 +36,8 @@ async function signIn(page: import('@playwright/test').Page, email: string, pass
 
 async function expectAuthenticated(page: import('@playwright/test').Page) {
   await expect.poll(() => new URL(page.url()).pathname).not.toBe('/login');
-  await expect(page.getByTitle('Sair')).toBeVisible();
+  // Changed from getByTitle to getByRole to support both IconButton (title) and Button (text)
+  await expect(page.getByRole('button', { name: /sair/i })).toBeVisible();
 }
 
 test.describe('Acesso por perfil aos modulos', () => {
@@ -51,15 +52,17 @@ test.describe('Acesso por perfil aos modulos', () => {
 
       for (const modulePath of config.modules) {
         if (profile === 'system_admin' && modulePath === '/admin') {
-          // Skip explicit navigation check for /admin here because it might be the redirected page
-          // or we can test it specifically
+          // For /admin, we just navigate and check loged out status
+          // because checking for "Sair" button might be redundant if expectAuthenticated already did it
+          // but let's keep it consistent
           await page.goto(modulePath);
           await expect(page).not.toHaveURL(/\/login$/);
+          await expect(page.getByRole('button', { name: /sair/i })).toBeVisible();
           continue;
         }
         await page.goto(modulePath);
         await expect(page).not.toHaveURL(/\/login$/);
-        await expect(page.getByTitle('Sair')).toBeVisible();
+        await expect(page.getByRole('button', { name: /sair/i })).toBeVisible();
       }
     });
   }
