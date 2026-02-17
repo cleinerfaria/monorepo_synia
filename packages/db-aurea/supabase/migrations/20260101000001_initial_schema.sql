@@ -3,9 +3,6 @@
 -- Database Schema for Supabase (PostgreSQL)
 -- =====================================================
 
--- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- =====================================================
 -- A) MULTI-EMPRESA E USUÁRIOS
 -- =====================================================

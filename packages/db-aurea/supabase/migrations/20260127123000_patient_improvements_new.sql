@@ -79,8 +79,17 @@ WHERE name IS NOT NULL
   AND (name_normalized IS NULL OR btrim(name_normalized) = '');
 
 -- 5) CPF: garantir somente dígitos e 11 chars quando preenchido
-ALTER TABLE public.patient
-  DROP CONSTRAINT IF EXISTS patient_cpf_digits_check;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'patient_cpf_digits_check'
+      AND conrelid = 'public.patient'::regclass
+  ) THEN
+    EXECUTE 'ALTER TABLE public.patient DROP CONSTRAINT patient_cpf_digits_check';
+  END IF;
+END $$;
 
 ALTER TABLE public.patient
   ADD CONSTRAINT patient_cpf_digits_check
@@ -91,9 +100,23 @@ ALTER TABLE public.patient
   );
 
 -- 6) (Opcional, recomendado) unique do code por company (parcial)
-CREATE UNIQUE INDEX IF NOT EXISTS idx_patient_code_unique
-ON public.patient (company_id, code)
-WHERE code IS NOT NULL AND btrim(code) <> '';
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_patient_code_unique'
+  ) THEN
+    EXECUTE '
+      CREATE UNIQUE INDEX idx_patient_code_unique
+      ON public.patient (company_id, code)
+      WHERE code IS NOT NULL AND btrim(code) <> ''''
+    ';
+  END IF;
+END $$;
 
 -- 7) Ajustar o índice unique de cpf para ignorar '' também (se o do Copilot não ignorar direito)
 -- Ele já criou: WHERE cpf IS NOT NULL AND cpf <> ''

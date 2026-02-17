@@ -46,7 +46,18 @@ CREATE INDEX IF NOT EXISTS idx_procedure_company_category
   ON public.procedure USING btree (company_id, category) TABLESPACE pg_default;
 
 --  4) Trigger updated_at
-DROP TRIGGER IF EXISTS update_procedure_updated_at ON public.procedure;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_trigger t
+    WHERE t.tgname = 'update_procedure_updated_at'
+      AND t.tgrelid = 'public.procedure'::regclass
+      AND NOT t.tgisinternal
+  ) THEN
+    EXECUTE 'DROP TRIGGER update_procedure_updated_at ON public.procedure';
+  END IF;
+END $$;
 CREATE TRIGGER update_procedure_updated_at
 BEFORE UPDATE ON public.procedure
 FOR EACH ROW

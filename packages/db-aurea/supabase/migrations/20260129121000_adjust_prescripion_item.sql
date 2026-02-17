@@ -132,8 +132,17 @@ ADD COLUMN IF NOT EXISTS time_checks time[] NULL;
 -- =====================================================
 
 -- 3.1) Exactly one target per item_type
-ALTER TABLE public.prescription_item
-DROP CONSTRAINT IF EXISTS chk_prescription_item_target_by_type;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'chk_prescription_item_target_by_type'
+      AND conrelid = 'public.prescription_item'::regclass
+  ) THEN
+    EXECUTE 'ALTER TABLE public.prescription_item DROP CONSTRAINT chk_prescription_item_target_by_type';
+  END IF;
+END $$;
 
 ALTER TABLE public.prescription_item
 ADD CONSTRAINT chk_prescription_item_target_by_type CHECK (
@@ -160,8 +169,17 @@ ADD CONSTRAINT chk_prescription_item_target_by_type CHECK (
 );
 
 -- 3.2) Frequency fields consistency
-ALTER TABLE public.prescription_item
-DROP CONSTRAINT IF EXISTS chk_prescription_item_frequency_mode_fields;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'chk_prescription_item_frequency_mode_fields'
+      AND conrelid = 'public.prescription_item'::regclass
+  ) THEN
+    EXECUTE 'ALTER TABLE public.prescription_item DROP CONSTRAINT chk_prescription_item_frequency_mode_fields';
+  END IF;
+END $$;
 
 ALTER TABLE public.prescription_item
 ADD CONSTRAINT chk_prescription_item_frequency_mode_fields CHECK (
@@ -194,8 +212,17 @@ ADD CONSTRAINT chk_prescription_item_frequency_mode_fields CHECK (
 );
 
 -- 3.3) time_checks validation
-ALTER TABLE public.prescription_item
-DROP CONSTRAINT IF EXISTS chk_prescription_item_time_checks_len;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'chk_prescription_item_time_checks_len'
+      AND conrelid = 'public.prescription_item'::regclass
+  ) THEN
+    EXECUTE 'ALTER TABLE public.prescription_item DROP CONSTRAINT chk_prescription_item_time_checks_len';
+  END IF;
+END $$;
 
 ALTER TABLE public.prescription_item
 ADD CONSTRAINT chk_prescription_item_time_checks_len CHECK (

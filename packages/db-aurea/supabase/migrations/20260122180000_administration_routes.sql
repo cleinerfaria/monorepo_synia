@@ -3,7 +3,19 @@
 -- =============================================
 
 -- Dropar tabela se existir (caso tenha sido criada parcialmente)
-DROP TABLE IF EXISTS administration_routes CASCADE;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'administration_routes'
+      AND c.relkind IN ('r', 'p')
+  ) THEN
+    EXECUTE 'DROP TABLE public.administration_routes CASCADE';
+  END IF;
+END $$;
 
 CREATE TABLE administration_routes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
