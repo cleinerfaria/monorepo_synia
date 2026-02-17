@@ -33,9 +33,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 4) Create Trigger
-DROP TRIGGER IF EXISTS tr_set_professional_social_name ON public.professional;
-
 CREATE TRIGGER tr_set_professional_social_name
 BEFORE INSERT OR UPDATE ON public.professional
 FOR EACH ROW

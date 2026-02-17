@@ -185,7 +185,7 @@ BEGIN
 
   RAISE NOTICE 'Dev seed data applied successfully!';
   RAISE NOTICE 'Company ID: %', v_company_id;
-  RAISE NOTICE 'Inserted: 3 professionals, 3 patients, 10 medications, 1 system user + 3 app users';
+  RAISE NOTICE 'Inserted: 11 professionals, 3 patients, 10 medications, 1 system user + 3 app users';
 
 EXCEPTION WHEN OTHERS THEN
   RAISE WARNING 'SEED FALHOU: % (SQLSTATE: %)', SQLERRM, SQLSTATE;

@@ -10,6 +10,14 @@
 BEGIN;
 
 -- =====================================================
+-- PARTE 0: REMOVER CONSTRAINTS LEGADAS DE is_system
+-- (precisa ocorrer antes de inserir perfis por empresa)
+-- =====================================================
+
+ALTER TABLE access_profile DROP CONSTRAINT IF EXISTS chk_access_profile_scope;
+ALTER TABLE access_profile DROP CONSTRAINT IF EXISTS chk_access_profile_admin_scope;
+
+-- =====================================================
 -- PARTE 1: REMOVER PERFIS DE SISTEMA E CRIAR PERFIS
 -- POR EMPRESA (sem ambiente de producao, limpa tudo)
 -- =====================================================
@@ -61,7 +69,9 @@ INSERT INTO access_profile_permission (profile_id, permission_id)
 SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
+JOIN system_module sm ON mp.module_id = sm.id
 WHERE ap.code = 'manager' AND ap.company_id IS NOT NULL
+  AND sm.code NOT IN ('admin')
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
 
 -- Clinico: prescricoes e pacientes
@@ -69,8 +79,9 @@ INSERT INTO access_profile_permission (profile_id, permission_id)
 SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
+JOIN system_module sm ON mp.module_id = sm.id
 WHERE ap.code = 'clinician' AND ap.company_id IS NOT NULL
-  AND mp.module IN ('prescriptions', 'patients', 'professionals')
+  AND sm.code IN ('prescriptions', 'patients', 'professionals')
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
 
 -- Estoque: produtos
@@ -78,8 +89,9 @@ INSERT INTO access_profile_permission (profile_id, permission_id)
 SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
+JOIN system_module sm ON mp.module_id = sm.id
 WHERE ap.code = 'stock' AND ap.company_id IS NOT NULL
-  AND mp.module IN ('products')
+  AND sm.code IN ('products')
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
 
 -- Financeiro: relatorios
@@ -87,8 +99,9 @@ INSERT INTO access_profile_permission (profile_id, permission_id)
 SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
+JOIN system_module sm ON mp.module_id = sm.id
 WHERE ap.code = 'finance' AND ap.company_id IS NOT NULL
-  AND mp.module IN ('reports')
+  AND sm.code IN ('reports')
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
 
 -- Viewer: apenas visualizacao (read)
@@ -96,21 +109,11 @@ INSERT INTO access_profile_permission (profile_id, permission_id)
 SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
+JOIN system_module sm ON mp.module_id = sm.id
 WHERE ap.code = 'viewer' AND ap.company_id IS NOT NULL
-  AND mp.action = 'read'
+  AND mp.code = 'view'
+  AND sm.code NOT IN ('admin')
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
-
--- =====================================================
--- PARTE 2: REMOVER CONSTRAINTS DE is_system
--- =====================================================
-
-ALTER TABLE access_profile DROP CONSTRAINT IF EXISTS chk_access_profile_scope;
-ALTER TABLE access_profile DROP CONSTRAINT IF EXISTS chk_access_profile_admin_scope;
-
--- =====================================================
--- PARTE 2b: DROPAR POLICIES QUE DEPENDEM DE is_system
--- (devem ser removidas ANTES de dropar a coluna)
--- =====================================================
 
 -- =====================================================
 -- PARTE 3: REMOVER COLUNA is_system
@@ -146,7 +149,20 @@ ALTER TABLE access_profile ALTER COLUMN name TYPE TEXT;
 -- Dropar CHECK constraint do role
 ALTER TABLE app_user DROP CONSTRAINT IF EXISTS app_user_role_check;
 -- Nome original do CHECK na initial_schema (inline CHECK gera nome automatico)
-ALTER TABLE app_user DROP CONSTRAINT IF EXISTS app_user_check;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE c.conname = 'app_user_check'
+      AND t.relname = 'app_user'
+      AND n.nspname = 'public'
+  ) THEN
+    ALTER TABLE app_user DROP CONSTRAINT app_user_check;
+  END IF;
+END $$;
 
 -- Dropar a coluna role (CASCADE remove policies dependentes em outras tabelas)
 ALTER TABLE app_user DROP COLUMN IF EXISTS role CASCADE;
@@ -222,7 +238,18 @@ $$;
 -- Substituir au.role = 'admin' por check via access_profile
 -- =====================================================
 
-DROP POLICY IF EXISTS "Only admins can delete logs" ON public.user_action_logs;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'user_action_logs'
+      AND policyname = 'Only admins can delete logs'
+  ) THEN
+    DROP POLICY "Only admins can delete logs" ON public.user_action_logs;
+  END IF;
+END $$;
 CREATE POLICY "Only admins can delete logs"
   ON public.user_action_logs
   FOR DELETE
@@ -241,7 +268,18 @@ CREATE POLICY "Only admins can delete logs"
 -- Substituir role IN ('admin','manager') por is_user_admin()
 -- =====================================================
 
-DROP POLICY IF EXISTS "Admin/managers can insert administration routes" ON public.administration_routes;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'administration_routes'
+      AND policyname = 'Admin/managers can insert administration routes'
+  ) THEN
+    DROP POLICY "Admin/managers can insert administration routes" ON public.administration_routes;
+  END IF;
+END $$;
 CREATE POLICY "Admin/managers can insert administration routes"
   ON public.administration_routes FOR INSERT
   WITH CHECK (
@@ -253,7 +291,18 @@ CREATE POLICY "Admin/managers can insert administration routes"
     )
   );
 
-DROP POLICY IF EXISTS "Admin/managers can update administration routes" ON public.administration_routes;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'administration_routes'
+      AND policyname = 'Admin/managers can update administration routes'
+  ) THEN
+    DROP POLICY "Admin/managers can update administration routes" ON public.administration_routes;
+  END IF;
+END $$;
 CREATE POLICY "Admin/managers can update administration routes"
   ON public.administration_routes FOR UPDATE
   USING (
@@ -265,7 +314,18 @@ CREATE POLICY "Admin/managers can update administration routes"
     )
   );
 
-DROP POLICY IF EXISTS "Admin/managers can delete administration routes" ON public.administration_routes;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'administration_routes'
+      AND policyname = 'Admin/managers can delete administration routes'
+  ) THEN
+    DROP POLICY "Admin/managers can delete administration routes" ON public.administration_routes;
+  END IF;
+END $$;
 CREATE POLICY "Admin/managers can delete administration routes"
   ON public.administration_routes FOR DELETE
   USING (
@@ -304,7 +364,18 @@ CREATE POLICY "access_profile_insert_policy" ON public.access_profile
         )
     );
 
-DROP POLICY IF EXISTS "access_profile_update_policy" ON public.access_profile;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'access_profile'
+      AND policyname = 'access_profile_update_policy'
+  ) THEN
+    DROP POLICY "access_profile_update_policy" ON public.access_profile;
+  END IF;
+END $$;
 CREATE POLICY "access_profile_update_policy" ON public.access_profile
     FOR UPDATE USING (
         (SELECT auth.role()) = 'authenticated'
@@ -315,7 +386,18 @@ CREATE POLICY "access_profile_update_policy" ON public.access_profile
         )
     );
 
-DROP POLICY IF EXISTS "access_profile_delete_policy" ON public.access_profile;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'access_profile'
+      AND policyname = 'access_profile_delete_policy'
+  ) THEN
+    DROP POLICY "access_profile_delete_policy" ON public.access_profile;
+  END IF;
+END $$;
 CREATE POLICY "access_profile_delete_policy" ON public.access_profile
     FOR DELETE USING (
         (SELECT auth.role()) = 'authenticated'
@@ -345,7 +427,18 @@ CREATE POLICY "access_profile_permission_select_policy" ON public.access_profile
         )
     );
 
-DROP POLICY IF EXISTS "access_profile_permission_insert_policy" ON public.access_profile_permission;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'access_profile_permission'
+      AND policyname = 'access_profile_permission_insert_policy'
+  ) THEN
+    DROP POLICY "access_profile_permission_insert_policy" ON public.access_profile_permission;
+  END IF;
+END $$;
 CREATE POLICY "access_profile_permission_insert_policy" ON public.access_profile_permission
     FOR INSERT WITH CHECK (
         (SELECT auth.role()) = 'authenticated'
@@ -360,7 +453,18 @@ CREATE POLICY "access_profile_permission_insert_policy" ON public.access_profile
         )
     );
 
-DROP POLICY IF EXISTS "access_profile_permission_delete_policy" ON public.access_profile_permission;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'access_profile_permission'
+      AND policyname = 'access_profile_permission_delete_policy'
+  ) THEN
+    DROP POLICY "access_profile_permission_delete_policy" ON public.access_profile_permission;
+  END IF;
+END $$;
 CREATE POLICY "access_profile_permission_delete_policy" ON public.access_profile_permission
     FOR DELETE USING (
         (SELECT auth.role()) = 'authenticated'

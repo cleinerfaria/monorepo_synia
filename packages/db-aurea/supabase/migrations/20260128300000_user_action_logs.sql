@@ -6,7 +6,7 @@
 -- Criar tabela de logs
 CREATE TABLE IF NOT EXISTS user_action_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID NOT NULL REFERENCES public.company(id) ON DELETE CASCADE,
+  company_id UUID NOT NULL,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete')),
   entity TEXT NOT NULL,
@@ -18,6 +18,32 @@ CREATE TABLE IF NOT EXISTS user_action_logs (
   user_agent TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'user_action_logs_company_id_fkey'
+      AND conrelid = 'public.user_action_logs'::regclass
+  ) THEN
+    IF to_regclass('public.company') IS NOT NULL THEN
+      EXECUTE '
+        ALTER TABLE public.user_action_logs
+        ADD CONSTRAINT user_action_logs_company_id_fkey
+        FOREIGN KEY (company_id) REFERENCES public.company(id) ON DELETE CASCADE
+      ';
+    ELSIF to_regclass('company') IS NOT NULL THEN
+      EXECUTE '
+        ALTER TABLE public.user_action_logs
+        ADD CONSTRAINT user_action_logs_company_id_fkey
+        FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE
+      ';
+    ELSE
+      RAISE EXCEPTION 'Tabela company nao encontrada para criar FK em user_action_logs';
+    END IF;
+  END IF;
+END $$;
 
 -- Índices otimizados para alta taxa de escrita
 CREATE INDEX idx_user_action_logs_company_date ON user_action_logs(company_id, created_at DESC);
