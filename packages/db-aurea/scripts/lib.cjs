@@ -292,14 +292,14 @@ async function seedAureaDev() {
     process.stderr.write(`  DEBUG: adminProfile=${JSON.stringify(adminProfile)}\n`);
     process.stderr.write(`  DEBUG: managerProfile=${JSON.stringify(managerProfile)}\n`);
     process.stderr.write(`  DEBUG: viewerProfile=${JSON.stringify(viewerProfile)}\n`);
-    
+
     // Tentar listar todos os perfis da empresa para diagnostico
     const allProfiles = await requestJson(
       `${supabaseUrl}/rest/v1/access_profile?select=id,code,company_id&company_id=eq.${company.id}`,
       { headers: postgrestHeaders(serviceRoleKey, 'return=representation') }
     );
     process.stderr.write(`  DEBUG: all profiles for company=${JSON.stringify(allProfiles)}\n`);
-    
+
     throw new Error('Could not find access profiles (admin/manager/viewer) for the company');
   }
   process.stdout.write('✅ Access profiles found\n');
