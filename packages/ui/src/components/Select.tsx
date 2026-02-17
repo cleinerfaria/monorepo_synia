@@ -524,18 +524,18 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center gap-1 pr-3">
             <ChevronsUpDown className="h-5 w-5 text-gray-400" />
           </span>
-        </div>
 
-        {internalValue && !disabled && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="absolute right-8 top-1/2 z-10 translate-y-[-10%] rounded-full p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
-            tabIndex={-1}
-          >
-            <X className="h-4 w-4 text-gray-400" />
-          </button>
-        )}
+          {internalValue && !disabled && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="absolute inset-y-0 right-8 z-10 flex items-center rounded-full p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              tabIndex={-1}
+            >
+              <X className="h-4 w-4 text-gray-400" />
+            </button>
+          )}
+        </div>
 
         {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
 

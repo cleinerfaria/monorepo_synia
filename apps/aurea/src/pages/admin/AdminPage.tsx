@@ -805,7 +805,7 @@ function ProfilesTab({
                           <h3 className="font-semibold text-gray-900 dark:text-white">
                             {profile.name}
                           </h3>
-                          {profile.is_admin && <span className="text-xs">⭐</span>}
+                          {profile.is_admin}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{profile.code}</p>
                       </div>

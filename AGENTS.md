@@ -66,6 +66,7 @@ O agente **NUNCA** deve:
 
 Antes de alterar código, o agente deve:
 
+- Nunca altere a acentuação para mojibake, mantenha sempre o padrão UTF-8
 - Explicar **o que será alterado**
 - Explicar **por que é necessário**
 - Indicar **impactos técnicos e de negócio**

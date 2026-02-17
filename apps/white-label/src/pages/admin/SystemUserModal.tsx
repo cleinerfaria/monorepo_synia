@@ -176,9 +176,6 @@ export default function SystemUserModal({ isOpen, onClose, user }: SystemUserMod
             error={errors.email}
           />
           {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
-          {isEditing && (
-            <p className="mt-1 text-xs text-gray-500">O e-mail não pode ser alterado</p>
-          )}
         </div>
 
         {/* Senha (apenas para novos usuários) */}

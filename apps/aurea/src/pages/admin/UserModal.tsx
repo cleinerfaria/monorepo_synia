@@ -12,14 +12,24 @@ import { useAccessProfiles } from '@/hooks/useAccessProfiles';
 import { Company } from '@/hooks/useCompanies';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, Key } from 'lucide-react';
+
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: AppUser | null;
-  companies: Company[];
+  companies?: Company[];
+  tenantCompanyId?: string;
+  hideCompanyInfo?: boolean;
 }
 
-export default function UserModal({ isOpen, onClose, user, companies }: UserModalProps) {
+export default function UserModal({
+  isOpen,
+  onClose,
+  user,
+  companies = [],
+  tenantCompanyId,
+  hideCompanyInfo = false,
+}: UserModalProps) {
   const isEditing = !!user;
 
   const [formData, setFormData] = useState({
@@ -29,13 +39,16 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
     password: '',
     access_profile_id: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
+  const selectedCompanyId = tenantCompanyId || formData.company_id;
+
   // Buscar perfis de acesso
-  const { data: accessProfiles = [] } = useAccessProfiles(formData.company_id || undefined);
+  const { data: accessProfiles = [] } = useAccessProfiles(selectedCompanyId || undefined);
 
   const createMutation = useCreateAppUser();
   const updateMutation = useUpdateAppUser();
@@ -61,21 +74,23 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
       });
     } else {
       setFormData({
-        company_id: companies.length > 0 ? companies[0].id : '',
+        company_id: tenantCompanyId || (companies.length > 0 ? companies[0].id : ''),
         name: '',
         email: '',
         password: '',
         access_profile_id: '',
       });
     }
+    setConfirmPassword('');
     setErrors({});
     setShowPassword(false);
     setShowResetPassword(false);
     setNewPassword('');
-  }, [user, isOpen, companies]);
+  }, [user, isOpen, companies, tenantCompanyId]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
+    const shouldShowCompanyField = !isEditing && !hideCompanyInfo;
 
     if (!formData.name.trim()) {
       newErrors.name = 'Nome é obrigatório';
@@ -93,8 +108,15 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
       } else if (formData.password.length < 6) {
         newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
       }
+      if (!confirmPassword) {
+        newErrors.confirmPassword = 'Confirmação de senha é obrigatória';
+      } else if (formData.password && formData.password !== confirmPassword) {
+        newErrors.confirmPassword = 'As senhas não coincidem';
+      }
 
-      if (!formData.company_id) {
+      if (!selectedCompanyId) {
+        newErrors.company_id = 'Contexto da empresa não encontrado';
+      } else if (shouldShowCompanyField && !formData.company_id) {
         newErrors.company_id = 'Empresa é obrigatória';
       }
     }
@@ -122,7 +144,7 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
         toast.success('Usuário atualizado com sucesso!');
       } else {
         await createMutation.mutateAsync({
-          company_id: formData.company_id,
+          company_id: selectedCompanyId,
           email: formData.email,
           password: formData.password,
           name: formData.name,
@@ -200,7 +222,7 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
           </div>
         )}
 
-        {!isEditing && (
+        {!isEditing && !hideCompanyInfo && (
           <div>
             <Select
               label="Empresa *"
@@ -218,7 +240,7 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
           </div>
         )}
 
-        {isEditing && (
+        {isEditing && !hideCompanyInfo && (
           <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
             <p className="text-sm text-gray-500 dark:text-gray-400">Empresa</p>
             <p className="font-medium text-gray-900 dark:text-white">{user.company?.name || '-'}</p>
@@ -250,39 +272,66 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
             error={errors.email}
             disabled={isEditing}
           />
-          {isEditing && (
-            <p className="mt-1 text-xs text-gray-500">O e-mail não pode ser alterado</p>
-          )}
         </div>
 
         {!isEditing && (
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Senha *
-            </label>
-            <div className="relative">
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="Mínimo 6 caracteres"
-                error={errors.password}
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Senha *
+              </label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Mínimo 6 caracteres"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Confirmação de senha *
+              </label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repita a senha"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>
+              )}
             </div>
           </div>
         )}
 
         {/* Reset Password (apenas para edição) */}
         {isEditing && (
-          <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+          <div>
             {!showResetPassword ? (
               <Button
                 type="button"
@@ -304,17 +353,21 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Nova senha (mínimo 6 caracteres)"
-                    error={errors.newPassword}
                     className="pr-10"
                   />
                   <button
                     type="button"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
+                {errors.newPassword && (
+                  <p className="mt-1 text-xs text-red-500">{errors.newPassword}</p>
+                )}
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -351,7 +404,7 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
             placeholder="Selecione um perfil"
             options={activeProfiles.map((profile) => ({
               value: profile.id,
-              label: `${profile.name}${profile.is_admin ? ' ⭐' : ''}`,
+              label: profile.name,
             }))}
             value={formData.access_profile_id}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -359,13 +412,10 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
             }
             error={errors.access_profile_id}
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            O perfil define as permissões e o nível de acesso do usuário
-          </p>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
+        <div className="flex justify-between">
           <div>
             {isEditing && (
               <Button

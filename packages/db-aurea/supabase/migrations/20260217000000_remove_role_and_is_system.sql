@@ -52,7 +52,7 @@ SELECT
     TRUE
 FROM company c
 CROSS JOIN (VALUES
-    ('admin',     'Administrador',  'Acesso total ao sistema',           TRUE),
+    ('admin',     'Diretor',        'Acesso total ao sistema',           TRUE),
     ('manager',   'Gerente',        'Gerencia operacoes e relatorios',   FALSE),
     ('clinician', 'Clinico',        'Acesso a prescricoes e pacientes',  FALSE),
     ('stock',     'Estoque',        'Gerencia estoque e produtos',       FALSE),

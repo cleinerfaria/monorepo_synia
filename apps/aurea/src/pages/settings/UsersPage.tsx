@@ -2,10 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Card, Button, DataTable, EmptyState, Badge, IconButton } from '@/components/ui';
 import { useAppUsers, AppUser } from '@/hooks/useAppUsers';
-
-import type { Company } from '@/hooks/useCompanies';
 import { useAuthStore } from '@/stores/authStore';
-import { DEFAULT_PRIMARY_COLOR } from '@/design-system/theme/constants';
 import UserModal from '@/pages/admin/UserModal';
 import { Users, Plus, Pencil, Search } from 'lucide-react';
 export default function UsersPage() {
@@ -112,35 +109,6 @@ export default function UsersPage() {
     />
   );
 
-  const companiesForModal: Company[] = company
-    ? [
-        {
-          id: company.id,
-          name: company.name,
-          trade_name: company.trade_name || null,
-          document: company.document || null,
-          logo_url: company.logo_url_expanded || company.logo_url_collapsed || null,
-          logo_url_expanded: company.logo_url_expanded || null,
-          logo_url_collapsed: company.logo_url_collapsed || null,
-          primary_color: company.primary_color || DEFAULT_PRIMARY_COLOR,
-          theme_preference: company.theme_preference || 'system',
-          company_parent_id: company.company_parent_id || null,
-          care_modality: company.care_modality || null,
-          tax_regime: company.tax_regime || null,
-          special_tax_regime: company.special_tax_regime || null,
-          taxation_nature: company.taxation_nature || null,
-          cnae: company.cnae || null,
-          cnes: company.cnes || null,
-          state_registration: company.state_registration || null,
-          email: company.email || null,
-          website: company.website || null,
-          is_active: company.is_active ?? true,
-          created_at: company.created_at || '',
-          updated_at: company.updated_at || '',
-        },
-      ]
-    : [];
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -150,8 +118,7 @@ export default function UsersPage() {
             Usuários
           </h1>
         </div>
-        <Button onClick={handleNewUser}>
-          <Plus className="h-5 w-5" />
+        <Button onClick={handleNewUser} icon={<Plus className="h-5 w-5" />}>
           Novo Usuário
         </Button>
       </div>
@@ -189,7 +156,9 @@ export default function UsersPage() {
           setSelectedUser(null);
         }}
         user={selectedUser}
-        companies={companiesForModal}
+        companies={[]}
+        tenantCompanyId={company?.id}
+        hideCompanyInfo={true}
       />
     </div>
   );

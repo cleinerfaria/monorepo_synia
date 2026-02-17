@@ -149,7 +149,7 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
             placeholder="Selecione um perfil"
             options={activeProfiles.map((profile) => ({
               value: profile.id,
-              label: `${profile.name}${profile.is_admin ? ' ⭐' : ''}`,
+              label: profile.name,
             }))}
             value={formData.access_profile_id}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>

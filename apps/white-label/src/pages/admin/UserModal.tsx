@@ -281,9 +281,6 @@ export default function UserModal({
             error={errors.email}
             disabled={isEditing}
           />
-          {isEditing && (
-            <p className="mt-1 text-xs text-gray-500">O e-mail não pode ser alterado</p>
-          )}
         </div>
 
         {!isEditing && (
