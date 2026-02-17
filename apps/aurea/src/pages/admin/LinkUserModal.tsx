@@ -73,7 +73,7 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
       });
 
       // Atualizar o estado global com o novo appUser e company
-      setAppUser(appUser);
+      setAppUser(appUser as any);
 
       // Buscar a empresa
       const { data: companyData } = await supabase

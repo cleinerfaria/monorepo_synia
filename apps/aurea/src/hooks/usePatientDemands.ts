@@ -17,6 +17,8 @@ export interface Pad {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  hours_per_day: number;
+  is_split: boolean;
 }
 
 export type PadWithPatient = Pad & {
@@ -34,6 +36,8 @@ export interface CreatePadData {
   start_time: string;
   is_active?: boolean;
   notes?: string | null;
+  hours_per_day: number;
+  is_split: boolean;
 }
 
 export interface UpdatePadData extends Partial<CreatePadData> {

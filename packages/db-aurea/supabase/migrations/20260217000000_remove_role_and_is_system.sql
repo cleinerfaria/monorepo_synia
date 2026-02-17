@@ -57,7 +57,8 @@ CROSS JOIN (VALUES
     ('clinician', 'Clinico',        'Acesso a prescricoes e pacientes',  FALSE),
     ('stock',     'Estoque',        'Gerencia estoque e produtos',       FALSE),
     ('finance',   'Financeiro',     'Acesso a financeiro e relatorios',  FALSE),
-    ('viewer',    'Visualizador',   'Apenas visualizacao',               FALSE)
+    ('viewer',    'Visualizador',   'Apenas visualizacao',               FALSE),
+    ('tecnico',   'Técnico de Enfermagem',    'Acesso para tecnicos de enfermagem evoluirem nas casas',      FALSE)
 ) AS p(code, name, description, is_admin)
 ON CONFLICT (company_id, code) DO NOTHING;
 

@@ -220,7 +220,7 @@ export function ProfessionalPicker({
           searchPlaceholder="Buscar por nome ou funcao..."
           options={professionalOptions}
           value={selectedProfId}
-          onChange={(val) => setSelectedProfId(val as string)}
+          onChange={(val: string) => setSelectedProfId(val)}
           emptyMessage="Nenhum profissional encontrado"
           required
         />

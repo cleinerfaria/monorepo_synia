@@ -14,7 +14,7 @@ import {
   IconButton,
 } from '@/components/ui';
 import { usePatientDemands } from '@/hooks/usePatientDemands';
-import type { DemandWithPatient } from '@/hooks/usePatientDemands';
+import type { PadWithPatient } from '@/hooks/usePatientDemands';
 import { formatDateOnly } from '@/lib/dateOnly';
 
 const PAGE_SIZE = 20;
@@ -56,7 +56,7 @@ export default function SchedulesListPage() {
 
   // Agrupar por paciente (manter a demand mais recente de cada paciente)
   const uniqueDemands = useMemo(() => {
-    const map = new Map<string, DemandWithPatient>();
+    const map = new Map<string, PadWithPatient>();
     for (const demand of demands) {
       const existing = map.get(demand.patient_id);
       if (!existing || new Date(demand.created_at) > new Date(existing.created_at)) {
@@ -87,7 +87,7 @@ export default function SchedulesListPage() {
     return filteredData.slice(start, start + PAGE_SIZE);
   }, [filteredData, currentPage]);
 
-  const columns: ColumnDef<DemandWithPatient>[] = useMemo(
+  const columns: ColumnDef<PadWithPatient>[] = useMemo(
     () => [
       {
         accessorKey: 'patient.name',

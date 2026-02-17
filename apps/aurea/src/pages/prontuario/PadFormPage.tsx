@@ -16,7 +16,7 @@ import {
   usePatientDemand,
   useCreateDemand,
   useUpdateDemand,
-  type CreateDemandData,
+  type CreatePadData as CreateDemandData,
 } from '@/hooks/usePatientDemands';
 import { usePatients } from '@/hooks/usePatients';
 import { useForm } from 'react-hook-form';

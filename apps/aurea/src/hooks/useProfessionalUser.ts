@@ -15,7 +15,6 @@ export interface ProfessionalUserLink {
     id: string;
     name: string;
     email: string;
-    email: string;
     active: boolean;
     access_profile: {
       name: string;
@@ -27,7 +26,6 @@ export interface AvailableAppUser {
   id: string;
   auth_user_id: string;
   name: string;
-  email: string;
   email: string;
   active: boolean;
   access_profile: {
@@ -113,7 +111,7 @@ export function useAvailableAppUsers() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as AvailableAppUser[];
+      return (data || []) as unknown as AvailableAppUser[];
     },
     enabled: !!company?.id,
   });

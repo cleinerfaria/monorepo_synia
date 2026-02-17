@@ -60,7 +60,7 @@ export default function PadPreviewPage() {
     if (!demandId) return;
     try {
       await generateShifts.mutateAsync({
-        padId: demandId,
+        padItemId: demandId,
         from: fromDate,
         to: toDate,
       });

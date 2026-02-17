@@ -13,11 +13,7 @@ import {
   EmptyState,
   IconButton,
 } from '@/components/ui';
-import {
-  usePatientDemands,
-  useUpdateDemand,
-  type PadWithPatient,
-} from '@/hooks/usePatientDemands';
+import { usePatientDemands, useUpdateDemand, type PadWithPatient } from '@/hooks/usePatientDemands';
 import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import { useAuthStore } from '@/stores/authStore';

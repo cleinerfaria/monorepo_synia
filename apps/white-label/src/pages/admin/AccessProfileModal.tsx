@@ -192,9 +192,6 @@ export default function AccessProfileModal({
               error={errors.code}
               disabled={isEditing}
             />
-            {isEditing && (
-              <p className="mt-1 text-xs text-gray-500">O código não pode ser alterado</p>
-            )}
           </div>
 
           <div>

@@ -81,7 +81,7 @@ export default function PatientMonthSchedulePage() {
       const allAssignments = getFullAssignments();
       await saveSchedule.mutateAsync({
         patient_id: patientId,
-        pad_id: padId,
+        pad_item_id: padId,
         year,
         month,
         assignments: allAssignments,
@@ -121,6 +121,7 @@ export default function PatientMonthSchedulePage() {
         scheduleData.start_time,
         scheduleData.start_date,
         scheduleData.pad_id,
+        scheduleData.pad_item_id,
         scheduleData.assignments
       );
     }

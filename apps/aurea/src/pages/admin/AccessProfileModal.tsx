@@ -1,15 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Modal, Input, Button, Badge } from '@/components/ui';
+import { Modal, Input, Button } from '@/components/ui';
 import {
   AccessProfile,
-  ModulePermission,
   useModulePermissions,
   useCreateAccessProfile,
   useUpdateAccessProfile,
   groupPermissionsByModule,
 } from '@/hooks/useAccessProfiles';
 import toast from 'react-hot-toast';
-import { Check } from 'lucide-react';
+
 interface AccessProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,6 +18,8 @@ interface AccessProfileModalProps {
 }
 
 const EMPTY_PERMISSION_IDS: string[] = [];
+const SHIFT_MODULE_CODE = 'my_shifts';
+const SHIFT_PERMISSION_CODE = 'view';
 
 export default function AccessProfileModal({
   isOpen,
@@ -45,11 +46,11 @@ export default function AccessProfileModal({
   const updateMutation = useUpdateAccessProfile();
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
-  const permissionsSignature = useMemo(
-    () => [...existingPermissionIds].sort().join('|'),
+
+  const normalizedPermissionIds = useMemo(
+    () => [...existingPermissionIds],
     [existingPermissionIds]
   );
-  const normalizedPermissionIds = useMemo(() => [...existingPermissionIds], [permissionsSignature]);
 
   useEffect(() => {
     if (profile) {
@@ -134,19 +135,6 @@ export default function AccessProfileModal({
     setSelectedPermissions(newSelected);
   };
 
-  const toggleModule = (modulePermissions: ModulePermission[]) => {
-    const modulePermissionIds = modulePermissions.map((p) => p.id);
-    const allSelected = modulePermissionIds.every((id) => selectedPermissions.has(id));
-
-    const newSelected = new Set(selectedPermissions);
-    if (allSelected) {
-      modulePermissionIds.forEach((id) => newSelected.delete(id));
-    } else {
-      modulePermissionIds.forEach((id) => newSelected.add(id));
-    }
-    setSelectedPermissions(newSelected);
-  };
-
   const selectAll = () => {
     setSelectedPermissions(new Set(allPermissions.map((p) => p.id)));
   };
@@ -155,8 +143,49 @@ export default function AccessProfileModal({
     setSelectedPermissions(new Set());
   };
 
-  // Agrupar permissões por módulo
-  const groupedPermissions = groupPermissionsByModule(allPermissions);
+  const shiftPagePermission = useMemo(
+    () =>
+      allPermissions.find(
+        (permission) =>
+          permission.module?.code === SHIFT_MODULE_CODE && permission.code === SHIFT_PERMISSION_CODE
+      ),
+    [allPermissions]
+  );
+
+  const groupedPermissions = useMemo(() => {
+    const permissionsForGrid = allPermissions.filter(
+      (permission) =>
+        !(
+          permission.module?.code === SHIFT_MODULE_CODE && permission.code === SHIFT_PERMISSION_CODE
+        )
+    );
+    return groupPermissionsByModule(permissionsForGrid);
+  }, [allPermissions]);
+
+  const crudColumns = useMemo(
+    () => [
+      { code: 'view', label: 'Visualizar' },
+      { code: 'create', label: 'Criar' },
+      { code: 'edit', label: 'Editar' },
+      { code: 'delete', label: 'Excluir' },
+    ],
+    []
+  );
+
+  const hasShiftPageAccess =
+    !!shiftPagePermission && selectedPermissions.has(shiftPagePermission.id);
+
+  const toggleShiftPageAccess = (enabled: boolean) => {
+    if (!shiftPagePermission) return;
+
+    const newSelectedPermissions = new Set(selectedPermissions);
+    if (enabled) {
+      newSelectedPermissions.add(shiftPagePermission.id);
+    } else {
+      newSelectedPermissions.delete(shiftPagePermission.id);
+    }
+    setSelectedPermissions(newSelectedPermissions);
+  };
 
   return (
     <Modal
@@ -185,9 +214,6 @@ export default function AccessProfileModal({
               error={errors.code}
               disabled={isEditing}
             />
-            {isEditing && (
-              <p className="mt-1 text-xs text-gray-500">O código não pode ser alterado</p>
-            )}
           </div>
 
           <div>
@@ -229,6 +255,29 @@ export default function AccessProfileModal({
           </label>
         </div>
 
+        {!formData.is_admin && !!shiftPagePermission && (
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+            <input
+              type="checkbox"
+              id="has_shift_page_access"
+              checked={hasShiftPageAccess}
+              onChange={(e) => toggleShiftPageAccess(e.target.checked)}
+              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+            />
+            <div>
+              <label
+                htmlFor="has_shift_page_access"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Acesso à página Meu Plantão
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Permite abrir a área de plantão para check-in e check-out.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Permissões */}
         {!formData.is_admin && (
           <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
@@ -247,69 +296,51 @@ export default function AccessProfileModal({
             {isLoadingPermissions ? (
               <p className="text-sm text-gray-500">Carregando permissões...</p>
             ) : (
-              <div className="max-h-96 space-y-4 overflow-y-auto pr-2">
-                {groupedPermissions.map(({ module, permissions }) => {
-                  const modulePermissionIds = permissions.map((p) => p.id);
-                  const selectedCount = modulePermissionIds.filter((id) =>
-                    selectedPermissions.has(id)
-                  ).length;
-                  const allSelected = selectedCount === permissions.length;
-                  const someSelected = selectedCount > 0 && selectedCount < permissions.length;
+              <div className="max-h-96 overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
+                        Módulo
+                      </th>
+                      {crudColumns.map((column) => (
+                        <th
+                          key={column.code}
+                          className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"
+                        >
+                          {column.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
+                    {groupedPermissions.map(({ module, permissions }) => (
+                      <tr key={module.code}>
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                          {module.name}
+                        </td>
+                        {crudColumns.map((column) => {
+                          const permission = permissions.find((item) => item.code === column.code);
 
-                  return (
-                    <div
-                      key={module.code}
-                      className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
-                    >
-                      {/* Module Header */}
-                      <div
-                        className="flex cursor-pointer items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-800"
-                        onClick={() => toggleModule(permissions)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`flex h-5 w-5 items-center justify-center rounded border ${
-                              allSelected
-                                ? 'border-primary-500 bg-primary-500'
-                                : someSelected
-                                  ? 'border-primary-500 bg-primary-200'
-                                  : 'border-gray-300 dark:border-gray-600'
-                            }`}
-                          >
-                            {allSelected && <Check className="h-3 w-3 text-white" />}
-                            {someSelected && <div className="bg-primary-500 h-2 w-2 rounded-sm" />}
-                          </div>
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {module.name}
-                          </span>
-                        </div>
-                        <Badge variant="neutral">
-                          {selectedCount}/{permissions.length}
-                        </Badge>
-                      </div>
-
-                      {/* Permissions */}
-                      <div className="grid grid-cols-2 gap-2 px-4 py-2">
-                        {permissions.map((permission) => (
-                          <label
-                            key={permission.id}
-                            className="flex cursor-pointer items-center gap-2 rounded p-1 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedPermissions.has(permission.id)}
-                              onChange={() => togglePermission(permission.id)}
-                              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
-                            />
-                            <span className="text-gray-700 dark:text-gray-300">
-                              {permission.name}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+                          return (
+                            <td key={column.code} className="px-4 py-3 text-center">
+                              {permission ? (
+                                <input
+                                  type="checkbox"
+                                  checked={selectedPermissions.has(permission.id)}
+                                  onChange={() => togglePermission(permission.id)}
+                                  className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                                />
+                              ) : (
+                                <span className="text-sm text-gray-400">-</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
