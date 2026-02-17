@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AppUser, Company, SystemUser } from '@/types/database';
+import type { Company, SystemUser } from '@/types/database';
+import type { AppUserWithProfile } from '@/types/auth'; // New type import
 import { supabase } from '@/lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
 
 interface AuthState {
   session: Session | null;
   user: User | null;
-  appUser: AppUser | null;
+  appUser: AppUserWithProfile | null;
   company: Company | null;
   systemUser: SystemUser | null;
   hasAnySystemUser: boolean;
@@ -16,7 +17,7 @@ interface AuthState {
 
   // Actions
   setSession: (session: Session | null) => void;
-  setAppUser: (appUser: AppUser | null) => void;
+  setAppUser: (appUser: AppUserWithProfile | null) => void;
   setCompany: (company: Company | null) => void;
   setSystemUser: (systemUser: SystemUser | null) => void;
   setLoading: (loading: boolean) => void;
@@ -88,7 +89,7 @@ export const useAuthStore = create<AuthState>()(
             // Fetch app user
             const { data: appUser } = await supabase
               .from('app_user')
-              .select('*')
+              .select('*, access_profile(id, code, name, is_admin)')
               .eq('auth_user_id', session.user.id)
               .single();
 
@@ -138,7 +139,7 @@ export const useAuthStore = create<AuthState>()(
             // Fetch app user
             const { data: appUser } = await supabase
               .from('app_user')
-              .select('*')
+              .select('*, access_profile(id, code, name, is_admin)')
               .eq('auth_user_id', data.session.user.id)
               .single();
 
@@ -195,12 +196,12 @@ export const useAuthStore = create<AuthState>()(
                 email,
                 access_profile_id: defaultProfile?.id,
               } as any)
-              .select()
+              .select('*, access_profile(id, code, name, is_admin)')
               .single();
 
             if (appUserError) throw appUserError;
 
-            set({ appUser: appUser as AppUser });
+            set({ appUser: appUser as AppUserWithProfile });
           }
 
           return { error: null };
@@ -247,11 +248,11 @@ export const useAuthStore = create<AuthState>()(
           .from('app_user')
           .update({ theme } as any)
           .eq('id', appUser.id)
-          .select()
+          .select('*, access_profile(id, code, name, is_admin)')
           .single();
 
         if (!error && data) {
-          set({ appUser: data as AppUser });
+          set({ appUser: data as AppUserWithProfile });
         }
       },
     }),

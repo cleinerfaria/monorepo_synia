@@ -16,7 +16,7 @@ import {
 import {
   usePatientDemands,
   useUpdateDemand,
-  type DemandWithPatient,
+  type PadWithPatient,
 } from '@/hooks/usePatientDemands';
 import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
@@ -28,14 +28,7 @@ const formatTime = (time: string) => {
   return time.slice(0, 5);
 };
 
-const splitLabel = (hoursPerDay: number, isSplit: boolean): string => {
-  if (!isSplit) return 'Não';
-  if (hoursPerDay === 24) return '2x12h';
-  if (hoursPerDay === 12) return '2x6h';
-  return 'Não';
-};
-
-const filterDemands = (demands: DemandWithPatient[], search: string) => {
+const filterPads = (demands: PadWithPatient[], search: string) => {
   if (!search.trim()) return demands;
   const query = search.toLowerCase();
   return demands.filter((d) => {
@@ -56,10 +49,10 @@ export default function PadPage() {
   const canEdit = hasPermission || appUser?.access_profile?.is_admin === true;
 
   const [isToggleModalOpen, setIsToggleModalOpen] = useState(false);
-  const [selectedDemand, setSelectedDemand] = useState<DemandWithPatient | null>(null);
+  const [selectedDemand, setSelectedDemand] = useState<PadWithPatient | null>(null);
   const [searchInput, setSearchInput] = useState('');
 
-  const filteredData = useMemo(() => filterDemands(demands, searchInput), [demands, searchInput]);
+  const filteredData = useMemo(() => filterPads(demands, searchInput), [demands, searchInput]);
   const totalCount = filteredData.length;
   const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
   const paginatedDemands = useMemo(() => {
@@ -84,7 +77,7 @@ export default function PadPage() {
     }
   }, [currentPage, totalPages, setCurrentPage]);
 
-  const openToggleModal = useCallback((demand: DemandWithPatient) => {
+  const openToggleModal = useCallback((demand: PadWithPatient) => {
     setSelectedDemand(demand);
     setIsToggleModalOpen(true);
   }, []);
@@ -99,7 +92,7 @@ export default function PadPage() {
     }
   };
 
-  const columns: ColumnDef<DemandWithPatient>[] = useMemo(
+  const columns: ColumnDef<PadWithPatient>[] = useMemo(
     () => [
       {
         accessorKey: 'patient.name',
@@ -145,22 +138,6 @@ export default function PadPage() {
         ),
       },
       {
-        accessorKey: 'hours_per_day',
-        header: 'Horas/dia',
-        cell: ({ row }) => (
-          <span className="text-gray-700 dark:text-gray-300">{row.original.hours_per_day}h</span>
-        ),
-      },
-      {
-        accessorKey: 'is_split',
-        header: 'Dividido',
-        cell: ({ row }) => (
-          <Badge variant={row.original.is_split ? 'info' : 'neutral'}>
-            {splitLabel(row.original.hours_per_day, row.original.is_split)}
-          </Badge>
-        ),
-      },
-      {
         accessorKey: 'is_active',
         header: 'Status',
         cell: ({ row }) => (
@@ -174,7 +151,7 @@ export default function PadPage() {
             {
               id: 'actions',
               header: '',
-              cell: ({ row }: { row: { original: DemandWithPatient } }) => (
+              cell: ({ row }: { row: { original: PadWithPatient } }) => (
                 <div className="flex items-center justify-end gap-2">
                   <IconButton
                     title="Editar"
@@ -206,7 +183,7 @@ export default function PadPage() {
                   </IconButton>
                 </div>
               ),
-            } as ColumnDef<DemandWithPatient>,
+            } as ColumnDef<PadWithPatient>,
           ]
         : []),
     ],

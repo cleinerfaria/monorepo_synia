@@ -32,7 +32,8 @@ export interface ScheduleAssignment {
 /** Escala mensal carregada do backend */
 export interface PatientMonthSchedule {
   patient_id: string;
-  pad_id: string | null; // patient_attendance_demand.id ativo
+  pad_id: string | null; // pad.id ativo
+  pad_item_id: string | null; // pad_items.id (tipo shift) ativo
   start_date: string | null; // YYYY-MM-DD do PAD ativo (limite minimo editavel)
   year: number;
   month: number; // 1-12
@@ -44,7 +45,7 @@ export interface PatientMonthSchedule {
 /** Payload para upsert de escala */
 export interface UpsertSchedulePayload {
   patient_id: string;
-  pad_id: string; // patient_attendance_demand.id — obrigatorio na tabela
+  pad_item_id: string; // pad_items.id (tipo shift) — obrigatorio
   year: number;
   month: number;
   assignments: Array<{

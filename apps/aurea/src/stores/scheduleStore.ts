@@ -92,7 +92,8 @@ function mergeShiftAssignmentInDay(
 interface ScheduleStoreState {
   // Contexto
   patientId: string | null;
-  padId: string | null; // patient_attendance_demand.id
+  padId: string | null; // pad.id
+  padItemId: string | null; // pad_items.id (tipo shift)
   year: number;
   month: number;
   regime: ScheduleRegime;
@@ -126,6 +127,7 @@ interface ScheduleStoreActions {
     startTime: string,
     minEditableDate: string | null,
     padId: string | null,
+    padItemId: string | null,
     serverAssignments: ScheduleAssignment[]
   ): void;
   setMonth(year: number, month: number): void;
@@ -229,6 +231,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     // State
     patientId: null,
     padId: null,
+    padItemId: null,
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     regime: '24h',
@@ -252,6 +255,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       startTime,
       minEditableDate,
       padId,
+      padItemId,
       serverAssignments
     ) {
       const map: DayAssignmentsMap = new Map();
@@ -272,6 +276,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       set({
         patientId,
         padId,
+        padItemId,
         year,
         month,
         regime,

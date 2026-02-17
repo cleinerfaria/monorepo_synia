@@ -35,7 +35,7 @@ export function usePatientMonthSchedule(
 
       // Buscar plantoes do mes
       const { data, error } = await supabase
-        .from('patient_attendance_shift')
+        .from('pad_shift')
         .select('id, start_at, end_at, assigned_professional_id, status')
         .eq('company_id', company.id)
         .eq('patient_id', patientId)
@@ -45,10 +45,10 @@ export function usePatientMonthSchedule(
 
       if (error) throw error;
 
-      // Buscar PAD ativo do paciente para obter regime e start_time
+      // Buscar PAD ativo do paciente
       const { data: padData } = await supabase
-        .from('patient_attendance_demand')
-        .select('id, start_date, hours_per_day, start_time, is_split')
+        .from('pad')
+        .select('id, start_date, start_time')
         .eq('company_id', company.id)
         .eq('patient_id', patientId)
         .eq('is_active', true)
@@ -56,14 +56,37 @@ export function usePatientMonthSchedule(
         .limit(1)
         .single();
 
-      const hoursPerDay = padData?.hours_per_day ?? 24;
-      const startTime = padData?.start_time ?? '07:00';
+      // Buscar pad_item tipo shift do PAD ativo para obter regime
       let regime: ScheduleRegime = '24h';
-      if (hoursPerDay === 12 || (hoursPerDay === 24 && padData?.is_split)) {
-        regime = '12h';
-      } else if (hoursPerDay === 8) {
-        regime = '8h';
+      let padItemId: string | null = null;
+
+      if (padData?.id) {
+        const { data: shiftItem } = await supabase
+          .from('pad_items')
+          .select('id, hours_per_day, shift_duration_hours')
+          .eq('company_id', company.id)
+          .eq('pad_id', padData.id)
+          .eq('type', 'shift')
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+
+        if (shiftItem) {
+          padItemId = shiftItem.id;
+          const hoursPerDay = shiftItem.hours_per_day ?? 24;
+          const shiftDuration = shiftItem.shift_duration_hours ?? hoursPerDay;
+
+          if (shiftDuration <= 8) {
+            regime = '8h';
+          } else if (shiftDuration <= 12) {
+            regime = '12h';
+          } else {
+            regime = '24h';
+          }
+        }
       }
+
+      const startTime = padData?.start_time ?? '07:00';
 
       const assignments: ScheduleAssignment[] = (data || [])
         .filter((shift: any) => shift.assigned_professional_id)
@@ -78,6 +101,7 @@ export function usePatientMonthSchedule(
       return {
         patient_id: patientId,
         pad_id: padData?.id ?? null,
+        pad_item_id: padItemId,
         start_date: padData?.start_date ?? null,
         year,
         month,
@@ -157,9 +181,8 @@ export function useSaveSchedule() {
           error.message?.includes('404')
         ) {
           for (const assignment of payload.assignments) {
-            // Tentar atualizar shift existente
             const { data: existing } = await supabase
-              .from('patient_attendance_shift')
+              .from('pad_shift')
               .select('id')
               .eq('company_id', company.id)
               .eq('patient_id', payload.patient_id)
@@ -169,7 +192,7 @@ export function useSaveSchedule() {
 
             if (existing) {
               const { error: updateErr } = await supabase
-                .from('patient_attendance_shift')
+                .from('pad_shift')
                 .update({
                   assigned_professional_id: assignment.professional_id,
                   start_at: assignment.start_at,
@@ -179,10 +202,10 @@ export function useSaveSchedule() {
 
               if (updateErr) throw updateErr;
             } else {
-              const { error: insertErr } = await supabase.from('patient_attendance_shift').insert({
+              const { error: insertErr } = await supabase.from('pad_shift').insert({
                 company_id: company.id,
                 patient_id: payload.patient_id,
-                patient_attendance_demand_id: payload.pad_id,
+                pad_item_id: payload.pad_item_id,
                 start_at: assignment.start_at,
                 end_at: assignment.end_at,
                 assigned_professional_id: assignment.professional_id,

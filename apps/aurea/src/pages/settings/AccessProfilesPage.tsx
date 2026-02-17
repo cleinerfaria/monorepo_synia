@@ -68,8 +68,7 @@ export default function AccessProfilesPage() {
             Configure os perfis e permissões do sistema
           </p>
         </div>
-        <Button onClick={handleNewProfile}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={handleNewProfile} icon={<Plus className="mr-2 h-4 w-4" />}>
           Novo Perfil
         </Button>
       </div>

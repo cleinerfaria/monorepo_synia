@@ -767,7 +767,10 @@ export default function SettingsPage() {
                 ].map((option) => (
                   <button
                     key={option.value}
-                    onClick={() => setTheme(option.value as any)}
+                    onClick={() => {
+                      setTheme(option.value as any);
+                      saveThemePreference(option.value);
+                    }}
                     className={`rounded-xl border-2 px-4 py-3 font-medium transition-colors ${
                       theme === option.value
                         ? 'border-primary-500 bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white'

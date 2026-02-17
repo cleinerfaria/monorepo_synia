@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Card, Button, DataTable, EmptyState, Badge, IconButton } from '@/components/ui';
 import { useAppUsers, AppUser } from '@/hooks/useAppUsers';
-import { useAccessProfiles } from '@/hooks/useAccessProfiles';
+
 import type { Company } from '@/hooks/useCompanies';
 import { useAuthStore } from '@/stores/authStore';
 import { DEFAULT_PRIMARY_COLOR } from '@/design-system/theme/constants';
@@ -15,7 +15,6 @@ export default function UsersPage() {
 
   const { company } = useAuthStore();
   const { data: users = [], isLoading: isLoadingUsers } = useAppUsers(company?.id);
-  const { data: accessProfiles = [] } = useAccessProfiles(company?.id);
 
   const filteredUsers = useMemo(() => {
     if (!searchInput.trim()) return users;
@@ -34,15 +33,6 @@ export default function UsersPage() {
     setSelectedUser(null);
     setIsUserModalOpen(true);
   }, []);
-
-  const getProfileName = useCallback(
-    (profileId?: string) => {
-      if (!profileId) return null;
-      const profile = accessProfiles.find((p) => p.id === profileId);
-      return profile?.name;
-    },
-    [accessProfiles]
-  );
 
   const columns: ColumnDef<AppUser>[] = useMemo(
     () => [

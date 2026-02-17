@@ -2,11 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
-export interface PatientAttendanceShift {
+export interface PadShift {
   id: string;
   company_id: string;
   patient_id: string;
-  patient_attendance_demand_id: string;
+  pad_item_id: string;
   start_at: string;
   end_at: string;
   status: string;
@@ -38,7 +38,7 @@ export function useMyShifts(from: string, to: string) {
       });
 
       if (error) throw error;
-      return (data || []) as PatientAttendanceShift[];
+      return (data || []) as PadShift[];
     },
     enabled: !!from && !!to,
   });
@@ -54,9 +54,9 @@ export function useMyActiveShift() {
       const { data, error } = await supabase.rpc('get_my_active_shift');
 
       if (error) throw error;
-      return data as PatientAttendanceShift | null;
+      return data as PadShift | null;
     },
-    refetchInterval: 30000, // Atualizar a cada 30s
+    refetchInterval: 30000,
   });
 }
 
@@ -75,7 +75,7 @@ export function useShiftCheckIn() {
       });
 
       if (error) throw error;
-      return data as PatientAttendanceShift;
+      return data as PadShift;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -103,7 +103,7 @@ export function useShiftCheckOut() {
       });
 
       if (error) throw error;
-      return data as PatientAttendanceShift;
+      return data as PadShift;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });

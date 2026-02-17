@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Modal, Input, Button, Badge } from '@/components/ui';
 import {
   AccessProfile,
@@ -18,12 +18,14 @@ interface AccessProfileModalProps {
   existingPermissionIds?: string[];
 }
 
+const EMPTY_PERMISSION_IDS: string[] = [];
+
 export default function AccessProfileModal({
   isOpen,
   onClose,
   profile,
   companyId,
-  existingPermissionIds = [],
+  existingPermissionIds = EMPTY_PERMISSION_IDS,
 }: AccessProfileModalProps) {
   const isEditing = !!profile;
 
@@ -43,6 +45,11 @@ export default function AccessProfileModal({
   const updateMutation = useUpdateAccessProfile();
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+  const permissionsSignature = useMemo(
+    () => [...existingPermissionIds].sort().join('|'),
+    [existingPermissionIds]
+  );
+  const normalizedPermissionIds = useMemo(() => [...existingPermissionIds], [permissionsSignature]);
 
   useEffect(() => {
     if (profile) {
@@ -52,7 +59,7 @@ export default function AccessProfileModal({
         description: profile.description || '',
         is_admin: profile.is_admin,
       });
-      setSelectedPermissions(new Set(existingPermissionIds));
+      setSelectedPermissions(new Set(normalizedPermissionIds));
     } else {
       setFormData({
         code: '',
@@ -63,7 +70,7 @@ export default function AccessProfileModal({
       setSelectedPermissions(new Set());
     }
     setErrors({});
-  }, [profile, isOpen, existingPermissionIds]);
+  }, [profile, isOpen, normalizedPermissionIds]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
