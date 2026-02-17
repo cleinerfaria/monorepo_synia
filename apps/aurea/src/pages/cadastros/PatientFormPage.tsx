@@ -22,17 +22,17 @@ const formatCPF = (value: string): string => {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 };
 
-// Função de validação de CPF (algoritmo dos dÃ­gitos verificadores)
+// Função de validação de CPF (algoritmo dos dígitos verificadores)
 const validateCPF = (cpf: string): boolean => {
   const digits = cpf.replace(/\D/g, '');
 
-  // CPF deve ter 11 dÃ­gitos
+  // CPF deve ter 11 dígitos
   if (digits.length !== 11) return false;
 
-  // Verifica se todos os dÃ­gitos são iguais (CPFs inválidos conhecidos)
+  // Verifica se todos os dígitos são iguais (CPFs inválidos conhecidos)
   if (/^(\d)\1{10}$/.test(digits)) return false;
 
-  // Calcula o primeiro dÃ­gito verificador
+  // Calcula o primeiro dígito verificador
   let sum = 0;
   for (let i = 0; i < 9; i++) {
     sum += parseInt(digits[i]) * (10 - i);
@@ -41,7 +41,7 @@ const validateCPF = (cpf: string): boolean => {
   if (remainder === 10 || remainder === 11) remainder = 0;
   if (remainder !== parseInt(digits[9])) return false;
 
-  // Calcula o segundo dÃ­gito verificador
+  // Calcula o segundo dígito verificador
   sum = 0;
   for (let i = 0; i < 10; i++) {
     sum += parseInt(digits[i]) * (11 - i);
@@ -130,12 +130,12 @@ export default function PatientFormPage() {
       const today = new Date();
 
       const years = differenceInYears(today, birthDate);
-      // Para calcular meses, precisamos ajustar para depois do Ãºltimo aniversário
+      // Para calcular meses, precisamos ajustar para depois do último aniversário
       const afterLastBirthday = new Date(birthDate);
       afterLastBirthday.setFullYear(afterLastBirthday.getFullYear() + years);
       const months = differenceInMonths(today, afterLastBirthday);
 
-      // Para calcular dias, precisamos ajustar para depois do Ãºltimo mÃªs
+      // Para calcular dias, precisamos ajustar para depois do último mês
       const afterLastMonth = new Date(afterLastBirthday);
       afterLastMonth.setMonth(afterLastMonth.getMonth() + months);
       const days = differenceInDays(today, afterLastMonth);
@@ -151,14 +151,14 @@ export default function PatientFormPage() {
     if (!age) return '';
 
     if (age.years === 0) {
-      // RecÃ©m-nascido: mostrar meses e dias
+      // Recém-nascido: mostrar meses e dias
       if (age.months === 0) {
         return `${age.days} ${age.days === 1 ? 'dia' : 'dias'}`;
       }
-      return `${age.months} ${age.months === 1 ? 'mÃªs' : 'meses'} e ${age.days} ${age.days === 1 ? 'dia' : 'dias'}`;
+      return `${age.months} ${age.months === 1 ? 'mês' : 'meses'} e ${age.days} ${age.days === 1 ? 'dia' : 'dias'}`;
     } else {
       // Maior de 1 ano: mostrar anos e meses
-      return `${age.years} ${age.years === 1 ? 'ano' : 'anos'} e ${age.months} ${age.months === 1 ? 'mÃªs' : 'meses'}`;
+      return `${age.years} ${age.years === 1 ? 'ano' : 'anos'} e ${age.months} ${age.months === 1 ? 'mês' : 'meses'}`;
     }
   };
 
@@ -255,10 +255,10 @@ export default function PatientFormPage() {
     }
   }, [cpfValue]);
 
-  // FunçÃµes para salvar dados relacionados individualmente
+  // Funções para salvar dados relacionados individualmente
   const handleSaveAddresses = async (addressesToSave: PatientAddress[]) => {
     if (!isEditing || !id) {
-      toast.error('Ã‰ necessário salvar o paciente primeiro');
+      toast.error('É necessário salvar o paciente primeiro');
       return;
     }
 
@@ -275,7 +275,7 @@ export default function PatientFormPage() {
 
   const handleSaveContacts = async (contactsToSave: PatientContact[]) => {
     if (!isEditing || !id) {
-      toast.error('Ã‰ necessário salvar o paciente primeiro');
+      toast.error('É necessário salvar o paciente primeiro');
       return;
     }
 
@@ -292,7 +292,7 @@ export default function PatientFormPage() {
 
   const handleSavePayers = async (payersToSave: PatientPayer[]) => {
     if (!isEditing || !id) {
-      toast.error('Ã‰ necessário salvar o paciente primeiro');
+      toast.error('É necessário salvar o paciente primeiro');
       return;
     }
 
@@ -337,7 +337,7 @@ export default function PatientFormPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty, localUnsavedChanges]);
 
-  // Inicializa o formulário quando o paciente Ã© carregado
+  // Inicializa o formulário quando o paciente é carregado
   useEffect(() => {
     if (isEditing && patient) {
       const formattedCPF = patient.cpf ? formatCPF(patient.cpf) : '';
@@ -435,7 +435,7 @@ export default function PatientFormPage() {
     const patientData = {
       ...data,
       code: data.code || null,
-      cpf: cpfValue ? cpfValue.replace(/\D/g, '') : null, // Salvar apenas dÃ­gitos
+      cpf: cpfValue ? cpfValue.replace(/\D/g, '') : null, // Salvar apenas dígitos
       gender: data.gender || null,
       father_name: data.father_name || null,
       mother_name: data.mother_name || null,
@@ -505,7 +505,7 @@ export default function PatientFormPage() {
 
   return (
     <div className="space-y-4">
-      {/* Header com Breadcrumbs e BotÃµes */}
+      {/* Header com Breadcrumbs e Botões */}
       <div className="flex items-center justify-between px-4 lg:px-4">
         <Breadcrumbs items={breadcrumbItems} onNavigate={handleBreadcrumbNavigate} />
         <div className="flex items-center gap-3">
@@ -521,7 +521,7 @@ export default function PatientFormPage() {
             variant="solid"
             showIcon={false}
             disabled={createPatient.isPending || updatePatient.isPending}
-            label={isEditing ? 'Salvar AlteraçÃµes' : 'Cadastrar Paciente'}
+            label={isEditing ? 'Salvar Alterações' : 'Cadastrar Paciente'}
           />
         </div>
       </div>
@@ -558,7 +558,7 @@ export default function PatientFormPage() {
                     <Input
                       label="Nome Completo"
                       placeholder="Nome do paciente"
-                      {...register('name', { required: 'Nome Ã© obrigatório' })}
+                      {...register('name', { required: 'Nome é obrigatório' })}
                       error={errors.name?.message}
                       required
                     />
@@ -570,7 +570,7 @@ export default function PatientFormPage() {
                     label="Sexo"
                     options={genderOptions}
                     value={gender}
-                    {...register('gender', { required: 'Sexo Ã© obrigatório' })}
+                    {...register('gender', { required: 'Sexo é obrigatório' })}
                     error={errors.gender?.message}
                     required
                   />

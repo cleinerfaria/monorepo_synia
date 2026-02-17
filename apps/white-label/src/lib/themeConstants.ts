@@ -25,7 +25,7 @@ export const CHART_COLORS = {
 /** Níveis de saturação adicionados quando cor original é muito neutra */
 export const MIN_SATURATION = 15;
 
-/** Paleta fixa para sÃ©ries secundárias em gráficos (a primária vem da empresa) */
+/** Paleta fixa para séries secundárias em gráficos (a primária vem da empresa) */
 export const CHART_SERIES_COLORS = [
   '#10B981',
   '#F59E0B',

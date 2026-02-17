@@ -67,7 +67,7 @@ export function PrescriptionDetailAuxModals({
       <Modal
         isOpen={isPeriodModalOpen}
         onClose={() => setIsPeriodModalOpen(false)}
-        title="Alterar PerÃ­odo"
+        title="Alterar Período"
         size="md"
       >
         <div className="space-y-4">
@@ -122,7 +122,7 @@ export function PrescriptionDetailAuxModals({
             onClick={handleSavePeriod}
             disabled={updatePrescriptionIsPending}
             showIcon={false}
-            label={updatePrescriptionIsPending ? 'Salvando perÃ­odo...' : 'Salvar perÃ­odo'}
+            label={updatePrescriptionIsPending ? 'Salvando período...' : 'Salvar período'}
           />
         </ModalFooter>
       </Modal>

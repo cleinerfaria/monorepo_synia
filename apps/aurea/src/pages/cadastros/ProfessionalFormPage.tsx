@@ -396,7 +396,7 @@ export default function ProfessionalFormPage() {
 
   return (
     <div className="space-y-4">
-      {/* Header com Breadcrumbs e BotÃµes */}
+      {/* Header com Breadcrumbs e Botões */}
       <div className="flex items-center justify-between px-4 lg:px-4">
         <Breadcrumbs items={breadcrumbItems} onNavigate={handleBreadcrumbNavigate} />
         <div className="flex items-center gap-3">

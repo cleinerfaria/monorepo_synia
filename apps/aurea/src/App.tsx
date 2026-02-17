@@ -40,6 +40,8 @@ const ProntuarioRelatoriosPage = lazy(() => import('@/pages/prontuario/Relatorio
 const PadPage = lazy(() => import('@/pages/prontuario/PadPage'));
 const PadFormPage = lazy(() => import('@/pages/prontuario/PadFormPage'));
 const PadPreviewPage = lazy(() => import('@/pages/prontuario/PadPreviewPage'));
+const PatientMonthSchedulePage = lazy(() => import('@/pages/prontuario/PatientMonthSchedulePage'));
+const SchedulesListPage = lazy(() => import('@/pages/prontuario/SchedulesListPage'));
 const PrescriptionsPage = lazy(() => import('@/pages/prescriptions/PrescriptionsPage'));
 const PrescriptionDetailPage = lazy(() => import('@/pages/prescriptions/PrescriptionDetailPage'));
 const StockPage = lazy(() => import('@/pages/stock/StockPage'));
@@ -587,6 +589,22 @@ function App() {
                   element={
                     <Suspense fallback={<RouteLoader />}>
                       <PadPreviewPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="prontuario/escala/:patientId"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <PatientMonthSchedulePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="prontuario/escalas"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <SchedulesListPage />
                     </Suspense>
                   }
                 />

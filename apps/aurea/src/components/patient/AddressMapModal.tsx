@@ -7,7 +7,7 @@ import { useGoogleMapsApiError } from '@/hooks/useGoogleMapsApiError';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix para os Ã­cones padrão do Leaflet
+// Fix para os ícones padrão do Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -219,7 +219,7 @@ export default function AddressMapModal({
     apiKey && apiKey.trim() !== '' && apiKey !== 'your-google-maps-api-key-here'
   );
 
-  // Detectar erros especÃ­ficos da Google Maps API
+  // Detectar erros específicos da Google Maps API
   const googleMapsError = useGoogleMapsApiError();
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -256,7 +256,7 @@ export default function AddressMapModal({
   const handleSearchWithConfirm = () => {
     // Usar a mesma lógica da tag de "Editado Manualmente"
     const isShowingManualTag = (() => {
-      // Se foi editado nesta sessão, Ã© manual
+      // Se foi editado nesta sessão, é manual
       if (isEditedInSession) return true;
 
       // Se já estava marcado como manual anteriormente e temos coordenadas do endereço para comparar
@@ -265,7 +265,7 @@ export default function AddressMapModal({
         return !coordinatesAreEqual(markerPosition, addressCoordinates);
       }
 
-      // Se não foi marcado como manual anteriormente, Ã© automático
+      // Se não foi marcado como manual anteriormente, é automático
       return false;
     })();
 
@@ -304,7 +304,7 @@ export default function AddressMapModal({
           setMarkerPosition(newPosition);
           setCenter(newPosition);
           setSearchResult(`Encontrado: ${result.results[0].formatted_address}`);
-          // Resetar edição manual pois Ã© resultado de busca automática
+          // Resetar edição manual pois é resultado de busca automática
           setIsEditedInSession(false);
         } else {
           setSearchResult('Nenhum resultado encontrado');
@@ -321,7 +321,7 @@ export default function AddressMapModal({
           setMarkerPosition(newPosition);
           setCenter(newPosition);
           setSearchResult(`Encontrado: ${result.display_name}`);
-          // Resetar edição manual pois Ã© resultado de busca automática
+          // Resetar edição manual pois é resultado de busca automática
           setIsEditedInSession(false);
         } else {
           setSearchResult('Nenhum resultado encontrado');
@@ -347,13 +347,13 @@ export default function AddressMapModal({
   };
 
   const handleConfirm = () => {
-    // Validar se os valores são nÃºmeros válidos
+    // Validar se os valores são números válidos
     if (isNaN(markerPosition.lat) || isNaN(markerPosition.lng)) {
       console.error('Coordenadas inválidas!', markerPosition);
       return;
     }
 
-    // Arredondar para 6 dÃ­gitos decimais
+    // Arredondar para 6 dígitos decimais
     const roundedLat = Math.round(markerPosition.lat * 1000000) / 1000000;
     const roundedLng = Math.round(markerPosition.lng * 1000000) / 1000000;
 
@@ -385,7 +385,7 @@ export default function AddressMapModal({
     if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
       const newPosition = { lat: latitude, lng: longitude };
 
-      // Verificar se Ã© realmente diferente para evitar atualizaçÃµes desnecessárias
+      // Verificar se é realmente diferente para evitar atualizações desnecessárias
       if (
         Math.abs(newPosition.lat - markerPosition.lat) > 0.000001 ||
         Math.abs(newPosition.lng - markerPosition.lng) > 0.000001
@@ -484,7 +484,7 @@ export default function AddressMapModal({
                       Usando mapa alternativo
                     </h3>
                     <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                      O Google Maps não está disponÃ­vel. Usando OpenStreetMap como alternativa.
+                      O Google Maps não está disponível. Usando OpenStreetMap como alternativa.
                       {hasApiKey && (
                         <button
                           onClick={() => {
@@ -643,7 +643,7 @@ export default function AddressMapModal({
           )}
         </div>
 
-        {/* RodapÃ© com coordenadas e botÃµes */}
+        {/* Rodapé com coordenadas e botões */}
         <div className="border-t border-gray-200 p-6 dark:border-gray-700">
           <div className="flex items-start justify-between gap-6">
             {/* Coordinates on the left with source indicator */}
@@ -664,7 +664,7 @@ export default function AddressMapModal({
               {/* Indicador de origem das coordenadas */}
               <div className="mt-3 flex items-center">
                 {(() => {
-                  // Se foi editado nesta sessão, Ã© manual
+                  // Se foi editado nesta sessão, é manual
                   if (isEditedInSession) return true;
 
                   // Se já estava marcado como manual anteriormente e temos coordenadas do endereço para comparar
@@ -673,7 +673,7 @@ export default function AddressMapModal({
                     return !coordinatesAreEqual(markerPosition, addressCoordinates);
                   }
 
-                  // Se não foi marcado como manual anteriormente, Ã© automático
+                  // Se não foi marcado como manual anteriormente, é automático
                   return false;
                 })() ? (
                   <div
@@ -735,8 +735,8 @@ export default function AddressMapModal({
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          VocÃª possui uma localização salva manualmente. Ao buscar o endereço, as coordenadas
-          atuais serão substituÃ­das pelas novas coordenadas encontradas.
+          Você possui uma localização salva manualmente. Ao buscar o endereço, as coordenadas atuais
+          serão substituídas pelas novas coordenadas encontradas.
         </p>
         <p className="mt-2 text-gray-600 dark:text-gray-400">Deseja continuar com a busca?</p>
 

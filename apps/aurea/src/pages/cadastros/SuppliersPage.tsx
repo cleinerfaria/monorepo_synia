@@ -501,7 +501,7 @@ export default function SuppliersPage() {
                 <Input
                   label="Razão Social"
                   placeholder="Nome oficial da empresa"
-                  {...register('name', { required: 'Razão social Ã© obrigatória' })}
+                  {...register('name', { required: 'Razão social é obrigatória' })}
                   error={errors.name?.message}
                   required
                 />
@@ -530,12 +530,12 @@ export default function SuppliersPage() {
               />
               <Input
                 label="Inscrição Estadual"
-                placeholder="NÃºmero IE"
+                placeholder="Número IE"
                 {...register('state_registration')}
               />
               <Input
                 label="Inscrição Municipal"
-                placeholder="NÃºmero IM"
+                placeholder="Número IM"
                 {...register('municipal_registration')}
               />
             </div>
@@ -548,7 +548,7 @@ export default function SuppliersPage() {
               <div className="md:col-span-10">
                 <Input
                   label="Endereço"
-                  placeholder="Rua, nÃºmero, complemento"
+                  placeholder="Rua, número, complemento"
                   {...register('address')}
                 />
               </div>
@@ -631,15 +631,15 @@ export default function SuppliersPage() {
             </div>
           </div>
 
-          {/* ObservaçÃµes */}
+          {/* Observações */}
           <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              InformaçÃµes Adicionais
+              Informações Adicionais
             </h3>
             <div className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4">
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="CondiçÃµes de Pagamento"
+                  label="Condições de Pagamento"
                   placeholder="Ex: 30/60/90 dias, boleto bancário"
                   rows={2}
                   {...register('payment_terms')}
@@ -647,8 +647,8 @@ export default function SuppliersPage() {
               </div>
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="ObservaçÃµes"
-                  placeholder="ObservaçÃµes adicionais..."
+                  label="Observações"
+                  placeholder="Observações adicionais..."
                   rows={2}
                   {...register('notes')}
                 />
@@ -681,7 +681,7 @@ export default function SuppliersPage() {
               variant="solid"
               showIcon={false}
               disabled={createSupplier.isPending || updateSupplier.isPending}
-              label={selectedSupplier ? 'Salvar AlteraçÃµes' : 'Cadastrar'}
+              label={selectedSupplier ? 'Salvar Alterações' : 'Cadastrar'}
             />
           </ModalFooter>
         </form>

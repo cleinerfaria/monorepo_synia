@@ -442,7 +442,7 @@ export default function PrescriptionDetailPage() {
     required: !isContinuousUse ? 'Data final e obrigatoria quando nao for uso continuo' : false,
   });
   const { ref: productIdFieldRef, ...productIdField } = register('product_id', {
-    required: 'Produto Ã© obrigatório',
+    required: 'Produto é obrigatório',
   });
 
   const normalizeText = useCallback(
@@ -701,7 +701,7 @@ export default function PrescriptionDetailPage() {
     return hourUnit?.id || '';
   }, [unitsOfMeasure, normalizeText]);
 
-  // Atualizar defaultValues quando hourUnitId estiver disponÃ­vel - apenas para novos itens
+  // Atualizar defaultValues quando hourUnitId estiver disponível - apenas para novos itens
   useEffect(() => {
     if (hourUnitId && !selectedItem && isItemModalOpen && watch('times_unit') === '') {
       setValue('times_unit', hourUnitId);
@@ -714,7 +714,7 @@ export default function PrescriptionDetailPage() {
       const name = normalizeText(unit.name);
       const symbol = normalizeText(unit.symbol || '');
 
-      // Para modo "times_per", mostrar apenas dia, semana e mÃªs
+      // Para modo "times_per", mostrar apenas dia, semana e mês
       if (watchFrequencyMode === 'times_per') {
         return (
           code === 'd' ||
@@ -728,7 +728,7 @@ export default function PrescriptionDetailPage() {
           name.includes('day') ||
           name.includes('semana') ||
           name.includes('week') ||
-          name.includes('mÃªs') ||
+          name.includes('mês') ||
           name.includes('month')
         );
       }
@@ -796,7 +796,7 @@ export default function PrescriptionDetailPage() {
     return options;
   }, [unitsOfMeasure, normalizeText, watchFrequencyMode]);
 
-  // Verifica se a unidade selecionada Ã© semana
+  // Verifica se a unidade selecionada é semana
   const isWeekUnit = useMemo(() => {
     if (!watchTimesUnit) return false;
     const selectedUnit = unitsOfMeasure.find((unit) => unit.id === watchTimesUnit);
@@ -817,7 +817,7 @@ export default function PrescriptionDetailPage() {
       const exists = current.includes(day);
       const next = exists ? current.filter((item) => item !== day) : [...current, day];
 
-      // Se estiver no modo "vezes por semana", limitar seleção ao nÃºmero de vezes
+      // Se estiver no modo "vezes por semana", limitar seleção ao número de vezes
       if (shouldShowWeekDays && watchTimesValue) {
         if (!exists && next.length > watchTimesValue) {
           return current; // Não permite exceder o limite
@@ -848,7 +848,7 @@ export default function PrescriptionDetailPage() {
       if (data.frequency_mode === 'every') {
         if (!data.times_value) return null;
 
-        // Detectar se Ã© intervalo de horas pelo interval_minutes
+        // Detectar se é intervalo de horas pelo interval_minutes
         const isHourlyInterval = data.interval_minutes && data.interval_minutes < 1440;
 
         if (isHourlyInterval) {
@@ -877,7 +877,7 @@ export default function PrescriptionDetailPage() {
       const unitLabel = getUnitLabel(data.times_unit);
       if (data.frequency_mode === 'times_per') {
         if (!data.times_value) return null;
-        // Verificar se a unidade Ã© dia/day
+        // Verificar se a unidade é dia/day
         const isDayUnit =
           data.times_unit === 'day' || (unitLabel && unitLabel.toLowerCase().includes('dia'));
         if (isDayUnit) {
@@ -925,7 +925,7 @@ export default function PrescriptionDetailPage() {
   const isTimesPerDay = watchFrequencyMode === 'times_per' && isDayUnit(watchTimesUnit);
   useEffect(() => {
     if (!isTimesPerDay) return;
-    // Garantir que apenas nÃºmeros inteiros sejam usados
+    // Garantir que apenas números inteiros sejam usados
     const rawValue = Number.isFinite(watchTimesValue) ? watchTimesValue : 0;
     const desired = Math.max(0, Math.floor(rawValue)); // Math.floor para garantir inteiro
     setTimeChecks((current) => {
@@ -993,7 +993,7 @@ export default function PrescriptionDetailPage() {
       start_date: '',
       end_date: '',
       is_prn: false,
-      is_continuous_use: true, // Padrão true para "uso contÃ­nuo"
+      is_continuous_use: true, // Padrão true para "uso contínuo"
       justification: '',
       instructions_use: '',
       instructions_pharmacy: '',
@@ -1023,7 +1023,7 @@ export default function PrescriptionDetailPage() {
       const resolvedMode = (item.frequency_mode || 'every') as ItemFormData['frequency_mode'];
       const isWeekUnitMode = resolvedMode === 'times_per' && item.times_unit === 'week';
 
-      // Extrair horário Ãºnico para modo semana
+      // Extrair horário único para modo semana
       const weekTime = isWeekUnitMode && parsedTimeChecks.length > 0 ? parsedTimeChecks[0] : '';
 
       setTimeChecks(resolvedMode === 'times_per' && !isWeekUnitMode ? parsedTimeChecks : []);
@@ -1131,7 +1131,7 @@ export default function PrescriptionDetailPage() {
       const timeStartValue =
         data.time_start && data.time_start.trim() !== '' ? data.time_start : null;
 
-      // Validação: time_start Ã© obrigatório em modo 'every', exceto quando Ã© 'se necessário'
+      // Validação: time_start é obrigatório em modo 'every', exceto quando é 'se necessário'
       if (!timeStartValue && !data.is_prn) {
         throw new Error('Campo obrigatório');
       }
@@ -1139,7 +1139,7 @@ export default function PrescriptionDetailPage() {
       // Gerar time_checks automaticamente para modo 'every' (horários dentro de um dia)
       let generatedTimeChecks: string[] | null = null;
       if (intervalMinutes && timeStartValue && intervalMinutes < 1440) {
-        // Se o intervalo Ã© menor que 24 horas (1440 minutos), Ã© um intervalo intra-dia
+        // Se o intervalo é menor que 24 horas (1440 minutos), é um intervalo intra-dia
         generatedTimeChecks = [];
         let currentMinutes = 0;
 
@@ -1196,7 +1196,7 @@ export default function PrescriptionDetailPage() {
       if (shouldUseTimeChecks) {
         resolvedTimeChecks = formatTimeChecks(timeChecks);
       } else if (isWeekMode && weekTimeSelected) {
-        // Para modo semana, salvar apenas o horário Ãºnico
+        // Para modo semana, salvar apenas o horário único
         resolvedTimeChecks = weekTimeSelected;
       }
 
@@ -1309,7 +1309,7 @@ export default function PrescriptionDetailPage() {
   const handleSavePeriod = async () => {
     if (!id) return;
     if (periodStartDate && periodEndDate && periodEndDate < periodStartDate) {
-      setPeriodModalError('Data final deve ser igual ou posterior Ã  data inicial.');
+      setPeriodModalError('Data final deve ser igual ou posterior à data inicial.');
       return;
     }
 
@@ -1466,7 +1466,7 @@ export default function PrescriptionDetailPage() {
     [isMedicationSuspendedByEndDate]
   );
 
-  // Calcular nÃºmeros de itens baseado na ordem das vias e no status efetivo
+  // Calcular números de itens baseado na ordem das vias e no status efetivo
   const itemNumbers = useMemo(() => {
     const sortedByRoute = sortPrescriptionItemsByRoute(items, administrationRoutes);
     const numbers = new Map<string, number>();
@@ -1485,7 +1485,7 @@ export default function PrescriptionDetailPage() {
   // Ordenar itens por via de administração e status efetivo
   const sortedItems = useMemo(() => {
     const sorted = sortPrescriptionItemsByRoute(items, administrationRoutes);
-    // Itens ativos vÃªm primeiro, inativos por Ãºltimo
+    // Itens ativos vêm primeiro, inativos por último
     return sorted.sort((a, b) => {
       const aActive = isItemEffectivelyActive(a);
       const bActive = isItemEffectivelyActive(b);
@@ -1551,7 +1551,7 @@ export default function PrescriptionDetailPage() {
       openDeleteItemModal,
     ]
   );
-  // Garantir que o produto atualmente selecionado sempre apareça nas opçÃµes
+  // Garantir que o produto atualmente selecionado sempre apareça nas opções
   const currentProduct = watchProductId ? products.find((p) => p.id === watchProductId) : null;
   const productsForOptions =
     currentProduct && !products.find((p) => p.id === currentProduct.id)
@@ -1572,7 +1572,7 @@ export default function PrescriptionDetailPage() {
     };
   });
 
-  // OpçÃµes de produtos para componentes de administração (sempre todos os produtos ativos)
+  // Opções de produtos para componentes de administração (sempre todos os produtos ativos)
   const componentProductOptions = componentProducts
     .filter((item) => item.active)
     .map((item) => {
@@ -1587,7 +1587,7 @@ export default function PrescriptionDetailPage() {
       };
     });
 
-  // Garantir que o equipamento atualmente selecionado sempre apareça nas opçÃµes
+  // Garantir que o equipamento atualmente selecionado sempre apareça nas opções
   const watchEquipmentId = watch('equipment_id');
   const currentEquipment = watchEquipmentId
     ? equipment.find((e) => e.id === watchEquipmentId)
@@ -1603,7 +1603,7 @@ export default function PrescriptionDetailPage() {
     label: `${e.name} ${e.serial_number ? `(${e.serial_number})` : ''}`,
   }));
 
-  // Garantir que o procedimento atualmente selecionado sempre apareça nas opçÃµes
+  // Garantir que o procedimento atualmente selecionado sempre apareça nas opções
   const watchProcedureId = watch('procedure_id');
   const currentProcedure = watchProcedureId
     ? procedures.find((p) => p.id === watchProcedureId)
@@ -1631,13 +1631,13 @@ export default function PrescriptionDetailPage() {
       value: 'procedure',
       label: 'Procedimento',
       icon: Bandage,
-      description: 'Procedimentos mÃ©dicos',
+      description: 'Procedimentos médicos',
     },
     {
       value: 'equipment',
       label: 'Equipamento',
       icon: Stethoscope,
-      description: 'Equipamentos mÃ©dicos',
+      description: 'Equipamentos médicos',
     },
   ];
 
@@ -1645,7 +1645,7 @@ export default function PrescriptionDetailPage() {
     () => [
       { value: '', label: 'Selecione...' },
       { value: 'company', label: 'Empresa' },
-      { value: 'family', label: 'FamÃ­lia' },
+      { value: 'family', label: 'Família' },
       { value: 'government', label: 'Governo' },
       { value: 'other', label: 'Outros' },
     ],
@@ -1721,8 +1721,8 @@ export default function PrescriptionDetailPage() {
     switch (type) {
       case 'medical':
         return {
-          label: 'Prescrição MÃ©dica',
-          shortLabel: 'MÃ©dica',
+          label: 'Prescrição Médica',
+          shortLabel: 'Médica',
           icon: Activity,
           bgColor: 'bg-teal-50 dark:bg-teal-950',
           textColor: 'text-teal-700 dark:text-teal-300',
@@ -1956,7 +1956,7 @@ export default function PrescriptionDetailPage() {
     { value: 7, label: 'Sab' },
   ];
 
-  // OpçÃµes de vias de administração vindas do banco ou fallback para lista padrão
+  // Opções de vias de administração vindas do banco ou fallback para lista padrão
   const routeOptions =
     administrationRoutes.length > 0
       ? administrationRoutes
@@ -1967,16 +1967,16 @@ export default function PrescriptionDetailPage() {
             description: route.description || undefined,
             sortKey: route.name, // Para ordenação
           }))
-          .sort((a, b) => a.sortKey.localeCompare(b.sortKey)) // Ordenação alfabÃ©tica
+          .sort((a, b) => a.sortKey.localeCompare(b.sortKey)) // Ordenação alfabética
       : [];
 
-  // Debug: Log para verificar as opçÃµes
+  // Debug: Log para verificar as opções
   // console.log('Route options:', routeOptions)
   // console.log('Administration routes:', administrationRoutes)
 
   // Breadcrumb items - sempre declarado antes dos early returns
   const breadcrumbItems = useMemo(
-    () => [{ label: 'PrescriçÃµes', href: prescriptionsListPath }, { label: 'Detalhes' }],
+    () => [{ label: 'Prescrições', href: prescriptionsListPath }, { label: 'Detalhes' }],
     [prescriptionsListPath]
   );
 
@@ -2037,9 +2037,9 @@ export default function PrescriptionDetailPage() {
       {/* Header Principal da Prescrição */}
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div className="p-6">
-          {/* Grid principal - InformaçÃµes vs AçÃµes */}
+          {/* Grid principal - Informações vs Ações */}
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            {/* Seção de informaçÃµes principais */}
+            {/* Seção de informações principais */}
             <div className="min-w-0 flex-1">
               {/* Linha 1: Paciente + Status */}
               <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -2068,7 +2068,7 @@ export default function PrescriptionDetailPage() {
                 </div>
               </div>
 
-              {/* Linha 2: Profissional, Tipo, PerÃ­odo e Documentos (mesma linha em desktop) */}
+              {/* Linha 2: Profissional, Tipo, Período e Documentos (mesma linha em desktop) */}
               <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800/50">
                   <div className="rounded-lg bg-white p-2 shadow-sm dark:bg-gray-800">
@@ -2107,7 +2107,7 @@ export default function PrescriptionDetailPage() {
                     <CalendarDays className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">PerÃ­odo</p>
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Período</p>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
                       {prescription.start_date
                         ? format(parseDateOnly(prescription.start_date), 'dd/MM/yyyy')
@@ -2146,10 +2146,10 @@ export default function PrescriptionDetailPage() {
               </div>
             </div>
 
-            {/* Seção de açÃµes */}
+            {/* Seção de ações */}
             <div className="flex flex-col gap-3 lg:w-auto lg:min-w-0">
               <div className="mb-1 hidden text-xs font-medium uppercase tracking-wider text-gray-600 lg:block dark:text-gray-400">
-                AçÃµes
+                Ações
               </div>
 
               <div className="flex flex-row gap-2">
@@ -2167,14 +2167,14 @@ export default function PrescriptionDetailPage() {
                       disabled: uploadAttachment.isPending,
                     },
                     {
-                      label: 'Alterar perÃ­odo',
+                      label: 'Alterar período',
                       icon: <CalendarDays className="h-4 w-4" />,
                       onClick: openPeriodModal,
                     },
                     {
                       label: canTogglePrescriptionStatus
                         ? statusToggleLabel
-                        : 'Ativar/Desativar indisponÃ­vel',
+                        : 'Ativar/Desativar indisponível',
                       icon: <StatusToggleIcon className="h-4 w-4" />,
                       onClick: () => {
                         if (!canTogglePrescriptionStatus) return;
@@ -2204,7 +2204,7 @@ export default function PrescriptionDetailPage() {
       {prescription.notes && (
         <Card>
           <CardHeader>
-            <CardTitle>ObservaçÃµes</CardTitle>
+            <CardTitle>Observações</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
@@ -2235,7 +2235,7 @@ export default function PrescriptionDetailPage() {
                 compact
                 hoverBorder
               >
-                Histórico de PrescriçÃµes
+                Histórico de Prescrições
               </TabButton>
               <TabButton
                 active={mainTab === 'logs'}
@@ -2478,7 +2478,7 @@ export default function PrescriptionDetailPage() {
                   </p>
                   <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                     {prescriptionLogs.length === 0
-                      ? 'As alteraçÃµes na prescrição e seus itens aparecerão aqui'
+                      ? 'As alterações na prescrição e seus itens aparecerão aqui'
                       : 'Tente alterar os filtros para ver mais logs'}
                   </p>
                 </div>
@@ -2497,19 +2497,19 @@ export default function PrescriptionDetailPage() {
             ) : !canPrintPrescription ? (
               <EmptyState
                 title="Sem permissão para histórico"
-                description="Seu perfil não possui permissão para visualizar as prescriçÃµes impressas."
+                description="Seu perfil não possui permissão para visualizar as prescrições impressas."
               />
             ) : (
               <DataTable
                 data={prescriptionPrintHistory}
                 columns={printHistoryColumns}
                 searchKeys={['print_number', 'created_by_name', 'period_start', 'period_end']}
-                searchPlaceholder="Buscar por nÃºmero, usuário ou perÃ­odo..."
+                searchPlaceholder="Buscar por número, usuário ou período..."
                 onRowClick={(row) => handleReprintPrescription(row.id)}
                 emptyState={
                   <EmptyState
                     title="Nenhuma prescrição impressa"
-                    description="As impressÃµes geradas aparecerão aqui para reimpressão."
+                    description="As impressões geradas aparecerão aqui para reimpressão."
                   />
                 }
               />
@@ -2581,7 +2581,7 @@ export default function PrescriptionDetailPage() {
                     searchPlaceholder="Buscar equipamento..."
                     value={watch('equipment_id')}
                     {...register('equipment_id', {
-                      required: 'Equipamento Ã© obrigatório',
+                      required: 'Equipamento é obrigatório',
                     })}
                     error={errors.equipment_id?.message}
                     required
@@ -2594,7 +2594,7 @@ export default function PrescriptionDetailPage() {
                     searchPlaceholder="Buscar procedimento..."
                     value={watch('procedure_id')}
                     {...register('procedure_id', {
-                      required: 'Procedimento Ã© obrigatório',
+                      required: 'Procedimento é obrigatório',
                     })}
                     error={errors.procedure_id?.message}
                     required
@@ -2659,7 +2659,7 @@ export default function PrescriptionDetailPage() {
                       {...register('route_id', {
                         required:
                           watchItemType === 'medication'
-                            ? 'Via Ã© obrigatória para medicamentos'
+                            ? 'Via é obrigatória para medicamentos'
                             : false,
                       })}
                       error={errors.route_id?.message}
@@ -2676,11 +2676,11 @@ export default function PrescriptionDetailPage() {
                   </div>
                 </div>
 
-                {/* Segunda linha: FrequÃªncia + Horário Inicial (se modo 'every') */}
+                {/* Segunda linha: Frequência + Horário Inicial (se modo 'every') */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                   <div className="md:col-span-3">
                     <SearchableSelect
-                      label="Modo de FrequÃªncia"
+                      label="Modo de Frequência"
                       options={frequencyModeOptions}
                       placeholder="Selecione..."
                       searchPlaceholder="Buscar..."
@@ -2703,13 +2703,13 @@ export default function PrescriptionDetailPage() {
                         valueAsNumber: true,
                         validate: (value) => {
                           if (!Number.isInteger(value)) {
-                            return 'Apenas nÃºmeros inteiros são permitidos';
+                            return 'Apenas números inteiros são permitidos';
                           }
                           if (value < 1) {
                             return 'Valor deve ser maior que zero';
                           }
                           if (watchFrequencyMode === 'every' && value === 1) {
-                            return 'Para frequÃªncia "1", utilize "Vezes por" ao invÃ©s de "A cada"';
+                            return 'Para frequência "1", utilize "Vezes por" ao invés de "A cada"';
                           }
                           // Validação especial para modo "every" com unidade "hora"
                           if (watchFrequencyMode === 'every') {
@@ -2736,7 +2736,7 @@ export default function PrescriptionDetailPage() {
                         // Remove valores decimais em tempo real
                         const target = e.target as HTMLInputElement;
                         let value = target.value;
-                        // Remove caracteres não numÃ©ricos exceto o primeiro dÃ­gito
+                        // Remove caracteres não numéricos exceto o primeiro dígito
                         value = value.replace(/[^\d]/g, '');
                         target.value = value;
                       }}
@@ -2756,7 +2756,7 @@ export default function PrescriptionDetailPage() {
                       />
                     )}
                   </div>
-                  {/* Horário Inicial - apenas quando modo for 'every' e NÃƒO for 'se necessário' */}
+                  {/* Horário Inicial - apenas quando modo for 'every' e NÃO for 'se necessário' */}
                   {watchFrequencyMode === 'every' && !watchIsPrn && (
                     <div className="md:col-span-3">
                       <TimePicker
@@ -2786,7 +2786,7 @@ export default function PrescriptionDetailPage() {
                   </div>
                 )}
 
-                {/* Horários - apenas quando NÃƒO for "se necessário" */}
+                {/* Horários - apenas quando NÃO for "se necessário" */}
                 {!watchIsPrn && (
                   <>
                     {watchFrequencyMode === 'times_per' && (
@@ -2885,12 +2885,12 @@ export default function PrescriptionDetailPage() {
                   </>
                 )}
 
-                {/* Datas e Uso contÃ­nuo na mesma linha */}
+                {/* Datas e Uso contínuo na mesma linha */}
                 <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-12">
                   <div className="flex md:col-span-2">
                     <div className="justify-left group relative mb-1.5">
                       <SwitchNew
-                        label="Uso contÃ­nuo"
+                        label="Uso contínuo"
                         labelPosition="above"
                         checked={isContinuousUse}
                         onChange={(event) =>
@@ -2931,7 +2931,7 @@ export default function PrescriptionDetailPage() {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <Textarea
-                    label="InstruçÃµes de Uso"
+                    label="Instruções de Uso"
                     placeholder="Como será administrado..."
                     {...register('instructions_use', {
                       validate: (value) =>
@@ -2943,8 +2943,8 @@ export default function PrescriptionDetailPage() {
                     required={watchIsPrn}
                   />
                   <Textarea
-                    label="InstruçÃµes para a Farmácia"
-                    placeholder="ObservaçÃµes para dispensação..."
+                    label="Instruções para a Farmácia"
+                    placeholder="Observações para dispensação..."
                     {...register('instructions_pharmacy')}
                   />
                 </div>

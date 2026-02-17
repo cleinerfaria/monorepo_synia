@@ -59,6 +59,7 @@ const navigation: NavItem[] = [
       { name: 'Censo', href: '/prontuario/censo' },
       { name: 'Relatórios', href: '/prontuario/relatorios' },
       { name: 'PAD', href: '/prontuario/pad' },
+      { name: 'Escalas', href: '/prontuario/escalas' },
       { name: 'Prescrições', href: '/prescricoes' },
     ],
   },

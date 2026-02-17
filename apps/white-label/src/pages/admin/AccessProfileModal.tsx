@@ -38,7 +38,7 @@ export default function AccessProfileModal({
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Buscar todas as permissÃµes
+  // Buscar todas as permissões
   const { data: allPermissions = [], isLoading: isLoadingPermissions } = useModulePermissions();
 
   const createMutation = useCreateAccessProfile();
@@ -175,7 +175,7 @@ export default function AccessProfileModal({
 
         {isSystemProfile && (
           <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-            â„¹ï¸ Este Ã© um perfil do sistema e não pode ser modificado.
+            â„¹ï¸ Este é um perfil do sistema e não pode ser modificado.
           </div>
         )}
 
