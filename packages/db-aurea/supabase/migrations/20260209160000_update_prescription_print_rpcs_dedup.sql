@@ -1,4 +1,9 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto') THEN
+    CREATE EXTENSION pgcrypto WITH SCHEMA extensions;
+  END IF;
+END $$;
 
 BEGIN;
 

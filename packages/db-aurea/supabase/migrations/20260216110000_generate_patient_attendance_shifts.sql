@@ -1,6 +1,11 @@
 BEGIN;
 
-DROP FUNCTION IF EXISTS public.generate_patient_attendance_shifts(uuid, date, date);
+DO $$
+BEGIN
+  IF to_regprocedure('public.generate_patient_attendance_shifts(uuid, date, date)') IS NOT NULL THEN
+    EXECUTE 'DROP FUNCTION public.generate_patient_attendance_shifts(uuid, date, date)';
+  END IF;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.generate_patient_attendance_shifts(
   p_pad_id uuid,

@@ -12,7 +12,18 @@ CREATE TABLE IF NOT EXISTS public.prescription_print_counter (
   CONSTRAINT prescription_print_counter_pkey PRIMARY KEY (company_id, counter_year)
 );
 
-DROP TRIGGER IF EXISTS update_prescription_print_counter_updated_at ON public.prescription_print_counter;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_trigger t
+    WHERE t.tgname = 'update_prescription_print_counter_updated_at'
+      AND t.tgrelid = 'public.prescription_print_counter'::regclass
+      AND NOT t.tgisinternal
+  ) THEN
+    EXECUTE 'DROP TRIGGER update_prescription_print_counter_updated_at ON public.prescription_print_counter';
+  END IF;
+END $$;
 CREATE TRIGGER update_prescription_print_counter_updated_at
 BEFORE UPDATE ON public.prescription_print_counter
 FOR EACH ROW
@@ -66,10 +77,21 @@ CREATE INDEX IF NOT EXISTS idx_prescription_print_item_company_print
 ALTER TABLE public.prescription_print ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prescription_print_item ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can view prescription prints in their company" ON public.prescription_print;
-DROP POLICY IF EXISTS "Users can insert prescription prints in their company" ON public.prescription_print;
-DROP POLICY IF EXISTS "Users can update prescription prints in their company" ON public.prescription_print;
-DROP POLICY IF EXISTS "Users can delete prescription prints in their company" ON public.prescription_print;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print' AND policyname = 'Users can view prescription prints in their company') THEN
+    EXECUTE 'DROP POLICY "Users can view prescription prints in their company" ON public.prescription_print';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print' AND policyname = 'Users can insert prescription prints in their company') THEN
+    EXECUTE 'DROP POLICY "Users can insert prescription prints in their company" ON public.prescription_print';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print' AND policyname = 'Users can update prescription prints in their company') THEN
+    EXECUTE 'DROP POLICY "Users can update prescription prints in their company" ON public.prescription_print';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print' AND policyname = 'Users can delete prescription prints in their company') THEN
+    EXECUTE 'DROP POLICY "Users can delete prescription prints in their company" ON public.prescription_print';
+  END IF;
+END $$;
 
 CREATE POLICY "Users can view prescription prints in their company"
   ON public.prescription_print
@@ -92,10 +114,21 @@ CREATE POLICY "Users can delete prescription prints in their company"
   FOR DELETE
   USING (company_id = public.get_user_company_id());
 
-DROP POLICY IF EXISTS "Users can view prescription print items in their company" ON public.prescription_print_item;
-DROP POLICY IF EXISTS "Users can insert prescription print items in their company" ON public.prescription_print_item;
-DROP POLICY IF EXISTS "Users can update prescription print items in their company" ON public.prescription_print_item;
-DROP POLICY IF EXISTS "Users can delete prescription print items in their company" ON public.prescription_print_item;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item' AND policyname = 'Users can view prescription print items in their company') THEN
+    EXECUTE 'DROP POLICY "Users can view prescription print items in their company" ON public.prescription_print_item';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item' AND policyname = 'Users can insert prescription print items in their company') THEN
+    EXECUTE 'DROP POLICY "Users can insert prescription print items in their company" ON public.prescription_print_item';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item' AND policyname = 'Users can update prescription print items in their company') THEN
+    EXECUTE 'DROP POLICY "Users can update prescription print items in their company" ON public.prescription_print_item';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item' AND policyname = 'Users can delete prescription print items in their company') THEN
+    EXECUTE 'DROP POLICY "Users can delete prescription print items in their company" ON public.prescription_print_item';
+  END IF;
+END $$;
 
 CREATE POLICY "Users can view prescription print items in their company"
   ON public.prescription_print_item

@@ -8,8 +8,17 @@ ALTER TABLE public.prescription
   ALTER COLUMN end_date DROP NOT NULL;
 
 -- Keep period consistency when end_date is provided
-ALTER TABLE public.prescription
-  DROP CONSTRAINT IF EXISTS chk_prescription_period_range;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'chk_prescription_period_range'
+      AND conrelid = 'public.prescription'::regclass
+  ) THEN
+    EXECUTE 'ALTER TABLE public.prescription DROP CONSTRAINT chk_prescription_period_range';
+  END IF;
+END $$;
 
 ALTER TABLE public.prescription
   ADD CONSTRAINT chk_prescription_period_range
@@ -21,10 +30,31 @@ ALTER TABLE public.prescription
 
 -- 2) Keep unique period semantics even when end_date is null
 -- Old unique constraint allowed NULLs to bypass dedup logic.
-ALTER TABLE public.prescription
-  DROP CONSTRAINT IF EXISTS prescription_unique_period;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'prescription_unique_period'
+      AND conrelid = 'public.prescription'::regclass
+  ) THEN
+    EXECUTE 'ALTER TABLE public.prescription DROP CONSTRAINT prescription_unique_period';
+  END IF;
+END $$;
 
-DROP INDEX IF EXISTS public.idx_prescription_unique_period_nullable;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_prescription_unique_period_nullable'
+  ) THEN
+    EXECUTE 'DROP INDEX public.idx_prescription_unique_period_nullable';
+  END IF;
+END $$;
 
 CREATE UNIQUE INDEX idx_prescription_unique_period_nullable
   ON public.prescription (

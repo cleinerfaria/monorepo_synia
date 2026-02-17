@@ -9,10 +9,21 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('professional-signatures', 'professional-signatures', false)
 ON CONFLICT (id) DO NOTHING;
 
-DROP POLICY IF EXISTS "professional_signatures_select" ON storage.objects;
-DROP POLICY IF EXISTS "professional_signatures_insert" ON storage.objects;
-DROP POLICY IF EXISTS "professional_signatures_update" ON storage.objects;
-DROP POLICY IF EXISTS "professional_signatures_delete" ON storage.objects;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'professional_signatures_select') THEN
+    EXECUTE 'DROP POLICY "professional_signatures_select" ON storage.objects';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'professional_signatures_insert') THEN
+    EXECUTE 'DROP POLICY "professional_signatures_insert" ON storage.objects';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'professional_signatures_update') THEN
+    EXECUTE 'DROP POLICY "professional_signatures_update" ON storage.objects';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'professional_signatures_delete') THEN
+    EXECUTE 'DROP POLICY "professional_signatures_delete" ON storage.objects';
+  END IF;
+END $$;
 
 CREATE POLICY "professional_signatures_select"
 ON storage.objects

@@ -37,8 +37,18 @@ END $$;
 -- =====================================================
 
 -- 2.1) Adicionar coluna symbol se faltar
-ALTER TABLE public.unit_of_measure
-  ADD COLUMN IF NOT EXISTS symbol TEXT;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'symbol'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure ADD COLUMN symbol TEXT';
+  END IF;
+END $$;
 
 -- Preencher symbol se estiver NULL (fallback: upper(code))
 UPDATE public.unit_of_measure
@@ -60,19 +70,56 @@ DROP POLICY IF EXISTS unit_of_measure_delete_policy ON public.unit_of_measure;
 DROP POLICY IF EXISTS unit_of_measure_insert_policy ON public.unit_of_measure;
 DROP POLICY IF EXISTS unit_of_measure_select_policy ON public.unit_of_measure;
 
-ALTER TABLE public.unit_of_measure
-  DROP COLUMN IF EXISTS is_system;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'is_system'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure DROP COLUMN is_system';
+  END IF;
+END $$;
 
 -- 2.4) Remover colunas antigas de domínio/contexto (se existirem)
-ALTER TABLE public.unit_of_measure
-  DROP COLUMN IF EXISTS allowed_domains;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'allowed_domains'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure DROP COLUMN allowed_domains';
+  END IF;
 
-ALTER TABLE public.unit_of_measure
-  DROP COLUMN IF EXISTS allowed_contexts;
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'allowed_contexts'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure DROP COLUMN allowed_contexts';
+  END IF;
+END $$;
 
 -- 2.5) Adicionar allowed_scopes (se faltar)
-ALTER TABLE public.unit_of_measure
-  ADD COLUMN IF NOT EXISTS allowed_scopes public.enum_unit_scope[];
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'allowed_scopes'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure ADD COLUMN allowed_scopes public.enum_unit_scope[]';
+  END IF;
+END $$;
 
 -- Se estiver NULL, inicia como array vazio (para evitar NULLs)
 UPDATE public.unit_of_measure
@@ -113,18 +160,52 @@ BEGIN
 END $$;
 
 -- Índices
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company
-ON public.unit_of_measure(company_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_unit_of_measure_company'
+  ) THEN
+    EXECUTE 'CREATE INDEX idx_unit_of_measure_company ON public.unit_of_measure(company_id)';
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_code
-ON public.unit_of_measure(company_id, code);
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_unit_of_measure_company_code'
+  ) THEN
+    EXECUTE 'CREATE INDEX idx_unit_of_measure_company_code ON public.unit_of_measure(company_id, code)';
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_active
-ON public.unit_of_measure(company_id, active);
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_unit_of_measure_company_active'
+  ) THEN
+    EXECUTE 'CREATE INDEX idx_unit_of_measure_company_active ON public.unit_of_measure(company_id, active)';
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_allowed_scopes_gin
-ON public.unit_of_measure
-USING GIN (allowed_scopes);
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_unit_of_measure_allowed_scopes_gin'
+  ) THEN
+    EXECUTE 'CREATE INDEX idx_unit_of_measure_allowed_scopes_gin ON public.unit_of_measure USING GIN (allowed_scopes)';
+  END IF;
+END $$;
 
 -- =====================================================
 -- 4) RLS (recriar sem is_system)

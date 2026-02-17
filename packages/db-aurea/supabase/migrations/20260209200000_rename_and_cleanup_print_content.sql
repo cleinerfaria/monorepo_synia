@@ -54,23 +54,27 @@ BEGIN
 END;
 $$;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_prescription_print_payload_content_company_hash
-  ON public.prescription_print_payload_content (company_id, content_version, content_hash);
-
-CREATE INDEX IF NOT EXISTS idx_prescription_print_payload_content_company_content_hash
-  ON public.prescription_print_payload_content (company_id, content_hash);
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_prescription_print_item_content_company_hash
-  ON public.prescription_print_item_content (company_id, content_version, content_hash);
-
-CREATE INDEX IF NOT EXISTS idx_prescription_print_item_content_company_content_hash
-  ON public.prescription_print_item_content (company_id, content_hash);
-
-CREATE INDEX IF NOT EXISTS idx_prescription_print_payload_content_id
-  ON public.prescription_print (payload_content_id);
-
-CREATE INDEX IF NOT EXISTS idx_prescription_print_item_content_id
-  ON public.prescription_print_item (item_content_id);
+DO $$
+BEGIN
+  IF to_regclass('public.idx_prescription_print_payload_content_company_hash') IS NULL THEN
+    EXECUTE 'CREATE UNIQUE INDEX idx_prescription_print_payload_content_company_hash ON public.prescription_print_payload_content (company_id, content_version, content_hash)';
+  END IF;
+  IF to_regclass('public.idx_prescription_print_payload_content_company_content_hash') IS NULL THEN
+    EXECUTE 'CREATE INDEX idx_prescription_print_payload_content_company_content_hash ON public.prescription_print_payload_content (company_id, content_hash)';
+  END IF;
+  IF to_regclass('public.idx_prescription_print_item_content_company_hash') IS NULL THEN
+    EXECUTE 'CREATE UNIQUE INDEX idx_prescription_print_item_content_company_hash ON public.prescription_print_item_content (company_id, content_version, content_hash)';
+  END IF;
+  IF to_regclass('public.idx_prescription_print_item_content_company_content_hash') IS NULL THEN
+    EXECUTE 'CREATE INDEX idx_prescription_print_item_content_company_content_hash ON public.prescription_print_item_content (company_id, content_hash)';
+  END IF;
+  IF to_regclass('public.idx_prescription_print_payload_content_id') IS NULL THEN
+    EXECUTE 'CREATE INDEX idx_prescription_print_payload_content_id ON public.prescription_print (payload_content_id)';
+  END IF;
+  IF to_regclass('public.idx_prescription_print_item_content_id') IS NULL THEN
+    EXECUTE 'CREATE INDEX idx_prescription_print_item_content_id ON public.prescription_print_item (item_content_id)';
+  END IF;
+END $$;
 
 -- =====================================================
 -- Ensure FK targets point to renamed tables
@@ -144,10 +148,21 @@ ALTER TABLE IF EXISTS public.prescription_print_payload_content ENABLE ROW LEVEL
 REVOKE ALL ON public.prescription_print_payload_content FROM PUBLIC;
 GRANT SELECT, INSERT ON public.prescription_print_payload_content TO authenticated;
 
-DROP POLICY IF EXISTS "Users can view print payload content" ON public.prescription_print_payload_content;
-DROP POLICY IF EXISTS "Users can insert print payload content" ON public.prescription_print_payload_content;
-DROP POLICY IF EXISTS "Users can view prescription print payload content" ON public.prescription_print_payload_content;
-DROP POLICY IF EXISTS "Users can insert prescription print payload content" ON public.prescription_print_payload_content;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_payload_content' AND policyname = 'Users can view print payload content') THEN
+    EXECUTE 'DROP POLICY "Users can view print payload content" ON public.prescription_print_payload_content';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_payload_content' AND policyname = 'Users can insert print payload content') THEN
+    EXECUTE 'DROP POLICY "Users can insert print payload content" ON public.prescription_print_payload_content';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_payload_content' AND policyname = 'Users can view prescription print payload content') THEN
+    EXECUTE 'DROP POLICY "Users can view prescription print payload content" ON public.prescription_print_payload_content';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_payload_content' AND policyname = 'Users can insert prescription print payload content') THEN
+    EXECUTE 'DROP POLICY "Users can insert prescription print payload content" ON public.prescription_print_payload_content';
+  END IF;
+END $$;
 
 CREATE POLICY "Users can view prescription print payload content"
   ON public.prescription_print_payload_content
@@ -163,10 +178,21 @@ ALTER TABLE IF EXISTS public.prescription_print_item_content ENABLE ROW LEVEL SE
 REVOKE ALL ON public.prescription_print_item_content FROM PUBLIC;
 GRANT SELECT, INSERT ON public.prescription_print_item_content TO authenticated;
 
-DROP POLICY IF EXISTS "Users can view print item content" ON public.prescription_print_item_content;
-DROP POLICY IF EXISTS "Users can insert print item content" ON public.prescription_print_item_content;
-DROP POLICY IF EXISTS "Users can view prescription print item content" ON public.prescription_print_item_content;
-DROP POLICY IF EXISTS "Users can insert prescription print item content" ON public.prescription_print_item_content;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item_content' AND policyname = 'Users can view print item content') THEN
+    EXECUTE 'DROP POLICY "Users can view print item content" ON public.prescription_print_item_content';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item_content' AND policyname = 'Users can insert print item content') THEN
+    EXECUTE 'DROP POLICY "Users can insert print item content" ON public.prescription_print_item_content';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item_content' AND policyname = 'Users can view prescription print item content') THEN
+    EXECUTE 'DROP POLICY "Users can view prescription print item content" ON public.prescription_print_item_content';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item_content' AND policyname = 'Users can insert prescription print item content') THEN
+    EXECUTE 'DROP POLICY "Users can insert prescription print item content" ON public.prescription_print_item_content';
+  END IF;
+END $$;
 
 CREATE POLICY "Users can view prescription print item content"
   ON public.prescription_print_item_content
@@ -240,7 +266,15 @@ $$;
 DO $$
 BEGIN
   IF to_regclass('public.prescription_print') IS NOT NULL THEN
-    EXECUTE 'DROP TRIGGER IF EXISTS trg_cleanup_orphan_prescription_print_payload_content ON public.prescription_print';
+    IF EXISTS (
+      SELECT 1
+      FROM pg_trigger t
+      WHERE t.tgname = 'trg_cleanup_orphan_prescription_print_payload_content'
+        AND t.tgrelid = 'public.prescription_print'::regclass
+        AND NOT t.tgisinternal
+    ) THEN
+      EXECUTE 'DROP TRIGGER trg_cleanup_orphan_prescription_print_payload_content ON public.prescription_print';
+    END IF;
     EXECUTE '
       CREATE TRIGGER trg_cleanup_orphan_prescription_print_payload_content
       AFTER DELETE ON public.prescription_print
@@ -254,7 +288,15 @@ $$;
 DO $$
 BEGIN
   IF to_regclass('public.prescription_print_item') IS NOT NULL THEN
-    EXECUTE 'DROP TRIGGER IF EXISTS trg_cleanup_orphan_prescription_print_item_content ON public.prescription_print_item';
+    IF EXISTS (
+      SELECT 1
+      FROM pg_trigger t
+      WHERE t.tgname = 'trg_cleanup_orphan_prescription_print_item_content'
+        AND t.tgrelid = 'public.prescription_print_item'::regclass
+        AND NOT t.tgisinternal
+    ) THEN
+      EXECUTE 'DROP TRIGGER trg_cleanup_orphan_prescription_print_item_content ON public.prescription_print_item';
+    END IF;
     EXECUTE '
       CREATE TRIGGER trg_cleanup_orphan_prescription_print_item_content
       AFTER DELETE ON public.prescription_print_item

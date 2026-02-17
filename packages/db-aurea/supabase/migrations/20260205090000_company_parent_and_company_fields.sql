@@ -37,7 +37,18 @@ ALTER TABLE company
 CREATE INDEX IF NOT EXISTS idx_company_parent_id ON company(company_parent_id);
 
 -- Updated_at trigger for company_parent
-DROP TRIGGER IF EXISTS update_company_parent_updated_at ON company_parent;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_trigger t
+    WHERE t.tgname = 'update_company_parent_updated_at'
+      AND t.tgrelid = 'public.company_parent'::regclass
+      AND NOT t.tgisinternal
+  ) THEN
+    EXECUTE 'DROP TRIGGER update_company_parent_updated_at ON public.company_parent';
+  END IF;
+END $$;
 CREATE TRIGGER update_company_parent_updated_at
 BEFORE UPDATE ON company_parent
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

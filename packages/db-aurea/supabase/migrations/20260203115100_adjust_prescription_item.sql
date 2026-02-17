@@ -47,10 +47,44 @@ COMMENT ON COLUMN public.prescription_item.route_id IS
 ALTER TABLE public.procedure ENABLE ROW LEVEL SECURITY;
 
 -- 2.2) Drop existing policies if they exist
-DROP POLICY IF EXISTS "Users can view procedures in their company" ON public.procedure;
-DROP POLICY IF EXISTS "Users can insert procedures in their company" ON public.procedure;
-DROP POLICY IF EXISTS "Users can update procedures in their company" ON public.procedure;
-DROP POLICY IF EXISTS "Users can delete procedures in their company" ON public.procedure;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'procedure'
+      AND policyname = 'Users can view procedures in their company'
+  ) THEN
+    EXECUTE 'DROP POLICY "Users can view procedures in their company" ON public.procedure';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'procedure'
+      AND policyname = 'Users can insert procedures in their company'
+  ) THEN
+    EXECUTE 'DROP POLICY "Users can insert procedures in their company" ON public.procedure';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'procedure'
+      AND policyname = 'Users can update procedures in their company'
+  ) THEN
+    EXECUTE 'DROP POLICY "Users can update procedures in their company" ON public.procedure';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'procedure'
+      AND policyname = 'Users can delete procedures in their company'
+  ) THEN
+    EXECUTE 'DROP POLICY "Users can delete procedures in their company" ON public.procedure';
+  END IF;
+END $$;
 
 -- 2.3) Create SELECT policy
 CREATE POLICY "Users can view procedures in their company"

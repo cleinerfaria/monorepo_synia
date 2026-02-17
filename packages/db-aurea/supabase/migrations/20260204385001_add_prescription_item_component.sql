@@ -132,8 +132,18 @@ BEGIN
   RETURN NEW;
 END $$;
 
-DROP TRIGGER IF EXISTS prescription_item_component_company_guard
-ON public.prescription_item_component;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_trigger t
+    WHERE t.tgname = 'prescription_item_component_company_guard'
+      AND t.tgrelid = 'public.prescription_item_component'::regclass
+      AND NOT t.tgisinternal
+  ) THEN
+    EXECUTE 'DROP TRIGGER prescription_item_component_company_guard ON public.prescription_item_component';
+  END IF;
+END $$;
 
 CREATE TRIGGER prescription_item_component_company_guard
 BEFORE INSERT OR UPDATE ON public.prescription_item_component

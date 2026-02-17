@@ -21,10 +21,21 @@ ALTER TABLE public.prescription_print_counter ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.prescription_print_counter FROM PUBLIC;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.prescription_print_counter TO authenticated;
 
-DROP POLICY IF EXISTS "Users can view prescription print counters in their company" ON public.prescription_print_counter;
-DROP POLICY IF EXISTS "Users can insert prescription print counters in their company" ON public.prescription_print_counter;
-DROP POLICY IF EXISTS "Users can update prescription print counters in their company" ON public.prescription_print_counter;
-DROP POLICY IF EXISTS "Users can delete prescription print counters in their company" ON public.prescription_print_counter;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_counter' AND policyname = 'Users can view prescription print counters in their company') THEN
+    EXECUTE 'DROP POLICY "Users can view prescription print counters in their company" ON public.prescription_print_counter';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_counter' AND policyname = 'Users can insert prescription print counters in their company') THEN
+    EXECUTE 'DROP POLICY "Users can insert prescription print counters in their company" ON public.prescription_print_counter';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_counter' AND policyname = 'Users can update prescription print counters in their company') THEN
+    EXECUTE 'DROP POLICY "Users can update prescription print counters in their company" ON public.prescription_print_counter';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_counter' AND policyname = 'Users can delete prescription print counters in their company') THEN
+    EXECUTE 'DROP POLICY "Users can delete prescription print counters in their company" ON public.prescription_print_counter';
+  END IF;
+END $$;
 
 CREATE POLICY "Users can view prescription print counters in their company"
   ON public.prescription_print_counter
