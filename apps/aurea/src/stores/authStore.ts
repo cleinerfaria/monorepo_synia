@@ -30,6 +30,7 @@ interface AuthState {
   ) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   updateCompany: (updates: Partial<Company>) => Promise<void>;
+  updateAppUserTheme: (theme: 'light' | 'dark' | 'system') => Promise<void>;
 }
 
 async function fetchSystemUserData(userId: string) {
@@ -235,6 +236,22 @@ export const useAuthStore = create<AuthState>()(
 
         if (!error && data) {
           set({ company: data as Company });
+        }
+      },
+
+      updateAppUserTheme: async (theme) => {
+        const { appUser } = get();
+        if (!appUser) return;
+
+        const { data, error } = await supabase
+          .from('app_user')
+          .update({ theme } as any)
+          .eq('id', appUser.id)
+          .select()
+          .single();
+
+        if (!error && data) {
+          set({ appUser: data as AppUser });
         }
       },
     }),

@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  Button,
-  Input,
-  Loading,
-  EmptyState,
-  Badge,
-  Modal,
-} from '@/components/ui';
+import { Card, CardContent, Button, Input, Loading, EmptyState, Modal } from '@/components/ui';
 import {
   useAccessProfiles,
   useDeleteAccessProfile,

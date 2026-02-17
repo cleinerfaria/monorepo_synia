@@ -8,6 +8,9 @@ supabase/seeds/
 ├── seed-02-professionals.sql ← Profissionais
 ├── seed-03-patients.sql      ← Pacientes
 ├── seed-04-products.sql      ← Produtos/Medicações
+├── seed-05-pad.sql           ← PAD (demanda de atendimento)
+├── seed-06-escalas.sql       ← Escalas/turnos
+├── seed-07-prescricoes.sql   ← Prescrições e itens
 ├── seed.sql                  ← LEGADO (não utilizado no fluxo atual)
 ├── app-users.sql       ← OPCIONAL/MANUAL (backup de vínculo app_user/system_user)
 └── README.md
@@ -33,6 +36,9 @@ O script de reset executa `supabase db push --include-seed --yes` via `DB_URL` a
 - `supabase/seeds/seed-02-professionals.sql`
 - `supabase/seeds/seed-03-patients.sql`
 - `supabase/seeds/seed-04-products.sql`
+- `supabase/seeds/seed-05-pad.sql`
+- `supabase/seeds/seed-06-escalas.sql`
+- `supabase/seeds/seed-07-prescricoes.sql`
 
 - 3 Profissionais
 - 3 Pacientes
@@ -62,7 +68,7 @@ npm run db:reset:aurea
 | Etapa                              | Arquivo           | Tipo        | Gatilho                    |
 | ---------------------------------- | ----------------- | ----------- | -------------------------- |
 | Schema                             | migration         | SQL         | Auto (db reset)            |
-| Profissionais/Pacientes/Medicações | supabase/seeds/seed-01..04.sql | SQL         | Auto (db:reset script -> db push --include-seed) |
+| Profissionais/Pacientes/Medicações/PAD/Escala/Prescrições | supabase/seeds/seed-01..07.sql | SQL         | Auto (db:reset script -> db push --include-seed) |
 | Auth Users                         | scripts/lib.cjs   | Node.js/API | Auto (chamado pelo db:reset) |
 | System User + App Users            | scripts/lib.cjs   | Node.js/API | Auto (chamado pelo db:reset) |
 
@@ -104,7 +110,7 @@ npm run setup -- aurea
 # 1. npm run db:reset:aurea
 #    → reset sem seed
 #    → cria auth users + cria/atualiza system_user e app_user
-#    → executa supabase/seeds/seed-01..04.sql
+#    → executa supabase/seeds/seed-01..07.sql
 ```
 
 ## 📝 Notas Importantes

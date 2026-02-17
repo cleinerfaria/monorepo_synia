@@ -70,15 +70,6 @@ Antes de alterar código, o agente deve:
 - Indicar **impactos técnicos e de negócio**
 - Propor a mudança em **passos incrementais**
 
-## Verificação Obrigatória
-
-Ao final de cada processo que altere código:
-
-- Perguntar se deve executar `npm run precommit:check`
-- Em ajustes grandes, executar sem solicitar permissão
-- Relatar resultados (lint, tests, type-check)
-- Se houver falhas, corrigir antes de finalizar
-
 ## Regras de Segurança
 
 - Nunca expor chaves, tokens ou credenciais

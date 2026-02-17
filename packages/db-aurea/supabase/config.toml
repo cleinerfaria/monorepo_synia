@@ -65,6 +65,9 @@ sql_paths = [
   "./seeds/seed-02-professionals.sql",
   "./seeds/seed-03-patients.sql",
   "./seeds/seed-04-products.sql",
+  "./seeds/seed-05-pad.sql",
+  "./seeds/seed-06-escalas.sql",
+  "./seeds/seed-07-prescricoes.sql",
 ]
 
 [db.network_restrictions]

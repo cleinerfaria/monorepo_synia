@@ -99,7 +99,7 @@ export default function UsersPage() {
         ),
       },
     ],
-    [handleEditUser, getProfileName]
+    [handleEditUser]
   );
 
   const emptyState = searchInput.trim() ? (

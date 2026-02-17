@@ -1,6 +1,7 @@
 # Instruções do Projeto
 
 ## Idioma
+
 - Sempre responda em Português do Brasil (pt-BR).
 
 ## Modo de Operação
@@ -16,12 +17,14 @@ Se qualquer regra não puder ser cumprida, **não executar mudanças**.
 ## Configuração de Banco de Dados
 
 ### Supabase - Ambiente Remoto Obrigatório
+
 - **Usar SEMPRE Supabase remoto** — nunca trabalhar com Supabase local
 - **Proibido** executar `supabase start` para desenvolvimento
 - **Proibido** rodar comandos `supabase db` diretamente da raiz do projeto
 - **Proibido** copiar migrations para `supabase/migrations/` na raiz
 
 ### Migrations - Estrutura Monorepo
+
 - Cada projeto tem suas migrations isoladas:
   - **Aurea**: `packages/db-aurea/supabase/migrations/` (fonte da verdade)
   - **White Label**: `packages/db-white-label/supabase/migrations/` (fonte da verdade)
@@ -62,15 +65,6 @@ Antes de alterar código, o agente deve:
 - Explicar **por que é necessário**
 - Indicar **impactos técnicos e de negócio**
 - Propor a mudança em **passos incrementais**
-
-## Verificação Obrigatória
-
-Ao final de cada processo que altere código:
-
-- Perguntar se deve executar `npm run precommit:check`
-- Em ajustes grandes, executar sem solicitar permissão
-- Relatar resultados (lint, tests, type-check)
-- Se houver falhas, corrigir antes de finalizar
 
 ## Regras de Segurança
 
