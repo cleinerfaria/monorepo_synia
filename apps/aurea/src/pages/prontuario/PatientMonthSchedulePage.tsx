@@ -132,12 +132,9 @@ export default function PatientMonthSchedulePage() {
     }
   }, [patientId, isDirty, year, month, setSaving, getFullAssignments, saveSchedule, markSaved]);
 
-  const handleSlotClick = useCallback(
-    (date: string, slot: SlotType) => {
-      setPickerState({ open: true, date, slot });
-    },
-    []
-  );
+  const handleSlotClick = useCallback((date: string, slot: SlotType) => {
+    setPickerState({ open: true, date, slot });
+  }, []);
 
   const handleProfessionalSelect = useCallback(
     (professionalId: string) => {
@@ -230,14 +227,11 @@ export default function PatientMonthSchedulePage() {
       <div className="flex gap-4">
         {/* Calendar */}
         <div className="min-w-0 flex-1">
-          <ScheduleCalendarGrid
-            professionals={professionals}
-            onSlotClick={handleSlotClick}
-          />
+          <ScheduleCalendarGrid professionals={professionals} onSlotClick={handleSlotClick} />
         </div>
 
         {/* Desktop sidebar */}
-        <aside className="hidden w-[280px] shrink-0 overflow-hidden rounded-lg border border-border-default bg-surface-card lg:block">
+        <aside className="border-border-default bg-surface-card hidden w-[280px] shrink-0 overflow-hidden rounded-lg border lg:block">
           <ScheduleSidebar
             professionals={professionals}
             onAutoFillClick={() => setAutoFillOpen(true)}
@@ -257,10 +251,7 @@ export default function PatientMonthSchedulePage() {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div
-              className="absolute inset-0 bg-black/40"
-              onClick={toggleSidebar}
-            />
+            <div className="absolute inset-0 bg-black/40" onClick={toggleSidebar} />
           </Transition.Child>
 
           {/* Drawer */}
@@ -272,13 +263,13 @@ export default function PatientMonthSchedulePage() {
             leaveFrom="translate-x-0"
             leaveTo="translate-x-full"
           >
-            <div className="absolute right-0 top-0 h-full w-[300px] border-l border-border-default bg-surface-card shadow-xl">
+            <div className="border-border-default bg-surface-card absolute right-0 top-0 h-full w-[300px] border-l shadow-xl">
               {/* Drawer header */}
-              <div className="flex items-center justify-between border-b border-border-default px-3 py-2">
-                <h2 className="text-sm font-semibold text-content-primary">Escalas</h2>
+              <div className="border-border-default flex items-center justify-between border-b px-3 py-2">
+                <h2 className="text-content-primary text-sm font-semibold">Escalas</h2>
                 <button
                   onClick={toggleSidebar}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-content-muted hover:bg-surface-hover"
+                  className="text-content-muted hover:bg-surface-hover flex h-8 w-8 items-center justify-center rounded-lg"
                 >
                   ✕
                 </button>

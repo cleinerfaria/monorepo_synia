@@ -37,10 +37,7 @@ export default function SchedulesListPage() {
     [navigate]
   );
 
-  const breadcrumbs = [
-    { label: 'Prontuário' },
-    { label: 'Escalas' },
-  ];
+  const breadcrumbs = [{ label: 'Prontuário' }, { label: 'Escalas' }];
 
   if (isLoading) {
     return (
@@ -55,8 +52,8 @@ export default function SchedulesListPage() {
       <Breadcrumbs items={breadcrumbs} className="mb-3" />
 
       <div>
-        <h1 className="text-2xl font-bold text-content-primary">Escalas Mensais</h1>
-        <p className="text-sm text-content-secondary">
+        <h1 className="text-content-primary text-2xl font-bold">Escalas Mensais</h1>
+        <p className="text-content-secondary text-sm">
           Gerencie as escalas de atendimento dos pacientes
         </p>
       </div>
@@ -83,21 +80,19 @@ export default function SchedulesListPage() {
             return (
               <Card key={demand.id} className="flex flex-col gap-3">
                 <div>
-                  <h3 className="font-semibold text-content-primary">
-                    {demand.patient.name}
-                  </h3>
-                  <p className="text-xs text-content-muted">
+                  <h3 className="text-content-primary font-semibold">{demand.patient.name}</h3>
+                  <p className="text-content-muted text-xs">
                     Desde {startDate.toLocaleDateString('pt-BR')}
                     {endDate && ` até ${endDate.toLocaleDateString('pt-BR')}`}
                   </p>
                 </div>
 
                 <div className="flex gap-1 text-xs">
-                  <span className="rounded-full bg-feedback-accent-bg px-2 py-0.5 text-feedback-accent-fg">
+                  <span className="bg-feedback-accent-bg text-feedback-accent-fg rounded-full px-2 py-0.5">
                     {demand.hours_per_day}h/dia
                   </span>
                   {demand.is_split && (
-                    <span className="rounded-full bg-feedback-info-bg px-2 py-0.5 text-feedback-info-fg">
+                    <span className="bg-feedback-info-bg text-feedback-info-fg rounded-full px-2 py-0.5">
                       Dividido
                     </span>
                   )}
@@ -125,10 +120,7 @@ export default function SchedulesListPage() {
           }
           action={
             !search ? (
-              <Button
-                variant="primary"
-                onClick={() => navigate('/prontuario/pad')}
-              >
+              <Button variant="primary" onClick={() => navigate('/prontuario/pad')}>
                 Ir para PAD
               </Button>
             ) : undefined

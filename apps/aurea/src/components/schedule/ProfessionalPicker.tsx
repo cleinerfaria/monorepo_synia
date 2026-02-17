@@ -37,9 +37,7 @@ export function ProfessionalPicker({
     if (!search.trim()) return professionals;
     const term = search.toLowerCase();
     return professionals.filter(
-      (p) =>
-        p.name.toLowerCase().includes(term) ||
-        (p.role && p.role.toLowerCase().includes(term))
+      (p) => p.name.toLowerCase().includes(term) || (p.role && p.role.toLowerCase().includes(term))
     );
   }, [professionals, search]);
 
@@ -66,9 +64,7 @@ export function ProfessionalPicker({
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Atribuir profissional" size="sm">
       <div className="space-y-3">
-        <p className="text-sm text-content-secondary">
-          {formatDateBR(date)}
-        </p>
+        <p className="text-content-secondary text-sm">{formatDateBR(date)}</p>
 
         <Input
           value={search}
@@ -86,9 +82,7 @@ export function ProfessionalPicker({
                 key={prof.id}
                 onClick={() => handleSelect(prof.id)}
                 className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                  isActive
-                    ? 'bg-primary-50 dark:bg-primary-900/30'
-                    : 'hover:bg-surface-hover'
+                  isActive ? 'bg-primary-50 dark:bg-primary-900/30' : 'hover:bg-surface-hover'
                 }`}
               >
                 {/* Avatar cor */}
@@ -107,16 +101,14 @@ export function ProfessionalPicker({
                 </span>
 
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium text-content-primary">
-                    {prof.name}
-                  </div>
+                  <div className="text-content-primary truncate font-medium">{prof.name}</div>
                   {prof.role && (
-                    <div className="truncate text-xs text-content-muted">{prof.role}</div>
+                    <div className="text-content-muted truncate text-xs">{prof.role}</div>
                   )}
                 </div>
 
                 {isActive && (
-                  <span className="shrink-0 text-xs text-primary-600 dark:text-primary-400">
+                  <span className="text-primary-600 dark:text-primary-400 shrink-0 text-xs">
                     ✓ Atual
                   </span>
                 )}
@@ -125,7 +117,7 @@ export function ProfessionalPicker({
           })}
 
           {filteredProfessionals.length === 0 && (
-            <p className="py-4 text-center text-sm text-content-muted">
+            <p className="text-content-muted py-4 text-center text-sm">
               Nenhum profissional encontrado
             </p>
           )}
@@ -134,7 +126,7 @@ export function ProfessionalPicker({
         {currentProfessionalId && (
           <button
             onClick={handleRemove}
-            className="w-full rounded-lg border border-feedback-danger-border/50 px-3 py-2 text-center text-sm text-feedback-danger-fg transition-colors hover:bg-feedback-danger-bg/30"
+            className="border-feedback-danger-border/50 text-feedback-danger-fg hover:bg-feedback-danger-bg/30 w-full rounded-lg border px-3 py-2 text-center text-sm transition-colors"
           >
             Remover atribuição
           </button>

@@ -1,7 +1,12 @@
 import { memo, useCallback, useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { assignmentKey, SLOT_LABELS } from '@/types/schedule';
-import type { SlotType, ScheduleProfessional, AssignmentMap, ScheduleAssignmentDataMap } from '@/types/schedule';
+import type {
+  SlotType,
+  ScheduleProfessional,
+  AssignmentMap,
+  ScheduleAssignmentDataMap,
+} from '@/types/schedule';
 import { ScheduleSlotChip } from './ScheduleSlotChip';
 
 interface ScheduleDayCellProps {
@@ -94,7 +99,7 @@ function ScheduleDayCellInner({
           const key = assignmentKey(date, slot);
           const profIds = assignments.get(key) || [];
           const professionals = profIds
-            .map(id => profMap.get(id))
+            .map((id) => profMap.get(id))
             .filter((p) => p !== undefined) as ScheduleProfessional[];
           const assignmentDataList = assignmentsData.get(key) || [];
 
@@ -160,18 +165,18 @@ function SlotDropZoneInner({
       {showSlotLabel && (
         <span className="text-content-muted text-[9px] font-medium">{SLOT_LABELS[slot]}</span>
       )}
-      
+
       {professionals.length > 0 ? (
         <div className="space-y-0.5">
           {professionals.map((prof, idx) => (
-            <ScheduleSlotChip 
+            <ScheduleSlotChip
               key={prof.id}
-              professional={prof} 
-              slot={slot} 
+              professional={prof}
+              slot={slot}
               date={date}
               startAt={assignmentDataList[idx]?.start_at}
               endAt={assignmentDataList[idx]?.end_at}
-              isDraggable 
+              isDraggable
             />
           ))}
         </div>

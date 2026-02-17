@@ -204,16 +204,16 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     initialize(patientId, year, month, regime, serverAssignments) {
       const map: AssignmentMap = new Map();
       const dataMap: ScheduleAssignmentDataMap = new Map();
-      
+
       for (const a of serverAssignments) {
         const key = assignmentKey(a.date, a.slot);
-        
+
         // Adicionar ao array (múltiplos profissionais por slot)
         if (!map.has(key)) {
           map.set(key, []);
         }
         map.get(key)!.push(a.professional_id);
-        
+
         // Adicionar dados
         if (!dataMap.has(key)) {
           dataMap.set(key, []);
@@ -246,17 +246,17 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       const state = get();
       const newMap = cloneMap(state.assignments);
       const key = assignmentKey(date, slot);
-      
+
       if (!newMap.has(key)) {
         newMap.set(key, []);
       }
-      
+
       // Adicionar ao array (não replace)
       const profIds = newMap.get(key)!;
       if (!profIds.includes(professionalId)) {
         profIds.push(professionalId);
       }
-      
+
       set({ assignments: newMap });
       pushHistory(`Atribuir profissional em ${date}`);
       markDirty();
@@ -266,17 +266,17 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       const state = get();
       const newMap = cloneMap(state.assignments);
       const key = assignmentKey(date, slot);
-      
+
       if (newMap.has(key)) {
         const profIds = newMap.get(key)!;
         // Remover o primeiro (ou último?)
         profIds.shift();
-        
+
         // Se ficou vazio, remover a chave
         if (profIds.length === 0) {
           newMap.delete(key);
         }
-        
+
         set({ assignments: newMap });
         pushHistory(`Remover profissional de ${date}`);
         markDirty();

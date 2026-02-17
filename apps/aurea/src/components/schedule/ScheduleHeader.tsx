@@ -21,8 +21,18 @@ interface ScheduleHeaderProps {
 }
 
 const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
 ];
 
 function ScheduleHeaderInner({
@@ -49,29 +59,25 @@ function ScheduleHeaderInner({
       {/* Linha 1: Paciente + mês */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-bold text-content-primary md:text-xl">
-            Escala Mensal
-          </h1>
-          {patientName && (
-            <p className="text-sm text-content-secondary">{patientName}</p>
-          )}
+          <h1 className="text-content-primary text-lg font-bold md:text-xl">Escala Mensal</h1>
+          {patientName && <p className="text-content-secondary text-sm">{patientName}</p>}
         </div>
 
         {/* Navegação de mês */}
         <div className="flex items-center gap-2">
           <button
             onClick={onPreviousMonth}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border-default text-content-secondary transition-colors hover:bg-surface-hover"
+            className="border-border-default text-content-secondary hover:bg-surface-hover flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
             title="Mês anterior"
           >
             ‹
           </button>
-          <span className="min-w-[140px] text-center text-sm font-semibold text-content-primary">
+          <span className="text-content-primary min-w-[140px] text-center text-sm font-semibold">
             {monthLabel}
           </span>
           <button
             onClick={onNextMonth}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border-default text-content-secondary transition-colors hover:bg-surface-hover"
+            className="border-border-default text-content-secondary hover:bg-surface-hover flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
             title="Próximo mês"
           >
             ›
@@ -84,21 +90,21 @@ function ScheduleHeaderInner({
         {/* Toggle sidebar em mobile */}
         <button
           onClick={onToggleSidebar}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border-default text-content-secondary transition-colors hover:bg-surface-hover lg:hidden"
+          className="border-border-default text-content-secondary hover:bg-surface-hover flex h-8 w-8 items-center justify-center rounded-lg border transition-colors lg:hidden"
           title="Painel lateral"
         >
           ☰
         </button>
 
         {/* Regime badge */}
-        <span className="rounded-full border border-border-default bg-surface-canvas px-2 py-0.5 text-[10px] font-medium text-content-muted">
+        <span className="border-border-default bg-surface-canvas text-content-muted rounded-full border px-2 py-0.5 text-[10px] font-medium">
           {regime}
         </span>
 
         {/* Indicador de alterações não salvas */}
         {isDirty && (
-          <span className="flex items-center gap-1 rounded-full bg-feedback-warning-bg px-2 py-0.5 text-[10px] font-medium text-feedback-warning-fg">
-            <span className="h-1.5 w-1.5 rounded-full bg-feedback-warning-fg" />
+          <span className="bg-feedback-warning-bg text-feedback-warning-fg flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium">
+            <span className="bg-feedback-warning-fg h-1.5 w-1.5 rounded-full" />
             Não salvo
           </span>
         )}
@@ -111,7 +117,7 @@ function ScheduleHeaderInner({
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border-default text-sm text-content-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-30"
+            className="border-border-default text-content-secondary hover:bg-surface-hover flex h-8 w-8 items-center justify-center rounded-lg border text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-30"
             title="Desfazer (Ctrl+Z)"
           >
             ↶
@@ -119,7 +125,7 @@ function ScheduleHeaderInner({
           <button
             onClick={onRedo}
             disabled={!canRedo}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border-default text-sm text-content-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-30"
+            className="border-border-default text-content-secondary hover:bg-surface-hover flex h-8 w-8 items-center justify-center rounded-lg border text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-30"
             title="Refazer (Ctrl+Y)"
           >
             ↷
@@ -131,7 +137,7 @@ function ScheduleHeaderInner({
           variant="ghost"
           size="sm"
           onClick={onClearMonth}
-          className="text-xs text-feedback-danger-fg hover:bg-feedback-danger-bg/30"
+          className="text-feedback-danger-fg hover:bg-feedback-danger-bg/30 text-xs"
         >
           Limpar
         </Button>

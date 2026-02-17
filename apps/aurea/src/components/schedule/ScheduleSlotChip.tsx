@@ -183,7 +183,7 @@ function ScheduleSlotChipInner({
       <div className="min-w-0 flex-1">
         <span className="block min-w-0 truncate">{shortName}</span>
         {(startTime || endTime) && (
-          <span className="block text-[7px] opacity-70 leading-tight">
+          <span className="block text-[7px] leading-tight opacity-70">
             {startTime && endTime ? `${startTime}–${endTime}` : startTime || endTime}
           </span>
         )}

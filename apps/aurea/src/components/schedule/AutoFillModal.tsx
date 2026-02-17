@@ -60,8 +60,8 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
   const filteredProfessionals = useMemo(() => {
     if (!search.trim()) return professionals;
     const term = search.toLowerCase();
-    return professionals.filter((p) =>
-      p.name.toLowerCase().includes(term) || (p.role && p.role.toLowerCase().includes(term))
+    return professionals.filter(
+      (p) => p.name.toLowerCase().includes(term) || (p.role && p.role.toLowerCase().includes(term))
     );
   }, [professionals, search]);
 
@@ -155,7 +155,7 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
             className="mb-2"
           />
 
-          <div className="max-h-[200px] space-y-1 overflow-y-auto rounded-lg border border-border-default p-2">
+          <div className="border-border-default max-h-[200px] space-y-1 overflow-y-auto rounded-lg border p-2">
             {filteredProfessionals.map((prof) => {
               const inRotation = rotation.includes(prof.id);
               const rotIndex = rotation.indexOf(prof.id);
@@ -168,8 +168,8 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                     inRotation
                       ? 'bg-primary-50/50 dark:bg-primary-900/20'
                       : isSubst
-                      ? 'bg-feedback-warning-bg/50'
-                      : 'hover:bg-surface-hover'
+                        ? 'bg-feedback-warning-bg/50'
+                        : 'hover:bg-surface-hover'
                   }`}
                 >
                   {/* Checkbox */}
@@ -194,12 +194,12 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                     className="h-3 w-3 shrink-0 rounded-full"
                     style={{ backgroundColor: prof.color || 'rgb(var(--color-primary-500))' }}
                   />
-                  <span className="min-w-0 flex-1 truncate text-sm text-content-primary">
+                  <span className="text-content-primary min-w-0 flex-1 truncate text-sm">
                     {prof.name}
                   </span>
 
                   {inRotation && (
-                    <span className="text-[10px] text-content-muted">#{rotIndex + 1}</span>
+                    <span className="text-content-muted text-[10px]">#{rotIndex + 1}</span>
                   )}
 
                   {/* Ordenar na rotação */}
@@ -208,14 +208,14 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                       <button
                         onClick={() => moveInRotation(rotIndex, 'up')}
                         disabled={rotIndex === 0}
-                        className="rounded px-1 text-[10px] text-content-muted hover:text-content-primary disabled:opacity-30"
+                        className="text-content-muted hover:text-content-primary rounded px-1 text-[10px] disabled:opacity-30"
                       >
                         ↑
                       </button>
                       <button
                         onClick={() => moveInRotation(rotIndex, 'down')}
                         disabled={rotIndex === rotation.length - 1}
-                        className="rounded px-1 text-[10px] text-content-muted hover:text-content-primary disabled:opacity-30"
+                        className="text-content-muted hover:text-content-primary rounded px-1 text-[10px] disabled:opacity-30"
                       >
                         ↓
                       </button>
@@ -244,9 +244,7 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
 
         {/* Dias por profissional */}
         <div>
-          <label className="label mb-1 block text-sm">
-            Dias consecutivos por profissional:
-          </label>
+          <label className="label mb-1 block text-sm">Dias consecutivos por profissional:</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -260,7 +258,7 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
               }}
               className="input-field w-20 text-center"
             />
-            <span className="text-sm text-content-muted">dia(s)</span>
+            <span className="text-content-muted text-sm">dia(s)</span>
           </div>
         </div>
 
@@ -297,18 +295,18 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
         {/* Preview */}
         {showPreview && preview && (
           <div>
-            <h4 className="mb-2 text-sm font-semibold text-content-primary">Preview:</h4>
-            <div className="max-h-[200px] overflow-y-auto rounded-lg border border-border-default">
+            <h4 className="text-content-primary mb-2 text-sm font-semibold">Preview:</h4>
+            <div className="border-border-default max-h-[200px] overflow-y-auto rounded-lg border">
               <table className="w-full text-xs">
-                <thead className="sticky top-0 bg-surface-card">
+                <thead className="bg-surface-card sticky top-0">
                   <tr>
-                    <th className="border-b border-border-default px-2 py-1 text-left text-content-muted">
+                    <th className="border-border-default text-content-muted border-b px-2 py-1 text-left">
                       Dia
                     </th>
                     {slots.map((s) => (
                       <th
                         key={s}
-                        className="border-b border-border-default px-2 py-1 text-left text-content-muted"
+                        className="border-border-default text-content-muted border-b px-2 py-1 text-left"
                       >
                         {slots.length > 1 ? s : 'Profissional'}
                       </th>
@@ -320,10 +318,8 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                     const anyAssigned = profIds.some((id) => id);
                     if (!anyAssigned) return null;
                     return (
-                      <tr key={date} className="border-b border-border-default/50">
-                        <td className="px-2 py-1 text-content-primary">
-                          {formatDateBR(date)}
-                        </td>
+                      <tr key={date} className="border-border-default/50 border-b">
+                        <td className="text-content-primary px-2 py-1">{formatDateBR(date)}</td>
                         {profIds.map((profId, i) => {
                           const prof = profId ? profMap.get(profId) : null;
                           return (
@@ -359,11 +355,7 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
         <Button variant="ghost" onClick={handleClose}>
           Cancelar
         </Button>
-        <Button
-          variant="primary"
-          onClick={handleApply}
-          disabled={!preview}
-        >
+        <Button variant="primary" onClick={handleApply} disabled={!preview}>
           Aplicar
         </Button>
       </ModalFooter>

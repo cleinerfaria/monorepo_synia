@@ -295,8 +295,12 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
         dateA={swapModal.dateA}
         dateB={swapModal.dateB}
         slot={swapModal.slot}
-        profA={profMap.get(assignments.get(assignmentKey(swapModal.dateA, swapModal.slot))?.[0] || '')}
-        profB={profMap.get(assignments.get(assignmentKey(swapModal.dateB, swapModal.slot))?.[0] || '')}
+        profA={profMap.get(
+          assignments.get(assignmentKey(swapModal.dateA, swapModal.slot))?.[0] || ''
+        )}
+        profB={profMap.get(
+          assignments.get(assignmentKey(swapModal.dateB, swapModal.slot))?.[0] || ''
+        )}
         onConfirm={handleSwapConfirm}
         onCancel={handleSwapCancel}
       />
