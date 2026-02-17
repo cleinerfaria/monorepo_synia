@@ -1,8 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Modal, ModalFooter, Button, Input } from '@/components/ui';
 import { useScheduleStore } from '@/stores/scheduleStore';
-import { assignmentKey, SLOTS_BY_REGIME } from '@/types/schedule';
-import type { ScheduleProfessional, AutoFillConfig, AssignmentMap } from '@/types/schedule';
+import type { ScheduleProfessional, AutoFillConfig, DayAssignmentsMap } from '@/types/schedule';
 
 interface AutoFillModalProps {
   isOpen: boolean;
@@ -17,7 +16,7 @@ const WEEKDAY_OPTIONS = [
   { value: 3, label: 'Qua' },
   { value: 4, label: 'Qui' },
   { value: 5, label: 'Sex' },
-  { value: 6, label: 'Sáb' },
+  { value: 6, label: 'Sab' },
 ];
 
 function getDaysInMonth(year: number, month: number): string[] {
@@ -34,29 +33,21 @@ function getDaysInMonth(year: number, month: number): string[] {
 }
 
 function formatDateBR(dateStr: string): string {
-  const [y, m, d] = dateStr.split('-');
+  const [, m, d] = dateStr.split('-');
   return `${d}/${m}`;
 }
 
-function getDayOfWeek(dateStr: string): number {
-  return new Date(dateStr + 'T12:00:00').getDay();
-}
-
 export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalProps) {
-  const { year, month, regime, generateAutoFillPreview, applyAutoFill } = useScheduleStore();
+  const { year, month, generateAutoFillPreview, applyAutoFill } = useScheduleStore();
 
-  // Config state
   const [rotation, setRotation] = useState<string[]>([]);
   const [substituteId, setSubstituteId] = useState<string | null>(null);
   const [daysPerProfessional, setDaysPerProfessional] = useState(1);
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [showPreview, setShowPreview] = useState(false);
-  const [preview, setPreview] = useState<AssignmentMap | null>(null);
+  const [preview, setPreview] = useState<DayAssignmentsMap | null>(null);
   const [search, setSearch] = useState('');
 
-  const slots = useMemo(() => SLOTS_BY_REGIME[regime], [regime]);
-
-  // Filtrar profissionais
   const filteredProfessionals = useMemo(() => {
     if (!search.trim()) return professionals;
     const term = search.toLowerCase();
@@ -117,15 +108,14 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
     }
   }, [preview, applyAutoFill, onClose]);
 
-  // Preview renderizado
   const previewDays = useMemo(() => {
     if (!preview) return [];
     const days = getDaysInMonth(year, month);
     return days.map((day) => {
-      const profIds = slots.map((slot) => preview.get(assignmentKey(day, slot))?.[0]);
-      return { date: day, profIds };
+      const dayAssignments = preview.get(day) || [];
+      return { date: day, assignments: dayAssignments };
     });
-  }, [preview, year, month, slots]);
+  }, [preview, year, month]);
 
   const profMap = useMemo(() => {
     const map = new Map<string, ScheduleProfessional>();
@@ -142,10 +132,10 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Auto-preencher escala" size="lg">
       <div className="space-y-4">
-        {/* Rotação de profissionais */}
+        {/* Rotacao de profissionais */}
         <div>
           <label className="label mb-1 block text-sm">
-            Selecione a ordem de rotação dos profissionais:
+            Selecione a ordem de rotacao dos profissionais:
           </label>
 
           <Input
@@ -172,12 +162,9 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                         : 'hover:bg-surface-hover'
                   }`}
                 >
-                  {/* Checkbox */}
                   <button
                     onClick={() => {
-                      if (isSubst) {
-                        setSubstituteId(null);
-                      }
+                      if (isSubst) setSubstituteId(null);
                       toggleRotation(prof.id);
                     }}
                     className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs ${
@@ -189,7 +176,6 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                     {inRotation && rotIndex + 1}
                   </button>
 
-                  {/* Cor + nome */}
                   <span
                     className="h-3 w-3 shrink-0 rounded-full"
                     style={{ backgroundColor: prof.color || 'rgb(var(--color-primary-500))' }}
@@ -202,7 +188,6 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                     <span className="text-content-muted text-[10px]">#{rotIndex + 1}</span>
                   )}
 
-                  {/* Ordenar na rotação */}
                   {inRotation && (
                     <div className="flex gap-0.5">
                       <button
@@ -222,7 +207,6 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                     </div>
                   )}
 
-                  {/* Folguista */}
                   {!inRotation && (
                     <button
                       onClick={() => setSubstituteId(isSubst ? null : prof.id)}
@@ -282,7 +266,6 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
           </div>
         </div>
 
-        {/* Botão gerar preview */}
         <Button
           variant="secondary"
           onClick={handleGeneratePreview}
@@ -303,46 +286,61 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                     <th className="border-border-default text-content-muted border-b px-2 py-1 text-left">
                       Dia
                     </th>
-                    {slots.map((s) => (
-                      <th
-                        key={s}
-                        className="border-border-default text-content-muted border-b px-2 py-1 text-left"
-                      >
-                        {slots.length > 1 ? s : 'Profissional'}
-                      </th>
-                    ))}
+                    <th className="border-border-default text-content-muted border-b px-2 py-1 text-left">
+                      Profissional
+                    </th>
+                    <th className="border-border-default text-content-muted border-b px-2 py-1 text-left">
+                      Horario
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {previewDays.map(({ date, profIds }) => {
-                    const anyAssigned = profIds.some((id) => id);
-                    if (!anyAssigned) return null;
-                    return (
-                      <tr key={date} className="border-border-default/50 border-b">
-                        <td className="text-content-primary px-2 py-1">{formatDateBR(date)}</td>
-                        {profIds.map((profId, i) => {
-                          const prof = profId ? profMap.get(profId) : null;
-                          return (
-                            <td key={i} className="px-2 py-1">
-                              {prof ? (
-                                <span className="flex items-center gap-1">
-                                  <span
-                                    className="h-2 w-2 rounded-full"
-                                    style={{
-                                      backgroundColor:
-                                        prof.color || 'rgb(var(--color-primary-500))',
-                                    }}
-                                  />
-                                  {prof.name.split(' ')[0]}
-                                </span>
-                              ) : (
-                                <span className="text-content-muted">—</span>
-                              )}
+                  {previewDays.map(({ date, assignments: dayAssignments }) => {
+                    if (dayAssignments.length === 0) return null;
+                    return dayAssignments.map((a, idx) => {
+                      const prof = profMap.get(a.professional_id);
+                      const startTime = new Date(a.start_at).toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                      });
+                      const endTime = new Date(a.end_at).toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                      });
+                      return (
+                        <tr key={`${date}-${idx}`} className="border-border-default/50 border-b">
+                          {idx === 0 && (
+                            <td
+                              className="text-content-primary px-2 py-1"
+                              rowSpan={dayAssignments.length}
+                            >
+                              {formatDateBR(date)}
                             </td>
-                          );
-                        })}
-                      </tr>
-                    );
+                          )}
+                          <td className="px-2 py-1">
+                            {prof ? (
+                              <span className="flex items-center gap-1">
+                                <span
+                                  className="h-2 w-2 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      prof.color || 'rgb(var(--color-primary-500))',
+                                  }}
+                                />
+                                {prof.name.split(' ')[0]}
+                              </span>
+                            ) : (
+                              <span className="text-content-muted">—</span>
+                            )}
+                          </td>
+                          <td className="text-content-secondary px-2 py-1">
+                            {startTime}–{endTime}
+                          </td>
+                        </tr>
+                      );
+                    });
                   })}
                 </tbody>
               </table>

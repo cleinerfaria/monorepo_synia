@@ -1,35 +1,31 @@
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useScheduleStore } from '@/stores/scheduleStore';
-import { assignmentKey, SLOTS_BY_REGIME } from '@/types/schedule';
-import type { ScheduleProfessional, SlotType, BatchSelectionPreset } from '@/types/schedule';
+import type { ScheduleProfessional, BatchSelectionPreset } from '@/types/schedule';
 import { Input, Button } from '@/components/ui';
 import { ScheduleSlotChip } from './ScheduleSlotChip';
 
 interface ScheduleSidebarProps {
   professionals: ScheduleProfessional[];
   onAutoFillClick: () => void;
-  onProfessionalSelect?: (professionalId: string) => void;
 }
 
 const BATCH_PRESETS: Array<{ value: BatchSelectionPreset; label: string }> = [
-  { value: 'weekdays', label: 'Dias úteis' },
-  { value: 'saturdays', label: 'Sábados' },
+  { value: 'weekdays', label: 'Dias uteis' },
+  { value: 'saturdays', label: 'Sabados' },
   { value: 'sundays', label: 'Domingos' },
   { value: 'even_days', label: 'Dias pares' },
-  { value: 'odd_days', label: 'Dias ímpares' },
+  { value: 'odd_days', label: 'Dias impares' },
   { value: 'full_week', label: 'Semana inteira' },
-  { value: 'full_month', label: 'Mês todo' },
+  { value: 'full_month', label: 'Mes todo' },
 ];
 
 function ScheduleSidebarInner({
   professionals,
   onAutoFillClick,
-  onProfessionalSelect,
 }: ScheduleSidebarProps) {
   const {
     year,
     month,
-    regime,
     assignments,
     selectedDates,
     applyBatchPreset,
@@ -41,9 +37,6 @@ function ScheduleSidebarInner({
   const [search, setSearch] = useState('');
   const [substituteIds, setSubstituteIds] = useState<Set<string>>(new Set());
 
-  const slots = useMemo(() => SLOTS_BY_REGIME[regime], [regime]);
-
-  // Filtrar profissionais pela busca
   const filteredProfessionals = useMemo(() => {
     if (!search.trim()) return professionals;
     const term = search.toLowerCase();
@@ -52,30 +45,22 @@ function ScheduleSidebarInner({
     );
   }, [professionals, search]);
 
-  // Resumo do mês
+  // Resumo do mes
   const monthSummary = useMemo(() => {
     const counts = new Map<string, number>();
-    const days = new Set<string>();
 
-    for (const [key] of assignments) {
-      const [date] = key.split('::');
-      const profIds = assignments.get(key);
-      if (profIds) {
-        for (const profId of profIds) {
-          counts.set(profId, (counts.get(profId) || 0) + 1);
-        }
-        days.add(date);
+    for (const [, dayAssignments] of assignments) {
+      for (const a of dayAssignments) {
+        counts.set(a.professional_id, (counts.get(a.professional_id) || 0) + 1);
       }
     }
 
-    // Total de dias no mês
     const totalDaysInMonth = new Date(year, month, 0).getDate();
-    const totalSlots = totalDaysInMonth * slots.length;
-    const filledSlots = assignments.size;
-    const pendingSlots = totalSlots - filledSlots;
+    const filledDays = assignments.size;
+    const pendingDays = totalDaysInMonth - filledDays;
 
-    return { counts, pendingSlots, totalSlots, filledSlots };
-  }, [assignments, year, month, slots]);
+    return { counts, pendingDays, totalDays: totalDaysInMonth, filledDays };
+  }, [assignments, year, month]);
 
   const toggleSubstitute = useCallback((id: string) => {
     setSubstituteIds((prev) => {
@@ -89,18 +74,14 @@ function ScheduleSidebarInner({
   const handleBatchApply = useCallback(
     (profId: string) => {
       if (selectedDates.size === 0) return;
-      for (const slot of slots) {
-        applyBatchAssignment(profId, slot);
-      }
+      applyBatchAssignment(profId);
     },
-    [selectedDates, slots, applyBatchAssignment]
+    [selectedDates, applyBatchAssignment]
   );
 
-  // Duplicar semana: encontrar inícios de semana
   const weekStarts = useMemo(() => {
     const starts: string[] = [];
     const d = new Date(year, month - 1, 1);
-    // Encontrar primeiro domingo
     while (d.getDay() !== 0 && d.getMonth() === month - 1) {
       d.setDate(d.getDate() + 1);
     }
@@ -116,10 +97,10 @@ function ScheduleSidebarInner({
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
-      {/* Seção: Profissionais */}
+      {/* Secao: Profissionais */}
       <div className="border-border-default border-b p-3">
         <h3 className="text-content-muted mb-2 text-xs font-semibold uppercase tracking-wider">
-          Profissionais disponíveis
+          Profissionais disponiveis
         </h3>
 
         <Input
@@ -141,12 +122,10 @@ function ScheduleSidebarInner({
                   onClick={() => {
                     if (selectedDates.size > 0) {
                       handleBatchApply(prof.id);
-                    } else {
-                      onProfessionalSelect?.(prof.id);
                     }
                   }}
                 >
-                  <ScheduleSlotChip professional={profWithSubstitute} slot="24h" />
+                  <ScheduleSlotChip professional={profWithSubstitute} />
                 </div>
 
                 <button
@@ -172,15 +151,14 @@ function ScheduleSidebarInner({
         </div>
       </div>
 
-      {/* Seção: Ferramentas */}
+      {/* Secao: Ferramentas */}
       <div className="border-border-default border-b p-3">
         <h3 className="text-content-muted mb-2 text-xs font-semibold uppercase tracking-wider">
           Ferramentas
         </h3>
 
-        {/* Seleção em lote */}
         <div className="mb-3">
-          <p className="text-content-secondary mb-1 text-[11px]">Seleção rápida:</p>
+          <p className="text-content-secondary mb-1 text-[11px]">Selecao rapida:</p>
           <div className="flex flex-wrap gap-1">
             {BATCH_PRESETS.map((preset) => (
               <button
@@ -208,7 +186,6 @@ function ScheduleSidebarInner({
           )}
         </div>
 
-        {/* Botões de ação */}
         <div className="space-y-1.5">
           <Button
             variant="secondary"
@@ -238,28 +215,27 @@ function ScheduleSidebarInner({
         </div>
       </div>
 
-      {/* Seção: Resumo do mês */}
+      {/* Secao: Resumo do mes */}
       <div className="p-3">
         <h3 className="text-content-muted mb-2 text-xs font-semibold uppercase tracking-wider">
-          Resumo do mês
+          Resumo do mes
         </h3>
 
         <div className="mb-2 grid grid-cols-2 gap-2">
           <div className="border-border-default bg-surface-canvas rounded-lg border p-2 text-center">
-            <div className="text-content-primary text-lg font-bold">{monthSummary.filledSlots}</div>
-            <div className="text-content-muted text-[10px]">Preenchidos</div>
+            <div className="text-content-primary text-lg font-bold">{monthSummary.filledDays}</div>
+            <div className="text-content-muted text-[10px]">Dias preenchidos</div>
           </div>
           <div className="border-border-default bg-surface-canvas rounded-lg border p-2 text-center">
             <div
-              className={`text-lg font-bold ${monthSummary.pendingSlots > 0 ? 'text-feedback-warning-fg' : 'text-feedback-success-fg'}`}
+              className={`text-lg font-bold ${monthSummary.pendingDays > 0 ? 'text-feedback-warning-fg' : 'text-feedback-success-fg'}`}
             >
-              {monthSummary.pendingSlots}
+              {monthSummary.pendingDays}
             </div>
-            <div className="text-content-muted text-[10px]">Pendentes</div>
+            <div className="text-content-muted text-[10px]">Dias pendentes</div>
           </div>
         </div>
 
-        {/* Contagem por profissional */}
         <div className="max-h-[200px] space-y-1 overflow-y-auto">
           {professionals
             .filter((p) => monthSummary.counts.has(p.id))
@@ -282,7 +258,7 @@ function ScheduleSidebarInner({
                     />
                     <span className="text-content-primary truncate">{prof.name}</span>
                   </div>
-                  <span className="text-content-secondary shrink-0 font-semibold">{count}d</span>
+                  <span className="text-content-secondary shrink-0 font-semibold">{count}x</span>
                 </div>
               );
             })}

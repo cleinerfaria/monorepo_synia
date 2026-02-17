@@ -3,13 +3,10 @@
 ## 📁 Estrutura
 
 ```
-seeds/
-├── data_seed.sql        ← REFERÊNCIA (uso: documentação)
+supabase/seeds/
+├── seed.sql            ← EXECUTADO AUTOMATICAMENTE (profissionais, pacientes, medicações, app users)
 ├── app-users.sql       ← App Users + System User (vinculação manual)
 └── README.md
-
-supabase/
-└── seed.sql            ← EXECUTADO AUTOMATICAMENTE (profissionais, pacientes, medicações, app users)
 ```
 
 ## 🔄 Como Funciona

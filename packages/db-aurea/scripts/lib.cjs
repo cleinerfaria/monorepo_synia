@@ -314,6 +314,69 @@ async function seedAureaDev() {
   });
   process.stdout.write('✅ app_users created\n');
 
+  process.stdout.write('✅ app_users created\n');
+
+  // Criar profissões
+  process.stdout.write('\n📝 Creating professions...\n');
+  const professionsData = [
+    { company_id: company.id, name: 'Médico', active: true },
+    { company_id: company.id, name: 'Enfermeiro', active: true },
+    { company_id: company.id, name: 'Fisioterapeuta', active: true },
+    { company_id: company.id, name: 'Técnico de Enfermagem', active: true },
+  ];
+
+  await upsertRows({
+    supabaseUrl,
+    serviceRoleKey,
+    table: 'profession',
+    rows: professionsData,
+    onConflict: 'company_id,name',
+  });
+  process.stdout.write('✅ professions created\n');
+
+  // Obter IDs das profissões recém-criadas
+  const professions = await requestJson(
+    `${supabaseUrl}/rest/v1/profession?company_id=eq.${company.id}&select=id,name`,
+    { headers: authHeaders(serviceRoleKey) }
+  );
+
+  const medicoId = professions.find((p) => p.name === 'Médico')?.id;
+  const enfermeiroId = professions.find((p) => p.name === 'Enfermeiro')?.id;
+
+  // Criar profissionais de exemplo
+  if (medicoId && enfermeiroId) {
+    process.stdout.write('\n📝 Creating professionals...\n');
+    await upsertRows({
+      supabaseUrl,
+      serviceRoleKey,
+      table: 'professional',
+      rows: [
+        {
+          company_id: company.id,
+          name: 'Dr. João Silva',
+          profession_id: medicoId,
+          council_type: 'CRM',
+          council_number: '12345',
+          council_uf: 'SP',
+          active: true,
+          code: 'MED001',
+        },
+        {
+          company_id: company.id,
+          name: 'Enf. Maria Souza',
+          profession_id: enfermeiroId,
+          council_type: 'COREN',
+          council_number: '54321',
+          council_uf: 'SP',
+          active: true,
+          code: 'ENF001',
+        },
+      ],
+      onConflict: 'company_id,code',
+    });
+    process.stdout.write('✅ professionals created\n');
+  }
+
   process.stdout.write('\n✨ Aurea dev seed applied successfully!\n');
   process.stdout.write(`  - System Admin: ${systemAdminEmail}\n`);
   process.stdout.write(`  - Admin: ${adminEmail}\n`);

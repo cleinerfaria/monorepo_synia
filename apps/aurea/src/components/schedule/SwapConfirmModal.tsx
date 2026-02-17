@@ -1,14 +1,11 @@
 import { Modal, ModalFooter, Button } from '@/components/ui';
-import type { SlotType, ScheduleProfessional } from '@/types/schedule';
-import { SLOT_LABELS } from '@/types/schedule';
 
 interface SwapConfirmModalProps {
   isOpen: boolean;
   dateA: string;
   dateB: string;
-  slot: SlotType;
-  profA?: ScheduleProfessional;
-  profB?: ScheduleProfessional;
+  profNamesA: string;
+  profNamesB: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -23,9 +20,8 @@ export function SwapConfirmModal({
   isOpen,
   dateA,
   dateB,
-  slot,
-  profA,
-  profB,
+  profNamesA,
+  profNamesB,
   onConfirm,
   onCancel,
 }: SwapConfirmModalProps) {
@@ -37,15 +33,12 @@ export function SwapConfirmModal({
         </p>
 
         <div className="flex items-center justify-center gap-3">
-          {/* Profissional A */}
+          {/* Dia A */}
           <div className="border-border-default bg-surface-canvas rounded-lg border p-3 text-center">
             <div className="text-content-muted text-xs">{formatDateBR(dateA)}</div>
             <div className="text-content-primary mt-1 text-sm font-semibold">
-              {profA?.name || 'Vazio'}
+              {profNamesA || 'Vazio'}
             </div>
-            {slot !== '24h' && (
-              <div className="text-content-muted mt-0.5 text-[10px]">{SLOT_LABELS[slot]}</div>
-            )}
           </div>
 
           {/* Seta */}
@@ -53,15 +46,12 @@ export function SwapConfirmModal({
             <span className="text-lg">⇄</span>
           </div>
 
-          {/* Profissional B */}
+          {/* Dia B */}
           <div className="border-border-default bg-surface-canvas rounded-lg border p-3 text-center">
             <div className="text-content-muted text-xs">{formatDateBR(dateB)}</div>
             <div className="text-content-primary mt-1 text-sm font-semibold">
-              {profB?.name || 'Vazio'}
+              {profNamesB || 'Vazio'}
             </div>
-            {slot !== '24h' && (
-              <div className="text-content-muted mt-0.5 text-[10px]">{SLOT_LABELS[slot]}</div>
-            )}
           </div>
         </div>
       </div>

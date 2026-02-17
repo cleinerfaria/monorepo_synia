@@ -2,10 +2,10 @@
 // Escala Mensal Visual do Paciente — Types
 // =====================================================
 
-/** Tipo de slot de plantão */
+/** Tipo de slot de plantao (usado como template para auto-preenchimento) */
 export type SlotType = '24h' | '12h_day' | '12h_night' | '8h_morning' | '8h_afternoon' | '8h_night';
 
-/** Configuração de regime de horas */
+/** Configuracao de regime de horas */
 export type ScheduleRegime = '24h' | '12h' | '8h';
 
 /** Dados do profissional na escala (leve) */
@@ -17,17 +17,16 @@ export interface ScheduleProfessional {
   email: string | null;
   phone: string | null;
   color: string | null;
-  is_substitute: boolean; // folguista/curinga
+  is_substitute: boolean;
 }
 
-/** Uma atribuição de slot — profissional atribuído a um dia+slot */
+/** Uma atribuicao de plantao — profissional atribuido a um dia com horarios */
 export interface ScheduleAssignment {
   id?: string;
   date: string; // YYYY-MM-DD
-  slot: SlotType;
   professional_id: string;
-  start_at?: string; // ISO 8601 timestamp (opcional)
-  end_at?: string; // ISO 8601 timestamp (opcional)
+  start_at: string; // ISO 8601 timestamp (obrigatorio)
+  end_at: string; // ISO 8601 timestamp (obrigatorio)
 }
 
 /** Escala mensal carregada do backend */
@@ -36,6 +35,7 @@ export interface PatientMonthSchedule {
   year: number;
   month: number; // 1-12
   regime: ScheduleRegime;
+  start_time: string; // HH:MM — horario inicial do plantao (ex: "07:00")
   assignments: ScheduleAssignment[];
 }
 
@@ -46,8 +46,9 @@ export interface UpsertSchedulePayload {
   month: number;
   assignments: Array<{
     date: string;
-    slot: SlotType;
     professional_id: string;
+    start_at: string;
+    end_at: string;
   }>;
 }
 
@@ -56,46 +57,35 @@ export interface SwapAssignmentPayload {
   patient_id: string;
   date_a: string;
   date_b: string;
-  slot: SlotType;
+  index_a: number;
+  index_b: number;
 }
 
 // =====================================================
 // Estado da grade (draft local)
 // =====================================================
 
-/** Mapa: "YYYY-MM-DD::slot" → professional_id */
-export type AssignmentMap = Map<string, string[]>; // Múltiplos profissionais por slot
-export type ScheduleAssignmentDataMap = Map<string, ScheduleAssignment[]>; // Múltiplos dados
-
-/** Gerar chave de referência para o mapa */
-export function assignmentKey(date: string, slot: SlotType): string {
-  return `${date}::${slot}`;
-}
-
-/** Extrair date e slot a partir da chave */
-export function parseAssignmentKey(key: string): { date: string; slot: SlotType } {
-  const [date, slot] = key.split('::');
-  return { date, slot: slot as SlotType };
-}
+/** Mapa: "YYYY-MM-DD" → ScheduleAssignment[] */
+export type DayAssignmentsMap = Map<string, ScheduleAssignment[]>;
 
 // =====================================================
 // Auto-preenchimento
 // =====================================================
 
-/** Configuração de auto-preenchimento */
+/** Configuracao de auto-preenchimento */
 export interface AutoFillConfig {
-  /** IDs dos profissionais na rotação (ordem importa) */
+  /** IDs dos profissionais na rotacao (ordem importa) */
   rotation: string[];
-  /** ID do folguista/curinga (cobre folgas da rotação) */
+  /** ID do folguista/curinga (cobre folgas da rotacao) */
   substituteId: string | null;
-  /** Padrão semanal: quantos dias seguidos cada profissional fica antes de trocar */
+  /** Padrao semanal: quantos dias seguidos cada profissional fica antes de trocar */
   daysPerProfessional: number;
   /** Dias da semana para incluir (0=Dom, 1=Seg, ..., 6=Sab). Default: todos */
   weekdays: number[];
 }
 
 // =====================================================
-// Seleção e lote
+// Selecao e lote
 // =====================================================
 
 export type BatchSelectionPreset =
@@ -108,18 +98,18 @@ export type BatchSelectionPreset =
   | 'full_month';
 
 // =====================================================
-// Ações de histórico (undo/redo)
+// Acoes de historico (undo/redo)
 // =====================================================
 
 export interface ScheduleHistoryEntry {
   /** Snapshot do mapa inteiro */
-  assignments: Record<string, string[]>;
-  /** Descrição legível */
+  assignments: Record<string, ScheduleAssignment[]>;
+  /** Descricao legivel */
   label: string;
 }
 
 // =====================================================
-// Resumo do mês
+// Resumo do mes
 // =====================================================
 
 export interface MonthSummary {
@@ -136,7 +126,7 @@ export interface MonthSummary {
 export type ScheduleApiError = 'NOT_AUTHORIZED' | 'VALIDATION_ERROR' | 'CONFLICT';
 
 // =====================================================
-// Slots por regime
+// Slots por regime (usados como template)
 // =====================================================
 
 export const SLOTS_BY_REGIME: Record<ScheduleRegime, SlotType[]> = {
@@ -149,33 +139,76 @@ export const SLOT_LABELS: Record<SlotType, string> = {
   '24h': '24h',
   '12h_day': 'Diurno',
   '12h_night': 'Noturno',
-  '8h_morning': 'Manhã',
+  '8h_morning': 'Manha',
   '8h_afternoon': 'Tarde',
   '8h_night': 'Noite',
 };
 
 /**
- * Calcular horários para um slot baseado no regime e hora do dia.
+ * Gerar horarios para um slot baseado no regime e hora inicial configurada.
  * Retorna { start, end } em formato ISO 8601
  */
-export function getSlotTimes(slot: SlotType, date: string): { start: string; end: string } {
-  const dayStr = date; // YYYY-MM-DD
-  const d = new Date(date + 'T00:00:00Z');
-  const nextDay = new Date(d.getTime() + 86400000);
-  const nextDayStr = nextDay.toISOString().split('T')[0];
+export function getSlotTimes(
+  slot: SlotType,
+  date: string,
+  startTime = '07:00'
+): { start: string; end: string } {
+  const dayStr = date;
+  const [startHour, startMin] = startTime.split(':').map(Number);
+
+  function makeTimestamp(dayOffset: number, hour: number, minute: number): string {
+    const d = new Date(`${dayStr}T00:00:00`);
+    d.setDate(d.getDate() + dayOffset);
+    d.setHours(hour, minute, 0, 0);
+    return d.toISOString();
+  }
 
   switch (slot) {
     case '24h':
-      return { start: `${dayStr}T00:00:00Z`, end: `${nextDayStr}T00:00:00Z` };
+      return {
+        start: makeTimestamp(0, startHour, startMin),
+        end: makeTimestamp(1, startHour, startMin),
+      };
     case '12h_day':
-      return { start: `${dayStr}T07:00:00Z`, end: `${dayStr}T19:00:00Z` };
+      return {
+        start: makeTimestamp(0, startHour, startMin),
+        end: makeTimestamp(0, startHour + 12, startMin),
+      };
     case '12h_night':
-      return { start: `${dayStr}T19:00:00Z`, end: `${nextDayStr}T07:00:00Z` };
+      return {
+        start: makeTimestamp(0, startHour + 12, startMin),
+        end: makeTimestamp(1, startHour, startMin),
+      };
     case '8h_morning':
-      return { start: `${dayStr}T07:00:00Z`, end: `${dayStr}T15:00:00Z` };
+      return {
+        start: makeTimestamp(0, startHour, startMin),
+        end: makeTimestamp(0, startHour + 8, startMin),
+      };
     case '8h_afternoon':
-      return { start: `${dayStr}T15:00:00Z`, end: `${dayStr}T23:00:00Z` };
+      return {
+        start: makeTimestamp(0, startHour + 8, startMin),
+        end: makeTimestamp(0, startHour + 16, startMin),
+      };
     case '8h_night':
-      return { start: `${dayStr}T23:00:00Z`, end: `${nextDayStr}T07:00:00Z` };
+      return {
+        start: makeTimestamp(0, startHour + 16, startMin),
+        end: makeTimestamp(1, startHour, startMin),
+      };
   }
+}
+
+/**
+ * Gerar assignments padrao para um dia baseado no regime.
+ * Retorna array de assignments sem professional_id preenchido.
+ */
+export function generateDefaultSlots(
+  date: string,
+  regime: ScheduleRegime,
+  startTime = '07:00'
+): Array<{ start_at: string; end_at: string }> {
+  const slots = SLOTS_BY_REGIME[regime];
+  return slots.map((slot) => {
+    const { start, end } = getSlotTimes(slot, date, startTime);
+    return { start_at: start, end_at: end };
+  });
 }

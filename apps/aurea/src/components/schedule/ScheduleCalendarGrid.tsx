@@ -10,20 +10,19 @@ import {
   type DragOverEvent,
 } from '@dnd-kit/core';
 import { useScheduleStore } from '@/stores/scheduleStore';
-import { assignmentKey, SLOTS_BY_REGIME, SLOT_LABELS } from '@/types/schedule';
-import type { SlotType, ScheduleProfessional } from '@/types/schedule';
+import type { ScheduleProfessional } from '@/types/schedule';
 import { ScheduleDayCell } from './ScheduleDayCell';
 import { ScheduleSlotChip } from './ScheduleSlotChip';
 import { SwapConfirmModal } from './SwapConfirmModal';
 
 interface ScheduleCalendarGridProps {
   professionals: ScheduleProfessional[];
-  onSlotClick: (date: string, slot: SlotType) => void;
+  onSlotClick: (date: string, index: number) => void;
+  onAddClick: (date: string) => void;
 }
 
-const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 
-/** Retorna todos os dias do mês em formato YYYY-MM-DD */
 function getDaysInMonth(year: number, month: number): string[] {
   const days: string[] = [];
   const d = new Date(year, month - 1, 1);
@@ -37,33 +36,30 @@ function getDaysInMonth(year: number, month: number): string[] {
   return days;
 }
 
-/** Retorna dia da semana (0=Dom...6=Sáb) */
 function getDayOfWeek(dateStr: string): number {
   return new Date(dateStr + 'T12:00:00').getDay();
 }
 
-/** Converter DOM dayOfWeek para index da grid (Dom=0, Sáb=6) */
 function gridColumn(dayOfWeek: number): number {
   return dayOfWeek;
 }
 
-function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalendarGridProps) {
+function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: ScheduleCalendarGridProps) {
   const {
     year,
     month,
-    regime,
     assignments,
-    assignmentsData,
     selectedDates,
     toggleDateSelection,
-    moveProfessional,
-    copyProfessional,
-    swapProfessionals,
+    moveAssignment,
+    copyAssignment,
+    swapDayAssignments,
+    removeAssignment,
   } = useScheduleStore();
 
   const [dragItem, setDragItem] = useState<{
     date: string;
-    slot: SlotType;
+    index: number;
     professionalId: string;
   } | null>(null);
 
@@ -71,8 +67,7 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
     open: boolean;
     dateA: string;
     dateB: string;
-    slot: SlotType;
-  }>({ open: false, dateA: '', dateB: '', slot: '24h' });
+  }>({ open: false, dateA: '', dateB: '' });
 
   const [overDate, setOverDate] = useState<string | null>(null);
   const copyModeRef = useRef(false);
@@ -84,7 +79,6 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
   );
 
   const days = useMemo(() => getDaysInMonth(year, month), [year, month]);
-  const slots = useMemo(() => SLOTS_BY_REGIME[regime], [regime]);
 
   const profMap = useMemo(() => {
     const map = new Map<string, ScheduleProfessional>();
@@ -94,13 +88,11 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
     return map;
   }, [professionals]);
 
-  // Calcular offset da primeira semana
   const firstDayColumn = useMemo(() => {
     if (days.length === 0) return 0;
     return gridColumn(getDayOfWeek(days[0]));
   }, [days]);
 
-  // Agrupar por semanas para grid
   const weeks = useMemo(() => {
     const result: Array<Array<string | null>> = [];
     let currentWeek: Array<string | null> = new Array(firstDayColumn).fill(null);
@@ -108,7 +100,6 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
     for (const day of days) {
       const col = gridColumn(getDayOfWeek(day));
       if (col === 0 && currentWeek.length > 0) {
-        // Pad última semana
         while (currentWeek.length < 7) currentWeek.push(null);
         result.push(currentWeek);
         currentWeek = [];
@@ -116,7 +107,6 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
       currentWeek.push(day);
     }
 
-    // Pad última semana
     while (currentWeek.length < 7) currentWeek.push(null);
     if (currentWeek.some((d) => d !== null)) result.push(currentWeek);
 
@@ -127,16 +117,17 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
       const { active } = event;
-      const [date, slot] = (active.id as string).split('::');
-      const profIds = assignments.get(assignmentKey(date, slot as SlotType)) || [];
-      const profId = profIds[0]; // Pegar o primeiro profissional
+      const idStr = active.id as string;
+      const [date, indexStr] = idStr.split('::');
+      const index = parseInt(indexStr, 10);
+      const dayAssignments = assignments.get(date);
+      const assignment = dayAssignments?.[index];
 
-      // Detectar se Ctrl/Alt está pressionado para modo copiar
       const nativeEvent = event.activatorEvent as any;
       copyModeRef.current = nativeEvent?.ctrlKey || nativeEvent?.altKey || false;
 
-      if (profId) {
-        setDragItem({ date, slot: slot as SlotType, professionalId: profId });
+      if (assignment) {
+        setDragItem({ date, index, professionalId: assignment.professional_id });
       }
     },
     [assignments]
@@ -145,8 +136,14 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { over } = event;
     if (over) {
-      const [date] = (over.id as string).split('::');
-      setOverDate(date);
+      const overIdStr = over.id as string;
+      // Drop target is "day::YYYY-MM-DD" or "YYYY-MM-DD::index"
+      if (overIdStr.startsWith('day::')) {
+        setOverDate(overIdStr.replace('day::', ''));
+      } else {
+        const [date] = overIdStr.split('::');
+        setOverDate(date);
+      }
     } else {
       setOverDate(null);
     }
@@ -160,35 +157,40 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
 
       if (!over || !active) return;
 
-      const [fromDate, fromSlot] = (active.id as string).split('::');
-      const [toDate, toSlot] = (over.id as string).split('::');
-      const slot = fromSlot as SlotType;
+      const activeIdStr = active.id as string;
+      const [fromDate, fromIndexStr] = activeIdStr.split('::');
+      const fromIndex = parseInt(fromIndexStr, 10);
+
+      const overIdStr = over.id as string;
+      let toDate: string;
+      if (overIdStr.startsWith('day::')) {
+        toDate = overIdStr.replace('day::', '');
+      } else {
+        [toDate] = overIdStr.split('::');
+      }
 
       if (fromDate === toDate) return;
 
-      // Verificar se o destino já tem um profissional
-      const targetKey = assignmentKey(toDate, slot);
-      const targetProfIds = assignments.get(targetKey);
-
-      if (targetProfIds && targetProfIds.length > 0) {
-        // Abrir modal de swap
-        setSwapModal({ open: true, dateA: fromDate, dateB: toDate, slot });
+      // Se o destino ja tem assignments, abrir modal de swap
+      const targetAssignments = assignments.get(toDate);
+      if (targetAssignments && targetAssignments.length > 0) {
+        setSwapModal({ open: true, dateA: fromDate, dateB: toDate });
       } else if (copyModeRef.current) {
-        copyProfessional(fromDate, toDate, slot);
+        copyAssignment(fromDate, fromIndex, toDate);
       } else {
-        moveProfessional(fromDate, toDate, slot);
+        moveAssignment(fromDate, fromIndex, toDate);
       }
     },
-    [assignments, moveProfessional, copyProfessional]
+    [assignments, moveAssignment, copyAssignment]
   );
 
   const handleSwapConfirm = useCallback(() => {
-    swapProfessionals(swapModal.dateA, swapModal.dateB, swapModal.slot);
-    setSwapModal({ open: false, dateA: '', dateB: '', slot: '24h' });
-  }, [swapModal, swapProfessionals]);
+    swapDayAssignments(swapModal.dateA, swapModal.dateB);
+    setSwapModal({ open: false, dateA: '', dateB: '' });
+  }, [swapModal, swapDayAssignments]);
 
   const handleSwapCancel = useCallback(() => {
-    setSwapModal({ open: false, dateA: '', dateB: '', slot: '24h' });
+    setSwapModal({ open: false, dateA: '', dateB: '' });
   }, []);
 
   const handleDateClick = useCallback(
@@ -200,15 +202,44 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
     [toggleDateSelection]
   );
 
+  const handleRemoveAssignment = useCallback(
+    (date: string, index: number) => {
+      removeAssignment(date, index);
+    },
+    [removeAssignment]
+  );
+
   // Overlay do drag
   const dragOverlayContent = useMemo(() => {
     if (!dragItem) return null;
     const prof = profMap.get(dragItem.professionalId);
     if (!prof) return null;
-    return <ScheduleSlotChip professional={prof} isDragging slot={dragItem.slot} />;
-  }, [dragItem, profMap]);
+    const dayAssignments = assignments.get(dragItem.date);
+    const assignment = dayAssignments?.[dragItem.index];
+    return (
+      <ScheduleSlotChip
+        professional={prof}
+        isDragging
+        startAt={assignment?.start_at}
+        endAt={assignment?.end_at}
+      />
+    );
+  }, [dragItem, profMap, assignments]);
 
   const today = new Date().toISOString().slice(0, 10);
+
+  // Nomes dos profissionais para o modal de swap
+  const swapProfNamesA = useMemo(() => {
+    if (!swapModal.open) return '';
+    const dayA = assignments.get(swapModal.dateA) || [];
+    return dayA.map((a) => profMap.get(a.professional_id)?.name || '?').join(', ');
+  }, [swapModal, assignments, profMap]);
+
+  const swapProfNamesB = useMemo(() => {
+    if (!swapModal.open) return '';
+    const dayB = assignments.get(swapModal.dateB) || [];
+    return dayB.map((a) => profMap.get(a.professional_id)?.name || '?').join(', ');
+  }, [swapModal, assignments, profMap]);
 
   return (
     <>
@@ -252,33 +283,20 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
                   const isWeekend = dayIdx === 0 || dayIdx === 6;
                   const isDropTarget = overDate === date;
 
-                  // Verificar se tem profissional atribuído em todos os slots
-                  const hasAllSlots = slots.every((s) => {
-                    const profs = assignments.get(assignmentKey(date, s));
-                    return profs && profs.length > 0;
-                  });
-                  const hasAnySlot = slots.some((s) => {
-                    const profs = assignments.get(assignmentKey(date, s));
-                    return profs && profs.length > 0;
-                  });
-                  const isPending = !hasAllSlots;
-
                   return (
                     <ScheduleDayCell
                       key={date}
                       date={date}
-                      slots={slots}
                       assignments={assignments}
-                      assignmentsData={assignmentsData}
                       profMap={profMap}
                       isSelected={isSelected}
                       isToday={isToday}
                       isWeekend={isWeekend}
                       isDropTarget={isDropTarget}
-                      isPending={isPending}
-                      hasAnySlot={hasAnySlot}
                       onClick={handleDateClick}
                       onSlotClick={onSlotClick}
+                      onAddClick={onAddClick}
+                      onRemoveAssignment={handleRemoveAssignment}
                     />
                   );
                 })}
@@ -294,13 +312,8 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick }: ScheduleCalen
         isOpen={swapModal.open}
         dateA={swapModal.dateA}
         dateB={swapModal.dateB}
-        slot={swapModal.slot}
-        profA={profMap.get(
-          assignments.get(assignmentKey(swapModal.dateA, swapModal.slot))?.[0] || ''
-        )}
-        profB={profMap.get(
-          assignments.get(assignmentKey(swapModal.dateB, swapModal.slot))?.[0] || ''
-        )}
+        profNamesA={swapProfNamesA}
+        profNamesB={swapProfNamesB}
         onConfirm={handleSwapConfirm}
         onCancel={handleSwapCancel}
       />

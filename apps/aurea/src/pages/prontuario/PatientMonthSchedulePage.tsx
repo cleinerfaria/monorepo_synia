@@ -8,8 +8,8 @@ import {
   useSaveSchedule,
   useSchedulePatient,
 } from '@/hooks/usePatientSchedule';
-import { assignmentKey } from '@/types/schedule';
-import type { SlotType } from '@/types/schedule';
+import { generateDefaultSlots } from '@/types/schedule';
+import type { ScheduleAssignment } from '@/types/schedule';
 import { ScheduleHeader } from '@/components/schedule/ScheduleHeader';
 import { ScheduleCalendarGrid } from '@/components/schedule/ScheduleCalendarGrid';
 import { ScheduleSidebar } from '@/components/schedule/ScheduleSidebar';
@@ -27,17 +27,18 @@ export default function PatientMonthSchedulePage() {
     year,
     month,
     regime,
+    startTime,
     isDirty,
     isSaving,
     assignments,
-    assignmentsData,
     isSidebarOpen,
     historyIndex,
     history,
     initialize,
     setMonth,
-    assignProfessional,
-    removeProfessional,
+    addAssignment,
+    removeAssignment,
+    updateAssignment,
     clearMonth,
     undo,
     redo,
@@ -59,61 +60,6 @@ export default function PatientMonthSchedulePage() {
   // Mutation
   const saveSchedule = useSaveSchedule();
 
-  // UI State
-  const [autoFillOpen, setAutoFillOpen] = useState(false);
-  const [pickerState, setPickerState] = useState<{
-    open: boolean;
-    date: string;
-    slot: SlotType;
-  }>({ open: false, date: '', slot: '24h' });
-
-  // Inicializar store com dados do servidor
-  useEffect(() => {
-    if (patientId && scheduleData) {
-      initialize(
-        patientId,
-        scheduleData.year,
-        scheduleData.month,
-        scheduleData.regime,
-        scheduleData.assignments
-      );
-    }
-  }, [patientId, scheduleData, initialize]);
-
-  // Atalhos de teclado (Ctrl+Z, Ctrl+Y, Ctrl+S)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'z' && !e.shiftKey) {
-          e.preventDefault();
-          undo();
-        } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
-          e.preventDefault();
-          redo();
-        } else if (e.key === 's') {
-          e.preventDefault();
-          if (isDirty) handleSave();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, isDirty]);
-
-  // Handlers
-  const handlePreviousMonth = useCallback(() => {
-    const newMonth = month === 1 ? 12 : month - 1;
-    const newYear = month === 1 ? year - 1 : year;
-    setMonth(newYear, newMonth);
-  }, [year, month, setMonth]);
-
-  const handleNextMonth = useCallback(() => {
-    const newMonth = month === 12 ? 1 : month + 1;
-    const newYear = month === 12 ? year + 1 : year;
-    setMonth(newYear, newMonth);
-  }, [year, month, setMonth]);
-
   const handleSave = useCallback(async () => {
     if (!patientId || !isDirty) return;
 
@@ -132,27 +78,101 @@ export default function PatientMonthSchedulePage() {
     }
   }, [patientId, isDirty, year, month, setSaving, getFullAssignments, saveSchedule, markSaved]);
 
-  const handleSlotClick = useCallback((date: string, slot: SlotType) => {
-    setPickerState({ open: true, date, slot });
+  // UI State
+  const [autoFillOpen, setAutoFillOpen] = useState(false);
+  const [pickerState, setPickerState] = useState<{
+    open: boolean;
+    date: string;
+    editIndex: number | null; // null = novo, number = editar existente
+  }>({ open: false, date: '', editIndex: null });
+
+  // Inicializar store com dados do servidor
+  useEffect(() => {
+    if (patientId && scheduleData) {
+      initialize(
+        patientId,
+        scheduleData.year,
+        scheduleData.month,
+        scheduleData.regime,
+        scheduleData.start_time,
+        scheduleData.assignments
+      );
+    }
+  }, [patientId, scheduleData, initialize]);
+
+  // Atalhos de teclado
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          undo();
+        } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+          e.preventDefault();
+          redo();
+        } else if (e.key === 's') {
+          e.preventDefault();
+          if (isDirty) handleSave();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo, isDirty, handleSave]);
+
+  // Handlers de navegacao
+  const handlePreviousMonth = useCallback(() => {
+    const newMonth = month === 1 ? 12 : month - 1;
+    const newYear = month === 1 ? year - 1 : year;
+    setMonth(newYear, newMonth);
+  }, [year, month, setMonth]);
+
+  const handleNextMonth = useCallback(() => {
+    const newMonth = month === 12 ? 1 : month + 1;
+    const newYear = month === 12 ? year + 1 : year;
+    setMonth(newYear, newMonth);
+  }, [year, month, setMonth]);
+
+  // Abrir picker para editar assignment existente
+  const handleSlotClick = useCallback((date: string, index: number) => {
+    setPickerState({ open: true, date, editIndex: index });
   }, []);
 
+  // Abrir picker para adicionar novo assignment
+  const handleAddClick = useCallback((date: string) => {
+    setPickerState({ open: true, date, editIndex: null });
+  }, []);
+
+  // Selecionar profissional no picker
   const handleProfessionalSelect = useCallback(
-    (professionalId: string) => {
-      if (pickerState.open) {
-        assignProfessional(pickerState.date, pickerState.slot, professionalId);
+    (professionalId: string, selectedStartAt: string, selectedEndAt: string) => {
+      if (!pickerState.open) return;
+
+      if (pickerState.editIndex !== null) {
+        // Editar existente
+        updateAssignment(pickerState.date, pickerState.editIndex, {
+          professional_id: professionalId,
+          start_at: selectedStartAt,
+          end_at: selectedEndAt,
+        });
+      } else {
+        // Adicionar novo
+        addAssignment(pickerState.date, professionalId, selectedStartAt, selectedEndAt);
       }
     },
-    [pickerState, assignProfessional]
+    [pickerState, updateAssignment, addAssignment]
   );
 
+  // Remover assignment do picker
   const handleProfessionalRemove = useCallback(() => {
-    if (pickerState.open) {
-      removeProfessional(pickerState.date, pickerState.slot);
+    if (pickerState.open && pickerState.editIndex !== null) {
+      removeAssignment(pickerState.date, pickerState.editIndex);
     }
-  }, [pickerState, removeProfessional]);
+  }, [pickerState, removeAssignment]);
 
   const handleClearMonth = useCallback(() => {
-    if (window.confirm('Tem certeza que deseja limpar todas as atribuições do mês?')) {
+    if (window.confirm('Tem certeza que deseja limpar todas as atribuicoes do mes?')) {
       clearMonth();
     }
   }, [clearMonth]);
@@ -161,25 +181,54 @@ export default function PatientMonthSchedulePage() {
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
-  const currentPickerProfId = useMemo(() => {
-    if (!pickerState.open) return undefined;
-    const profIds = assignments.get(assignmentKey(pickerState.date, pickerState.slot));
-    return profIds?.[0]; // Retorna o primeiro profissional (se houver)
+  // Assignment existente para o picker (quando editando)
+  const existingPickerAssignment: ScheduleAssignment | null = useMemo(() => {
+    if (!pickerState.open || pickerState.editIndex === null) return null;
+    const dayAssignments = assignments.get(pickerState.date);
+    return dayAssignments?.[pickerState.editIndex] ?? null;
   }, [pickerState, assignments]);
+
+  // Horarios padrao para novos assignments
+  const defaultTimes = useMemo(() => {
+    if (!pickerState.open || !pickerState.date) {
+      return { startAt: '', endAt: '' };
+    }
+    // Calcular proximo horario disponivel baseado nos assignments existentes
+    const dayAssignments = assignments.get(pickerState.date) || [];
+    if (dayAssignments.length > 0) {
+      // Usar o end_at do ultimo assignment como start do proximo
+      const lastAssignment = dayAssignments[dayAssignments.length - 1];
+      const lastEnd = new Date(lastAssignment.end_at);
+      // Calcular um end_at baseado no regime
+      const slots = generateDefaultSlots(pickerState.date, regime, startTime);
+      const slotDuration =
+        new Date(slots[0].end_at).getTime() - new Date(slots[0].start_at).getTime();
+      const newEnd = new Date(lastEnd.getTime() + slotDuration);
+      return {
+        startAt: lastEnd.toISOString(),
+        endAt: newEnd.toISOString(),
+      };
+    }
+    // Primeiro assignment do dia: usar horarios padrao do regime
+    const slots = generateDefaultSlots(pickerState.date, regime, startTime);
+    return {
+      startAt: slots[0].start_at,
+      endAt: slots[0].end_at,
+    };
+  }, [pickerState, assignments, regime, startTime]);
 
   const isLoading = patientLoading || scheduleLoading || professionalsLoading;
 
-  // Breadcrumbs
   const breadcrumbs = useMemo(
     () => [
-      { label: 'Prontuário' },
-      { label: 'PAD', href: '/prontuario/pad' },
+      { label: 'Prontuario' },
+      { label: 'Escalas', href: '/prontuario/escalas' },
       { label: 'Escala Mensal' },
     ],
     []
   );
 
-  // Aviso de saída com alterações pendentes
+  // Aviso de saida com alteracoes pendentes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
@@ -201,10 +250,8 @@ export default function PatientMonthSchedulePage() {
 
   return (
     <div className="mx-auto max-w-full">
-      {/* Breadcrumbs */}
       <Breadcrumbs items={breadcrumbs} className="mb-3" />
 
-      {/* Header */}
       <ScheduleHeader
         patientName={patient?.name}
         year={year}
@@ -223,14 +270,15 @@ export default function PatientMonthSchedulePage() {
         onToggleSidebar={toggleSidebar}
       />
 
-      {/* Main layout: Calendar + Sidebar */}
       <div className="flex gap-4">
-        {/* Calendar */}
         <div className="min-w-0 flex-1">
-          <ScheduleCalendarGrid professionals={professionals} onSlotClick={handleSlotClick} />
+          <ScheduleCalendarGrid
+            professionals={professionals}
+            onSlotClick={handleSlotClick}
+            onAddClick={handleAddClick}
+          />
         </div>
 
-        {/* Desktop sidebar */}
         <aside className="border-border-default bg-surface-card hidden w-[280px] shrink-0 overflow-hidden rounded-lg border lg:block">
           <ScheduleSidebar
             professionals={professionals}
@@ -242,7 +290,6 @@ export default function PatientMonthSchedulePage() {
       {/* Mobile drawer overlay */}
       <Transition show={isSidebarOpen}>
         <div className="fixed inset-0 z-40 lg:hidden">
-          {/* Backdrop */}
           <Transition.Child
             enter="transition-opacity duration-200"
             enterFrom="opacity-0"
@@ -254,7 +301,6 @@ export default function PatientMonthSchedulePage() {
             <div className="absolute inset-0 bg-black/40" onClick={toggleSidebar} />
           </Transition.Child>
 
-          {/* Drawer */}
           <Transition.Child
             enter="transition-transform duration-200"
             enterFrom="translate-x-full"
@@ -264,7 +310,6 @@ export default function PatientMonthSchedulePage() {
             leaveTo="translate-x-full"
           >
             <div className="border-border-default bg-surface-card absolute right-0 top-0 h-full w-[300px] border-l shadow-xl">
-              {/* Drawer header */}
               <div className="border-border-default flex items-center justify-between border-b px-3 py-2">
                 <h2 className="text-content-primary text-sm font-semibold">Escalas</h2>
                 <button
@@ -286,23 +331,22 @@ export default function PatientMonthSchedulePage() {
         </div>
       </Transition>
 
-      {/* Modal de auto-preenchimento */}
       <AutoFillModal
         isOpen={autoFillOpen}
         onClose={() => setAutoFillOpen(false)}
         professionals={professionals}
       />
 
-      {/* Modal professional picker */}
       <ProfessionalPicker
         isOpen={pickerState.open}
-        onClose={() => setPickerState({ open: false, date: '', slot: '24h' })}
+        onClose={() => setPickerState({ open: false, date: '', editIndex: null })}
         professionals={professionals}
         date={pickerState.date}
-        slot={pickerState.slot}
-        currentProfessionalId={currentPickerProfId}
+        existingAssignment={existingPickerAssignment}
+        defaultStartAt={defaultTimes.startAt}
+        defaultEndAt={defaultTimes.endAt}
         onSelect={handleProfessionalSelect}
-        onRemove={handleProfessionalRemove}
+        onRemove={pickerState.editIndex !== null ? handleProfessionalRemove : null}
       />
     </div>
   );

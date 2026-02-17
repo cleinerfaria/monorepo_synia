@@ -1,20 +1,21 @@
-import { memo, useCallback } from 'react';
+import { memo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import type { SlotType, ScheduleProfessional } from '@/types/schedule';
+import type { ScheduleProfessional } from '@/types/schedule';
 
 interface ScheduleSlotChipProps {
   professional: ScheduleProfessional;
-  slot: SlotType;
-  date?: string;
-  startAt?: string; // ISO 8601 timestamp
-  endAt?: string; // ISO 8601 timestamp
+  /** ID unico para drag: "date::index" */
+  dragId?: string;
+  startAt?: string;
+  endAt?: string;
   isDraggable?: boolean;
   isDragging?: boolean;
   onRemove?: () => void;
+  onEdit?: () => void;
 }
 
-/** Gerar iniciais do nome (máx 2 letras) */
+/** Gerar iniciais do nome (max 2 letras) */
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) {
@@ -33,30 +34,19 @@ function getShortName(name: string): string {
 }
 
 /**
- * Gerar cor HSL determinística para um profissional baseado no ID.
- * Garante que o mesmo profissional sempre tenha a mesma cor.
+ * Gerar cor HSL deterministica para um profissional baseado no ID.
  */
 function generateDeterministicColor(id: string): string {
-  // Hash simples do ID string
   let hash = 0;
   for (let i = 0; i < id.length; i++) {
     const char = id.charCodeAt(i);
     hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
-
-  // Mapear hash para HSL
   const hue = Math.abs(hash % 360);
-  const saturation = 70;
-  const lightness = 60;
-
-  // Retornar como string HSL (funciona diretamente em CSS)
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  return `hsl(${hue}, 70%, 60%)`;
 }
 
-/**
- * Gerar cor de background/borda/texto a partir da cor (hex ou HSL).
- */
 function buildChipStyles(color: string | null) {
   if (!color) {
     return {
@@ -65,10 +55,7 @@ function buildChipStyles(color: string | null) {
       color: 'rgb(var(--color-primary-700))',
     };
   }
-
-  // Se for HSL, usar diretamente com alpha
   if (color.startsWith('hsl')) {
-    // hsl(120, 70%, 60%) → hsla(120, 70%, 60%, 0.12)
     const hslValue = color.replace('hsl(', '').replace(')', '');
     return {
       backgroundColor: `hsla(${hslValue}, 0.15)`,
@@ -76,8 +63,6 @@ function buildChipStyles(color: string | null) {
       color: `hsl(${hslValue})`,
     };
   }
-
-  // Parse hex
   const hex = color.replace('#', '');
   const full =
     hex.length === 3
@@ -90,8 +75,6 @@ function buildChipStyles(color: string | null) {
   const r = (num >> 16) & 255;
   const g = (num >> 8) & 255;
   const b = num & 255;
-
-  // Darken para texto
   const factor = 0.6;
   const dr = Math.round(r * factor);
   const dg = Math.round(g * factor);
@@ -104,9 +87,6 @@ function buildChipStyles(color: string | null) {
   };
 }
 
-/**
- * Formatar timestamp ISO para HH:MM
- */
 function formatTime(timestamp: string | undefined): string | null {
   if (!timestamp) return null;
   try {
@@ -119,16 +99,14 @@ function formatTime(timestamp: string | undefined): string | null {
 
 function ScheduleSlotChipInner({
   professional,
-  slot,
-  date,
+  dragId,
   startAt,
   endAt,
   isDraggable = false,
   isDragging = false,
   onRemove,
+  onEdit,
 }: ScheduleSlotChipProps) {
-  const dragId = date ? `${date}::${slot}` : `chip-${professional.id}`;
-
   const {
     attributes,
     listeners,
@@ -136,7 +114,7 @@ function ScheduleSlotChipInner({
     transform,
     isDragging: isDragActive,
   } = useDraggable({
-    id: dragId,
+    id: dragId || `chip-${professional.id}`,
     disabled: !isDraggable,
   });
 
@@ -147,7 +125,6 @@ function ScheduleSlotChipInner({
       }
     : undefined;
 
-  // Cores: usar cor do profissional ou gerar uma determinística pelo ID
   const color = professional.color || generateDeterministicColor(professional.id);
   const chipStyles = buildChipStyles(color);
   const shortName = getShortName(professional.name);
@@ -167,19 +144,17 @@ function ScheduleSlotChipInner({
       className={`group flex w-full items-center gap-1 rounded border px-1 py-0.5 text-[10px] font-medium leading-tight transition-shadow md:text-[11px] ${
         isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
       } ${isDragging ? 'shadow-lg' : 'shadow-sm hover:shadow'}`}
-      title={`${professional.name}${professional.role ? ` — ${professional.role}` : ''}${professional.is_substitute ? ' (Folguista)' : ''}`}
+      title={`${professional.name}${professional.role ? ` — ${professional.role}` : ''}${professional.is_substitute ? ' (Folguista)' : ''}${startTime && endTime ? ` | ${startTime}–${endTime}` : ''}`}
     >
       {/* Initials avatar */}
       <span
         className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white md:h-5 md:w-5 md:text-[9px]"
-        style={{
-          backgroundColor: color,
-        }}
+        style={{ backgroundColor: color }}
       >
         {initials}
       </span>
 
-      {/* Nome e horários */}
+      {/* Nome e horarios */}
       <div className="min-w-0 flex-1">
         <span className="block min-w-0 truncate">{shortName}</span>
         {(startTime || endTime) && (
@@ -196,14 +171,28 @@ function ScheduleSlotChipInner({
         </span>
       )}
 
-      {/* Botão remover (visível on hover) */}
+      {/* Botao editar (visivel on hover) */}
+      {onEdit && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          className="ml-auto hidden shrink-0 rounded text-[10px] opacity-50 hover:opacity-100 group-hover:inline-flex"
+          title="Editar horario"
+        >
+          ✎
+        </button>
+      )}
+
+      {/* Botao remover (visivel on hover) */}
       {onRemove && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
           }}
-          className="ml-auto hidden shrink-0 rounded text-[10px] opacity-50 hover:opacity-100 group-hover:inline-flex"
+          className="hidden shrink-0 rounded text-[10px] opacity-50 hover:opacity-100 group-hover:inline-flex"
           title="Remover"
         >
           ×

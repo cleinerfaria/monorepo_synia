@@ -6,8 +6,8 @@ import type {
   ScheduleProfessional,
   UpsertSchedulePayload,
   PatientMonthSchedule,
+  ScheduleRegime,
 } from '@/types/schedule';
-import { getSlotTimes } from '@/types/schedule';
 import toast from 'react-hot-toast';
 
 const SCHEDULE_KEY = 'patient_month_schedule';
@@ -29,11 +29,11 @@ export function usePatientMonthSchedule(
     queryFn: async (): Promise<PatientMonthSchedule | null> => {
       if (!company?.id || !patientId) return null;
 
-      // Buscar plantões do mês via patient_attendance_shift
       const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
       const lastDay = new Date(year, month, 0).getDate();
       const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
+      // Buscar plantoes do mes
       const { data, error } = await supabase
         .from('patient_attendance_shift')
         .select('id, start_at, end_at, assigned_professional_id, status')
@@ -45,12 +45,31 @@ export function usePatientMonthSchedule(
 
       if (error) throw error;
 
+      // Buscar PAD ativo do paciente para obter regime e start_time
+      const { data: padData } = await supabase
+        .from('patient_attendance_demand')
+        .select('hours_per_day, start_time, is_split')
+        .eq('company_id', company.id)
+        .eq('patient_id', patientId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      const hoursPerDay = padData?.hours_per_day ?? 24;
+      const startTime = padData?.start_time ?? '07:00';
+      let regime: ScheduleRegime = '24h';
+      if (hoursPerDay === 12 || (hoursPerDay === 24 && padData?.is_split)) {
+        regime = '12h';
+      } else if (hoursPerDay === 8) {
+        regime = '8h';
+      }
+
       const assignments: ScheduleAssignment[] = (data || [])
         .filter((shift: any) => shift.assigned_professional_id)
         .map((shift: any) => ({
           id: shift.id,
           date: shift.start_at.slice(0, 10),
-          slot: '24h' as const,
           professional_id: shift.assigned_professional_id,
           start_at: shift.start_at,
           end_at: shift.end_at,
@@ -60,7 +79,8 @@ export function usePatientMonthSchedule(
         patient_id: patientId,
         year,
         month,
-        regime: '24h',
+        regime,
+        start_time: startTime,
         assignments,
       };
     },
@@ -70,7 +90,7 @@ export function usePatientMonthSchedule(
 }
 
 // =====================================================
-// Query: Listar profissionais disponíveis da empresa
+// Query: Listar profissionais disponiveis da empresa
 // =====================================================
 
 export function useScheduleProfessionals() {
@@ -117,7 +137,7 @@ export function useSaveSchedule() {
     mutationFn: async (payload: UpsertSchedulePayload) => {
       if (!company?.id) throw new Error('No company');
 
-      // Tentar via RPC se disponível, senão upsert direto
+      // Tentar via RPC se disponivel
       const { error } = await supabase.rpc('upsert_patient_month_schedule', {
         p_company_id: company.id,
         p_patient_id: payload.patient_id,
@@ -127,33 +147,27 @@ export function useSaveSchedule() {
       });
 
       if (error) {
-        // Fallback: se RPC não existe, usar upsert direto nos shifts
+        // Fallback: se RPC nao existe, usar upsert direto nos shifts
         if (error.message?.includes('function') || error.code === '42883') {
-          // Buscar shifts existentes do mês
-          const startDate = `${payload.year}-${String(payload.month).padStart(2, '0')}-01`;
-          const lastDay = new Date(payload.year, payload.month, 0).getDate();
-          const endDate = `${payload.year}-${String(payload.month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-
-          // Atualizar cada assignment
           for (const assignment of payload.assignments) {
-            const shiftStart = `${assignment.date}T00:00:00`;
-            const shiftEnd = `${assignment.date}T23:59:59`;
-
-            // Tentar atualizar shift existente ou criar
+            // Tentar atualizar shift existente
             const { data: existing } = await supabase
               .from('patient_attendance_shift')
               .select('id')
               .eq('company_id', company.id)
               .eq('patient_id', payload.patient_id)
-              .gte('start_at', shiftStart)
-              .lte('start_at', shiftEnd)
+              .eq('start_at', assignment.start_at)
               .limit(1)
               .single();
 
             if (existing) {
               const { error: updateErr } = await supabase
                 .from('patient_attendance_shift')
-                .update({ assigned_professional_id: assignment.professional_id })
+                .update({
+                  assigned_professional_id: assignment.professional_id,
+                  start_at: assignment.start_at,
+                  end_at: assignment.end_at,
+                })
                 .eq('id', existing.id);
 
               if (updateErr) throw updateErr;
@@ -161,10 +175,10 @@ export function useSaveSchedule() {
               const { error: insertErr } = await supabase.from('patient_attendance_shift').insert({
                 company_id: company.id,
                 patient_id: payload.patient_id,
-                start_at: shiftStart,
-                end_at: shiftEnd,
+                start_at: assignment.start_at,
+                end_at: assignment.end_at,
                 assigned_professional_id: assignment.professional_id,
-                status: 'scheduled',
+                status: 'planned',
               } as any);
 
               if (insertErr) throw insertErr;

@@ -1,41 +1,39 @@
 import { create } from 'zustand';
 import type {
-  SlotType,
   ScheduleRegime,
   ScheduleAssignment,
   ScheduleHistoryEntry,
   AutoFillConfig,
   BatchSelectionPreset,
-  AssignmentMap,
-  ScheduleAssignmentDataMap,
+  DayAssignmentsMap,
 } from '@/types/schedule';
-import { assignmentKey, parseAssignmentKey, SLOTS_BY_REGIME } from '@/types/schedule';
+import { generateDefaultSlots } from '@/types/schedule';
 
 // =====================================================
 // Helpers
 // =====================================================
 
-function mapToRecord(map: AssignmentMap): Record<string, string[]> {
-  const record: Record<string, string[]> = {};
+function mapToRecord(map: DayAssignmentsMap): Record<string, ScheduleAssignment[]> {
+  const record: Record<string, ScheduleAssignment[]> = {};
   map.forEach((value, key) => {
     record[key] = value;
   });
   return record;
 }
 
-function recordToMap(record: Record<string, string[]>): AssignmentMap {
+function recordToMap(record: Record<string, ScheduleAssignment[]>): DayAssignmentsMap {
   return new Map(Object.entries(record));
 }
 
-function cloneMap(map: AssignmentMap): AssignmentMap {
-  const newMap: AssignmentMap = new Map();
+function cloneMap(map: DayAssignmentsMap): DayAssignmentsMap {
+  const newMap: DayAssignmentsMap = new Map();
   map.forEach((value, key) => {
-    newMap.set(key, [...value]); // Clone o array também
+    newMap.set(key, value.map((a) => ({ ...a })));
   });
   return newMap;
 }
 
-/** Gerar todos os dias de um mês: YYYY-MM-DD[] */
+/** Gerar todos os dias de um mes: YYYY-MM-DD[] */
 function getDaysInMonth(year: number, month: number): string[] {
   const days: string[] = [];
   const d = new Date(year, month - 1, 1);
@@ -63,17 +61,17 @@ interface ScheduleStoreState {
   year: number;
   month: number;
   regime: ScheduleRegime;
+  startTime: string; // HH:MM
 
   // Draft
-  assignments: AssignmentMap;
-  originalAssignments: AssignmentMap;
-  assignmentsData: ScheduleAssignmentDataMap; // Dados completos com horas
+  assignments: DayAssignmentsMap;
+  originalAssignments: DayAssignmentsMap;
   isDirty: boolean;
 
-  // Seleção
+  // Selecao
   selectedDates: Set<string>;
 
-  // Histórico undo/redo
+  // Historico undo/redo
   history: ScheduleHistoryEntry[];
   historyIndex: number;
 
@@ -89,27 +87,29 @@ interface ScheduleStoreActions {
     year: number,
     month: number,
     regime: ScheduleRegime,
+    startTime: string,
     serverAssignments: ScheduleAssignment[]
   ): void;
   setMonth(year: number, month: number): void;
 
-  // Atribuições
-  assignProfessional(date: string, slot: SlotType, professionalId: string): void;
-  removeProfessional(date: string, slot: SlotType): void;
-  moveProfessional(fromDate: string, toDate: string, slot: SlotType): void;
-  copyProfessional(fromDate: string, toDate: string, slot: SlotType): void;
-  swapProfessionals(dateA: string, dateB: string, slot: SlotType): void;
+  // Atribuicoes
+  addAssignment(date: string, professionalId: string, startAt: string, endAt: string): void;
+  removeAssignment(date: string, index: number): void;
+  updateAssignment(date: string, index: number, changes: Partial<Pick<ScheduleAssignment, 'professional_id' | 'start_at' | 'end_at'>>): void;
+  moveAssignment(fromDate: string, fromIndex: number, toDate: string): void;
+  copyAssignment(fromDate: string, fromIndex: number, toDate: string): void;
+  swapDayAssignments(dateA: string, dateB: string): void;
 
   // Lote
   toggleDateSelection(date: string): void;
   selectDateRange(dates: string[]): void;
   clearSelection(): void;
   applyBatchPreset(preset: BatchSelectionPreset): void;
-  applyBatchAssignment(professionalId: string, slot: SlotType): void;
+  applyBatchAssignment(professionalId: string): void;
 
   // Auto-preencher
-  generateAutoFillPreview(config: AutoFillConfig): AssignmentMap;
-  applyAutoFill(preview: AssignmentMap): void;
+  generateAutoFillPreview(config: AutoFillConfig): DayAssignmentsMap;
+  applyAutoFill(preview: DayAssignmentsMap): void;
 
   // Semana
   duplicateWeek(sourceWeekStart: string): void;
@@ -122,7 +122,6 @@ interface ScheduleStoreActions {
   redo(): void;
 
   // Salvar
-  getDiff(): ScheduleAssignment[];
   getFullAssignments(): ScheduleAssignment[];
   markSaved(): void;
 
@@ -136,18 +135,14 @@ export type ScheduleStore = ScheduleStoreState & ScheduleStoreActions;
 const MAX_HISTORY = 50;
 
 export const useScheduleStore = create<ScheduleStore>((set, get) => {
-  // Helper: push snapshot to undo history
   function pushHistory(label: string) {
     const state = get();
     const newEntry: ScheduleHistoryEntry = {
       assignments: mapToRecord(state.assignments),
       label,
     };
-
-    // Drop future entries after current index
     const trimmedHistory = state.history.slice(0, state.historyIndex + 1);
     const newHistory = [...trimmedHistory, newEntry].slice(-MAX_HISTORY);
-
     set({
       history: newHistory,
       historyIndex: newHistory.length - 1,
@@ -160,7 +155,6 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     const current = state.assignments;
     let dirty = false;
 
-    // Compare sizes
     if (original.size !== current.size) {
       dirty = true;
     } else {
@@ -170,9 +164,14 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
           dirty = true;
           break;
         }
-        // Comparar arrays
         for (let i = 0; i < value.length; i++) {
-          if (origValue[i] !== value[i]) {
+          const a = value[i];
+          const b = origValue[i];
+          if (
+            a.professional_id !== b.professional_id ||
+            a.start_at !== b.start_at ||
+            a.end_at !== b.end_at
+          ) {
             dirty = true;
             break;
           }
@@ -190,9 +189,9 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     regime: '24h',
+    startTime: '07:00',
     assignments: new Map(),
     originalAssignments: new Map(),
-    assignmentsData: new Map(),
     isDirty: false,
     selectedDates: new Set(),
     history: [],
@@ -201,24 +200,19 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     isSaving: false,
 
     // ===== Init =====
-    initialize(patientId, year, month, regime, serverAssignments) {
-      const map: AssignmentMap = new Map();
-      const dataMap: ScheduleAssignmentDataMap = new Map();
+    initialize(patientId, year, month, regime, startTime, serverAssignments) {
+      const map: DayAssignmentsMap = new Map();
 
       for (const a of serverAssignments) {
-        const key = assignmentKey(a.date, a.slot);
-
-        // Adicionar ao array (múltiplos profissionais por slot)
-        if (!map.has(key)) {
-          map.set(key, []);
+        if (!map.has(a.date)) {
+          map.set(a.date, []);
         }
-        map.get(key)!.push(a.professional_id);
+        map.get(a.date)!.push({ ...a });
+      }
 
-        // Adicionar dados
-        if (!dataMap.has(key)) {
-          dataMap.set(key, []);
-        }
-        dataMap.get(key)!.push(a);
+      // Ordenar por start_at dentro de cada dia
+      for (const [, dayAssignments] of map) {
+        dayAssignments.sort((a, b) => a.start_at.localeCompare(b.start_at));
       }
 
       const record = mapToRecord(map);
@@ -227,9 +221,9 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
         year,
         month,
         regime,
+        startTime,
         assignments: cloneMap(map),
         originalAssignments: cloneMap(map),
-        assignmentsData: new Map(dataMap),
         isDirty: false,
         selectedDates: new Set(),
         history: [{ assignments: record, label: 'Estado inicial' }],
@@ -241,105 +235,176 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       set({ year, month, selectedDates: new Set() });
     },
 
-    // ===== Atribuições =====
-    assignProfessional(date, slot, professionalId) {
+    // ===== Atribuicoes =====
+    addAssignment(date, professionalId, startAt, endAt) {
       const state = get();
       const newMap = cloneMap(state.assignments);
-      const key = assignmentKey(date, slot);
-
-      if (!newMap.has(key)) {
-        newMap.set(key, []);
+      if (!newMap.has(date)) {
+        newMap.set(date, []);
       }
-
-      // Adicionar ao array (não replace)
-      const profIds = newMap.get(key)!;
-      if (!profIds.includes(professionalId)) {
-        profIds.push(professionalId);
-      }
-
+      const dayAssignments = newMap.get(date)!;
+      dayAssignments.push({
+        date,
+        professional_id: professionalId,
+        start_at: startAt,
+        end_at: endAt,
+      });
+      // Ordenar por start_at
+      dayAssignments.sort((a, b) => a.start_at.localeCompare(b.start_at));
       set({ assignments: newMap });
       pushHistory(`Atribuir profissional em ${date}`);
       markDirty();
     },
 
-    removeProfessional(date, slot) {
+    removeAssignment(date, index) {
       const state = get();
       const newMap = cloneMap(state.assignments);
-      const key = assignmentKey(date, slot);
-
-      if (newMap.has(key)) {
-        const profIds = newMap.get(key)!;
-        // Remover o primeiro (ou último?)
-        profIds.shift();
-
-        // Se ficou vazio, remover a chave
-        if (profIds.length === 0) {
-          newMap.delete(key);
+      const dayAssignments = newMap.get(date);
+      if (dayAssignments && index >= 0 && index < dayAssignments.length) {
+        dayAssignments.splice(index, 1);
+        if (dayAssignments.length === 0) {
+          newMap.delete(date);
         }
-
         set({ assignments: newMap });
         pushHistory(`Remover profissional de ${date}`);
         markDirty();
       }
     },
 
-    moveProfessional(fromDate, toDate, slot) {
+    updateAssignment(date, index, changes) {
       const state = get();
       const newMap = cloneMap(state.assignments);
-      const fromKey = assignmentKey(fromDate, slot);
-      const toKey = assignmentKey(toDate, slot);
-      const profIds = newMap.get(fromKey);
-      if (profIds) {
-        newMap.delete(fromKey);
-        newMap.set(toKey, profIds);
+      const dayAssignments = newMap.get(date);
+      if (dayAssignments && index >= 0 && index < dayAssignments.length) {
+        Object.assign(dayAssignments[index], changes);
+        // Re-ordenar por start_at
+        dayAssignments.sort((a, b) => a.start_at.localeCompare(b.start_at));
         set({ assignments: newMap });
-        pushHistory(`Mover de ${fromDate} para ${toDate}`);
+        pushHistory(`Editar atribuicao em ${date}`);
         markDirty();
       }
     },
 
-    copyProfessional(fromDate, toDate, slot) {
+    moveAssignment(fromDate, fromIndex, toDate) {
       const state = get();
       const newMap = cloneMap(state.assignments);
-      const fromKey = assignmentKey(fromDate, slot);
-      const toKey = assignmentKey(toDate, slot);
-      const profIds = newMap.get(fromKey);
-      if (profIds) {
-        newMap.set(toKey, profIds);
-        set({ assignments: newMap });
-        pushHistory(`Copiar de ${fromDate} para ${toDate}`);
-        markDirty();
-      }
-    },
+      const fromDay = newMap.get(fromDate);
+      if (!fromDay || fromIndex < 0 || fromIndex >= fromDay.length) return;
 
-    swapProfessionals(dateA, dateB, slot) {
-      const state = get();
-      const newMap = cloneMap(state.assignments);
-      const keyA = assignmentKey(dateA, slot);
-      const keyB = assignmentKey(dateB, slot);
-      const profIdsA = newMap.get(keyA);
-      const profIdsB = newMap.get(keyB);
+      const assignment = fromDay.splice(fromIndex, 1)[0];
+      if (fromDay.length === 0) newMap.delete(fromDate);
 
-      if (profIdsA) newMap.set(keyB, profIdsA);
-      else newMap.delete(keyB);
+      // Ajustar data do assignment
+      assignment.date = toDate;
+      // Recalcular timestamps mantendo os horarios mas mudando a data
+      const fromDateObj = new Date(assignment.start_at);
+      const toDateObj = new Date(toDate + 'T00:00:00');
+      const dayDiff = Math.round(
+        (toDateObj.getTime() - new Date(fromDate + 'T00:00:00').getTime()) / 86400000
+      );
+      const startDate = new Date(fromDateObj.getTime() + dayDiff * 86400000);
+      const endDate = new Date(
+        new Date(assignment.end_at).getTime() + dayDiff * 86400000
+      );
+      assignment.start_at = startDate.toISOString();
+      assignment.end_at = endDate.toISOString();
 
-      if (profIdsB) newMap.set(keyA, profIdsB);
-      else newMap.delete(keyA);
+      if (!newMap.has(toDate)) newMap.set(toDate, []);
+      newMap.get(toDate)!.push(assignment);
+      newMap.get(toDate)!.sort((a, b) => a.start_at.localeCompare(b.start_at));
 
       set({ assignments: newMap });
-      pushHistory(`Trocar ${dateA} ↔ ${dateB}`);
+      pushHistory(`Mover de ${fromDate} para ${toDate}`);
       markDirty();
     },
 
-    // ===== Seleção =====
+    copyAssignment(fromDate, fromIndex, toDate) {
+      const state = get();
+      const newMap = cloneMap(state.assignments);
+      const fromDay = newMap.get(fromDate);
+      if (!fromDay || fromIndex < 0 || fromIndex >= fromDay.length) return;
+
+      const source = fromDay[fromIndex];
+      const dayDiff = Math.round(
+        (new Date(toDate + 'T00:00:00').getTime() -
+          new Date(fromDate + 'T00:00:00').getTime()) /
+          86400000
+      );
+      const startDate = new Date(
+        new Date(source.start_at).getTime() + dayDiff * 86400000
+      );
+      const endDate = new Date(
+        new Date(source.end_at).getTime() + dayDiff * 86400000
+      );
+
+      const newAssignment: ScheduleAssignment = {
+        date: toDate,
+        professional_id: source.professional_id,
+        start_at: startDate.toISOString(),
+        end_at: endDate.toISOString(),
+      };
+
+      if (!newMap.has(toDate)) newMap.set(toDate, []);
+      newMap.get(toDate)!.push(newAssignment);
+      newMap.get(toDate)!.sort((a, b) => a.start_at.localeCompare(b.start_at));
+
+      set({ assignments: newMap });
+      pushHistory(`Copiar de ${fromDate} para ${toDate}`);
+      markDirty();
+    },
+
+    swapDayAssignments(dateA, dateB) {
+      const state = get();
+      const newMap = cloneMap(state.assignments);
+      const dayA = newMap.get(dateA) || [];
+      const dayB = newMap.get(dateB) || [];
+
+      // Recalcular timestamps
+      const dayDiffAtoB = Math.round(
+        (new Date(dateB + 'T00:00:00').getTime() -
+          new Date(dateA + 'T00:00:00').getTime()) /
+          86400000
+      );
+
+      const movedA = dayA.map((a) => ({
+        ...a,
+        date: dateB,
+        start_at: new Date(
+          new Date(a.start_at).getTime() + dayDiffAtoB * 86400000
+        ).toISOString(),
+        end_at: new Date(
+          new Date(a.end_at).getTime() + dayDiffAtoB * 86400000
+        ).toISOString(),
+      }));
+
+      const movedB = dayB.map((a) => ({
+        ...a,
+        date: dateA,
+        start_at: new Date(
+          new Date(a.start_at).getTime() - dayDiffAtoB * 86400000
+        ).toISOString(),
+        end_at: new Date(
+          new Date(a.end_at).getTime() - dayDiffAtoB * 86400000
+        ).toISOString(),
+      }));
+
+      if (movedA.length > 0) newMap.set(dateB, movedA);
+      else newMap.delete(dateB);
+
+      if (movedB.length > 0) newMap.set(dateA, movedB);
+      else newMap.delete(dateA);
+
+      set({ assignments: newMap });
+      pushHistory(`Trocar ${dateA} <-> ${dateB}`);
+      markDirty();
+    },
+
+    // ===== Selecao =====
     toggleDateSelection(date) {
       const state = get();
       const newSet = new Set(state.selectedDates);
-      if (newSet.has(date)) {
-        newSet.delete(date);
-      } else {
-        newSet.add(date);
-      }
+      if (newSet.has(date)) newSet.delete(date);
+      else newSet.add(date);
       set({ selectedDates: newSet });
     },
 
@@ -370,19 +435,12 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
           selected = days.filter((d) => getDayOfWeek(d) === 0);
           break;
         case 'even_days':
-          selected = days.filter((d) => {
-            const day = parseInt(d.slice(8, 10), 10);
-            return day % 2 === 0;
-          });
+          selected = days.filter((d) => parseInt(d.slice(8, 10), 10) % 2 === 0);
           break;
         case 'odd_days':
-          selected = days.filter((d) => {
-            const day = parseInt(d.slice(8, 10), 10);
-            return day % 2 !== 0;
-          });
+          selected = days.filter((d) => parseInt(d.slice(8, 10), 10) % 2 !== 0);
           break;
         case 'full_week': {
-          // current week based on first selected date or today (starting on Sunday)
           const refDate =
             state.selectedDates.size > 0
               ? [...state.selectedDates][0]
@@ -407,13 +465,22 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       set({ selectedDates: new Set(selected) });
     },
 
-    applyBatchAssignment(professionalId, slot) {
+    applyBatchAssignment(professionalId) {
       const state = get();
       if (state.selectedDates.size === 0) return;
 
       const newMap = cloneMap(state.assignments);
+
       for (const date of state.selectedDates) {
-        newMap.set(assignmentKey(date, slot), [professionalId]);
+        // Gerar slots padrao para o dia com base no regime
+        const slots = generateDefaultSlots(date, state.regime, state.startTime);
+        const dayAssignments: ScheduleAssignment[] = slots.map((s) => ({
+          date,
+          professional_id: professionalId,
+          start_at: s.start_at,
+          end_at: s.end_at,
+        }));
+        newMap.set(date, dayAssignments);
       }
 
       set({ assignments: newMap, selectedDates: new Set() });
@@ -425,8 +492,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     generateAutoFillPreview(config) {
       const state = get();
       const days = getDaysInMonth(state.year, state.month);
-      const slots = SLOTS_BY_REGIME[state.regime];
-      const preview: AssignmentMap = cloneMap(state.assignments);
+      const preview: DayAssignmentsMap = cloneMap(state.assignments);
 
       if (config.rotation.length === 0) return preview;
 
@@ -439,10 +505,15 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       let daysCount = 0;
 
       for (const day of filteredDays) {
-        for (const slot of slots) {
-          const currentProfId = config.rotation[professionalIndex % config.rotation.length];
-          preview.set(assignmentKey(day, slot), [currentProfId]);
-        }
+        const currentProfId = config.rotation[professionalIndex % config.rotation.length];
+        const slots = generateDefaultSlots(day, state.regime, state.startTime);
+        const dayAssignments: ScheduleAssignment[] = slots.map((s) => ({
+          date: day,
+          professional_id: currentProfId,
+          start_at: s.start_at,
+          end_at: s.end_at,
+        }));
+        preview.set(day, dayAssignments);
 
         daysCount++;
         if (daysCount >= config.daysPerProfessional) {
@@ -464,29 +535,37 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     duplicateWeek(sourceWeekStart) {
       const state = get();
       const days = getDaysInMonth(state.year, state.month);
-      const slots = SLOTS_BY_REGIME[state.regime];
       const newMap = cloneMap(state.assignments);
 
-      // Encontrar os 7 dias da semana fonte
       const startIdx = days.indexOf(sourceWeekStart);
       if (startIdx < 0) return;
 
       const sourceDays = days.slice(startIdx, startIdx + 7);
 
-      // Aplicar para as semanas seguintes
       let targetStart = startIdx + 7;
       while (targetStart < days.length) {
         const targetDays = days.slice(targetStart, targetStart + 7);
         for (let i = 0; i < targetDays.length && i < sourceDays.length; i++) {
-          for (const slot of slots) {
-            const sourceKey = assignmentKey(sourceDays[i], slot);
-            const targetKey = assignmentKey(targetDays[i], slot);
-            const profIds = newMap.get(sourceKey);
-            if (profIds) {
-              newMap.set(targetKey, profIds);
-            } else {
-              newMap.delete(targetKey);
-            }
+          const sourceAssignments = newMap.get(sourceDays[i]);
+          if (sourceAssignments) {
+            const dayDiff = Math.round(
+              (new Date(targetDays[i] + 'T00:00:00').getTime() -
+                new Date(sourceDays[i] + 'T00:00:00').getTime()) /
+                86400000
+            );
+            const copied = sourceAssignments.map((a) => ({
+              ...a,
+              date: targetDays[i],
+              start_at: new Date(
+                new Date(a.start_at).getTime() + dayDiff * 86400000
+              ).toISOString(),
+              end_at: new Date(
+                new Date(a.end_at).getTime() + dayDiff * 86400000
+              ).toISOString(),
+            }));
+            newMap.set(targetDays[i], copied);
+          } else {
+            newMap.delete(targetDays[i]);
           }
         }
         targetStart += 7;
@@ -500,7 +579,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     // ===== Clear =====
     clearMonth() {
       set({ assignments: new Map() });
-      pushHistory('Limpar mês');
+      pushHistory('Limpar mes');
       markDirty();
     },
 
@@ -530,33 +609,12 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     },
 
     // ===== Salvar =====
-    getDiff() {
-      const state = get();
-      const diffs: ScheduleAssignment[] = [];
-      const allKeys = new Set([...state.assignments.keys(), ...state.originalAssignments.keys()]);
-
-      for (const key of allKeys) {
-        const current = state.assignments.get(key);
-        const original = state.originalAssignments.get(key);
-
-        if (JSON.stringify(current) !== JSON.stringify(original) && current) {
-          const { date, slot } = parseAssignmentKey(key);
-          for (const professionalId of current) {
-            diffs.push({ date, slot, professional_id: professionalId });
-          }
-        }
-      }
-
-      return diffs;
-    },
-
     getFullAssignments() {
       const state = get();
       const result: ScheduleAssignment[] = [];
-      for (const [key, profIds] of state.assignments) {
-        const { date, slot } = parseAssignmentKey(key);
-        for (const professionalId of profIds) {
-          result.push({ date, slot, professional_id: professionalId });
+      for (const [, dayAssignments] of state.assignments) {
+        for (const assignment of dayAssignments) {
+          result.push({ ...assignment });
         }
       }
       return result;
