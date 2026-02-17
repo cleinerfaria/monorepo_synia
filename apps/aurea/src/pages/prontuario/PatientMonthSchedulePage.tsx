@@ -18,6 +18,17 @@ import { ProfessionalPicker } from '@/components/schedule/ProfessionalPicker';
 import { Loading } from '@/components/ui';
 import { Breadcrumbs } from '@/components/ui';
 
+const SCHEDULE_PROFESSIONAL_COLORS = [
+  '#0057B8',
+  '#E65100',
+  '#0B8F3A',
+  '#C2185B',
+  '#6A1B9A',
+  '#00838F',
+  '#B26A00',
+  '#37474F',
+] as const;
+
 export default function PatientMonthSchedulePage() {
   const { patientId } = useParams<{ patientId: string }>();
 
@@ -28,6 +39,8 @@ export default function PatientMonthSchedulePage() {
     month,
     regime,
     startTime,
+    minEditableDate,
+    padId,
     isDirty,
     isSaving,
     assignments,
@@ -61,13 +74,14 @@ export default function PatientMonthSchedulePage() {
   const saveSchedule = useSaveSchedule();
 
   const handleSave = useCallback(async () => {
-    if (!patientId || !isDirty) return;
+    if (!patientId || !isDirty || !padId) return;
 
     setSaving(true);
     try {
       const allAssignments = getFullAssignments();
       await saveSchedule.mutateAsync({
         patient_id: patientId,
+        pad_id: padId,
         year,
         month,
         assignments: allAssignments,
@@ -76,7 +90,17 @@ export default function PatientMonthSchedulePage() {
     } finally {
       setSaving(false);
     }
-  }, [patientId, isDirty, year, month, setSaving, getFullAssignments, saveSchedule, markSaved]);
+  }, [
+    patientId,
+    padId,
+    isDirty,
+    year,
+    month,
+    setSaving,
+    getFullAssignments,
+    saveSchedule,
+    markSaved,
+  ]);
 
   // UI State
   const [autoFillOpen, setAutoFillOpen] = useState(false);
@@ -95,6 +119,8 @@ export default function PatientMonthSchedulePage() {
         scheduleData.month,
         scheduleData.regime,
         scheduleData.start_time,
+        scheduleData.start_date,
+        scheduleData.pad_id,
         scheduleData.assignments
       );
     }
@@ -135,14 +161,22 @@ export default function PatientMonthSchedulePage() {
   }, [year, month, setMonth]);
 
   // Abrir picker para editar assignment existente
-  const handleSlotClick = useCallback((date: string, index: number) => {
-    setPickerState({ open: true, date, editIndex: index });
-  }, []);
+  const handleSlotClick = useCallback(
+    (date: string, index: number) => {
+      if (minEditableDate && date < minEditableDate) return;
+      setPickerState({ open: true, date, editIndex: index });
+    },
+    [minEditableDate]
+  );
 
   // Abrir picker para adicionar novo assignment
-  const handleAddClick = useCallback((date: string) => {
-    setPickerState({ open: true, date, editIndex: null });
-  }, []);
+  const handleAddClick = useCallback(
+    (date: string) => {
+      if (minEditableDate && date < minEditableDate) return;
+      setPickerState({ open: true, date, editIndex: null });
+    },
+    [minEditableDate]
+  );
 
   // Selecionar profissional no picker
   const handleProfessionalSelect = useCallback(
@@ -228,6 +262,30 @@ export default function PatientMonthSchedulePage() {
     []
   );
 
+  const professionalsWithPalette = useMemo(() => {
+    const firstUsageOrder = new Map<string, number>();
+    const allAssignments = Array.from(assignments.values()).flat();
+    const sortedByStart = [...allAssignments].sort((a, b) => a.start_at.localeCompare(b.start_at));
+
+    sortedByStart.forEach((assignment) => {
+      if (!firstUsageOrder.has(assignment.professional_id)) {
+        firstUsageOrder.set(assignment.professional_id, firstUsageOrder.size);
+      }
+    });
+
+    return professionals.map((professional) => {
+      const usageIndex = firstUsageOrder.get(professional.id);
+      if (usageIndex === undefined) {
+        return { ...professional, color: null };
+      }
+
+      return {
+        ...professional,
+        color: SCHEDULE_PROFESSIONAL_COLORS[usageIndex % SCHEDULE_PROFESSIONAL_COLORS.length],
+      };
+    });
+  }, [professionals, assignments]);
+
   // Aviso de saida com alteracoes pendentes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -273,15 +331,16 @@ export default function PatientMonthSchedulePage() {
       <div className="flex gap-4">
         <div className="min-w-0 flex-1">
           <ScheduleCalendarGrid
-            professionals={professionals}
+            professionals={professionalsWithPalette}
             onSlotClick={handleSlotClick}
             onAddClick={handleAddClick}
+            minEditableDate={minEditableDate}
           />
         </div>
 
         <aside className="border-border-default bg-surface-card hidden w-[280px] shrink-0 overflow-hidden rounded-lg border lg:block">
           <ScheduleSidebar
-            professionals={professionals}
+            professionals={professionalsWithPalette}
             onAutoFillClick={() => setAutoFillOpen(true)}
           />
         </aside>
@@ -320,7 +379,7 @@ export default function PatientMonthSchedulePage() {
                 </button>
               </div>
               <ScheduleSidebar
-                professionals={professionals}
+                professionals={professionalsWithPalette}
                 onAutoFillClick={() => {
                   toggleSidebar();
                   setAutoFillOpen(true);
@@ -334,19 +393,23 @@ export default function PatientMonthSchedulePage() {
       <AutoFillModal
         isOpen={autoFillOpen}
         onClose={() => setAutoFillOpen(false)}
-        professionals={professionals}
+        professionals={professionalsWithPalette}
       />
 
       <ProfessionalPicker
         isOpen={pickerState.open}
         onClose={() => setPickerState({ open: false, date: '', editIndex: null })}
-        professionals={professionals}
+        professionals={professionalsWithPalette}
         date={pickerState.date}
         existingAssignment={existingPickerAssignment}
         defaultStartAt={defaultTimes.startAt}
         defaultEndAt={defaultTimes.endAt}
         onSelect={handleProfessionalSelect}
         onRemove={pickerState.editIndex !== null ? handleProfessionalRemove : null}
+        dayAssignments={assignments.get(pickerState.date) || []}
+        editIndex={pickerState.editIndex}
+        scheduleStartTime={startTime}
+        regime={regime}
       />
     </div>
   );

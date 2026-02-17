@@ -249,7 +249,9 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-3 border-l border-gray-200 pl-4 dark:border-gray-600">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium text-gray-900 dark:text-white">{appUser?.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{appUser?.role}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {appUser?.access_profile?.name}
+              </p>
             </div>
             <IconButton onClick={handleSignOut} title="Sair">
               <LogOut className="h-5 w-5" />

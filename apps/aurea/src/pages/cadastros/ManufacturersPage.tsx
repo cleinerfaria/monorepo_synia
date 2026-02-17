@@ -366,11 +366,7 @@ export default function ManufacturersPage() {
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-1">
-            <Input
-              label="Código Externo"
-              placeholder="Código do sistema externo"
-              {...register('code')}
-            />
+            <Input label="Código" placeholder="Código do sistema externo" {...register('code')} />
           </div>
 
           <div className="grid grid-cols-1 gap-4">

@@ -219,7 +219,7 @@ const sheenByVariant: Record<'solid' | 'soft' | 'outline' | 'neutral' | 'danger'
     'bg-gradient-to-r from-feedback-danger-border/0 via-feedback-danger-border/30 to-feedback-danger-border/0 shadow-sm hover:shadow-lg',
 };
 
-function PlusIcon({ className }: { className?: string }) {
+export function PlusIcon({ className }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -286,7 +286,6 @@ export function Button({
     variant === 'filter' ? (active ? 'soft' : 'outline') : resolveVariant(variant);
   const hasDropdown = Boolean(dropdownItems && dropdownItems.length > 0);
   const isDisabled = Boolean(disabled || isLoading);
-  const resolvedIcon = icon ?? <PlusIcon className={iconSizeStyles[size]} />;
 
   return (
     <div
@@ -358,14 +357,14 @@ export function Button({
           </svg>
         )}
 
-        {showIcon && (
+        {showIcon && icon && (
           <span
             className={cx(
               'relative inline-flex items-center justify-center',
               iconWrapperStyles[visualVariant]
             )}
           >
-            {resolvedIcon}
+            {icon}
           </span>
         )}
 

@@ -7,7 +7,7 @@ import type {
   BatchSelectionPreset,
   DayAssignmentsMap,
 } from '@/types/schedule';
-import { generateDefaultSlots } from '@/types/schedule';
+import { generateDefaultSlots, getSlotTimes } from '@/types/schedule';
 
 // =====================================================
 // Helpers
@@ -28,7 +28,10 @@ function recordToMap(record: Record<string, ScheduleAssignment[]>): DayAssignmen
 function cloneMap(map: DayAssignmentsMap): DayAssignmentsMap {
   const newMap: DayAssignmentsMap = new Map();
   map.forEach((value, key) => {
-    newMap.set(key, value.map((a) => ({ ...a })));
+    newMap.set(
+      key,
+      value.map((a) => ({ ...a }))
+    );
   });
   return newMap;
 }
@@ -51,6 +54,37 @@ function getDayOfWeek(dateStr: string): number {
   return new Date(dateStr + 'T12:00:00').getDay();
 }
 
+function isDateLocked(date: string, minEditableDate: string | null): boolean {
+  return !!minEditableDate && date < minEditableDate;
+}
+
+function mergeShiftAssignmentInDay(
+  existing: ScheduleAssignment[],
+  incoming: ScheduleAssignment,
+  shiftType: AutoFillConfig['shiftType']
+): ScheduleAssignment[] {
+  if (shiftType === '24h') {
+    return [incoming];
+  }
+
+  // Para 12h, atualiza apenas o slot equivalente (mesma janela de horario) e preserva o restante.
+  const next = existing.map((assignment) => ({ ...assignment }));
+  const targetStart = incoming.start_at;
+  const targetEnd = incoming.end_at;
+  const replaceIndex = next.findIndex(
+    (assignment) => assignment.start_at === targetStart && assignment.end_at === targetEnd
+  );
+
+  if (replaceIndex >= 0) {
+    next[replaceIndex] = incoming;
+  } else {
+    next.push(incoming);
+  }
+
+  next.sort((a, b) => a.start_at.localeCompare(b.start_at));
+  return next;
+}
+
 // =====================================================
 // Store
 // =====================================================
@@ -58,10 +92,12 @@ function getDayOfWeek(dateStr: string): number {
 interface ScheduleStoreState {
   // Contexto
   patientId: string | null;
+  padId: string | null; // patient_attendance_demand.id
   year: number;
   month: number;
   regime: ScheduleRegime;
   startTime: string; // HH:MM
+  minEditableDate: string | null; // YYYY-MM-DD
 
   // Draft
   assignments: DayAssignmentsMap;
@@ -88,6 +124,8 @@ interface ScheduleStoreActions {
     month: number,
     regime: ScheduleRegime,
     startTime: string,
+    minEditableDate: string | null,
+    padId: string | null,
     serverAssignments: ScheduleAssignment[]
   ): void;
   setMonth(year: number, month: number): void;
@@ -95,7 +133,11 @@ interface ScheduleStoreActions {
   // Atribuicoes
   addAssignment(date: string, professionalId: string, startAt: string, endAt: string): void;
   removeAssignment(date: string, index: number): void;
-  updateAssignment(date: string, index: number, changes: Partial<Pick<ScheduleAssignment, 'professional_id' | 'start_at' | 'end_at'>>): void;
+  updateAssignment(
+    date: string,
+    index: number,
+    changes: Partial<Pick<ScheduleAssignment, 'professional_id' | 'start_at' | 'end_at'>>
+  ): void;
   moveAssignment(fromDate: string, fromIndex: number, toDate: string): void;
   copyAssignment(fromDate: string, fromIndex: number, toDate: string): void;
   swapDayAssignments(dateA: string, dateB: string): void;
@@ -186,10 +228,12 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
   return {
     // State
     patientId: null,
+    padId: null,
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     regime: '24h',
     startTime: '07:00',
+    minEditableDate: null,
     assignments: new Map(),
     originalAssignments: new Map(),
     isDirty: false,
@@ -200,7 +244,16 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     isSaving: false,
 
     // ===== Init =====
-    initialize(patientId, year, month, regime, startTime, serverAssignments) {
+    initialize(
+      patientId,
+      year,
+      month,
+      regime,
+      startTime,
+      minEditableDate,
+      padId,
+      serverAssignments
+    ) {
       const map: DayAssignmentsMap = new Map();
 
       for (const a of serverAssignments) {
@@ -218,10 +271,12 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       const record = mapToRecord(map);
       set({
         patientId,
+        padId,
         year,
         month,
         regime,
         startTime,
+        minEditableDate,
         assignments: cloneMap(map),
         originalAssignments: cloneMap(map),
         isDirty: false,
@@ -238,6 +293,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     // ===== Atribuicoes =====
     addAssignment(date, professionalId, startAt, endAt) {
       const state = get();
+      if (isDateLocked(date, state.minEditableDate)) return;
       const newMap = cloneMap(state.assignments);
       if (!newMap.has(date)) {
         newMap.set(date, []);
@@ -258,6 +314,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
     removeAssignment(date, index) {
       const state = get();
+      if (isDateLocked(date, state.minEditableDate)) return;
       const newMap = cloneMap(state.assignments);
       const dayAssignments = newMap.get(date);
       if (dayAssignments && index >= 0 && index < dayAssignments.length) {
@@ -273,6 +330,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
     updateAssignment(date, index, changes) {
       const state = get();
+      if (isDateLocked(date, state.minEditableDate)) return;
       const newMap = cloneMap(state.assignments);
       const dayAssignments = newMap.get(date);
       if (dayAssignments && index >= 0 && index < dayAssignments.length) {
@@ -287,6 +345,12 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
     moveAssignment(fromDate, fromIndex, toDate) {
       const state = get();
+      if (
+        isDateLocked(fromDate, state.minEditableDate) ||
+        isDateLocked(toDate, state.minEditableDate)
+      ) {
+        return;
+      }
       const newMap = cloneMap(state.assignments);
       const fromDay = newMap.get(fromDate);
       if (!fromDay || fromIndex < 0 || fromIndex >= fromDay.length) return;
@@ -303,9 +367,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
         (toDateObj.getTime() - new Date(fromDate + 'T00:00:00').getTime()) / 86400000
       );
       const startDate = new Date(fromDateObj.getTime() + dayDiff * 86400000);
-      const endDate = new Date(
-        new Date(assignment.end_at).getTime() + dayDiff * 86400000
-      );
+      const endDate = new Date(new Date(assignment.end_at).getTime() + dayDiff * 86400000);
       assignment.start_at = startDate.toISOString();
       assignment.end_at = endDate.toISOString();
 
@@ -320,22 +382,23 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
     copyAssignment(fromDate, fromIndex, toDate) {
       const state = get();
+      if (
+        isDateLocked(fromDate, state.minEditableDate) ||
+        isDateLocked(toDate, state.minEditableDate)
+      ) {
+        return;
+      }
       const newMap = cloneMap(state.assignments);
       const fromDay = newMap.get(fromDate);
       if (!fromDay || fromIndex < 0 || fromIndex >= fromDay.length) return;
 
       const source = fromDay[fromIndex];
       const dayDiff = Math.round(
-        (new Date(toDate + 'T00:00:00').getTime() -
-          new Date(fromDate + 'T00:00:00').getTime()) /
+        (new Date(toDate + 'T00:00:00').getTime() - new Date(fromDate + 'T00:00:00').getTime()) /
           86400000
       );
-      const startDate = new Date(
-        new Date(source.start_at).getTime() + dayDiff * 86400000
-      );
-      const endDate = new Date(
-        new Date(source.end_at).getTime() + dayDiff * 86400000
-      );
+      const startDate = new Date(new Date(source.start_at).getTime() + dayDiff * 86400000);
+      const endDate = new Date(new Date(source.end_at).getTime() + dayDiff * 86400000);
 
       const newAssignment: ScheduleAssignment = {
         date: toDate,
@@ -355,37 +418,34 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
     swapDayAssignments(dateA, dateB) {
       const state = get();
+      if (
+        isDateLocked(dateA, state.minEditableDate) ||
+        isDateLocked(dateB, state.minEditableDate)
+      ) {
+        return;
+      }
       const newMap = cloneMap(state.assignments);
       const dayA = newMap.get(dateA) || [];
       const dayB = newMap.get(dateB) || [];
 
       // Recalcular timestamps
       const dayDiffAtoB = Math.round(
-        (new Date(dateB + 'T00:00:00').getTime() -
-          new Date(dateA + 'T00:00:00').getTime()) /
+        (new Date(dateB + 'T00:00:00').getTime() - new Date(dateA + 'T00:00:00').getTime()) /
           86400000
       );
 
       const movedA = dayA.map((a) => ({
         ...a,
         date: dateB,
-        start_at: new Date(
-          new Date(a.start_at).getTime() + dayDiffAtoB * 86400000
-        ).toISOString(),
-        end_at: new Date(
-          new Date(a.end_at).getTime() + dayDiffAtoB * 86400000
-        ).toISOString(),
+        start_at: new Date(new Date(a.start_at).getTime() + dayDiffAtoB * 86400000).toISOString(),
+        end_at: new Date(new Date(a.end_at).getTime() + dayDiffAtoB * 86400000).toISOString(),
       }));
 
       const movedB = dayB.map((a) => ({
         ...a,
         date: dateA,
-        start_at: new Date(
-          new Date(a.start_at).getTime() - dayDiffAtoB * 86400000
-        ).toISOString(),
-        end_at: new Date(
-          new Date(a.end_at).getTime() - dayDiffAtoB * 86400000
-        ).toISOString(),
+        start_at: new Date(new Date(a.start_at).getTime() - dayDiffAtoB * 86400000).toISOString(),
+        end_at: new Date(new Date(a.end_at).getTime() - dayDiffAtoB * 86400000).toISOString(),
       }));
 
       if (movedA.length > 0) newMap.set(dateB, movedA);
@@ -402,6 +462,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     // ===== Selecao =====
     toggleDateSelection(date) {
       const state = get();
+      if (isDateLocked(date, state.minEditableDate)) return;
       const newSet = new Set(state.selectedDates);
       if (newSet.has(date)) newSet.delete(date);
       else newSet.add(date);
@@ -462,7 +523,10 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
           break;
       }
 
-      set({ selectedDates: new Set(selected) });
+      const unlockedSelected = selected.filter(
+        (date) => !isDateLocked(date, state.minEditableDate)
+      );
+      set({ selectedDates: new Set(unlockedSelected) });
     },
 
     applyBatchAssignment(professionalId) {
@@ -472,6 +536,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       const newMap = cloneMap(state.assignments);
 
       for (const date of state.selectedDates) {
+        if (isDateLocked(date, state.minEditableDate)) continue;
         // Gerar slots padrao para o dia com base no regime
         const slots = generateDefaultSlots(date, state.regime, state.startTime);
         const dayAssignments: ScheduleAssignment[] = slots.map((s) => ({
@@ -497,6 +562,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       if (config.rotation.length === 0) return preview;
 
       const filteredDays = days.filter((d) => {
+        if (isDateLocked(d, state.minEditableDate)) return false;
         const dow = getDayOfWeek(d);
         return config.weekdays.includes(dow);
       });
@@ -506,14 +572,21 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
       for (const day of filteredDays) {
         const currentProfId = config.rotation[professionalIndex % config.rotation.length];
-        const slots = generateDefaultSlots(day, state.regime, state.startTime);
-        const dayAssignments: ScheduleAssignment[] = slots.map((s) => ({
+        const { start, end } = getSlotTimes(config.shiftType, day, state.startTime);
+        const incomingAssignment: ScheduleAssignment = {
           date: day,
           professional_id: currentProfId,
-          start_at: s.start_at,
-          end_at: s.end_at,
-        }));
-        preview.set(day, dayAssignments);
+          start_at: start,
+          end_at: end,
+        };
+
+        const existingDayAssignments = preview.get(day) || [];
+        const mergedDayAssignments = mergeShiftAssignmentInDay(
+          existingDayAssignments,
+          incomingAssignment,
+          config.shiftType
+        );
+        preview.set(day, mergedDayAssignments);
 
         daysCount++;
         if (daysCount >= config.daysPerProfessional) {
@@ -534,6 +607,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     // ===== Duplicar semana =====
     duplicateWeek(sourceWeekStart) {
       const state = get();
+      if (isDateLocked(sourceWeekStart, state.minEditableDate)) return;
       const days = getDaysInMonth(state.year, state.month);
       const newMap = cloneMap(state.assignments);
 
@@ -546,6 +620,12 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       while (targetStart < days.length) {
         const targetDays = days.slice(targetStart, targetStart + 7);
         for (let i = 0; i < targetDays.length && i < sourceDays.length; i++) {
+          if (
+            isDateLocked(sourceDays[i], state.minEditableDate) ||
+            isDateLocked(targetDays[i], state.minEditableDate)
+          ) {
+            continue;
+          }
           const sourceAssignments = newMap.get(sourceDays[i]);
           if (sourceAssignments) {
             const dayDiff = Math.round(
@@ -556,12 +636,8 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
             const copied = sourceAssignments.map((a) => ({
               ...a,
               date: targetDays[i],
-              start_at: new Date(
-                new Date(a.start_at).getTime() + dayDiff * 86400000
-              ).toISOString(),
-              end_at: new Date(
-                new Date(a.end_at).getTime() + dayDiff * 86400000
-              ).toISOString(),
+              start_at: new Date(new Date(a.start_at).getTime() + dayDiff * 86400000).toISOString(),
+              end_at: new Date(new Date(a.end_at).getTime() + dayDiff * 86400000).toISOString(),
             }));
             newMap.set(targetDays[i], copied);
           } else {
@@ -578,7 +654,17 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
     // ===== Clear =====
     clearMonth() {
-      set({ assignments: new Map() });
+      const state = get();
+      const preservedLocked: DayAssignmentsMap = new Map();
+      state.assignments.forEach((value, key) => {
+        if (isDateLocked(key, state.minEditableDate)) {
+          preservedLocked.set(
+            key,
+            value.map((assignment) => ({ ...assignment }))
+          );
+        }
+      });
+      set({ assignments: preservedLocked });
       pushHistory('Limpar mes');
       markDirty();
     },

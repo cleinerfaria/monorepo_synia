@@ -11,7 +11,7 @@ import {
   TabButton,
 } from '@/components/ui';
 import { useCompanies, Company } from '@/hooks/useCompanies';
-import { useAppUsers, AppUser, roleLabels, roleColors, UserRole } from '@/hooks/useAppUsers';
+import { useAppUsers, AppUser } from '@/hooks/useAppUsers';
 import {
   useAccessProfiles,
   useAccessProfile,
@@ -594,7 +594,6 @@ function UsersTab({
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
                 {users.map((user) => {
-                  const roleColor = roleColors[user.role as UserRole];
                   return (
                     <tr
                       key={user.id}
@@ -624,10 +623,8 @@ function UsersTab({
                         {user.company?.name || '-'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${roleColor.bg} ${roleColor.text}`}
-                        >
-                          {roleLabels[user.role as UserRole]}
+                        <span className="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                          {user.access_profile?.name || '-'}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
@@ -703,11 +700,6 @@ function ProfilesTab({
 
   const handleDelete = async (e: React.MouseEvent, profile: AccessProfile) => {
     e.stopPropagation();
-
-    if (profile.is_system) {
-      toast.error('Perfis do sistema não podem ser excluídos');
-      return;
-    }
 
     if (!confirm(`Tem certeza que deseja excluir o perfil "${profile.name}"?`)) {
       return;
@@ -797,18 +789,14 @@ function ProfilesTab({
                         className={`flex h-12 w-12 items-center justify-center rounded-lg ${
                           profile.is_admin
                             ? 'bg-red-100 dark:bg-red-900/30'
-                            : profile.is_system
-                              ? 'bg-blue-100 dark:bg-blue-900/30'
-                              : 'bg-primary-100 dark:bg-primary-900/30'
+                            : 'bg-primary-100 dark:bg-primary-900/30'
                         }`}
                       >
                         <ShieldCheck
                           className={`h-6 w-6 ${
                             profile.is_admin
                               ? 'text-red-600 dark:text-red-400'
-                              : profile.is_system
-                                ? 'text-blue-600 dark:text-blue-400'
-                                : 'text-primary-600 dark:text-primary-400'
+                              : 'text-primary-600 dark:text-primary-400'
                           }`}
                         />
                       </div>
@@ -827,15 +815,13 @@ function ProfilesTab({
                         <Button variant="neutral" size="sm" showIcon={false}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        {!profile.is_system && (
-                          <Button
-                            variant="neutral"
-                            size="sm"
-                            onClick={(e) => handleDelete(e, profile)}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="neutral"
+                          size="sm"
+                          onClick={(e) => handleDelete(e, profile)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -845,12 +831,9 @@ function ProfilesTab({
                     </p>
                   )}
                   <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700">
-                    {profile.is_system && <Badge variant="info">Sistema</Badge>}
                     {profile.is_admin && <Badge variant="warning">Admin</Badge>}
                     {!profile.active && <Badge variant="danger">Inativo</Badge>}
-                    {!profile.is_system && profile.active && (
-                      <Badge variant="success">Personalizado</Badge>
-                    )}
+                    {profile.active && !profile.is_admin && <Badge variant="success">Ativo</Badge>}
                   </div>
                 </CardContent>
               </Card>

@@ -6,6 +6,12 @@ import toast from 'react-hot-toast';
 
 const QUERY_KEY = 'professionals';
 
+export type ProfessionalWithRelations = Professional & {
+  profession: {
+    name: string;
+  } | null;
+};
+
 export function useProfessionals() {
   const { company } = useAuthStore();
 
@@ -16,12 +22,12 @@ export function useProfessionals() {
 
       const { data, error } = await supabase
         .from('professional')
-        .select('*')
+        .select('*, profession(name)')
         .eq('company_id', company.id)
         .order('name');
 
       if (error) throw error;
-      return data as Professional[];
+      return data as ProfessionalWithRelations[];
     },
     enabled: !!company?.id,
   });
@@ -131,5 +137,27 @@ export function useDeleteProfessional() {
       console.error('Error deleting professional:', error);
       toast.error('Erro ao excluir profissional');
     },
+  });
+}
+
+export function useProfessions() {
+  const { company } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['professions', company?.id],
+    queryFn: async () => {
+      if (!company?.id) return [];
+
+      const { data, error } = await supabase
+        .from('profession')
+        .select('*')
+        .eq('company_id', company.id)
+        .eq('active', true)
+        .order('name');
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!company?.id,
   });
 }

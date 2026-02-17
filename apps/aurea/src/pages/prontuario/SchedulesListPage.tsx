@@ -95,9 +95,7 @@ export default function SchedulesListPage() {
         enableSorting: false,
         cell: ({ row }) => (
           <div>
-            <p className="font-medium text-gray-900 dark:text-white">
-              {row.original.patient.name}
-            </p>
+            <p className="font-medium text-gray-900 dark:text-white">{row.original.patient.name}</p>
           </div>
         ),
       },
@@ -180,9 +178,7 @@ export default function SchedulesListPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            Escalas
-          </h1>
+          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">Escalas</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Gerencie as escalas de atendimento dos pacientes
           </p>

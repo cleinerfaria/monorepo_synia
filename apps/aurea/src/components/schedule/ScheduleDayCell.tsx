@@ -1,9 +1,7 @@
 import { memo, useCallback, useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import type {
-  ScheduleProfessional,
-  DayAssignmentsMap,
-} from '@/types/schedule';
+import type { ScheduleProfessional, ScheduleRegime, DayAssignmentsMap } from '@/types/schedule';
+import { getRegimeMaxHours } from '@/types/schedule';
 import { ScheduleSlotChip } from './ScheduleSlotChip';
 
 interface ScheduleDayCellProps {
@@ -14,6 +12,8 @@ interface ScheduleDayCellProps {
   isToday: boolean;
   isWeekend: boolean;
   isDropTarget: boolean;
+  isLocked: boolean;
+  regime: ScheduleRegime;
   onClick: (date: string, event: React.MouseEvent) => void;
   onSlotClick: (date: string, index: number) => void;
   onAddClick: (date: string) => void;
@@ -27,31 +27,45 @@ function ScheduleDayCellInner({
   isSelected,
   isToday,
   isWeekend,
+  regime,
   isDropTarget,
+  isLocked,
   onClick,
   onSlotClick,
   onAddClick,
   onRemoveAssignment,
 }: ScheduleDayCellProps) {
   const dayNumber = parseInt(date.slice(8, 10), 10);
-  const dayAssignments = assignments.get(date) || [];
+  const dayAssignments = useMemo(() => assignments.get(date) || [], [assignments, date]);
   const hasAssignments = dayAssignments.length > 0;
 
-  const { setNodeRef, isOver } = useDroppable({ id: `day::${date}` });
+  // Verificar se o dia esta completo (horas preenchidas >= horas do regime)
+  const isDayFull = useMemo(() => {
+    const maxHours = getRegimeMaxHours(regime);
+    const totalMs = dayAssignments.reduce((sum, a) => {
+      return sum + (new Date(a.end_at).getTime() - new Date(a.start_at).getTime());
+    }, 0);
+    const totalHours = totalMs / (1000 * 60 * 60);
+    return totalHours >= maxHours;
+  }, [dayAssignments, regime]);
+
+  const { setNodeRef, isOver } = useDroppable({ id: `day::${date}`, disabled: isLocked });
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
+      if (isLocked) return;
       onClick(date, e);
     },
-    [date, onClick]
+    [date, onClick, isLocked]
   );
 
   const handleAddClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      if (isLocked) return;
       onAddClick(date);
     },
-    [date, onAddClick]
+    [date, onAddClick, isLocked]
   );
 
   const cellClasses = useMemo(() => {
@@ -72,12 +86,15 @@ function ScheduleDayCellInner({
     if (isDropTarget || isOver) {
       classes.push('ring-2 ring-inset ring-primary-400 bg-primary-50/50 dark:bg-primary-900/30');
     }
+    if (isLocked) {
+      classes.push('cursor-not-allowed opacity-55');
+    }
     if (!hasAssignments) {
       classes.push('border-b-2 border-b-feedback-warning-border');
     }
 
     return classes.join(' ');
-  }, [isSelected, isToday, isWeekend, isDropTarget, isOver, hasAssignments]);
+  }, [isSelected, isToday, isWeekend, isDropTarget, isOver, hasAssignments, isLocked]);
 
   return (
     <div ref={setNodeRef} className={cellClasses} onClick={handleClick}>
@@ -110,21 +127,23 @@ function ScheduleDayCellInner({
               dragId={`${date}::${idx}`}
               startAt={assignment.start_at}
               endAt={assignment.end_at}
-              isDraggable
-              onEdit={() => onSlotClick(date, idx)}
-              onRemove={() => onRemoveAssignment(date, idx)}
+              isDraggable={!isLocked}
+              onEdit={isLocked ? undefined : () => onSlotClick(date, idx)}
+              onRemove={isLocked ? undefined : () => onRemoveAssignment(date, idx)}
             />
           );
         })}
 
-        {/* Botao para adicionar */}
-        <button
-          onClick={handleAddClick}
-          className="border-border-default text-content-muted hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 flex w-full items-center justify-center rounded border border-dashed px-1 py-0.5 text-[10px] transition-colors"
-          title="Adicionar profissional"
-        >
-          +
-        </button>
+        {/* Botao para adicionar (so aparece se o dia nao estiver completo) */}
+        {!isDayFull && !isLocked && (
+          <button
+            onClick={handleAddClick}
+            className="border-border-default text-content-muted hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 flex w-full items-center justify-center rounded border border-dashed px-1 py-0.5 text-[10px] transition-colors"
+            title="Adicionar profissional"
+          >
+            +
+          </button>
+        )}
       </div>
     </div>
   );

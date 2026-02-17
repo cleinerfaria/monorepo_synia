@@ -61,10 +61,48 @@ USING GIN (allowed_scopes);
 -- 4) RLS
 ALTER TABLE public.unit_of_measure ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS unit_of_measure_select_policy ON public.unit_of_measure;
-DROP POLICY IF EXISTS unit_of_measure_insert_policy ON public.unit_of_measure;
-DROP POLICY IF EXISTS unit_of_measure_update_policy ON public.unit_of_measure;
-DROP POLICY IF EXISTS unit_of_measure_delete_policy ON public.unit_of_measure;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'unit_of_measure'
+      AND policyname = 'unit_of_measure_select_policy'
+  ) THEN
+    EXECUTE 'DROP POLICY unit_of_measure_select_policy ON public.unit_of_measure';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'unit_of_measure'
+      AND policyname = 'unit_of_measure_insert_policy'
+  ) THEN
+    EXECUTE 'DROP POLICY unit_of_measure_insert_policy ON public.unit_of_measure';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'unit_of_measure'
+      AND policyname = 'unit_of_measure_update_policy'
+  ) THEN
+    EXECUTE 'DROP POLICY unit_of_measure_update_policy ON public.unit_of_measure';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'unit_of_measure'
+      AND policyname = 'unit_of_measure_delete_policy'
+  ) THEN
+    EXECUTE 'DROP POLICY unit_of_measure_delete_policy ON public.unit_of_measure';
+  END IF;
+END $$;
 
 CREATE POLICY unit_of_measure_select_policy
 ON public.unit_of_measure

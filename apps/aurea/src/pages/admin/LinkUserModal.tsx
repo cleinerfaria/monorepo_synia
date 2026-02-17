@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Input, Button, Select } from '@/components/ui';
 import { Company } from '@/hooks/useCompanies';
-import { UserRole, useLinkCurrentUser } from '@/hooks/useAppUsers';
+import { useLinkCurrentUser } from '@/hooks/useAppUsers';
 import { useAccessProfiles } from '@/hooks/useAccessProfiles';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
@@ -14,16 +14,6 @@ interface LinkUserModalProps {
   companies: Company[];
 }
 
-const roles: UserRole[] = [
-  'admin',
-  'manager',
-  'clinician',
-  'stock',
-  'finance',
-  'viewer',
-  'shift_only',
-];
-
 export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserModalProps) {
   const navigate = useNavigate();
   const { user, setAppUser, setCompany } = useAuthStore();
@@ -31,7 +21,6 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
   const [formData, setFormData] = useState({
     company_id: '',
     name: '',
-    role: 'viewer' as UserRole,
     access_profile_id: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -46,7 +35,6 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
       setFormData({
         company_id: companies.length > 0 ? companies[0].id : '',
         name: user?.user_metadata?.name || user?.email?.split('@')[0] || '',
-        role: 'viewer',
         access_profile_id: '',
       });
       setErrors({});
@@ -81,7 +69,6 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
       const appUser = await linkMutation.mutateAsync({
         company_id: formData.company_id,
         name: formData.name,
-        role: formData.role,
         access_profile_id: formData.access_profile_id,
       });
 
@@ -162,47 +149,14 @@ export default function LinkUserModal({ isOpen, onClose, companies }: LinkUserMo
             placeholder="Selecione um perfil"
             options={activeProfiles.map((profile) => ({
               value: profile.id,
-              label: `${profile.name}${profile.is_system ? ' (Sistema)' : ''}${profile.is_admin ? ' ⭐' : ''}`,
+              label: `${profile.name}${profile.is_admin ? ' ⭐' : ''}`,
             }))}
             value={formData.access_profile_id}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const newValue = e.target.value;
-              const profile = activeProfiles.find((p) => p.id === newValue);
-
-              let newRole: UserRole = 'viewer';
-
-              if (profile) {
-                if (roles.includes(profile.code as UserRole)) {
-                  newRole = profile.code as UserRole;
-                } else if (profile.is_admin) {
-                  newRole = 'admin';
-                } else {
-                  // Fallback logic for derived roles
-                  if (
-                    profile.code.includes('clinician') ||
-                    profile.code.includes('medic') ||
-                    profile.code.includes('enferm')
-                  ) {
-                    newRole = 'clinician';
-                  } else if (profile.code.includes('stock') || profile.code.includes('estoque')) {
-                    newRole = 'stock';
-                  }
-                }
-              }
-
-              setFormData({
-                ...formData,
-                access_profile_id: newValue,
-                role: newRole,
-              });
-            }}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setFormData({ ...formData, access_profile_id: e.target.value })
+            }
             error={errors.access_profile_id}
           />
-          {formData.access_profile_id && (
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Nível de acesso do sistema: {formData.role}
-            </p>
-          )}
         </div>
 
         {/* Actions */}

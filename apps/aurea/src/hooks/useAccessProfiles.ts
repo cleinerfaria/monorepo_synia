@@ -26,11 +26,10 @@ export interface ModulePermission {
 
 export interface AccessProfile {
   id: string;
-  company_id: string | null;
+  company_id: string;
   code: string;
   name: string;
   description: string | null;
-  is_system: boolean;
   is_admin: boolean;
   active: boolean;
   created_at: string;
@@ -118,15 +117,11 @@ export function useAccessProfiles(companyId?: string) {
   return useQuery({
     queryKey: ['access_profiles', companyId],
     queryFn: async () => {
-      let query = supabase
-        .from('access_profile')
-        .select('*')
-        .order('is_system', { ascending: false })
-        .order('name');
+      let query = supabase.from('access_profile').select('*').order('name');
 
-      // Se tem company_id, busca perfis do sistema + da empresa
+      // Filtra por empresa
       if (companyId) {
-        query = query.or(`company_id.is.null,company_id.eq.${companyId}`);
+        query = query.eq('company_id', companyId);
       }
 
       const { data, error } = await query;
@@ -197,7 +192,6 @@ export function useCreateAccessProfile() {
         .from('access_profile')
         .insert({
           ...profileData,
-          is_system: false,
         })
         .select()
         .single();
@@ -296,11 +290,7 @@ export function useDeleteAccessProfile() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('access_profile')
-        .delete()
-        .eq('id', id)
-        .eq('is_system', false); // Proteção extra
+      const { error } = await supabase.from('access_profile').delete().eq('id', id);
 
       if (error) throw error;
     },

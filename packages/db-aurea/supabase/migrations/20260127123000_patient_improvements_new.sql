@@ -98,7 +98,19 @@ WHERE code IS NOT NULL AND btrim(code) <> '';
 -- 7) Ajustar o índice unique de cpf para ignorar '' também (se o do Copilot não ignorar direito)
 -- Ele já criou: WHERE cpf IS NOT NULL AND cpf <> ''
 -- Aqui garantimos com btrim e sem erro se já existe.
-DROP INDEX IF EXISTS public.idx_patient_cpf_unique;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_patient_cpf_unique'
+  ) THEN
+    EXECUTE 'DROP INDEX public.idx_patient_cpf_unique';
+  END IF;
+END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_patient_cpf_unique
 ON public.patient (company_id, cpf)

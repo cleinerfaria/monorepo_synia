@@ -2,8 +2,6 @@
 -- Problem: The view only fetched manufacturer from Brasíndice, excluding products 
 -- that only exist in SIMPRO (like VITAMINA D 500UI SOL.ORAL 10ML - EAN: 7891317021702)
 
-drop VIEW IF EXISTS public.vw_ref_item_unified;
-
 CREATE OR REPLACE VIEW public.vw_ref_item_unified AS
 WITH src AS (
   SELECT

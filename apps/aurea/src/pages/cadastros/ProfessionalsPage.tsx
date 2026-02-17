@@ -13,7 +13,11 @@ import {
   EmptyState,
   IconButton,
 } from '@/components/ui';
-import { useProfessionals, useDeleteProfessional } from '@/hooks/useProfessionals';
+import {
+  useProfessionals,
+  useDeleteProfessional,
+  ProfessionalWithRelations,
+} from '@/hooks/useProfessionals';
 import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import type { Professional } from '@/types/database';
@@ -32,12 +36,12 @@ const formatPhoneDisplay = (value?: string | null): string => {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
-const filteredProfessionals = (professionals: Professional[], search: string) => {
+const filteredProfessionals = (professionals: ProfessionalWithRelations[], search: string) => {
   if (!search.trim()) return professionals;
   const query = search.toLowerCase();
   return professionals.filter((professional) => {
     const name = professional.name?.toLowerCase() || '';
-    const role = professional.role?.toLowerCase() || '';
+    const professionName = professional.profession?.name?.toLowerCase() || '';
     const council = [
       professional.council_type,
       professional.council_number,
@@ -46,7 +50,7 @@ const filteredProfessionals = (professionals: Professional[], search: string) =>
       .filter(Boolean)
       .join(' ')
       .toLowerCase();
-    return name.includes(query) || role.includes(query) || council.includes(query);
+    return name.includes(query) || professionName.includes(query) || council.includes(query);
   });
 };
 
@@ -109,7 +113,7 @@ export default function ProfessionalsPage() {
     }
   };
 
-  const columns: ColumnDef<Professional>[] = useMemo(
+  const columns: ColumnDef<ProfessionalWithRelations>[] = useMemo(
     () => [
       {
         accessorKey: 'name',
@@ -123,9 +127,18 @@ export default function ProfessionalsPage() {
               <p className="truncate font-medium text-gray-900 dark:text-white">
                 {row.original.name}
               </p>
-              <p className="truncate text-sm text-gray-500">{row.original.role || '-'}</p>
             </div>
           </div>
+        ),
+      },
+      {
+        id: 'profession',
+        header: 'Profissão',
+        accessorFn: (row) => row.profession?.name || '-',
+        cell: ({ row }) => (
+          <span className="text-gray-700 dark:text-gray-300">
+            {row.original.profession?.name || '-'}
+          </span>
         ),
       },
       {

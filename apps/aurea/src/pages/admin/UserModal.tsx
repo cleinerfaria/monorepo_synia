@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Modal, Input, Button, Select } from '@/components/ui';
 import {
   AppUser,
-  UserRole,
   useCreateAppUser,
   useUpdateAppUser,
   useDeactivateAppUser,
@@ -20,16 +19,6 @@ interface UserModalProps {
   companies: Company[];
 }
 
-const roles: UserRole[] = [
-  'admin',
-  'manager',
-  'clinician',
-  'stock',
-  'finance',
-  'viewer',
-  'shift_only',
-];
-
 export default function UserModal({ isOpen, onClose, user, companies }: UserModalProps) {
   const isEditing = !!user;
 
@@ -38,7 +27,6 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
     name: '',
     email: '',
     password: '',
-    role: 'viewer' as UserRole,
     access_profile_id: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -69,7 +57,6 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
         name: user.name,
         email: user.email,
         password: '',
-        role: user.role,
         access_profile_id: user.access_profile_id || '',
       });
     } else {
@@ -78,7 +65,6 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
         name: '',
         email: '',
         password: '',
-        role: 'viewer',
         access_profile_id: '',
       });
     }
@@ -131,7 +117,6 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
         await updateMutation.mutateAsync({
           id: user.id,
           name: formData.name,
-          role: formData.role,
           access_profile_id: formData.access_profile_id || undefined,
         });
         toast.success('Usuário atualizado com sucesso!');
@@ -141,8 +126,7 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
           email: formData.email,
           password: formData.password,
           name: formData.name,
-          role: formData.role,
-          access_profile_id: formData.access_profile_id || undefined,
+          access_profile_id: formData.access_profile_id,
         });
         toast.success('Usuário criado com sucesso!');
       }
@@ -367,52 +351,16 @@ export default function UserModal({ isOpen, onClose, user, companies }: UserModa
             placeholder="Selecione um perfil"
             options={activeProfiles.map((profile) => ({
               value: profile.id,
-              label: `${profile.name}${profile.is_system ? ' (Sistema)' : ''}${profile.is_admin ? ' ⭐' : ''}`,
+              label: `${profile.name}${profile.is_admin ? ' ⭐' : ''}`,
             }))}
             value={formData.access_profile_id}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const newValue = e.target.value;
-              const profile = activeProfiles.find((p) => p.id === newValue);
-
-              let newRole: UserRole = 'viewer';
-
-              if (profile) {
-                // Se o código do perfil corresponde a uma role existente, usa ela
-                if (roles.includes(profile.code as UserRole)) {
-                  newRole = profile.code as UserRole;
-                }
-                // Se é admin, força admin
-                else if (profile.is_admin) {
-                  newRole = 'admin';
-                }
-                // Fallback inteligente para perfis que não são roles padrão
-                else {
-                  // Se o código contem 'clinician', 'medico', 'enfermeiro', assume clinical
-                  if (
-                    profile.code.includes('clinician') ||
-                    profile.code.includes('medic') ||
-                    profile.code.includes('enferm')
-                  ) {
-                    newRole = 'clinician';
-                  }
-                  // Se contem 'stock', 'estoque'
-                  else if (profile.code.includes('stock') || profile.code.includes('estoque')) {
-                    newRole = 'stock';
-                  }
-                  // Defaults to viewer for safety
-                }
-              }
-
-              setFormData({
-                ...formData,
-                access_profile_id: newValue,
-                role: newRole,
-              });
-            }}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setFormData({ ...formData, access_profile_id: e.target.value })
+            }
             error={errors.access_profile_id}
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            O perfil define as permissões e o nível de acesso (Role: {formData.role})
+            O perfil define as permissões e o nível de acesso do usuário
           </p>
         </div>
 

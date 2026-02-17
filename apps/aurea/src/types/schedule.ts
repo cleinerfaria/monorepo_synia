@@ -32,6 +32,8 @@ export interface ScheduleAssignment {
 /** Escala mensal carregada do backend */
 export interface PatientMonthSchedule {
   patient_id: string;
+  pad_id: string | null; // patient_attendance_demand.id ativo
+  start_date: string | null; // YYYY-MM-DD do PAD ativo (limite minimo editavel)
   year: number;
   month: number; // 1-12
   regime: ScheduleRegime;
@@ -42,6 +44,7 @@ export interface PatientMonthSchedule {
 /** Payload para upsert de escala */
 export interface UpsertSchedulePayload {
   patient_id: string;
+  pad_id: string; // patient_attendance_demand.id — obrigatorio na tabela
   year: number;
   month: number;
   assignments: Array<{
@@ -78,6 +81,8 @@ export interface AutoFillConfig {
   rotation: string[];
   /** ID do folguista/curinga (cobre folgas da rotacao) */
   substituteId: string | null;
+  /** Tipo de turno aplicado no auto-preenchimento */
+  shiftType: '24h' | '12h_day' | '12h_night';
   /** Padrao semanal: quantos dias seguidos cada profissional fica antes de trocar */
   daysPerProfessional: number;
   /** Dias da semana para incluir (0=Dom, 1=Seg, ..., 6=Sab). Default: todos */
@@ -128,6 +133,18 @@ export type ScheduleApiError = 'NOT_AUTHORIZED' | 'VALIDATION_ERROR' | 'CONFLICT
 // =====================================================
 // Slots por regime (usados como template)
 // =====================================================
+
+/** Retorna o maximo de horas por dia baseado no regime */
+export function getRegimeMaxHours(regime: ScheduleRegime): number {
+  switch (regime) {
+    case '24h':
+      return 24;
+    case '12h':
+      return 12;
+    case '8h':
+      return 8;
+  }
+}
 
 export const SLOTS_BY_REGIME: Record<ScheduleRegime, SlotType[]> = {
   '24h': ['24h'],

@@ -15,6 +15,7 @@ import {
   useProfessional,
   useCreateProfessional,
   useUpdateProfessional,
+  useProfessions,
 } from '@/hooks/useProfessionals';
 import {
   useProfessionalUser,
@@ -36,7 +37,8 @@ import toast from 'react-hot-toast';
 interface ProfessionalFormData {
   code: string;
   name: string;
-  role: string;
+  social_name: string;
+  profession_id: string;
   council_type: string;
   council_number: string;
   council_uf: string;
@@ -90,20 +92,6 @@ const COUNCIL_OPTIONS = [
   { value: 'OUTRO', label: 'Outro' },
 ];
 
-const ROLE_OPTIONS = [
-  { value: 'Médico', label: 'Médico' },
-  { value: 'Enfermeiro', label: 'Enfermeiro' },
-  { value: 'Técnico de Enfermagem', label: 'Técnico de Enfermagem' },
-  { value: 'Fisioterapeuta', label: 'Fisioterapeuta' },
-  { value: 'Nutricionista', label: 'Nutricionista' },
-  { value: 'Farmacêutico', label: 'Farmacêutico' },
-  { value: 'Psicólogo', label: 'Psicólogo' },
-  { value: 'Fonoaudiólogo', label: 'Fonoaudiólogo' },
-  { value: 'Assistente Social', label: 'Assistente Social' },
-  { value: 'Cuidador', label: 'Cuidador' },
-  { value: 'Outro', label: 'Outro' },
-];
-
 const formatPhoneInput = (value: string): string => {
   const digits = value.replace(/\D/g, '').slice(0, 11);
   if (!digits) return '';
@@ -149,6 +137,7 @@ export default function ProfessionalFormPage() {
   const signatureObjectUrlRef = useRef<string | null>(null);
 
   const { data: professional, isLoading } = useProfessional(isEditing ? id : undefined);
+  const { data: professions = [] } = useProfessions();
   const createProfessional = useCreateProfessional();
   const updateProfessional = useUpdateProfessional();
   const { company } = useAuthStore();
@@ -178,7 +167,8 @@ export default function ProfessionalFormPage() {
     defaultValues: {
       code: '',
       name: '',
-      role: '',
+      social_name: '',
+      profession_id: '',
       council_type: '',
       council_number: '',
       council_uf: '',
@@ -188,7 +178,7 @@ export default function ProfessionalFormPage() {
     },
   });
 
-  const roleValue = watch('role');
+  const professionIdValue = watch('profession_id');
   const councilTypeValue = watch('council_type');
   const councilUfValue = watch('council_uf');
   const activeValue = watch('active');
@@ -250,7 +240,8 @@ export default function ProfessionalFormPage() {
       reset({
         code: professional.code || '',
         name: professional.name,
-        role: professional.role || '',
+        social_name: (professional as any).social_name || '',
+        profession_id: (professional as any).profession_id || '',
         council_type: professional.council_type || '',
         council_number: professional.council_number || '',
         council_uf: professional.council_uf || '',
@@ -272,7 +263,8 @@ export default function ProfessionalFormPage() {
       reset({
         code: '',
         name: '',
-        role: '',
+        social_name: '',
+        profession_id: '',
         council_type: '',
         council_number: '',
         council_uf: '',
@@ -321,7 +313,8 @@ export default function ProfessionalFormPage() {
     const payload = {
       code: data.code || null,
       name: data.name,
-      role: data.role || null,
+      social_name: data.social_name || null,
+      profession_id: data.profession_id || null,
       council_type: data.council_type || null,
       council_number: data.council_number || null,
       council_uf: data.council_uf || null,
@@ -448,7 +441,7 @@ export default function ProfessionalFormPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <Input
-                    label="Código Externo"
+                    label="Código"
                     placeholder="Código do sistema externo"
                     {...register('code')}
                   />
@@ -459,12 +452,19 @@ export default function ProfessionalFormPage() {
                     error={errors.name?.message}
                     required
                   />
+                  <Input
+                    label="Nome Social"
+                    placeholder="Como gostaria de ser chamado"
+                    {...register('social_name')}
+                  />
                   <Select
-                    label="Função"
-                    options={ROLE_OPTIONS}
+                    label="Profissão"
+                    options={professions.map((p) => ({ value: p.id, label: p.name }))}
                     placeholder="Selecione..."
-                    value={roleValue}
-                    {...register('role')}
+                    value={professionIdValue}
+                    {...register('profession_id', { required: 'Profissão é obrigatória' })}
+                    error={errors.profession_id?.message}
+                    required
                   />
                 </div>
 
@@ -634,9 +634,9 @@ export default function ProfessionalFormPage() {
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Papel</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Perfil</p>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {professionalUserLink.app_user.role}
+                            {professionalUserLink.app_user.access_profile?.name || '-'}
                           </p>
                         </div>
                         <div>

@@ -292,7 +292,7 @@ export default function ActiveIngredientsPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Input
-              label="Código Externo"
+              label="Código"
               placeholder="Código do sistema externo (DCB, etc.)"
               {...register('code')}
             />

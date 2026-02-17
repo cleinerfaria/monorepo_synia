@@ -1,5 +1,17 @@
 
-DROP INDEX IF EXISTS public.idx_patient_cpf;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_patient_cpf'
+  ) THEN
+    EXECUTE 'DROP INDEX public.idx_patient_cpf';
+  END IF;
+END $$;
 
 DO $$
 BEGIN

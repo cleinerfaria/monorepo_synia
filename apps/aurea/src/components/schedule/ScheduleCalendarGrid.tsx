@@ -19,6 +19,7 @@ interface ScheduleCalendarGridProps {
   professionals: ScheduleProfessional[];
   onSlotClick: (date: string, index: number) => void;
   onAddClick: (date: string) => void;
+  minEditableDate: string | null;
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
@@ -44,10 +45,16 @@ function gridColumn(dayOfWeek: number): number {
   return dayOfWeek;
 }
 
-function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: ScheduleCalendarGridProps) {
+function ScheduleCalendarGridInner({
+  professionals,
+  onSlotClick,
+  onAddClick,
+  minEditableDate,
+}: ScheduleCalendarGridProps) {
   const {
     year,
     month,
+    regime,
     assignments,
     selectedDates,
     toggleDateSelection,
@@ -120,6 +127,7 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: S
       const idStr = active.id as string;
       const [date, indexStr] = idStr.split('::');
       const index = parseInt(indexStr, 10);
+      if (minEditableDate && date < minEditableDate) return;
       const dayAssignments = assignments.get(date);
       const assignment = dayAssignments?.[index];
 
@@ -130,7 +138,7 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: S
         setDragItem({ date, index, professionalId: assignment.professional_id });
       }
     },
-    [assignments]
+    [assignments, minEditableDate]
   );
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
@@ -160,6 +168,7 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: S
       const activeIdStr = active.id as string;
       const [fromDate, fromIndexStr] = activeIdStr.split('::');
       const fromIndex = parseInt(fromIndexStr, 10);
+      if (minEditableDate && fromDate < minEditableDate) return;
 
       const overIdStr = over.id as string;
       let toDate: string;
@@ -168,6 +177,7 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: S
       } else {
         [toDate] = overIdStr.split('::');
       }
+      if (minEditableDate && toDate < minEditableDate) return;
 
       if (fromDate === toDate) return;
 
@@ -181,7 +191,7 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: S
         moveAssignment(fromDate, fromIndex, toDate);
       }
     },
-    [assignments, moveAssignment, copyAssignment]
+    [assignments, moveAssignment, copyAssignment, minEditableDate]
   );
 
   const handleSwapConfirm = useCallback(() => {
@@ -195,11 +205,12 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: S
 
   const handleDateClick = useCallback(
     (date: string, event: React.MouseEvent) => {
+      if (minEditableDate && date < minEditableDate) return;
       if (event.shiftKey || event.ctrlKey || event.metaKey) {
         toggleDateSelection(date);
       }
     },
-    [toggleDateSelection]
+    [toggleDateSelection, minEditableDate]
   );
 
   const handleRemoveAssignment = useCallback(
@@ -282,6 +293,7 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: S
                   const isToday = date === today;
                   const isWeekend = dayIdx === 0 || dayIdx === 6;
                   const isDropTarget = overDate === date;
+                  const isLocked = !!minEditableDate && date < minEditableDate;
 
                   return (
                     <ScheduleDayCell
@@ -293,6 +305,8 @@ function ScheduleCalendarGridInner({ professionals, onSlotClick, onAddClick }: S
                       isToday={isToday}
                       isWeekend={isWeekend}
                       isDropTarget={isDropTarget}
+                      isLocked={isLocked}
+                      regime={regime}
                       onClick={handleDateClick}
                       onSlotClick={onSlotClick}
                       onAddClick={onAddClick}

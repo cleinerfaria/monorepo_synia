@@ -21,9 +21,8 @@ import {
 import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import { useAuthStore } from '@/stores/authStore';
+import { useHasPermission } from '@/hooks/useAccessProfiles';
 import { format, parseISO } from 'date-fns';
-
-const EDITABLE_ROLES = ['admin', 'manager', 'clinician'];
 
 const formatTime = (time: string) => {
   return time.slice(0, 5);
@@ -52,8 +51,9 @@ export default function PadPage() {
   const { data: demands = [], isLoading } = usePatientDemands();
   const updateDemand = useUpdateDemand();
   const { appUser } = useAuthStore();
+  const { hasPermission } = useHasPermission('prescriptions', 'edit');
 
-  const canEdit = EDITABLE_ROLES.includes(appUser?.role ?? '');
+  const canEdit = hasPermission || appUser?.access_profile?.is_admin === true;
 
   const [isToggleModalOpen, setIsToggleModalOpen] = useState(false);
   const [selectedDemand, setSelectedDemand] = useState<DemandWithPatient | null>(null);

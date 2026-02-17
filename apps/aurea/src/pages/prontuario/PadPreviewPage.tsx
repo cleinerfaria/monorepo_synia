@@ -20,9 +20,8 @@ import {
 } from '@/hooks/usePatientDemands';
 import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { useAuthStore } from '@/stores/authStore';
+import { useHasPermission } from '@/hooks/useAccessProfiles';
 import { format, parseISO, addDays } from 'date-fns';
-
-const EDITABLE_ROLES = ['admin', 'manager', 'clinician'];
 
 const STATUS_MAP: Record<string, { label: string; variant: string }> = {
   planned: { label: 'Planejado', variant: 'neutral' },
@@ -42,8 +41,9 @@ export default function PadPreviewPage() {
   const navigate = useNavigate();
   const { handleLinkClick: handleBreadcrumbNavigate } = useNavigationGuard();
   const { appUser } = useAuthStore();
+  const { hasPermission } = useHasPermission('prescriptions', 'edit');
 
-  const canEdit = EDITABLE_ROLES.includes(appUser?.role ?? '');
+  const canEdit = hasPermission || appUser?.access_profile?.is_admin === true;
 
   const [fromDate, setFromDate] = useState(todayStr);
   const [toDate, setToDate] = useState(in14DaysStr);

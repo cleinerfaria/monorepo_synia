@@ -26,7 +26,6 @@ export default function AccessProfileModal({
   existingPermissionIds = [],
 }: AccessProfileModalProps) {
   const isEditing = !!profile;
-  const isSystemProfile = profile?.is_system ?? false;
 
   const [formData, setFormData] = useState({
     code: '',
@@ -119,8 +118,6 @@ export default function AccessProfileModal({
   };
 
   const togglePermission = (permissionId: string) => {
-    if (isSystemProfile) return;
-
     const newSelected = new Set(selectedPermissions);
     if (newSelected.has(permissionId)) {
       newSelected.delete(permissionId);
@@ -131,8 +128,6 @@ export default function AccessProfileModal({
   };
 
   const toggleModule = (modulePermissions: ModulePermission[]) => {
-    if (isSystemProfile) return;
-
     const modulePermissionIds = modulePermissions.map((p) => p.id);
     const allSelected = modulePermissionIds.every((id) => selectedPermissions.has(id));
 
@@ -146,12 +141,10 @@ export default function AccessProfileModal({
   };
 
   const selectAll = () => {
-    if (isSystemProfile) return;
     setSelectedPermissions(new Set(allPermissions.map((p) => p.id)));
   };
 
   const deselectAll = () => {
-    if (isSystemProfile) return;
     setSelectedPermissions(new Set());
   };
 
@@ -169,12 +162,6 @@ export default function AccessProfileModal({
         {errors.submit && (
           <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
             {errors.submit}
-          </div>
-        )}
-
-        {isSystemProfile && (
-          <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-            ℹ️ Este é um perfil do sistema e não pode ser modificado.
           </div>
         )}
 
@@ -206,7 +193,6 @@ export default function AccessProfileModal({
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ex: Operador de Estoque"
               error={errors.name}
-              disabled={isSystemProfile}
             />
           </div>
         </div>
@@ -220,7 +206,6 @@ export default function AccessProfileModal({
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Breve descrição do perfil"
-            disabled={isSystemProfile}
           />
         </div>
 
@@ -230,7 +215,6 @@ export default function AccessProfileModal({
             id="is_admin"
             checked={formData.is_admin}
             onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
-            disabled={isSystemProfile}
             className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
           />
           <label htmlFor="is_admin" className="text-sm text-gray-700 dark:text-gray-300">
@@ -243,16 +227,14 @@ export default function AccessProfileModal({
           <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-medium text-gray-900 dark:text-white">Permissões</h3>
-              {!isSystemProfile && (
-                <div className="flex gap-2">
-                  <Button type="button" variant="ghost" size="sm" onClick={selectAll}>
-                    Selecionar Tudo
-                  </Button>
-                  <Button type="button" variant="ghost" size="sm" onClick={deselectAll}>
-                    Limpar
-                  </Button>
-                </div>
-              )}
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={selectAll}>
+                  Selecionar Tudo
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={deselectAll}>
+                  Limpar
+                </Button>
+              </div>
             </div>
 
             {isLoadingPermissions ? (
@@ -274,10 +256,8 @@ export default function AccessProfileModal({
                     >
                       {/* Module Header */}
                       <div
-                        className={`flex cursor-pointer items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-800 ${
-                          isSystemProfile ? 'cursor-not-allowed opacity-75' : ''
-                        }`}
-                        onClick={() => !isSystemProfile && toggleModule(permissions)}
+                        className="flex cursor-pointer items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-800"
+                        onClick={() => toggleModule(permissions)}
                       >
                         <div className="flex items-center gap-2">
                           <div
@@ -306,17 +286,12 @@ export default function AccessProfileModal({
                         {permissions.map((permission) => (
                           <label
                             key={permission.id}
-                            className={`flex items-center gap-2 text-sm ${
-                              isSystemProfile
-                                ? 'cursor-not-allowed opacity-75'
-                                : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800'
-                            } rounded p-1`}
+                            className="flex cursor-pointer items-center gap-2 rounded p-1 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
                           >
                             <input
                               type="checkbox"
                               checked={selectedPermissions.has(permission.id)}
                               onChange={() => togglePermission(permission.id)}
-                              disabled={isSystemProfile}
                               className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                             />
                             <span className="text-gray-700 dark:text-gray-300">
@@ -344,11 +319,9 @@ export default function AccessProfileModal({
           >
             Cancelar
           </Button>
-          {!isSystemProfile && (
-            <Button type="submit" disabled={isLoading} showIcon={false}>
-              {isLoading ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar Perfil'}
-            </Button>
-          )}
+          <Button type="submit" disabled={isLoading} showIcon={false}>
+            {isLoading ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar Perfil'}
+          </Button>
         </div>
       </form>
     </Modal>

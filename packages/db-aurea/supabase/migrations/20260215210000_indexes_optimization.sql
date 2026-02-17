@@ -9,6 +9,33 @@
 -- =====================================================
 
 BEGIN;
+-- Helper: quiet index drop to avoid NOTICE when index does not exist
+CREATE OR REPLACE FUNCTION public._drop_index_if_exists_quiet(
+  idx_name text,
+  idx_schema text DEFAULT 'public',
+  drop_cascade boolean DEFAULT true
+)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND c.relname = idx_name
+      AND n.nspname = idx_schema
+  ) THEN
+    EXECUTE format(
+      'DROP INDEX %I.%I%s',
+      idx_schema,
+      idx_name,
+      CASE WHEN drop_cascade THEN ' CASCADE' ELSE '' END
+    );
+  END IF;
+END;
+$$;
 
 -- =====================================================
 -- PARTE 1: ADD MISSING FOREIGN KEY INDEXES (BATCH 1)
@@ -67,202 +94,156 @@ CREATE INDEX IF NOT EXISTS idx_user_action_logs_user_id
 -- PARTE 2: REMOVE UNUSED INDEXES (PERFORMANCE CLEANUP)
 -- These indexes have NEVER been used and are safe to remove
 -- =====================================================
-
-DROP INDEX IF EXISTS idx_presentation_unit CASCADE;
-
-DROP INDEX IF EXISTS idx_ref_import_batch_source CASCADE;
-DROP INDEX IF EXISTS idx_ref_import_batch_company CASCADE;
-DROP INDEX IF EXISTS idx_ref_import_batch_status CASCADE;
-DROP INDEX IF EXISTS idx_ref_import_batch_file_hash CASCADE;
-DROP INDEX IF EXISTS idx_ref_import_batch_created CASCADE;
-DROP INDEX IF EXISTS idx_ref_import_batch_cancelled CASCADE;
-
-DROP INDEX IF EXISTS idx_ref_import_error_batch CASCADE;
-
-DROP INDEX IF EXISTS idx_app_user_auth CASCADE;
-
-DROP INDEX IF EXISTS idx_client_ans_code CASCADE;
-DROP INDEX IF EXISTS idx_client_tiss CASCADE;
-
-DROP INDEX IF EXISTS idx_professional_company CASCADE;
-
-DROP INDEX IF EXISTS idx_ref_item_company CASCADE;
-DROP INDEX IF EXISTS idx_ref_item_external_code CASCADE;
-DROP INDEX IF EXISTS idx_ref_item_ean CASCADE;
-DROP INDEX IF EXISTS idx_ref_item_product_name CASCADE;
-DROP INDEX IF EXISTS idx_ref_item_tiss CASCADE;
-DROP INDEX IF EXISTS idx_ref_item_tuss CASCADE;
-DROP INDEX IF EXISTS idx_ref_item_manufacturer_code CASCADE;
-DROP INDEX IF EXISTS idx_ref_item_category CASCADE;
-DROP INDEX IF EXISTS idx_ref_item_active CASCADE;
-
-DROP INDEX IF EXISTS idx_product_company CASCADE;
-DROP INDEX IF EXISTS idx_product_type CASCADE;
-DROP INDEX IF EXISTS idx_product_active_ingredient CASCADE;
-DROP INDEX IF EXISTS idx_product_unit_stock CASCADE;
-DROP INDEX IF EXISTS idx_product_unit_prescription CASCADE;
-DROP INDEX IF EXISTS idx_product_group CASCADE;
-
-DROP INDEX IF EXISTS idx_equipment_company CASCADE;
-DROP INDEX IF EXISTS idx_equipment_status CASCADE;
-DROP INDEX IF EXISTS idx_equipment_patient CASCADE;
-
-DROP INDEX IF EXISTS idx_stock_location_company CASCADE;
-
-DROP INDEX IF EXISTS idx_stock_balance_company CASCADE;
-DROP INDEX IF EXISTS idx_stock_balance_location CASCADE;
-DROP INDEX IF EXISTS idx_stock_balance_product CASCADE;
-
-DROP INDEX IF EXISTS idx_ref_price_history_item CASCADE;
-DROP INDEX IF EXISTS idx_ref_price_history_type CASCADE;
-DROP INDEX IF EXISTS idx_ref_price_history_valid CASCADE;
-DROP INDEX IF EXISTS idx_ref_price_history_item_type_date CASCADE;
-DROP INDEX IF EXISTS idx_ref_price_history_import_batch CASCADE;
-DROP INDEX IF EXISTS idx_ref_price_history_item_type_valid_created CASCADE;
-
-DROP INDEX IF EXISTS idx_stock_movement_company CASCADE;
-DROP INDEX IF EXISTS idx_stock_movement_location CASCADE;
-DROP INDEX IF EXISTS idx_stock_movement_product CASCADE;
-DROP INDEX IF EXISTS idx_stock_movement_date CASCADE;
-DROP INDEX IF EXISTS idx_stock_movement_batch CASCADE;
-DROP INDEX IF EXISTS idx_stock_movement_presentation CASCADE;
-
-DROP INDEX IF EXISTS idx_prescription_company CASCADE;
-DROP INDEX IF EXISTS idx_prescription_patient CASCADE;
-DROP INDEX IF EXISTS idx_prescription_professional CASCADE;
-DROP INDEX IF EXISTS idx_prescription_status CASCADE;
-
-DROP INDEX IF EXISTS idx_patient_consumption_company CASCADE;
-DROP INDEX IF EXISTS idx_patient_consumption_patient CASCADE;
-DROP INDEX IF EXISTS idx_patient_consumption_product CASCADE;
-DROP INDEX IF EXISTS idx_patient_consumption_date CASCADE;
-
-DROP INDEX IF EXISTS idx_product_ref_link_company CASCADE;
-DROP INDEX IF EXISTS idx_product_ref_link_product CASCADE;
-DROP INDEX IF EXISTS idx_product_ref_link_ref_item CASCADE;
-DROP INDEX IF EXISTS idx_product_ref_link_source CASCADE;
-
-DROP INDEX IF EXISTS idx_nfe_import_company CASCADE;
-DROP INDEX IF EXISTS idx_nfe_import_status CASCADE;
-DROP INDEX IF EXISTS idx_nfe_import_key CASCADE;
-DROP INDEX IF EXISTS idx_nfe_import_supplier CASCADE;
-
-DROP INDEX IF EXISTS idx_nfe_import_item_company CASCADE;
-DROP INDEX IF EXISTS idx_nfe_import_item_nfe CASCADE;
-DROP INDEX IF EXISTS idx_nfe_import_item_product_code CASCADE;
-DROP INDEX IF EXISTS idx_nfe_import_item_ean CASCADE;
-DROP INDEX IF EXISTS idx_nfe_import_item_presentation CASCADE;
-DROP INDEX IF EXISTS idx_nfe_import_item_nfe_item_number CASCADE;
-
-DROP INDEX IF EXISTS idx_administration_routes_company CASCADE;
-DROP INDEX IF EXISTS idx_administration_routes_active CASCADE;
-DROP INDEX IF EXISTS idx_administration_routes_prescription_order CASCADE;
-
-DROP INDEX IF EXISTS idx_presentation_company CASCADE;
-DROP INDEX IF EXISTS idx_presentation_product CASCADE;
-DROP INDEX IF EXISTS idx_presentation_barcode CASCADE;
-DROP INDEX IF EXISTS idx_product_presentation_company_barcode CASCADE;
-DROP INDEX IF EXISTS idx_nfe_import_item_product_code CASCADE;
-
-DROP INDEX IF EXISTS idx_active_ingredient_company CASCADE;
-DROP INDEX IF EXISTS idx_active_ingredient_name CASCADE;
-
-DROP INDEX IF EXISTS idx_batch_company CASCADE;
-DROP INDEX IF EXISTS idx_batch_product CASCADE;
-DROP INDEX IF EXISTS idx_batch_location CASCADE;
-DROP INDEX IF EXISTS idx_batch_number CASCADE;
-DROP INDEX IF EXISTS idx_batch_expiration CASCADE;
-DROP INDEX IF EXISTS idx_stock_batch_supplier CASCADE;
-DROP INDEX IF EXISTS idx_stock_batch_presentation CASCADE;
-
-DROP INDEX IF EXISTS idx_manufacturer_company CASCADE;
-DROP INDEX IF EXISTS idx_manufacturer_name CASCADE;
-
-DROP INDEX IF EXISTS idx_supplier_company CASCADE;
-DROP INDEX IF EXISTS idx_supplier_name CASCADE;
-DROP INDEX IF EXISTS idx_supplier_document CASCADE;
-
-DROP INDEX IF EXISTS idx_unit_of_measure_company CASCADE;
-DROP INDEX IF EXISTS idx_unit_of_measure_company_code CASCADE;
-DROP INDEX IF EXISTS idx_unit_of_measure_company_active CASCADE;
-DROP INDEX IF EXISTS idx_unit_of_measure_allowed_scopes_gin CASCADE;
-
-DROP INDEX IF EXISTS idx_product_group_company CASCADE;
-DROP INDEX IF EXISTS idx_product_group_parent CASCADE;
-DROP INDEX IF EXISTS idx_product_group_active CASCADE;
-
-DROP INDEX IF EXISTS idx_patient_company CASCADE;
-DROP INDEX IF EXISTS idx_patient_billing_client CASCADE;
-DROP INDEX IF EXISTS idx_patient_name CASCADE;
-
-DROP INDEX IF EXISTS idx_patient_address_company CASCADE;
-DROP INDEX IF EXISTS idx_patient_address_patient CASCADE;
-DROP INDEX IF EXISTS idx_patient_address_patient_active CASCADE;
-DROP INDEX IF EXISTS idx_patient_address_patient_city CASCADE;
-DROP INDEX IF EXISTS idx_patient_address_use_for_service CASCADE;
-DROP INDEX IF EXISTS idx_patient_address_geolocation CASCADE;
-
-DROP INDEX IF EXISTS idx_patient_contact_company CASCADE;
-DROP INDEX IF EXISTS idx_patient_contact_patient CASCADE;
-DROP INDEX IF EXISTS idx_patient_contact_patient_type CASCADE;
-
-DROP INDEX IF EXISTS idx_patient_identifier_company CASCADE;
-DROP INDEX IF EXISTS idx_patient_identifier_patient CASCADE;
-DROP INDEX IF EXISTS idx_patient_identifier_patient_source CASCADE;
-
-DROP INDEX IF EXISTS idx_patient_payer_company CASCADE;
-DROP INDEX IF EXISTS idx_patient_payer_patient CASCADE;
-DROP INDEX IF EXISTS idx_patient_payer_client CASCADE;
-DROP INDEX IF EXISTS idx_patient_payer_patient_active CASCADE;
-
-DROP INDEX IF EXISTS idx_client_contact_company CASCADE;
-DROP INDEX IF EXISTS idx_client_contact_client CASCADE;
-DROP INDEX IF EXISTS idx_client_contact_client_type CASCADE;
-
-DROP INDEX IF EXISTS idx_user_action_logs_company_date CASCADE;
-DROP INDEX IF EXISTS idx_user_action_logs_company_entity_date CASCADE;
-DROP INDEX IF EXISTS idx_user_action_logs_company_user_date CASCADE;
-
-DROP INDEX IF EXISTS idx_mv_known_products_ref_prices_price_date CASCADE;
-DROP INDEX IF EXISTS idx_mv_known_products_ref_company_ean CASCADE;
-DROP INDEX IF EXISTS idx_mv_known_products_ref_last_refresh CASCADE;
-
-DROP INDEX IF EXISTS idx_procedure_company CASCADE;
-DROP INDEX IF EXISTS idx_procedure_company_category CASCADE;
-
-DROP INDEX IF EXISTS idx_prescription_item_company CASCADE;
-DROP INDEX IF EXISTS idx_prescription_item_prescription CASCADE;
-DROP INDEX IF EXISTS idx_prescription_item_order CASCADE;
-DROP INDEX IF EXISTS idx_prescription_item_company_is_active CASCADE;
-DROP INDEX IF EXISTS idx_prescription_item_company_type CASCADE;
-DROP INDEX IF EXISTS idx_prescription_item_company_week_days_gin CASCADE;
-DROP INDEX IF EXISTS idx_prescription_item_route_id CASCADE;
-DROP INDEX IF EXISTS idx_prescription_item_company_supplier CASCADE;
-
-DROP INDEX IF EXISTS idx_prescription_item_component_company CASCADE;
-DROP INDEX IF EXISTS idx_prescription_item_component_item CASCADE;
-DROP INDEX IF EXISTS idx_prescription_item_component_product CASCADE;
-
-DROP INDEX IF EXISTS idx_prescription_print_company_created CASCADE;
-DROP INDEX IF EXISTS idx_prescription_print_company_prescription_created CASCADE;
-DROP INDEX IF EXISTS idx_prescription_print_company_prescription_period CASCADE;
-
-DROP INDEX IF EXISTS idx_prescription_print_item_company_print CASCADE;
-
-DROP INDEX IF EXISTS idx_prescription_print_payload_content_company_content_hash CASCADE;
-DROP INDEX IF EXISTS idx_prescription_print_item_content_company_content_hash CASCADE;
-
-DROP INDEX IF EXISTS idx_occurrence_company_patient_time CASCADE;
-DROP INDEX IF EXISTS idx_occurrence_prescription_item CASCADE;
-DROP INDEX IF EXISTS idx_occurrence_pending CASCADE;
-
-DROP INDEX IF EXISTS idx_company_parent_id CASCADE;
-
-DROP INDEX IF EXISTS idx_access_profile_permission_profile CASCADE;
-DROP INDEX IF EXISTS idx_access_profile_permission_permission CASCADE;
-
-DROP INDEX IF EXISTS idx_ref_item_company_ean CASCADE;
-
+SELECT public._drop_index_if_exists_quiet('idx_presentation_unit');
+SELECT public._drop_index_if_exists_quiet('idx_ref_import_batch_source');
+SELECT public._drop_index_if_exists_quiet('idx_ref_import_batch_company');
+SELECT public._drop_index_if_exists_quiet('idx_ref_import_batch_status');
+SELECT public._drop_index_if_exists_quiet('idx_ref_import_batch_file_hash');
+SELECT public._drop_index_if_exists_quiet('idx_ref_import_batch_created');
+SELECT public._drop_index_if_exists_quiet('idx_ref_import_batch_cancelled');
+SELECT public._drop_index_if_exists_quiet('idx_ref_import_error_batch');
+SELECT public._drop_index_if_exists_quiet('idx_app_user_auth');
+SELECT public._drop_index_if_exists_quiet('idx_client_ans_code');
+SELECT public._drop_index_if_exists_quiet('idx_client_tiss');
+SELECT public._drop_index_if_exists_quiet('idx_professional_company');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_company');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_external_code');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_ean');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_product_name');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_tiss');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_tuss');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_manufacturer_code');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_category');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_active');
+SELECT public._drop_index_if_exists_quiet('idx_product_company');
+SELECT public._drop_index_if_exists_quiet('idx_product_type');
+SELECT public._drop_index_if_exists_quiet('idx_product_active_ingredient');
+SELECT public._drop_index_if_exists_quiet('idx_product_unit_stock');
+SELECT public._drop_index_if_exists_quiet('idx_product_unit_prescription');
+SELECT public._drop_index_if_exists_quiet('idx_product_group');
+SELECT public._drop_index_if_exists_quiet('idx_equipment_company');
+SELECT public._drop_index_if_exists_quiet('idx_equipment_status');
+SELECT public._drop_index_if_exists_quiet('idx_equipment_patient');
+SELECT public._drop_index_if_exists_quiet('idx_stock_location_company');
+SELECT public._drop_index_if_exists_quiet('idx_stock_balance_company');
+SELECT public._drop_index_if_exists_quiet('idx_stock_balance_location');
+SELECT public._drop_index_if_exists_quiet('idx_stock_balance_product');
+SELECT public._drop_index_if_exists_quiet('idx_ref_price_history_item');
+SELECT public._drop_index_if_exists_quiet('idx_ref_price_history_type');
+SELECT public._drop_index_if_exists_quiet('idx_ref_price_history_valid');
+SELECT public._drop_index_if_exists_quiet('idx_ref_price_history_item_type_date');
+SELECT public._drop_index_if_exists_quiet('idx_ref_price_history_import_batch');
+SELECT public._drop_index_if_exists_quiet('idx_ref_price_history_item_type_valid_created');
+SELECT public._drop_index_if_exists_quiet('idx_stock_movement_company');
+SELECT public._drop_index_if_exists_quiet('idx_stock_movement_location');
+SELECT public._drop_index_if_exists_quiet('idx_stock_movement_product');
+SELECT public._drop_index_if_exists_quiet('idx_stock_movement_date');
+SELECT public._drop_index_if_exists_quiet('idx_stock_movement_batch');
+SELECT public._drop_index_if_exists_quiet('idx_stock_movement_presentation');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_company');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_patient');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_professional');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_status');
+SELECT public._drop_index_if_exists_quiet('idx_patient_consumption_company');
+SELECT public._drop_index_if_exists_quiet('idx_patient_consumption_patient');
+SELECT public._drop_index_if_exists_quiet('idx_patient_consumption_product');
+SELECT public._drop_index_if_exists_quiet('idx_patient_consumption_date');
+SELECT public._drop_index_if_exists_quiet('idx_product_ref_link_company');
+SELECT public._drop_index_if_exists_quiet('idx_product_ref_link_product');
+SELECT public._drop_index_if_exists_quiet('idx_product_ref_link_ref_item');
+SELECT public._drop_index_if_exists_quiet('idx_product_ref_link_source');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_company');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_status');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_key');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_supplier');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_item_company');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_item_nfe');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_item_product_code');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_item_ean');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_item_presentation');
+SELECT public._drop_index_if_exists_quiet('idx_nfe_import_item_nfe_item_number');
+SELECT public._drop_index_if_exists_quiet('idx_administration_routes_company');
+SELECT public._drop_index_if_exists_quiet('idx_administration_routes_active');
+SELECT public._drop_index_if_exists_quiet('idx_administration_routes_prescription_order');
+SELECT public._drop_index_if_exists_quiet('idx_presentation_company');
+SELECT public._drop_index_if_exists_quiet('idx_presentation_product');
+SELECT public._drop_index_if_exists_quiet('idx_presentation_barcode');
+SELECT public._drop_index_if_exists_quiet('idx_product_presentation_company_barcode');
+SELECT public._drop_index_if_exists_quiet('idx_active_ingredient_company');
+SELECT public._drop_index_if_exists_quiet('idx_active_ingredient_name');
+SELECT public._drop_index_if_exists_quiet('idx_batch_company');
+SELECT public._drop_index_if_exists_quiet('idx_batch_product');
+SELECT public._drop_index_if_exists_quiet('idx_batch_location');
+SELECT public._drop_index_if_exists_quiet('idx_batch_number');
+SELECT public._drop_index_if_exists_quiet('idx_batch_expiration');
+SELECT public._drop_index_if_exists_quiet('idx_stock_batch_supplier');
+SELECT public._drop_index_if_exists_quiet('idx_stock_batch_presentation');
+SELECT public._drop_index_if_exists_quiet('idx_manufacturer_company');
+SELECT public._drop_index_if_exists_quiet('idx_manufacturer_name');
+SELECT public._drop_index_if_exists_quiet('idx_supplier_company');
+SELECT public._drop_index_if_exists_quiet('idx_supplier_name');
+SELECT public._drop_index_if_exists_quiet('idx_supplier_document');
+SELECT public._drop_index_if_exists_quiet('idx_unit_of_measure_company');
+SELECT public._drop_index_if_exists_quiet('idx_unit_of_measure_company_code');
+SELECT public._drop_index_if_exists_quiet('idx_unit_of_measure_company_active');
+SELECT public._drop_index_if_exists_quiet('idx_unit_of_measure_allowed_scopes_gin');
+SELECT public._drop_index_if_exists_quiet('idx_product_group_company');
+SELECT public._drop_index_if_exists_quiet('idx_product_group_parent');
+SELECT public._drop_index_if_exists_quiet('idx_product_group_active');
+SELECT public._drop_index_if_exists_quiet('idx_patient_company');
+SELECT public._drop_index_if_exists_quiet('idx_patient_billing_client');
+SELECT public._drop_index_if_exists_quiet('idx_patient_name');
+SELECT public._drop_index_if_exists_quiet('idx_patient_address_company');
+SELECT public._drop_index_if_exists_quiet('idx_patient_address_patient');
+SELECT public._drop_index_if_exists_quiet('idx_patient_address_patient_active');
+SELECT public._drop_index_if_exists_quiet('idx_patient_address_patient_city');
+SELECT public._drop_index_if_exists_quiet('idx_patient_address_use_for_service');
+SELECT public._drop_index_if_exists_quiet('idx_patient_address_geolocation');
+SELECT public._drop_index_if_exists_quiet('idx_patient_contact_company');
+SELECT public._drop_index_if_exists_quiet('idx_patient_contact_patient');
+SELECT public._drop_index_if_exists_quiet('idx_patient_contact_patient_type');
+SELECT public._drop_index_if_exists_quiet('idx_patient_identifier_company');
+SELECT public._drop_index_if_exists_quiet('idx_patient_identifier_patient');
+SELECT public._drop_index_if_exists_quiet('idx_patient_identifier_patient_source');
+SELECT public._drop_index_if_exists_quiet('idx_patient_payer_company');
+SELECT public._drop_index_if_exists_quiet('idx_patient_payer_patient');
+SELECT public._drop_index_if_exists_quiet('idx_patient_payer_client');
+SELECT public._drop_index_if_exists_quiet('idx_patient_payer_patient_active');
+SELECT public._drop_index_if_exists_quiet('idx_client_contact_company');
+SELECT public._drop_index_if_exists_quiet('idx_client_contact_client');
+SELECT public._drop_index_if_exists_quiet('idx_client_contact_client_type');
+SELECT public._drop_index_if_exists_quiet('idx_user_action_logs_company_date');
+SELECT public._drop_index_if_exists_quiet('idx_user_action_logs_company_entity_date');
+SELECT public._drop_index_if_exists_quiet('idx_user_action_logs_company_user_date');
+SELECT public._drop_index_if_exists_quiet('idx_mv_known_products_ref_prices_price_date');
+SELECT public._drop_index_if_exists_quiet('idx_mv_known_products_ref_company_ean');
+SELECT public._drop_index_if_exists_quiet('idx_mv_known_products_ref_last_refresh');
+SELECT public._drop_index_if_exists_quiet('idx_procedure_company');
+SELECT public._drop_index_if_exists_quiet('idx_procedure_company_category');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_company');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_prescription');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_order');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_company_is_active');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_company_type');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_company_week_days_gin');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_route_id');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_company_supplier');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_component_company');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_component_item');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_item_component_product');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_print_company_created');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_print_company_prescription_created');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_print_company_prescription_period');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_print_item_company_print');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_print_payload_content_company_content_hash');
+SELECT public._drop_index_if_exists_quiet('idx_prescription_print_item_content_company_content_hash');
+SELECT public._drop_index_if_exists_quiet('idx_occurrence_company_patient_time');
+SELECT public._drop_index_if_exists_quiet('idx_occurrence_prescription_item');
+SELECT public._drop_index_if_exists_quiet('idx_occurrence_pending');
+SELECT public._drop_index_if_exists_quiet('idx_company_parent_id');
+SELECT public._drop_index_if_exists_quiet('idx_access_profile_permission_profile');
+SELECT public._drop_index_if_exists_quiet('idx_access_profile_permission_permission');
+SELECT public._drop_index_if_exists_quiet('idx_ref_item_company_ean');
 -- =====================================================
 -- PARTE 3: ADD REMAINING FOREIGN KEY INDEXES (BATCH 2)
 -- Additional 43 unindexed FKs
@@ -434,7 +415,8 @@ CREATE INDEX IF NOT EXISTS idx_user_action_logs_company_id
 -- PARTE 4: FIX DUPLICATE INDEX
 -- Remove redundant index from user_action_logs
 -- =====================================================
-
-DROP INDEX IF EXISTS idx_user_action_logs_user_id_app_user CASCADE;
+SELECT public._drop_index_if_exists_quiet('idx_user_action_logs_user_id_app_user');
+DROP FUNCTION IF EXISTS public._drop_index_if_exists_quiet(text, text, boolean);
 
 COMMIT;
+

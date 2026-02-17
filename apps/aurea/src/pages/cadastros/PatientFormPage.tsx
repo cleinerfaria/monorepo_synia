@@ -86,6 +86,7 @@ type FormTab = 'basic' | 'address' | 'contact' | 'payers';
 interface PatientFormData {
   code: string;
   name: string;
+  social_name: string;
   cpf: string;
   birth_date: string;
   gender: GenderType | '';
@@ -201,6 +202,7 @@ export default function PatientFormPage() {
     defaultValues: {
       code: '',
       name: '',
+      social_name: '',
       cpf: '',
       birth_date: '',
       gender: '',
@@ -345,6 +347,7 @@ export default function PatientFormPage() {
       reset({
         code: patient.code || '',
         name: patient.name,
+        social_name: (patient as any).social_name || '',
         cpf: formattedCPF,
         birth_date: patient.birth_date || '',
         gender: (patient.gender || '') as PatientFormData['gender'],
@@ -368,6 +371,7 @@ export default function PatientFormPage() {
       reset({
         code: '',
         name: '',
+        social_name: '',
         cpf: '',
         birth_date: '',
         gender: '',
@@ -435,6 +439,7 @@ export default function PatientFormPage() {
     const patientData = {
       ...data,
       code: data.code || null,
+      social_name: data.social_name || null,
       cpf: cpfValue ? cpfValue.replace(/\D/g, '') : null, // Salvar apenas dígitos
       gender: data.gender || null,
       father_name: data.father_name || null,
@@ -561,6 +566,11 @@ export default function PatientFormPage() {
                       {...register('name', { required: 'Nome é obrigatório' })}
                       error={errors.name?.message}
                       required
+                    />
+                    <Input
+                      label="Nome Social"
+                      placeholder="Como gostaria de ser chamado"
+                      {...register('social_name')}
                     />
                   </div>
                 </div>

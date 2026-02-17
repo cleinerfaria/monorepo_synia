@@ -48,7 +48,7 @@ export function usePatientMonthSchedule(
       // Buscar PAD ativo do paciente para obter regime e start_time
       const { data: padData } = await supabase
         .from('patient_attendance_demand')
-        .select('hours_per_day, start_time, is_split')
+        .select('id, start_date, hours_per_day, start_time, is_split')
         .eq('company_id', company.id)
         .eq('patient_id', patientId)
         .eq('is_active', true)
@@ -77,6 +77,8 @@ export function usePatientMonthSchedule(
 
       return {
         patient_id: patientId,
+        pad_id: padData?.id ?? null,
+        start_date: padData?.start_date ?? null,
         year,
         month,
         regime,
@@ -103,7 +105,7 @@ export function useScheduleProfessionals() {
 
       const { data, error } = await supabase
         .from('professional')
-        .select('id, name, role, active, email, phone')
+        .select('id, name, profession_id, active, email, phone')
         .eq('company_id', company.id)
         .order('name');
 
@@ -112,7 +114,7 @@ export function useScheduleProfessionals() {
       return (data || []).map((p: any) => ({
         id: p.id,
         name: p.name,
-        role: p.role,
+        role: null,
         active: p.active ?? false,
         email: p.email,
         phone: p.phone,
@@ -148,7 +150,12 @@ export function useSaveSchedule() {
 
       if (error) {
         // Fallback: se RPC nao existe, usar upsert direto nos shifts
-        if (error.message?.includes('function') || error.code === '42883') {
+        if (
+          error.message?.includes('function') ||
+          error.code === '42883' ||
+          error.code === 'PGRST202' ||
+          error.message?.includes('404')
+        ) {
           for (const assignment of payload.assignments) {
             // Tentar atualizar shift existente
             const { data: existing } = await supabase
@@ -158,7 +165,7 @@ export function useSaveSchedule() {
               .eq('patient_id', payload.patient_id)
               .eq('start_at', assignment.start_at)
               .limit(1)
-              .single();
+              .maybeSingle();
 
             if (existing) {
               const { error: updateErr } = await supabase
@@ -175,6 +182,7 @@ export function useSaveSchedule() {
               const { error: insertErr } = await supabase.from('patient_attendance_shift').insert({
                 company_id: company.id,
                 patient_id: payload.patient_id,
+                patient_attendance_demand_id: payload.pad_id,
                 start_at: assignment.start_at,
                 end_at: assignment.end_at,
                 assigned_professional_id: assignment.professional_id,

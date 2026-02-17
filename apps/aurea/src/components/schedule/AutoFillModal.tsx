@@ -19,6 +19,12 @@ const WEEKDAY_OPTIONS = [
   { value: 6, label: 'Sab' },
 ];
 
+const SHIFT_OPTIONS: Array<{ value: AutoFillConfig['shiftType']; label: string }> = [
+  { value: '12h_day', label: '12h diurno' },
+  { value: '12h_night', label: '12h noturno' },
+  { value: '24h', label: '24h' },
+];
+
 function getDaysInMonth(year: number, month: number): string[] {
   const days: string[] = [];
   const d = new Date(year, month - 1, 1);
@@ -42,6 +48,7 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
 
   const [rotation, setRotation] = useState<string[]>([]);
   const [substituteId, setSubstituteId] = useState<string | null>(null);
+  const [shiftType, setShiftType] = useState<AutoFillConfig['shiftType']>('12h_day');
   const [daysPerProfessional, setDaysPerProfessional] = useState(1);
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [showPreview, setShowPreview] = useState(false);
@@ -92,6 +99,7 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
     const config: AutoFillConfig = {
       rotation,
       substituteId,
+      shiftType,
       daysPerProfessional,
       weekdays: selectedWeekdays,
     };
@@ -99,7 +107,14 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
     const result = generateAutoFillPreview(config);
     setPreview(result);
     setShowPreview(true);
-  }, [rotation, substituteId, daysPerProfessional, selectedWeekdays, generateAutoFillPreview]);
+  }, [
+    rotation,
+    substituteId,
+    shiftType,
+    daysPerProfessional,
+    selectedWeekdays,
+    generateAutoFillPreview,
+  ]);
 
   const handleApply = useCallback(() => {
     if (preview) {
@@ -228,6 +243,30 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
 
         {/* Dias por profissional */}
         <div>
+          <label className="label mb-1 block text-sm">Tipo de turno:</label>
+          <div className="flex flex-wrap gap-1">
+            {SHIFT_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  setShiftType(option.value);
+                  setShowPreview(false);
+                  setPreview(null);
+                }}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  shiftType === option.value
+                    ? 'border-primary-500 bg-primary-500 text-white'
+                    : 'border-border-default text-content-secondary hover:border-primary-300'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Dias por profissional */}
+        <div>
           <label className="label mb-1 block text-sm">Dias consecutivos por profissional:</label>
           <div className="flex items-center gap-2">
             <input
@@ -325,8 +364,7 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
                                 <span
                                   className="h-2 w-2 rounded-full"
                                   style={{
-                                    backgroundColor:
-                                      prof.color || 'rgb(var(--color-primary-500))',
+                                    backgroundColor: prof.color || 'rgb(var(--color-primary-500))',
                                   }}
                                 />
                                 {prof.name.split(' ')[0]}

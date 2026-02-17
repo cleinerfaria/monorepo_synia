@@ -19,10 +19,7 @@ const BATCH_PRESETS: Array<{ value: BatchSelectionPreset; label: string }> = [
   { value: 'full_month', label: 'Mes todo' },
 ];
 
-function ScheduleSidebarInner({
-  professionals,
-  onAutoFillClick,
-}: ScheduleSidebarProps) {
+function ScheduleSidebarInner({ professionals, onAutoFillClick }: ScheduleSidebarProps) {
   const {
     year,
     month,

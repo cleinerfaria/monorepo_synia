@@ -377,11 +377,7 @@ export default function EquipmentPage() {
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input
-              label="Código Externo"
-              placeholder="Código do sistema externo"
-              {...register('code')}
-            />
+            <Input label="Código" placeholder="Código do sistema externo" {...register('code')} />
             <Input
               label="Nome do Equipamento"
               placeholder="Ex: Concentrador de O2, CPAP, BiPAP..."

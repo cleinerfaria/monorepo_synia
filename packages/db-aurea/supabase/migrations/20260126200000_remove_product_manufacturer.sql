@@ -14,9 +14,6 @@ WHERE pp.product_id = p.id
   AND p.manufacturer_id IS NOT NULL
   AND pp.manufacturer_id IS NULL;
 
--- Drop the foreign key constraint first
-ALTER TABLE product DROP CONSTRAINT IF EXISTS catalog_item_manufacturer_id_fkey;
-
 -- Remove the manufacturer_id column from product table
 ALTER TABLE product DROP COLUMN IF EXISTS manufacturer_id;
 

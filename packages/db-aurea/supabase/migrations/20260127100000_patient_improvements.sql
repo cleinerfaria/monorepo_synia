@@ -19,8 +19,18 @@ UPDATE patient SET gender =
         ELSE NULL
     END;
 
--- Drop old check constraint
-ALTER TABLE patient DROP CONSTRAINT IF EXISTS patient_gender_check;
+-- Drop old check constraint (quietly, avoiding NOTICE on clean resets)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'patient_gender_check'
+      AND conrelid = 'public.patient'::regclass
+  ) THEN
+    EXECUTE 'ALTER TABLE public.patient DROP CONSTRAINT patient_gender_check';
+  END IF;
+END $$;
 
 -- Change column type to enum
 ALTER TABLE patient ALTER COLUMN gender TYPE gender_type USING gender::gender_type;

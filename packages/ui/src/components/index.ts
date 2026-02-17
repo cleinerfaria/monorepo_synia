@@ -8,7 +8,7 @@ export { MultiSelect } from './MultiSelect';
 export { DatePicker } from './DatePicker';
 export { TimePicker } from './TimePicker';
 export { Textarea } from './Textarea';
-export { Button } from './Button';
+export { Button, PlusIcon } from './Button';
 export { createButton } from './Button';
 export { IconButton } from './IconButton';
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';

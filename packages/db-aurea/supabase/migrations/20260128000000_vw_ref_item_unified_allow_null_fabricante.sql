@@ -2,8 +2,6 @@
 -- This allows the view to include all products with valid names, even if manufacturer is unknown
 -- This is important for NFe import where we want to show reference data even for products without manufacturer info
 
-DROP VIEW IF EXISTS public.vw_ref_item_unified;
-
 CREATE OR REPLACE VIEW public.vw_ref_item_unified AS
 WITH src AS (
   SELECT

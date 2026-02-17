@@ -50,10 +50,6 @@ export default function AccessProfilesPage() {
   };
 
   const handleDeleteClick = (profile: AccessProfile) => {
-    if (profile.is_system) {
-      toast.error('Não é possível excluir um perfil do sistema');
-      return;
-    }
     setProfileToDelete(profile);
     setIsDeleteModalOpen(true);
   };
@@ -137,11 +133,6 @@ export default function AccessProfilesPage() {
                         <h3 className="font-semibold text-gray-900 dark:text-white">
                           {profile.name}
                         </h3>
-                        {profile.is_system && (
-                          <Badge variant="neutral" className="text-xs">
-                            Sistema
-                          </Badge>
-                        )}
                       </div>
                       <p className="mb-2 text-sm text-gray-500">Código: {profile.code}</p>
                       {profile.description && (
@@ -162,16 +153,14 @@ export default function AccessProfilesPage() {
                       <Button variant="ghost" size="sm" onClick={() => handleEditProfile(profile)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      {!profile.is_system && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(profile)}
-                          className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteClick(profile)}
+                        className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

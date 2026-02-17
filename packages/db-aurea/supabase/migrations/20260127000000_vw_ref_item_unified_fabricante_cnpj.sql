@@ -1,7 +1,17 @@
 -- Migration: Add fabricante_cnpj field to unified reference items view
 -- This allows linking manufacturers by CNPJ
 
-DROP VIEW IF EXISTS public.vw_ref_item_unified;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_views
+    WHERE schemaname = 'public'
+      AND viewname = 'vw_ref_item_unified'
+  ) THEN
+    EXECUTE 'DROP VIEW public.vw_ref_item_unified';
+  END IF;
+END $$;
 
 CREATE VIEW public.vw_ref_item_unified AS
 WITH src AS (

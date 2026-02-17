@@ -270,6 +270,40 @@ async function seedAureaDev() {
   });
   process.stdout.write('✅ system_user created\n');
 
+  // Buscar access profiles da empresa
+  process.stdout.write('\n🔍 Fetching access profiles...\n');
+  const adminProfile = await getSingleRow({
+    supabaseUrl,
+    serviceRoleKey,
+    path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.admin&limit=1`,
+  });
+  const managerProfile = await getSingleRow({
+    supabaseUrl,
+    serviceRoleKey,
+    path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.manager&limit=1`,
+  });
+  const viewerProfile = await getSingleRow({
+    supabaseUrl,
+    serviceRoleKey,
+    path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.viewer&limit=1`,
+  });
+
+  if (!adminProfile?.id || !managerProfile?.id || !viewerProfile?.id) {
+    process.stderr.write(`  DEBUG: adminProfile=${JSON.stringify(adminProfile)}\n`);
+    process.stderr.write(`  DEBUG: managerProfile=${JSON.stringify(managerProfile)}\n`);
+    process.stderr.write(`  DEBUG: viewerProfile=${JSON.stringify(viewerProfile)}\n`);
+    
+    // Tentar listar todos os perfis da empresa para diagnostico
+    const allProfiles = await requestJson(
+      `${supabaseUrl}/rest/v1/access_profile?select=id,code,company_id&company_id=eq.${company.id}`,
+      { headers: postgrestHeaders(serviceRoleKey, 'return=representation') }
+    );
+    process.stderr.write(`  DEBUG: all profiles for company=${JSON.stringify(allProfiles)}\n`);
+    
+    throw new Error('Could not find access profiles (admin/manager/viewer) for the company');
+  }
+  process.stdout.write('✅ Access profiles found\n');
+
   // Criar app_users
   process.stdout.write('\n📝 Creating app_users...\n');
   await upsertRows({
@@ -283,7 +317,7 @@ async function seedAureaDev() {
         name: 'System Admin',
         email: systemAdminEmail,
         active: true,
-        role: 'admin',
+        access_profile_id: adminProfile.id,
       },
       {
         company_id: company.id,
@@ -291,7 +325,7 @@ async function seedAureaDev() {
         name: 'Admin',
         email: adminEmail,
         active: true,
-        role: 'admin',
+        access_profile_id: adminProfile.id,
       },
       {
         company_id: company.id,
@@ -299,7 +333,7 @@ async function seedAureaDev() {
         name: 'Manager',
         email: managerEmail,
         active: true,
-        role: 'manager',
+        access_profile_id: managerProfile.id,
       },
       {
         company_id: company.id,
@@ -307,75 +341,12 @@ async function seedAureaDev() {
         name: 'User',
         email: userEmail,
         active: true,
-        role: 'viewer',
+        access_profile_id: viewerProfile.id,
       },
     ],
     onConflict: 'auth_user_id,company_id',
   });
   process.stdout.write('✅ app_users created\n');
-
-  process.stdout.write('✅ app_users created\n');
-
-  // Criar profissões
-  process.stdout.write('\n📝 Creating professions...\n');
-  const professionsData = [
-    { company_id: company.id, name: 'Médico', active: true },
-    { company_id: company.id, name: 'Enfermeiro', active: true },
-    { company_id: company.id, name: 'Fisioterapeuta', active: true },
-    { company_id: company.id, name: 'Técnico de Enfermagem', active: true },
-  ];
-
-  await upsertRows({
-    supabaseUrl,
-    serviceRoleKey,
-    table: 'profession',
-    rows: professionsData,
-    onConflict: 'company_id,name',
-  });
-  process.stdout.write('✅ professions created\n');
-
-  // Obter IDs das profissões recém-criadas
-  const professions = await requestJson(
-    `${supabaseUrl}/rest/v1/profession?company_id=eq.${company.id}&select=id,name`,
-    { headers: authHeaders(serviceRoleKey) }
-  );
-
-  const medicoId = professions.find((p) => p.name === 'Médico')?.id;
-  const enfermeiroId = professions.find((p) => p.name === 'Enfermeiro')?.id;
-
-  // Criar profissionais de exemplo
-  if (medicoId && enfermeiroId) {
-    process.stdout.write('\n📝 Creating professionals...\n');
-    await upsertRows({
-      supabaseUrl,
-      serviceRoleKey,
-      table: 'professional',
-      rows: [
-        {
-          company_id: company.id,
-          name: 'Dr. João Silva',
-          profession_id: medicoId,
-          council_type: 'CRM',
-          council_number: '12345',
-          council_uf: 'SP',
-          active: true,
-          code: 'MED001',
-        },
-        {
-          company_id: company.id,
-          name: 'Enf. Maria Souza',
-          profession_id: enfermeiroId,
-          council_type: 'COREN',
-          council_number: '54321',
-          council_uf: 'SP',
-          active: true,
-          code: 'ENF001',
-        },
-      ],
-      onConflict: 'company_id,code',
-    });
-    process.stdout.write('✅ professionals created\n');
-  }
 
   process.stdout.write('\n✨ Aurea dev seed applied successfully!\n');
   process.stdout.write(`  - System Admin: ${systemAdminEmail}\n`);

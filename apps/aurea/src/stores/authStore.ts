@@ -176,6 +176,14 @@ export const useAuthStore = create<AuthState>()(
           if (error) throw error;
 
           if (data.user) {
+            // Buscar perfil padrão (viewer) da empresa
+            const { data: defaultProfile } = await supabase
+              .from('access_profile')
+              .select('id')
+              .eq('company_id', companyId)
+              .eq('code', 'viewer')
+              .single();
+
             // Create app user
             const { data: appUser, error: appUserError } = await supabase
               .from('app_user')
@@ -184,7 +192,7 @@ export const useAuthStore = create<AuthState>()(
                 company_id: companyId,
                 name,
                 email,
-                role: 'viewer',
+                access_profile_id: defaultProfile?.id,
               } as any)
               .select()
               .single();

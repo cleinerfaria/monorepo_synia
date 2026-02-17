@@ -108,7 +108,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   // Usuário shift_only deve usar o layout dedicado
-  if (appUser?.role === 'shift_only') {
+  if (appUser?.access_profile?.code === 'shift_only') {
     return <Navigate to="/meu-plantao" replace />;
   }
 

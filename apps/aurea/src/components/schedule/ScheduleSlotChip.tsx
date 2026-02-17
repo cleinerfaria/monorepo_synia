@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import type { ScheduleProfessional } from '@/types/schedule';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ScheduleSlotChipProps {
   professional: ScheduleProfessional;
@@ -33,34 +34,35 @@ function getShortName(name: string): string {
   return parts[0];
 }
 
-/**
- * Gerar cor HSL deterministica para um profissional baseado no ID.
- */
-function generateDeterministicColor(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    const char = id.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash;
-  }
-  const hue = Math.abs(hash % 360);
-  return `hsl(${hue}, 70%, 60%)`;
-}
-
-function buildChipStyles(color: string | null) {
+function buildChipStyles(color: string | null, isDarkMode: boolean) {
   if (!color) {
+    if (!isDarkMode) {
+      return {
+        backgroundColor: 'rgb(var(--color-primary-500) / 0.12)',
+        borderColor: 'rgb(var(--color-primary-500) / 0.4)',
+        color: 'rgb(var(--color-primary-700))',
+      };
+    }
     return {
-      backgroundColor: 'rgb(var(--color-primary-500) / 0.12)',
-      borderColor: 'rgb(var(--color-primary-500) / 0.4)',
-      color: 'rgb(var(--color-primary-700))',
+      backgroundColor: 'rgb(var(--color-primary-500) / 0.24)',
+      borderColor: 'rgb(var(--color-primary-500) / 0.58)',
+      color: 'rgb(var(--color-primary-200))',
     };
   }
   if (color.startsWith('hsl')) {
     const hslValue = color.replace('hsl(', '').replace(')', '');
+    if (!isDarkMode) {
+      return {
+        backgroundColor: `hsla(${hslValue}, 0.15)`,
+        borderColor: `hsla(${hslValue}, 0.4)`,
+        color: `hsl(${hslValue})`,
+      };
+    }
+    const [h, s] = hslValue.split(',').map((part) => part.trim());
     return {
-      backgroundColor: `hsla(${hslValue}, 0.15)`,
-      borderColor: `hsla(${hslValue}, 0.4)`,
-      color: `hsl(${hslValue})`,
+      backgroundColor: `hsla(${hslValue}, 0.24)`,
+      borderColor: `hsla(${hslValue}, 0.58)`,
+      color: `hsl(${h}, ${s}, 78%)`,
     };
   }
   const hex = color.replace('#', '');
@@ -80,10 +82,23 @@ function buildChipStyles(color: string | null) {
   const dg = Math.round(g * factor);
   const db = Math.round(b * factor);
 
+  if (!isDarkMode) {
+    return {
+      backgroundColor: `rgba(${r}, ${g}, ${b}, 0.12)`,
+      borderColor: `rgba(${r}, ${g}, ${b}, 0.4)`,
+      color: `rgb(${dr}, ${dg}, ${db})`,
+    };
+  }
+
+  const lightFactor = 0.55;
+  const lr = Math.round(r + (255 - r) * lightFactor);
+  const lg = Math.round(g + (255 - g) * lightFactor);
+  const lb = Math.round(b + (255 - b) * lightFactor);
+
   return {
-    backgroundColor: `rgba(${r}, ${g}, ${b}, 0.12)`,
-    borderColor: `rgba(${r}, ${g}, ${b}, 0.4)`,
-    color: `rgb(${dr}, ${dg}, ${db})`,
+    backgroundColor: `rgba(${r}, ${g}, ${b}, 0.24)`,
+    borderColor: `rgba(${r}, ${g}, ${b}, 0.6)`,
+    color: `rgb(${lr}, ${lg}, ${lb})`,
   };
 }
 
@@ -107,6 +122,9 @@ function ScheduleSlotChipInner({
   onRemove,
   onEdit,
 }: ScheduleSlotChipProps) {
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme === 'dark';
+
   const {
     attributes,
     listeners,
@@ -125,8 +143,8 @@ function ScheduleSlotChipInner({
       }
     : undefined;
 
-  const color = professional.color || generateDeterministicColor(professional.id);
-  const chipStyles = buildChipStyles(color);
+  const color = professional.color;
+  const chipStyles = buildChipStyles(color, isDarkMode);
   const shortName = getShortName(professional.name);
   const initials = getInitials(professional.name);
   const startTime = formatTime(startAt);
@@ -149,7 +167,7 @@ function ScheduleSlotChipInner({
       {/* Initials avatar */}
       <span
         className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white md:h-5 md:w-5 md:text-[9px]"
-        style={{ backgroundColor: color }}
+        style={{ backgroundColor: color || 'rgb(var(--color-primary-500))' }}
       >
         {initials}
       </span>
@@ -158,7 +176,7 @@ function ScheduleSlotChipInner({
       <div className="min-w-0 flex-1">
         <span className="block min-w-0 truncate">{shortName}</span>
         {(startTime || endTime) && (
-          <span className="block text-[7px] leading-tight opacity-70">
+          <span className="block text-[7px] leading-tight opacity-70 dark:opacity-95">
             {startTime && endTime ? `${startTime}–${endTime}` : startTime || endTime}
           </span>
         )}

@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Card, Button, DataTable, EmptyState, Badge, IconButton } from '@/components/ui';
-import { useAppUsers, AppUser, roleLabels, roleBadgeVariants } from '@/hooks/useAppUsers';
+import { useAppUsers, AppUser } from '@/hooks/useAppUsers';
 import { useAccessProfiles } from '@/hooks/useAccessProfiles';
 import type { Company } from '@/hooks/useCompanies';
 import { useAuthStore } from '@/stores/authStore';
@@ -64,20 +64,11 @@ export default function UsersPage() {
         ),
       },
       {
-        accessorKey: 'role',
-        header: 'Papel',
-        cell: ({ row }) => (
-          <Badge variant={roleBadgeVariants[row.original.role]}>
-            {roleLabels[row.original.role]}
-          </Badge>
-        ),
-      },
-      {
         accessorKey: 'access_profile',
         header: 'Perfil de Acesso',
         cell: ({ row }) =>
-          row.original.access_profile_id ? (
-            <Badge variant="neutral">{getProfileName(row.original.access_profile_id) || '-'}</Badge>
+          row.original.access_profile ? (
+            <Badge variant="neutral">{row.original.access_profile.name}</Badge>
           ) : (
             <span className="text-gray-400">-</span>
           ),
