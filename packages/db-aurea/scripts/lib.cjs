@@ -1,4 +1,4 @@
-﻿// Load environment variables from app .env.local
+// Load environment variables from app .env.local
 const { spawn, execFileSync } = require('node:child_process');
 const path = require('node:path');
 
@@ -99,11 +99,21 @@ function getSupabaseConfig() {
   };
 }
 
-async function dbReset() {
+async function runSqlSeed() {
   const dbUrl = getDbUrl();
-  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR, '--yes'], {
+  await run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-seed', '--workdir', APP_DIR, '--yes'], {
     timeout: 180_000,
   });
+}
+
+async function dbReset() {
+  ensureDevEnv();
+  const dbUrl = getDbUrl();
+  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR, '--yes', '--no-seed'], {
+    timeout: 180_000,
+  });
+  await seedAureaDev();
+  await runSqlSeed();
 }
 
 async function dbMigrate() {
@@ -195,13 +205,13 @@ async function seedAureaDev() {
   const companyDocument = '00.000.000/0001-00';
 
   // Ler credenciais do .env.local
-  const systemAdminEmail = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@aurea.local';
+  const systemAdminEmail = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@aurea.com';
   const systemAdminPassword = process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Aurea123';
-  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@aurea.local';
+  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@aurea.com';
   const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'Aurea123';
-  const managerEmail = process.env.E2E_MANAGER_EMAIL || 'manager@aurea.local';
+  const managerEmail = process.env.E2E_MANAGER_EMAIL || 'manager@aurea.com';
   const managerPassword = process.env.E2E_MANAGER_PASSWORD || 'Aurea123';
-  const userEmail = process.env.E2E_USER_EMAIL || 'user@aurea.local';
+  const userEmail = process.env.E2E_USER_EMAIL || 'user@aurea.com';
   const userPassword = process.env.E2E_USER_PASSWORD || 'Aurea123';
 
   process.stdout.write('\n📝 Creating auth users...\n');

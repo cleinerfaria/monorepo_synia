@@ -91,16 +91,16 @@ BEGIN
   INSERT INTO public.professional 
     (company_id, code, name, profession_id, council_type, council_number, council_uf, phone, email, active)
   VALUES 
-    (v_company_id, 'E2E-PRO-001', 'Ana Silva', v_medico_id, 'CRM', '123456', 'RN', '(84) 99999-0001', 'ana.silva@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-002', 'Carlos Santos', v_enfermeiro_id, 'COREN', '654321', 'RN', '(84) 99999-0002', 'carlos.santos@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-003', 'Maria Oliveira', v_fisioterapeuta_id, 'CREFITO', '987654', 'RN', '(84) 99999-0003', 'maria.oliveira@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-001', 'Ana Maria Silva', v_medico_id, 'CRM', '123456', 'RN', '(84) 99999-0001', 'ana.silva@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-002', 'Carlos Alexandre Santos', v_enfermeiro_id, 'COREN', '654321', 'RN', '(84) 99999-0002', 'carlos.santos@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-003', 'Maria Silva Oliveira', v_fisioterapeuta_id, 'CREFITO', '987654', 'RN', '(84) 99999-0003', 'maria.oliveira@e2e.local', TRUE),
     -- Técnicos de Enfermagem
-    (v_company_id, 'E2E-PRO-004', 'Juliana Lima', v_tec_enfermagem_id, 'COREN', '111111', 'RN', '(84) 99999-0004', 'juliana.lima@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-005', 'Roberto Souza', v_tec_enfermagem_id, 'COREN', '222222', 'RN', '(84) 99999-0005', 'roberto.souza@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-006', 'Fernanda Costa', v_tec_enfermagem_id, 'COREN', '333333', 'RN', '(84) 99999-0006', 'fernanda.costa@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-007', 'Ricardo Alves', v_tec_enfermagem_id, 'COREN', '444444', 'RN', '(84) 99999-0007', 'ricardo.alves@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-008', 'Maria Costa', v_tec_enfermagem_id, 'COREN', '555555', 'RN', '(84) 99999-0008', 'maria.costa@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-009', 'Pedro Alves', v_tec_enfermagem_id, 'COREN', '666666', 'RN', '(84) 99999-0009', 'pedro.alves@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-004', 'Juliana Melo Lima', v_tec_enfermagem_id, 'COREN', '111111', 'RN', '(84) 99999-0004', 'juliana.lima@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-005', 'Roberto Carlos de Souza', v_tec_enfermagem_id, 'COREN', '222222', 'RN', '(84) 99999-0005', 'roberto.souza@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-006', 'Fernanda Silva da Costa', v_tec_enfermagem_id, 'COREN', '333333', 'RN', '(84) 99999-0006', 'fernanda.costa@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-007', 'Ricardo Emanuel Alves', v_tec_enfermagem_id, 'COREN', '444444', 'RN', '(84) 99999-0007', 'ricardo.alves@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-008', 'Maria de Fátima Costa e Silva', v_tec_enfermagem_id, 'COREN', '555555', 'RN', '(84) 99999-0008', 'maria.costa@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-009', 'Pedro Emanuel Lobo Alves', v_tec_enfermagem_id, 'COREN', '666666', 'RN', '(84) 99999-0009', 'pedro.alves@e2e.local', TRUE),
     (v_company_id, 'E2E-PRO-010', 'Rafaela Faria', v_tec_enfermagem_id, 'COREN', '777777', 'RN', '(84) 99999-0010', 'rafaela.faria@e2e.local', TRUE),
     (v_company_id, 'E2E-PRO-011', 'Helena Santos', v_tec_enfermagem_id, 'COREN', '888888', 'RN', '(84) 99999-0011', 'helena.santos@e2e.local', TRUE)
   ON CONFLICT (company_id, code) WHERE code IS NOT NULL DO NOTHING;
@@ -183,9 +183,9 @@ BEGIN
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 
-  RAISE NOTICE 'Dev seed data applied successfully!';
-  RAISE NOTICE 'Company ID: %', v_company_id;
-  RAISE NOTICE 'Inserted: 11 professionals, 3 patients, 10 medications, 1 system user + 3 app users';
+  RAISE NOTICE 'Aplicado seed para ambiente de desenvolvimento com sucesso!';
+  RAISE NOTICE 'Criado Company ID: %', v_company_id;
+  RAISE NOTICE 'Inserido: 11 profissionais, 3 pacientes, 10 medicamentos, 1 system user + 3 app users';
 
 EXCEPTION WHEN OTHERS THEN
   RAISE WARNING 'SEED FALHOU: % (SQLSTATE: %)', SQLERRM, SQLSTATE;

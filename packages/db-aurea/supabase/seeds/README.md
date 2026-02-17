@@ -4,8 +4,12 @@
 
 ```
 supabase/seeds/
-├── seed.sql            ← EXECUTADO AUTOMATICAMENTE (profissionais, pacientes, medicações, app users)
-├── app-users.sql       ← App Users + System User (vinculação manual)
+├── seed-01-professions.sql   ← Profissões
+├── seed-02-professionals.sql ← Profissionais
+├── seed-03-patients.sql      ← Pacientes
+├── seed-04-products.sql      ← Produtos/Medicações
+├── seed.sql                  ← LEGADO (não utilizado no fluxo atual)
+├── app-users.sql       ← OPCIONAL/MANUAL (backup de vínculo app_user/system_user)
 └── README.md
 ```
 
@@ -22,42 +26,45 @@ npm run db:reset:aurea
 - Administration Routes
 - Cria company (00.000.000/0001-00)
 
-### 2️⃣ Supabase Seed SQL (Automático)
+### 2️⃣ Supabase Seed SQL (Automático no comando de reset)
 
-Supabase executa automaticamente `supabase/seed.sql`:
+O script de reset executa `supabase db push --include-seed --yes` via `DB_URL` apos criar os auth users:
+- `supabase/seeds/seed-01-professions.sql`
+- `supabase/seeds/seed-02-professionals.sql`
+- `supabase/seeds/seed-03-patients.sql`
+- `supabase/seeds/seed-04-products.sql`
 
 - 3 Profissionais
 - 3 Pacientes
 - 10 Medicações
-- 1 System User (se auth user existir)
-- 3 App Users (se auth users existirem)
+- App users/system user podem ser vinculados depois pelo fluxo Node de dev
 
-### 3️⃣ Auth Users (Manual)
+### 3️⃣ Auth Users + Vinculação App User (Automático no reset)
 
 ```bash
-npm run db:seed:dev:aurea
+npm run db:reset:aurea
 ```
 
 **Fluxo:**
 
-1. **scripts/lib.cjs** → Cria auth users via API Supabase
+1. **scripts/lib.cjs (seedAureaDev)** → Cria auth users via API Supabase
    - superadmin@aurea.com (system admin)
    - admin@aurea.com
    - manager@aurea.com
    - user@aurea.com
 
-2. **supabase/seed.sql** → Detecta auth users e cria app_user + system_user
-   - Insere system_user (1x) se API criou superadmin
-   - Insere app_user (3x) se API criou usuários
+2. **scripts/lib.cjs (seedAureaDev)** → Cria/atualiza `system_user` e `app_user` via REST
+   - Insere/upsert de system_user
+   - Insere/upsert de app_user
 
 ## ✅ Responsabilidades
 
 | Etapa                              | Arquivo           | Tipo        | Gatilho                    |
 | ---------------------------------- | ----------------- | ----------- | -------------------------- |
 | Schema                             | migration         | SQL         | Auto (db reset)            |
-| Profissionais/Pacientes/Medicações | supabase/seed.sql | SQL         | Auto (db reset → Supabase) |
-| System User + App Users            | supabase/seed.sql | SQL         | Auto (db reset → Supabase) |
-| Auth Users                         | scripts/lib.cjs   | Node.js/API | Manual (db:seed:dev)       |
+| Profissionais/Pacientes/Medicações | supabase/seeds/seed-01..04.sql | SQL         | Auto (db:reset script -> db push --include-seed) |
+| Auth Users                         | scripts/lib.cjs   | Node.js/API | Auto (chamado pelo db:reset) |
+| System User + App Users            | scripts/lib.cjs   | Node.js/API | Auto (chamado pelo db:reset) |
 
 ## 📊 Dados Inseridos
 
@@ -95,10 +102,9 @@ npm run setup -- aurea
 
 # Internamente executa:
 # 1. npm run db:reset:aurea
-#    → migrations + supabase/seed.sql (tudo automático)
-# 2. npm run db:seed:dev:aurea
-#    → cria auth users via API
-#    → supabase/seed.sql detecta e cria system_user + app_users
+#    → reset sem seed
+#    → cria auth users + cria/atualiza system_user e app_user
+#    → executa supabase/seeds/seed-01..04.sql
 ```
 
 ## 📝 Notas Importantes
@@ -109,11 +115,10 @@ npm run setup -- aurea
 - Documenta a estrutura esperada
 - Use para entender o fluxo
 
-### `app-users.sql` é BACKUP
+### `app-users.sql` é opcional (manual/backup)
 
-- Pode ser executado manualmente com `psql` se necessário
-- Normalmente desnecessário (tudo já está em `supabase/seed.sql`)
-- Mantido para compatibilidade
+- Não é executado automaticamente no reset
+- Pode ser executado manualmente com `psql` em cenários de manutenção
 
 ### Ambiente Supabase
 
