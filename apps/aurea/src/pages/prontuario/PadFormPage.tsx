@@ -121,12 +121,18 @@ const PAD_ITEM_TYPE_LABEL: Record<PadItemType, string> = {
   session: 'Sessão',
 };
 
-const PAD_ITEM_FREQUENCY_LABEL: Record<PadItemFrequency, string> = {
-  weekly: 'Semanal',
-  biweekly: 'Quinzenal',
-  monthly: 'Mensal',
-  bimonthly: 'Bimestral',
-  quarterly: 'Trimestral',
+const PAD_ITEM_FREQUENCY_PERIOD_LABEL: Record<PadItemFrequency, string> = {
+  weekly: 'semana',
+  biweekly: 'quinzena',
+  monthly: 'mês',
+  bimonthly: 'bimestre',
+  quarterly: 'trimestre',
+};
+
+const PAD_ITEM_TYPE_BADGE_VARIANT: Record<PadItemType, 'info' | 'neutral' | 'success'> = {
+  shift: 'info',
+  visit: 'neutral',
+  session: 'success',
 };
 
 const DEFAULT_PAD_ITEM_FORM: PadItemFormData = {
@@ -182,108 +188,96 @@ export default function PadFormPage() {
     [professions]
   );
 
-  const companyUnitOptions = useMemo(
-    () => {
-      const activeOptions = (companyUnits as CompanyUnitOptionSource[])
-        .filter((companyUnit) => companyUnit.is_active !== false)
-        .map((companyUnit) => ({
-          value: companyUnit.id,
-          label: companyUnit.trade_name
-            ? `${companyUnit.name} (${companyUnit.trade_name})`
-            : companyUnit.name,
-        }));
+  const companyUnitOptions = useMemo(() => {
+    const activeOptions = (companyUnits as CompanyUnitOptionSource[])
+      .filter((companyUnit) => companyUnit.is_active !== false)
+      .map((companyUnit) => ({
+        value: companyUnit.id,
+        label: companyUnit.trade_name
+          ? `${companyUnit.name} (${companyUnit.trade_name})`
+          : companyUnit.name,
+      }));
 
-      if (!isEditing || !demand?.company_unit_id) {
-        return activeOptions;
-      }
+    if (!isEditing || !demand?.company_unit_id) {
+      return activeOptions;
+    }
 
-      if (activeOptions.some((option) => option.value === demand.company_unit_id)) {
-        return activeOptions;
-      }
+    if (activeOptions.some((option) => option.value === demand.company_unit_id)) {
+      return activeOptions;
+    }
 
-      const selectedCompanyUnit = (companyUnits as CompanyUnitOptionSource[]).find(
-        (companyUnit) => companyUnit.id === demand.company_unit_id
-      );
+    const selectedCompanyUnit = (companyUnits as CompanyUnitOptionSource[]).find(
+      (companyUnit) => companyUnit.id === demand.company_unit_id
+    );
 
-      if (!selectedCompanyUnit) {
-        return activeOptions;
-      }
+    if (!selectedCompanyUnit) {
+      return activeOptions;
+    }
 
-      return [
-        {
-          value: selectedCompanyUnit.id,
-          label: selectedCompanyUnit.trade_name
-            ? `${selectedCompanyUnit.name} (${selectedCompanyUnit.trade_name})`
-            : selectedCompanyUnit.name,
-        },
-        ...activeOptions,
-      ];
-    },
-    [companyUnits, isEditing, demand]
-  );
+    return [
+      {
+        value: selectedCompanyUnit.id,
+        label: selectedCompanyUnit.trade_name
+          ? `${selectedCompanyUnit.name} (${selectedCompanyUnit.trade_name})`
+          : selectedCompanyUnit.name,
+      },
+      ...activeOptions,
+    ];
+  }, [companyUnits, isEditing, demand]);
 
-  const professionalOptions = useMemo(
-    () => {
-      const activeOptions = (professionals as ProfessionalOptionSource[])
-        .filter((professional) => professional.active !== false)
-        .map((professional) => ({
-          value: professional.id,
-          label: professional.name,
-        }));
+  const professionalOptions = useMemo(() => {
+    const activeOptions = (professionals as ProfessionalOptionSource[])
+      .filter((professional) => professional.active !== false)
+      .map((professional) => ({
+        value: professional.id,
+        label: professional.name,
+      }));
 
-      if (!isEditing || !demand?.professional_id) {
-        return activeOptions;
-      }
+    if (!isEditing || !demand?.professional_id) {
+      return activeOptions;
+    }
 
-      if (activeOptions.some((option) => option.value === demand.professional_id)) {
-        return activeOptions;
-      }
+    if (activeOptions.some((option) => option.value === demand.professional_id)) {
+      return activeOptions;
+    }
 
-      const selectedProfessional = (professionals as ProfessionalOptionSource[]).find(
-        (professional) => professional.id === demand.professional_id
-      );
+    const selectedProfessional = (professionals as ProfessionalOptionSource[]).find(
+      (professional) => professional.id === demand.professional_id
+    );
 
-      if (!selectedProfessional) {
-        return activeOptions;
-      }
+    if (!selectedProfessional) {
+      return activeOptions;
+    }
 
-      return [
-        { value: selectedProfessional.id, label: selectedProfessional.name },
-        ...activeOptions,
-      ];
-    },
-    [professionals, isEditing, demand]
-  );
+    return [{ value: selectedProfessional.id, label: selectedProfessional.name }, ...activeOptions];
+  }, [professionals, isEditing, demand]);
 
-  const padServiceOptions = useMemo(
-    () => {
-      const activeOptions = (padServices as PadServiceOptionSource[])
-        .filter((padService) => padService.active !== false)
-        .map((padService) => ({
-          value: padService.id,
-          label: padService.name,
-        }));
+  const padServiceOptions = useMemo(() => {
+    const activeOptions = (padServices as PadServiceOptionSource[])
+      .filter((padService) => padService.active !== false)
+      .map((padService) => ({
+        value: padService.id,
+        label: padService.name,
+      }));
 
-      if (!isEditing || !demand?.pad_service_id) {
-        return activeOptions;
-      }
+    if (!isEditing || !demand?.pad_service_id) {
+      return activeOptions;
+    }
 
-      if (activeOptions.some((option) => option.value === demand.pad_service_id)) {
-        return activeOptions;
-      }
+    if (activeOptions.some((option) => option.value === demand.pad_service_id)) {
+      return activeOptions;
+    }
 
-      const selectedPadService = (padServices as PadServiceOptionSource[]).find(
-        (padService) => padService.id === demand.pad_service_id
-      );
+    const selectedPadService = (padServices as PadServiceOptionSource[]).find(
+      (padService) => padService.id === demand.pad_service_id
+    );
 
-      if (!selectedPadService) {
-        return activeOptions;
-      }
+    if (!selectedPadService) {
+      return activeOptions;
+    }
 
-      return [{ value: selectedPadService.id, label: selectedPadService.name }, ...activeOptions];
-    },
-    [padServices, isEditing, demand]
-  );
+    return [{ value: selectedPadService.id, label: selectedPadService.name }, ...activeOptions];
+  }, [padServices, isEditing, demand]);
 
   const {
     register,
@@ -383,26 +377,34 @@ export default function PadFormPage() {
     return match ? match[1] : '';
   };
 
+  const getDateFromTimestamp = (value: string | null | undefined): string => {
+    if (!value) return '';
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})T/);
+    return match ? match[1] : '';
+  };
+
   useEffect(() => {
     if (isEditing && demand) {
       const startTime = demand.start_time.slice(0, 5);
       const startTimeFromTimestamp = getTimeFromTimestamp(demand.start_at);
       const endTimeFromTimestamp = getTimeFromTimestamp(demand.end_at);
+      const endDateFromTimestamp = getDateFromTimestamp(demand.end_at);
+      const enforcedCompanyUnitId = company?.company_unit_id || '';
 
       reset({
         patient_id: demand.patient_id,
         patient_payer_id: demand.patient_payer_id || '',
-        company_unit_id: demand.company_unit_id || '',
+        company_unit_id: enforcedCompanyUnitId,
         professional_id: demand.professional_id || '',
         pad_service_id: demand.pad_service_id || '',
         start_date: demand.start_date,
-        end_date: demand.end_date || demand.start_date,
+        end_date: demand.end_date || endDateFromTimestamp || '',
         start_time: startTimeFromTimestamp || startTime,
-        end_time: endTimeFromTimestamp || startTime,
+        end_time: endTimeFromTimestamp || '',
         notes: demand.notes || '',
       });
     }
-  }, [isEditing, demand, reset]);
+  }, [isEditing, demand, reset, company?.company_unit_id]);
 
   useEffect(() => {
     if (!patientIdValue) {
@@ -426,6 +428,21 @@ export default function PadFormPage() {
   }, [patientIdValue, patientPayerOptions, patientPayerIdValue, setValue]);
 
   useEffect(() => {
+    const enforcedCompanyUnitId = company?.company_unit_id;
+
+    if (enforcedCompanyUnitId) {
+      if (companyUnitIdValue !== enforcedCompanyUnitId) {
+        setValue('company_unit_id', enforcedCompanyUnitId, { shouldDirty: false });
+      }
+      return;
+    }
+
+    if (companyUnitOptions.length === 1 && companyUnitOptions[0].value !== companyUnitIdValue) {
+      setValue('company_unit_id', companyUnitOptions[0].value, { shouldDirty: false });
+    }
+  }, [company?.company_unit_id, companyUnitOptions, companyUnitIdValue, setValue]);
+
+  useEffect(() => {
     setGlobalUnsavedChanges(isDirty);
     return () => {
       setGlobalUnsavedChanges(false);
@@ -445,20 +462,23 @@ export default function PadFormPage() {
 
   const onSubmit = async (data: PadFormData) => {
     const startAt = `${data.start_date}T${data.start_time}:00`;
-    const endAt = `${data.end_date}T${data.end_time}:00`;
+    const endDate = data.end_date?.trim() || null;
+    const endTime = data.end_time?.trim() || null;
+    const endAt = endDate && endTime ? `${endDate}T${endTime}:00` : null;
+    const companyUnitId = company?.company_unit_id || data.company_unit_id;
 
     const demandData: CreateDemandData = {
       patient_id: data.patient_id,
       patient_payer_id: data.patient_payer_id,
-      company_unit_id: data.company_unit_id,
+      company_unit_id: companyUnitId,
       professional_id: data.professional_id,
       pad_service_id: data.pad_service_id,
       start_date: data.start_date,
-      end_date: data.end_date,
+      end_date: endDate,
       start_time: data.start_time,
       start_at: startAt,
       end_at: endAt,
-      notes: data.notes || null,
+      notes: data.notes?.trim() ? data.notes : null,
     };
 
     try {
@@ -467,13 +487,13 @@ export default function PadFormPage() {
         reset({
           patient_id: data.patient_id,
           patient_payer_id: data.patient_payer_id,
-          company_unit_id: data.company_unit_id,
+          company_unit_id: companyUnitId,
           professional_id: data.professional_id,
           pad_service_id: data.pad_service_id,
           start_date: data.start_date,
-          end_date: data.end_date,
+          end_date: data.end_date || '',
           start_time: data.start_time,
-          end_time: data.end_time,
+          end_time: data.end_time || '',
           notes: data.notes || '',
         });
       } else {
@@ -667,8 +687,14 @@ export default function PadFormPage() {
       return `${hoursPerDay}h por dia - plantões de ${shiftDuration}h`;
     }
 
-    const frequencyLabel = item.frequency ? PAD_ITEM_FREQUENCY_LABEL[item.frequency] : '-';
-    return `${frequencyLabel} - quantidade ${item.quantity ?? 0}`;
+    return '-';
+  };
+
+  const getPadItemFrequencyDescription = (item: PadItemWithProfession) => {
+    if (!item.frequency || !item.quantity) return '-';
+
+    const periodLabel = PAD_ITEM_FREQUENCY_PERIOD_LABEL[item.frequency];
+    return `${item.quantity} x por ${periodLabel}`;
   };
 
   const breadcrumbItems = [
@@ -720,151 +746,180 @@ export default function PadFormPage() {
 
       <Card>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <Select
-            label="Paciente"
-            options={patientOptions}
-            value={patientIdValue}
-            {...register('patient_id', { required: 'Paciente é obrigatório' })}
-            error={errors.patient_id?.message}
-            required
-            disabled={isEditing}
-          />
+          <div className="grid-cols-24 grid gap-4">
+            <div className="col-span-24 lg:col-span-12">
+              <Select
+                label="Paciente"
+                options={patientOptions}
+                value={patientIdValue}
+                {...register('patient_id', { required: 'Paciente é obrigatório' })}
+                error={errors.patient_id?.message}
+                required
+                disabled={isEditing}
+              />
+            </div>
 
-          <Select
-            label="Fonte Pagadora"
-            options={patientPayerOptions}
-            value={patientPayerIdValue}
-            {...register('patient_payer_id', { required: 'Fonte pagadora é obrigatória' })}
-            error={errors.patient_payer_id?.message}
-            required
-            disabled={!patientIdValue || patientPayerOptions.length === 1}
-          />
+            <div className="col-span-24 sm:col-span-12 lg:col-span-6">
+              <Select
+                label="Fonte Pagadora"
+                options={patientPayerOptions}
+                value={patientPayerIdValue}
+                {...register('patient_payer_id', { required: 'Fonte pagadora é obrigatória' })}
+                error={errors.patient_payer_id?.message}
+                required
+                disabled={!patientIdValue || patientPayerOptions.length === 1}
+              />
+            </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Select
-              label="Unidade"
-              options={companyUnitOptions}
-              value={companyUnitIdValue}
-              {...register('company_unit_id', { required: 'Unidade é obrigatória' })}
-              error={errors.company_unit_id?.message}
-              required
-            />
-
-            <Select
-              label="Profissional Responsável"
-              options={professionalOptions}
-              value={professionalIdValue}
-              {...register('professional_id', { required: 'Profissional responsável é obrigatório' })}
-              error={errors.professional_id?.message}
-              required
-            />
-
-            <Select
-              label="Tipo de Assistência"
-              options={padServiceOptions}
-              value={padServiceIdValue}
-              {...register('pad_service_id', { required: 'Tipo de assistência é obrigatório' })}
-              error={errors.pad_service_id?.message}
-              required
-            />
+            <div className="col-span-24 sm:col-span-12 lg:col-span-6">
+              <Select
+                label="Unidade"
+                options={companyUnitOptions}
+                value={companyUnitIdValue}
+                {...register('company_unit_id', { required: 'Unidade é obrigatória' })}
+                error={errors.company_unit_id?.message}
+                required
+                disabled={Boolean(company?.company_unit_id)}
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            {(() => {
-              const { onChange, onBlur, name } = register('start_date', {
-                required: 'Data inicial é obrigatória',
-              });
-              return (
-                <DatePicker
-                  label="Data Inicial"
-                  placeholder="Selecione"
-                  value={startDateValue}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  name={name}
-                  error={errors.start_date?.message}
-                  required
-                />
-              );
-            })()}
+          <div className="grid-cols-24 grid gap-4">
+            <div className="col-span-24 lg:col-span-6">
+              <Select
+                label="Profissional Responsável"
+                options={professionalOptions}
+                value={professionalIdValue}
+                {...register('professional_id', {
+                  required: 'Profissional responsável é obrigatório',
+                })}
+                error={errors.professional_id?.message}
+                required
+              />
+            </div>
 
-            {(() => {
-              const { onChange, onBlur, name } = register('start_time', {
-                required: 'Horário inicial é obrigatório',
-              });
-              return (
-                <TimePicker
-                  label="Hora Inicial"
-                  placeholder="--:--"
-                  value={startTimeValue}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  name={name}
-                  error={errors.start_time?.message}
-                  required
-                />
-              );
-            })()}
+            <div className="col-span-24 lg:col-span-6">
+              <Select
+                label="Tipo de Assistência"
+                options={padServiceOptions}
+                value={padServiceIdValue}
+                {...register('pad_service_id', { required: 'Tipo de assistência é obrigatório' })}
+                error={errors.pad_service_id?.message}
+                required
+              />
+            </div>
 
-            {(() => {
-              const { onChange, onBlur, name } = register('end_date', {
-                required: 'Data final é obrigatória',
-                validate: (value) => {
-                  const start = watch('start_date');
-                  if (start && value < start) return 'Data final deve ser após a data inicial';
-                  return true;
-                },
-              });
-              return (
-                <DatePicker
-                  label="Data Final"
-                  placeholder="Selecione"
-                  value={endDateValue}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  name={name}
-                  error={errors.end_date?.message}
-                  required
-                />
-              );
-            })()}
+            <div className="col-span-12 lg:col-span-3">
+              {(() => {
+                const { onChange, onBlur, name } = register('start_date', {
+                  required: 'Data inicial é obrigatória',
+                });
+                return (
+                  <DatePicker
+                    label="Data Inicial"
+                    placeholder="Selecione"
+                    value={startDateValue}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    name={name}
+                    error={errors.start_date?.message}
+                    displayMode="compact"
+                    required
+                  />
+                );
+              })()}
+            </div>
 
-            {(() => {
-              const { onChange, onBlur, name } = register('end_time', {
-                required: 'Horário final é obrigatório',
-                validate: (value) => {
-                  const startDate = watch('start_date');
-                  const endDate = watch('end_date');
-                  const startTime = watch('start_time');
+            <div className="col-span-12 lg:col-span-3">
+              {(() => {
+                const { onChange, onBlur, name } = register('start_time', {
+                  required: 'Horário inicial é obrigatório',
+                });
+                return (
+                  <TimePicker
+                    label="Hora Inicial"
+                    placeholder="--:--"
+                    value={startTimeValue}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    name={name}
+                    error={errors.start_time?.message}
+                    required
+                  />
+                );
+              })()}
+            </div>
 
-                  if (!startDate || !endDate || !startTime || !value) return true;
-                  if (startDate === endDate && value <= startTime) {
-                    return 'Horário final deve ser maior que o inicial';
-                  }
-                  return true;
-                },
-              });
-              return (
-                <TimePicker
-                  label="Hora Final"
-                  placeholder="--:--"
-                  value={endTimeValue}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  name={name}
-                  error={errors.end_time?.message}
-                  required
-                />
-              );
-            })()}
+            <div className="col-span-12 lg:col-span-3">
+              {(() => {
+                const { onChange, onBlur, name } = register('end_date', {
+                  validate: (value) => {
+                    if (!value) return true;
+
+                    const start = watch('start_date');
+                    if (start && value < start) return 'Data final deve ser após a data inicial';
+                    return true;
+                  },
+                });
+                return (
+                  <DatePicker
+                    label="Data Final"
+                    placeholder="Selecione"
+                    value={endDateValue}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    name={name}
+                    error={errors.end_date?.message}
+                    displayMode="compact"
+                  />
+                );
+              })()}
+            </div>
+
+            <div className="col-span-12 lg:col-span-3">
+              {(() => {
+                const { onChange, onBlur, name } = register('end_time', {
+                  validate: (value) => {
+                    if (!value) return true;
+
+                    const startDate = watch('start_date');
+                    const endDate = watch('end_date');
+                    const startTime = watch('start_time');
+
+                    if (!endDate) return 'Selecione a data final para informar a hora final';
+                    if (!startDate || !startTime) return true;
+
+                    if (startDate === endDate && value <= startTime) {
+                      return 'Horário final deve ser maior que o inicial';
+                    }
+                    return true;
+                  },
+                });
+                return (
+                  <TimePicker
+                    label="Hora Final"
+                    placeholder="--:--"
+                    value={endTimeValue}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    name={name}
+                    error={errors.end_time?.message}
+                  />
+                );
+              })()}
+            </div>
           </div>
 
-          <Textarea
-            label="Observações"
-            placeholder="Observações opcionais sobre este PAD..."
-            {...register('notes')}
-            rows={3}
-          />
+          <div className="grid-cols-24 grid gap-4">
+            <div className="col-span-24">
+              <Textarea
+                label="Observações"
+                placeholder="Observações opcionais sobre este PAD..."
+                {...register('notes')}
+                rows={3}
+              />
+            </div>
+          </div>
         </form>
       </Card>
 
@@ -907,48 +962,71 @@ export default function PadFormPage() {
           )}
 
           {currentPadId && !isLoadingPadItems && padItems.length > 0 && (
-            <div className="space-y-3">
-              {padItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700"
-                >
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="info">{PAD_ITEM_TYPE_LABEL[item.type]}</Badge>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {item.profession?.name || 'Profissão não encontrada'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+              <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">
+                      Unidade
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">
+                      Profissão
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">
+                      Detalhes
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">
+                      Frequência
+                    </th>
+                    <th className="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {padItems.map((item) => (
+                    <tr key={item.id} className="bg-white dark:bg-gray-900">
+                      <td className="px-4 py-3 align-middle">
+                        <Badge variant={PAD_ITEM_TYPE_BADGE_VARIANT[item.type]}>
+                          {PAD_ITEM_TYPE_LABEL[item.type]}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 align-middle text-gray-900 dark:text-gray-100">
+                        {item.profession?.name || 'Profissão não encontrada'}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-gray-600 dark:text-gray-300">
                         {getPadItemDescription(item)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        icon={<Pencil className="h-4 w-4" />}
-                        showIcon
-                        label="Editar"
-                        onClick={() => handleOpenEditPadItem(item)}
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="danger"
-                        icon={<Trash2 className="h-4 w-4" />}
-                        showIcon
-                        label="Remover"
-                        onClick={() => handleDeletePadItem(item)}
-                        disabled={deletePadItem.isPending}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-gray-600 dark:text-gray-300">
+                        {getPadItemFrequencyDescription(item)}
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            icon={<Pencil className="h-4 w-4" />}
+                            showIcon
+                            label="Editar"
+                            onClick={() => handleOpenEditPadItem(item)}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="danger"
+                            icon={<Trash2 className="h-4 w-4" />}
+                            showIcon
+                            label="Remover"
+                            onClick={() => handleDeletePadItem(item)}
+                            disabled={deletePadItem.isPending}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -1048,4 +1126,3 @@ export default function PadFormPage() {
     </div>
   );
 }
-

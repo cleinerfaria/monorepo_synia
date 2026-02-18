@@ -19,7 +19,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Building, SwatchBook, Landmark, Layers, Plus, Pencil } from 'lucide-react';
+import { Building, SwatchBook, Landmark, Layers, Plus, Pencil, Stethoscope } from 'lucide-react';
 import {
   type CompanyUnit,
   type CompanyUnitType,
@@ -27,8 +27,15 @@ import {
   useCreateCompanyUnit,
   useUpdateCompanyUnit,
 } from '@/hooks/useCompanyUnits';
+import {
+  type PadService,
+  useCreatePadService,
+  usePadServices,
+  useTogglePadServiceStatus,
+  useUpdatePadService,
+} from '@/hooks/usePadServices';
 
-type ActiveTab = 'company' | 'fiscal' | 'parent' | 'theme';
+type ActiveTab = 'company' | 'fiscal' | 'organization' | 'services' | 'theme';
 
 interface CompanyFormData {
   name: string;
@@ -63,6 +70,14 @@ interface CompanyUnitFormData {
   is_active: boolean;
 }
 
+interface PadServiceFormData {
+  code: string;
+  name: string;
+  description: string;
+  sort_order: number;
+  active: boolean;
+}
+
 const emptyUnitForm: CompanyUnitFormData = {
   name: '',
   trade_name: '',
@@ -76,6 +91,14 @@ const emptyUnitForm: CompanyUnitFormData = {
   complement: '',
   unit_type: 'filial',
   is_active: true,
+};
+
+const emptyPadServiceForm: PadServiceFormData = {
+  code: '',
+  name: '',
+  description: '',
+  sort_order: 0,
+  active: true,
 };
 
 const UNIT_TYPE_OPTIONS: Array<{ value: CompanyUnitType; label: string }> = [
@@ -96,6 +119,8 @@ export default function SettingsPage() {
   const [isUploadingExpanded, setIsUploadingExpanded] = useState(false);
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<CompanyUnit | null>(null);
+  const [isPadServiceModalOpen, setIsPadServiceModalOpen] = useState(false);
+  const [editingPadService, setEditingPadService] = useState<PadService | null>(null);
   const fileInputCollapsedRef = useRef<HTMLInputElement>(null);
   const fileInputExpandedRef = useRef<HTMLInputElement>(null);
 
@@ -110,8 +135,12 @@ export default function SettingsPage() {
   const queryClient = useQueryClient();
 
   const { data: units = [], isLoading: isLoadingUnits } = useCompanyUnits();
+  const { data: padServices = [], isLoading: isLoadingPadServices } = usePadServices(true);
   const createUnit = useCreateCompanyUnit();
   const updateUnit = useUpdateCompanyUnit();
+  const createPadService = useCreatePadService();
+  const updatePadService = useUpdatePadService();
+  const togglePadServiceStatus = useTogglePadServiceStatus();
 
   const companyForm = useForm<CompanyFormData>({
     defaultValues: {
@@ -138,15 +167,22 @@ export default function SettingsPage() {
   const unitForm = useForm<CompanyUnitFormData>({
     defaultValues: emptyUnitForm,
   });
+  const padServiceForm = useForm<PadServiceFormData>({
+    defaultValues: emptyPadServiceForm,
+  });
 
   const linkedUnit = useMemo<CompanyUnit | undefined>(
     () => units.find((unit) => unit.id === company?.company_unit_id),
     [units, company?.company_unit_id]
   );
 
-  const hasMatrizUnit = useMemo(
-    () => units.some((unit) => unit.unit_type === 'matriz'),
-    [units]
+  const hasMatrizUnit = useMemo(() => units.some((unit) => unit.unit_type === 'matriz'), [units]);
+  const nextPadServiceSortOrder = useMemo(
+    () =>
+      padServices.length > 0
+        ? Math.max(...padServices.map((service) => service.sort_order)) + 1
+        : 1,
+    [padServices]
   );
 
   useEffect(() => {
@@ -169,9 +205,7 @@ export default function SettingsPage() {
       cnae: company.cnae || '',
       cnes: company.cnes || '',
     });
-
   }, [company, companyForm, fiscalForm]);
-
 
   const updateCompany = useMutation({
     mutationFn: async (updates: Record<string, any>) => {
@@ -279,6 +313,71 @@ export default function SettingsPage() {
     const created = await createUnit.mutateAsync(payload);
     updateCompany.mutate({ company_unit_id: created.id });
     handleCloseUnitModal();
+  };
+
+  const handleOpenCreatePadServiceModal = () => {
+    setEditingPadService(null);
+    padServiceForm.reset({
+      ...emptyPadServiceForm,
+      sort_order: nextPadServiceSortOrder,
+    });
+    setIsPadServiceModalOpen(true);
+  };
+
+  const handleOpenEditPadServiceModal = (service: PadService) => {
+    setEditingPadService(service);
+    padServiceForm.reset({
+      code: service.code || '',
+      name: service.name || '',
+      description: service.description || '',
+      sort_order: service.sort_order ?? 0,
+      active: service.active ?? true,
+    });
+    setIsPadServiceModalOpen(true);
+  };
+
+  const handleClosePadServiceModal = () => {
+    setIsPadServiceModalOpen(false);
+    setEditingPadService(null);
+    padServiceForm.reset({
+      ...emptyPadServiceForm,
+      sort_order: nextPadServiceSortOrder,
+    });
+  };
+
+  const handlePadServiceSubmit = async (data: PadServiceFormData) => {
+    const payload = {
+      code: data.code.trim(),
+      name: data.name.trim(),
+      description: data.description,
+      sort_order: data.sort_order,
+      active: data.active,
+    };
+
+    try {
+      if (editingPadService) {
+        await updatePadService.mutateAsync({
+          id: editingPadService.id,
+          ...payload,
+        });
+      } else {
+        await createPadService.mutateAsync(payload);
+      }
+      handleClosePadServiceModal();
+    } catch {
+      // Toast handled in hook
+    }
+  };
+
+  const handleTogglePadService = async (service: PadService) => {
+    try {
+      await togglePadServiceStatus.mutateAsync({
+        id: service.id,
+        active: !service.active,
+      });
+    } catch {
+      // Toast handled in hook
+    }
   };
 
   // Upload logo collapsed (quadrada)
@@ -394,7 +493,8 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'company' as const, name: 'Empresa', icon: Building },
     { id: 'fiscal' as const, name: 'Fiscal', icon: Landmark },
-    { id: 'parent' as const, name: 'Organização', icon: Layers },
+    { id: 'organization' as const, name: 'Organização', icon: Layers },
+    { id: 'services' as const, name: 'Serviços PAD', icon: Stethoscope },
     { id: 'theme' as const, name: 'Aparência', icon: SwatchBook },
   ];
 
@@ -408,10 +508,20 @@ export default function SettingsPage() {
     { name: 'Teal', value: '#56A6B4' },
   ];
 
-  const { name: unitActiveName, ref: unitActiveRef, onBlur: unitActiveOnBlur } =
-    unitForm.register('is_active');
+  const {
+    name: unitActiveName,
+    ref: unitActiveRef,
+    onBlur: unitActiveOnBlur,
+  } = unitForm.register('is_active');
+  const {
+    name: serviceActiveName,
+    ref: serviceActiveRef,
+    onBlur: serviceActiveOnBlur,
+  } = padServiceForm.register('active');
   const unitIsActive = unitForm.watch('is_active');
+  const serviceIsActive = padServiceForm.watch('active');
   const unitTypeValue = unitForm.watch('unit_type');
+  const isPadServiceSaving = createPadService.isPending || updatePadService.isPending;
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -607,8 +717,8 @@ export default function SettingsPage() {
         </Card>
       )}
 
-      {/* Parent Tab */}
-      {activeTab === 'parent' && (
+      {/* Organization Tab */}
+      {activeTab === 'organization' && (
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -656,9 +766,13 @@ export default function SettingsPage() {
                         <CardHeader>
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <CardTitle className="text-base">{unit.trade_name || unit.name}</CardTitle>
+                              <CardTitle className="text-base">
+                                {unit.trade_name || unit.name}
+                              </CardTitle>
                               {unit.trade_name && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{unit.name}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  {unit.name}
+                                </p>
                               )}
                             </div>
                             <Badge variant={unit.unit_type === 'matriz' ? 'info' : 'neutral'}>
@@ -705,6 +819,96 @@ export default function SettingsPage() {
                       </Card>
                     );
                   })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* PAD Services Tab */}
+      {activeTab === 'services' && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle>Serviços do PAD</CardTitle>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Cadastre os tipos gerais de assistência usados na criação do PAD.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="solid"
+                  icon={<Plus className="h-4 w-4" />}
+                  onClick={handleOpenCreatePadServiceModal}
+                >
+                  Adicionar Serviço
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingPadServices && (
+                <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                  Carregando serviços...
+                </div>
+              )}
+
+              {!isLoadingPadServices && padServices.length === 0 && (
+                <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                  Nenhum serviço cadastrado. Clique em "Adicionar Serviço" para começar.
+                </div>
+              )}
+
+              {!isLoadingPadServices && padServices.length > 0 && (
+                <div className="space-y-3">
+                  {padServices.map((service) => (
+                    <div
+                      key={service.id}
+                      className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                            {service.name}
+                          </p>
+                          <Badge variant={service.active ? 'success' : 'neutral'}>
+                            {service.active ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Código: {service.code} • Ordem: {service.sort_order}
+                        </p>
+                        {service.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            {service.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          icon={<Pencil className="h-4 w-4" />}
+                          onClick={() => handleOpenEditPadServiceModal(service)}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={service.active ? 'neutral' : 'solid'}
+                          onClick={() => handleTogglePadService(service)}
+                          isLoading={togglePadServiceStatus.isPending}
+                        >
+                          {service.active ? 'Inativar' : 'Ativar'}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
@@ -830,7 +1034,9 @@ export default function SettingsPage() {
               ref={unitActiveRef}
               onBlur={unitActiveOnBlur}
               checked={!!unitIsActive}
-              onChange={(e) => unitForm.setValue('is_active', e.target.checked, { shouldDirty: true })}
+              onChange={(e) =>
+                unitForm.setValue('is_active', e.target.checked, { shouldDirty: true })
+              }
             />
             <Badge variant={unitTypeValue === 'matriz' ? 'info' : 'neutral'}>
               {UNIT_TYPE_LABEL[unitTypeValue || 'filial']}
@@ -847,6 +1053,83 @@ export default function SettingsPage() {
               isLoading={createUnit.isPending || updateUnit.isPending}
             >
               {editingUnit ? 'Salvar Unidade' : 'Adicionar Unidade'}
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={isPadServiceModalOpen}
+        onClose={handleClosePadServiceModal}
+        title={editingPadService ? 'Editar Serviço PAD' : 'Adicionar Serviço PAD'}
+        size="lg"
+      >
+        <form onSubmit={padServiceForm.handleSubmit(handlePadServiceSubmit)} className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input
+              label="Código"
+              placeholder="internacao_domiciliar"
+              {...padServiceForm.register('code', {
+                required: 'Código é obrigatório',
+                validate: (value) => value.trim().length > 0 || 'Código é obrigatório',
+              })}
+              error={padServiceForm.formState.errors.code?.message}
+              required
+            />
+            <Input
+              label="Nome"
+              placeholder="Internação Domiciliar"
+              {...padServiceForm.register('name', {
+                required: 'Nome é obrigatório',
+                validate: (value) => value.trim().length > 0 || 'Nome é obrigatório',
+              })}
+              error={padServiceForm.formState.errors.name?.message}
+              required
+            />
+          </div>
+
+          <Input label="Descrição" {...padServiceForm.register('description')} />
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input
+              label="Ordem"
+              type="number"
+              min={0}
+              {...padServiceForm.register('sort_order', {
+                required: 'Ordem é obrigatória',
+                valueAsNumber: true,
+                min: { value: 0, message: 'Ordem deve ser maior ou igual a zero' },
+              })}
+              error={padServiceForm.formState.errors.sort_order?.message}
+              required
+            />
+
+            <div className="flex items-end">
+              <Switch
+                label="Status do Serviço"
+                showStatus
+                name={serviceActiveName}
+                ref={serviceActiveRef}
+                onBlur={serviceActiveOnBlur}
+                checked={!!serviceIsActive}
+                onChange={(event) =>
+                  padServiceForm.setValue('active', event.target.checked, { shouldDirty: true })
+                }
+              />
+            </div>
+          </div>
+
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="outline"
+              showIcon={false}
+              onClick={handleClosePadServiceModal}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" showIcon={false} isLoading={isPadServiceSaving}>
+              {editingPadService ? 'Salvar Serviço' : 'Adicionar Serviço'}
             </Button>
           </ModalFooter>
         </form>
@@ -869,4 +1152,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
