@@ -394,6 +394,10 @@ function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContex
         margin: 0 auto 0px;
         display: block;
       }
+      .signature-blank {
+        min-height: 36px;
+        display: block;
+      }
       .signature-line {
         margin-top: 0px;
         border-top: 1px solid #111827;
@@ -468,7 +472,7 @@ function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContex
             ${
               context.professionalSignatureUrl
                 ? `<img class="signature-image" src="${escapeHtml(context.professionalSignatureUrl)}" alt="Assinatura do profissional" loading="eager" />`
-                : ''
+                : '<div class="signature-blank"></div>'
             }
           <div class="signature-line"></div>
           <div class="signature-professional-line">${escapeHtml(context.professionalIdentityLine)}</div>

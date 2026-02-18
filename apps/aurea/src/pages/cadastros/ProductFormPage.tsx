@@ -906,7 +906,7 @@ export default function ProductFormPage() {
                     </label>
                     <span
                       className="mb-1 inline-flex h-4 w-4 items-center justify-center text-gray-600 dark:border-gray-600 dark:text-gray-300"
-                      title="Informe quantas unidades de prescrição equivalem a 1 unidade base (estoque). Ex.: 1 frasco = 20 gotas â†’ fator 20."
+                      title="Informe quantas unidades de prescrição equivalem a 1 unidade base (estoque). Ex.: 1 frasco = 20 gotas → fator 20."
                       aria-label="Informação sobre fator de prescrição"
                     >
                       <Info className="h-3 w-3" />

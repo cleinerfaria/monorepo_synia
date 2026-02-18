@@ -954,13 +954,13 @@ export default function PrescriptionDetailPage() {
   }, [shouldShowWeekDays, weekDaysSelected.length]);
 
   useEffect(() => {
-    if (watchFrequencyMode !== 'shift' || !isItemModalOpen || selectedItem) return;
+    if (watchFrequencyMode !== 'shift' || !isItemModalOpen) return;
     const shiftCount = selectedShifts.length;
     setValue('times_value', shiftCount || 0, { shouldDirty: true });
     if (dayUnitId) {
       setValue('times_unit', dayUnitId, { shouldDirty: true });
     }
-  }, [watchFrequencyMode, selectedShifts, dayUnitId, setValue, isItemModalOpen, selectedItem]);
+  }, [watchFrequencyMode, selectedShifts, dayUnitId, setValue, isItemModalOpen]);
 
   const openAddItemModal = () => {
     setSelectedItem(null);
@@ -2112,7 +2112,7 @@ export default function PrescriptionDetailPage() {
                       {prescription.start_date
                         ? format(parseDateOnly(prescription.start_date), 'dd/MM/yyyy')
                         : 'Sem data inicial'}
-                      {' â†’ '}
+                      {' → '}
                       {prescription.end_date
                         ? format(parseDateOnly(prescription.end_date), 'dd/MM/yyyy')
                         : '-'}
@@ -2698,7 +2698,7 @@ export default function PrescriptionDetailPage() {
                       min={1}
                       step={1}
                       placeholder="--"
-                      readOnly={watchFrequencyMode === 'shift'}
+                      disabled={watchFrequencyMode === 'shift'}
                       {...register('times_value', {
                         valueAsNumber: true,
                         validate: (value) => {
