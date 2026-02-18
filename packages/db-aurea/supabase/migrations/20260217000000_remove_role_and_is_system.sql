@@ -2,7 +2,6 @@
 -- MIGRATION: Remover coluna role de app_user,
 -- remover is_system de access_profile,
 -- tornar company_id NOT NULL em access_profile,
--- converter VARCHAR -> TEXT,
 -- tornar access_profile_id NOT NULL em app_user,
 -- adicionar coluna theme em app_user
 -- =====================================================
@@ -41,7 +40,7 @@ WHERE profile_id IN (
 DELETE FROM access_profile WHERE is_system = TRUE;
 
 -- 1d) Criar perfis padrao para cada empresa existente
-INSERT INTO access_profile (company_id, code, name, description, is_system, is_admin, active)
+INSERT INTO access_profile (company_id, code, name, description, is_system, is_admin, is_active)
 SELECT
     c.id,
     p.code,
@@ -128,20 +127,6 @@ ALTER TABLE access_profile DROP COLUMN IF EXISTS is_system CASCADE;
 -- =====================================================
 
 ALTER TABLE access_profile ALTER COLUMN company_id SET NOT NULL;
-
--- =====================================================
--- PARTE 5: CONVERTER VARCHAR -> TEXT em app_user
--- =====================================================
-
-ALTER TABLE app_user ALTER COLUMN name TYPE TEXT;
-ALTER TABLE app_user ALTER COLUMN email TYPE TEXT;
-
--- =====================================================
--- PARTE 6: CONVERTER VARCHAR -> TEXT em access_profile
--- =====================================================
-
-ALTER TABLE access_profile ALTER COLUMN code TYPE TEXT;
-ALTER TABLE access_profile ALTER COLUMN name TYPE TEXT;
 
 -- =====================================================
 -- PARTE 7: REMOVER COLUNA role DE app_user

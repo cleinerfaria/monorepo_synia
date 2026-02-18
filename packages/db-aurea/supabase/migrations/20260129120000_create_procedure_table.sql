@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.procedure (
   category public.procedure_category NOT NULL,
   unit_id uuid NULL,
   description text NULL,
-  active boolean NOT NULL DEFAULT true,
+  is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT procedure_pkey PRIMARY KEY (id),

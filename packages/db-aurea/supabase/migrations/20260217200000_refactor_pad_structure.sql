@@ -117,7 +117,7 @@ BEGIN
     FROM public.profession
     WHERE company_id = v_pad.company_id
       AND LOWER(name) LIKE '%t_cnic%enferm%'
-      AND active = true
+      AND is_active = true
     LIMIT 1;
 
     -- Fallback: qualquer profissão ativa da empresa
@@ -125,7 +125,7 @@ BEGIN
       SELECT id INTO v_profession_id
       FROM public.profession
       WHERE company_id = v_pad.company_id
-        AND active = true
+        AND is_active = true
       LIMIT 1;
     END IF;
 

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS profession (
 
     name TEXT NOT NULL,
     description TEXT,
-    active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
 
@@ -60,28 +60,7 @@ CREATE POLICY "Users can delete professions in their company"
 ALTER TABLE professional
 ADD COLUMN IF NOT EXISTS profession_id UUID REFERENCES profession(id) ON DELETE SET NULL;
 
--- 4. Change professional columns from VARCHAR to TEXT and DROP ROLE
-ALTER TABLE professional
-    ALTER COLUMN code TYPE TEXT,
-    ALTER COLUMN name TYPE TEXT,
-    ALTER COLUMN council_type TYPE TEXT,
-    ALTER COLUMN council_number TYPE TEXT,
-    ALTER COLUMN council_uf TYPE TEXT,
-    ALTER COLUMN phone TYPE TEXT,
-    ALTER COLUMN email TYPE TEXT;
 
--- Drop role column as requested ("ajuste para excluir a coluna role")
-DO $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'professional'
-          AND column_name = 'role'
-    ) THEN
-        ALTER TABLE professional DROP COLUMN role;
-    END IF;
-END $$;
 
 -- 5. Add index for the new foreign key
 CREATE INDEX IF NOT EXISTS idx_professional_profession ON professional(profession_id);

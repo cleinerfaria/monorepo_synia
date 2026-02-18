@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.pad_service (
   name text NOT NULL,
   description text NULL,
   sort_order integer NOT NULL DEFAULT 0,
-  active boolean NOT NULL DEFAULT true,
+  is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -21,7 +21,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_pad_service_company_name
   ON public.pad_service (company_id, lower(name));
 
 CREATE INDEX IF NOT EXISTS idx_pad_service_company_active
-  ON public.pad_service (company_id, active, sort_order, name);
+  ON public.pad_service (company_id, is_active, sort_order, name);
 
 DO $$
 BEGIN
@@ -58,7 +58,7 @@ CREATE POLICY "pad_service_delete_policy" ON public.pad_service
 -- =====================================================
 -- Seed default PAD services for existing companies
 -- =====================================================
-INSERT INTO public.pad_service (company_id, code, name, description, sort_order, active)
+INSERT INTO public.pad_service (company_id, code, name, description, sort_order, is_active)
 SELECT c.id, s.code, s.name, s.description, s.sort_order, true
 FROM public.company c
 CROSS JOIN (

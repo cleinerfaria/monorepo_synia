@@ -185,7 +185,7 @@ BEGIN
     INTO v_company_id
   FROM public.app_user au
   WHERE au.auth_user_id = v_user_id
-    AND au.active = TRUE
+    AND au.is_active = TRUE
   LIMIT 1;
 
   IF v_company_id IS NULL THEN
@@ -492,7 +492,7 @@ BEGIN
     INTO v_company_id
   FROM public.app_user au
   WHERE au.auth_user_id = v_user_id
-    AND au.active = TRUE
+    AND au.is_active = TRUE
   LIMIT 1;
 
   IF v_company_id IS NULL THEN

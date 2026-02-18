@@ -192,7 +192,7 @@ BEGIN
       AND n.nspname = 'public'
       AND c.relname = 'idx_unit_of_measure_company_active'
   ) THEN
-    EXECUTE 'CREATE INDEX idx_unit_of_measure_company_active ON public.unit_of_measure(company_id, active)';
+    EXECUTE 'CREATE INDEX idx_unit_of_measure_company_active ON public.unit_of_measure(company_id, is_active)';
   END IF;
 
   IF NOT EXISTS (
@@ -379,7 +379,7 @@ INSERT INTO public.unit_of_measure (
   symbol,
   description,
   allowed_scopes,
-  active
+  is_active
 )
 SELECT
   c.company_id,
@@ -398,6 +398,6 @@ SET
   symbol = EXCLUDED.symbol,
   description = EXCLUDED.description,
   allowed_scopes = EXCLUDED.allowed_scopes,
-  active = EXCLUDED.active;
+  is_active = EXCLUDED.is_active;
 
 COMMIT;

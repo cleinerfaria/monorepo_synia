@@ -18,7 +18,7 @@ CREATE TABLE product_presentation (
     is_dispensing_unit BOOLEAN DEFAULT FALSE, -- Usado na dispensação
     is_prescription_unit BOOLEAN DEFAULT FALSE, -- Usado na prescrição
     supplier_name TEXT, -- Fabricante/Fornecedor desta apresentação
-    active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

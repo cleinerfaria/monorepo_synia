@@ -34,7 +34,7 @@ CREATE TABLE app_user (
     name text NOT NULL,
     email text NOT NULL,
     role text NOT NULL DEFAULT 'viewer' CHECK (role IN ('admin', 'manager', 'clinician', 'stock', 'finance', 'viewer')),
-    active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -83,7 +83,6 @@ CREATE TABLE professional (
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
     code text, -- Código de referência em sistemas externos (folha, escala, etc.)
     name text NOT NULL,
-    role text, -- Médico, Enfermeiro, Fisioterapeuta, etc.
     council_type text, -- CRM, COREN, CREFITO, etc.
     council_number text,
     council_uf text,
@@ -113,7 +112,7 @@ CREATE TABLE patient (
     phone text,
     email text,
     billing_client_id UUID REFERENCES client(id) ON DELETE SET NULL,
-    active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT uq_patient_company_code UNIQUE (company_id, code)
@@ -159,7 +158,7 @@ CREATE TABLE product (
     -- Classificações especiais
     psychotropic BOOLEAN DEFAULT FALSE, -- Psicotrópico
     antibiotic BOOLEAN DEFAULT FALSE, -- Antibiótico
-    active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT uq_product_company_code UNIQUE (company_id, code)
@@ -213,7 +212,7 @@ CREATE TABLE stock_location (
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
     code text,
     name text NOT NULL,
-    active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT uq_stock_location_company_code UNIQUE (company_id, code)

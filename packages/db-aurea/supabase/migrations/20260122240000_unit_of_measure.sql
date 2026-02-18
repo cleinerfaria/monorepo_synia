@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.unit_of_measure (
   description TEXT NULL,
 
   allowed_scopes public.enum_unit_scope[] NOT NULL,
-  active BOOLEAN NOT NULL DEFAULT TRUE,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -44,8 +44,8 @@ ON public.unit_of_measure(company_id);
 CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_code
 ON public.unit_of_measure(company_id, code);
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_active
-ON public.unit_of_measure(company_id, active);
+CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_is_active
+ON public.unit_of_measure(company_id, is_active);
 
 CREATE INDEX IF NOT EXISTS idx_unit_of_measure_allowed_scopes_gin
 ON public.unit_of_measure
@@ -269,7 +269,7 @@ INSERT INTO public.unit_of_measure (
   symbol,
   description,
   allowed_scopes,
-  active
+  is_active
 )
 SELECT
   c.company_id,
@@ -288,6 +288,6 @@ SET
   symbol = EXCLUDED.symbol,
   description = EXCLUDED.description,
   allowed_scopes = EXCLUDED.allowed_scopes,
-  active = EXCLUDED.active;
+  is_active = EXCLUDED.is_active;
 
 COMMIT;

@@ -9,12 +9,12 @@
 CREATE TABLE active_ingredient (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
-    code VARCHAR(50), -- Código de referência em sistemas externos (DCB, etc.)
-    name VARCHAR(255) NOT NULL, -- Ex: Captopril, Dipirona, Omeprazol
-    cas_number VARCHAR(50), -- Número CAS (Chemical Abstracts Service)
-    description TEXT,
-    therapeutic_class VARCHAR(255), -- Classe terapêutica (Anti-hipertensivo, Analgésico, etc.)
-    active BOOLEAN DEFAULT TRUE,
+    code text(50), -- Código de referência em sistemas externos (DCB, etc.)
+    name text(255) NOT NULL, -- Ex: Captopril, Dipirona, Omeprazol
+    cas_number text(50), -- Número CAS (Chemical Abstracts Service)
+    description text,
+    therapeutic_class text(255), -- Classe terapêutica (Anti-hipertensivo, Analgésico, etc.)
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -55,17 +55,17 @@ CREATE POLICY "Users can delete active_ingredients of their company"
 CREATE TABLE manufacturer (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
-    code VARCHAR(50), -- Código de referência em sistemas externos (ANVISA, ERP, etc.)
-    name VARCHAR(255) NOT NULL, -- Ex: MEDLEY, EMS, Eurofarma
-    trade_name VARCHAR(255), -- Nome fantasia
-    document VARCHAR(20), -- CNPJ
-    website VARCHAR(255),
-    phone VARCHAR(20),
-    email VARCHAR(255),
-    address TEXT,
-    anvisa_authorization VARCHAR(50), -- Autorização ANVISA
-    notes TEXT,
-    active BOOLEAN DEFAULT TRUE,
+    code text(50), -- Código de referência em sistemas externos (ANVISA, ERP, etc.)
+    name text(255) NOT NULL, -- Ex: MEDLEY, EMS, Eurofarma
+    trade_name text(255), -- Nome fantasia
+    document text(20), -- CNPJ
+    website text(255),
+    phone text(20),
+    email text(255),
+    address text,
+    anvisa_authorization text(50), -- Autorização ANVISA
+    notes text,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -106,24 +106,24 @@ CREATE POLICY "Users can delete manufacturers of their company"
 CREATE TABLE supplier (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
-    code VARCHAR(50), -- Código de referência em sistemas externos (ERP, compras, etc.)
-    name VARCHAR(255) NOT NULL, -- Razão social
-    trade_name VARCHAR(255), -- Nome fantasia
-    document VARCHAR(20), -- CNPJ/CPF
-    state_registration VARCHAR(20), -- Inscrição estadual
-    municipal_registration VARCHAR(20), -- Inscrição municipal
-    phone VARCHAR(20),
-    email VARCHAR(255),
-    website VARCHAR(255),
-    address TEXT,
-    city VARCHAR(100),
-    state VARCHAR(2),
-    zip_code VARCHAR(10),
-    contact_name VARCHAR(255), -- Nome do contato
-    contact_phone VARCHAR(20),
-    payment_terms TEXT, -- Condições de pagamento
-    notes TEXT,
-    active BOOLEAN DEFAULT TRUE,
+    code text(50), -- Código de referência em sistemas externos (ERP, compras, etc.)
+    name text(255) NOT NULL, -- Razão social
+    trade_name text(255), -- Nome fantasia
+    document text(20), -- CNPJ/CPF
+    state_registration text(20), -- Inscrição estadual
+    municipal_registration text(20), -- Inscrição municipal
+    phone text(20),
+    email text(255),
+    website text(255),
+    address text,
+    city text(100),
+    state text(2),
+    zip_code text(10),
+    contact_name text(255), -- Nome do contato
+    contact_phone text(20),
+    payment_terms text, -- Condições de pagamento
+    notes text,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

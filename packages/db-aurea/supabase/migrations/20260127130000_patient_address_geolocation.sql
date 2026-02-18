@@ -10,7 +10,7 @@ ALTER TABLE public.patient_address
 -- Create index for service addresses for faster queries
 CREATE INDEX IF NOT EXISTS idx_patient_address_use_for_service
 ON public.patient_address (patient_id, use_for_service)
-WHERE use_for_service IS TRUE AND active IS TRUE;
+WHERE use_for_service IS TRUE AND is_active IS TRUE;
 
 -- Create index for geographic queries
 CREATE INDEX IF NOT EXISTS idx_patient_address_geolocation

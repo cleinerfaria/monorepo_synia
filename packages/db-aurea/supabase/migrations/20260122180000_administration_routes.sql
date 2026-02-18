@@ -23,7 +23,7 @@ CREATE TABLE administration_routes (
   name TEXT NOT NULL,
   abbreviation TEXT,
   description TEXT,
-  active BOOLEAN DEFAULT true,
+  is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   
@@ -32,7 +32,7 @@ CREATE TABLE administration_routes (
 
 -- Índices
 CREATE INDEX idx_administration_routes_company ON administration_routes(company_id);
-CREATE INDEX idx_administration_routes_active ON administration_routes(active);
+CREATE INDEX idx_administration_routes_active ON administration_routes(is_active);
 
 -- RLS
 ALTER TABLE administration_routes ENABLE ROW LEVEL SECURITY;

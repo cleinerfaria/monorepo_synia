@@ -10,12 +10,12 @@
 CREATE TABLE access_profile (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID REFERENCES company(id) ON DELETE CASCADE, -- NULL = perfil do sistema (default)
-    code VARCHAR(50) NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
+    code text NOT NULL,
+    name text(100) NOT NULL,
+    description text,
     is_system BOOLEAN DEFAULT FALSE, -- Perfis padrão do sistema (não podem ser excluídos)
     is_admin BOOLEAN DEFAULT FALSE, -- Se true, tem acesso total
-    active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(company_id, code),
@@ -46,12 +46,12 @@ CREATE UNIQUE INDEX ux_access_profile_system_code ON access_profile(code) WHERE 
 
 CREATE TABLE system_module (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code VARCHAR(50) NOT NULL UNIQUE,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    icon VARCHAR(50),
+    code text NOT NULL UNIQUE,
+    name text NOT NULL,
+    description text,
+    icon text,
     display_order INTEGER DEFAULT 0,
-    active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 -- =====================================================
@@ -61,9 +61,9 @@ CREATE TABLE system_module (
 CREATE TABLE module_permission (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     module_id UUID NOT NULL REFERENCES system_module(id) ON DELETE CASCADE,
-    code VARCHAR(50) NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
+    code text NOT NULL,
+    name text NOT NULL,
+    description text,
     UNIQUE(module_id, code)
 );
 
@@ -420,8 +420,8 @@ WHERE access_profile_id IS NULL;
 
 CREATE OR REPLACE FUNCTION has_permission(
     p_auth_user_id UUID,
-    p_module_code VARCHAR(50),
-    p_permission_code VARCHAR(50)
+    p_module_code text,
+    p_permission_code text
 ) RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -441,7 +441,7 @@ BEGIN
     FROM app_user au
     JOIN access_profile ap ON au.access_profile_id = ap.id
     WHERE au.auth_user_id = auth.uid()
-    AND au.active = TRUE;
+    AND au.is_active = TRUE;
 
     IF v_is_admin THEN
         RETURN TRUE;
@@ -456,8 +456,8 @@ BEGIN
         JOIN module_permission mp ON app.permission_id = mp.id
         JOIN system_module sm ON mp.module_id = sm.id
         WHERE au.auth_user_id = auth.uid()
-        AND au.active = TRUE
-        AND ap.active = TRUE
+        AND au.is_active = TRUE
+        AND ap.is_active = TRUE
         AND sm.code = p_module_code
         AND mp.code = p_permission_code
     ) INTO v_has_permission;
@@ -472,10 +472,10 @@ $$;
 
 CREATE OR REPLACE FUNCTION get_user_permissions(p_auth_user_id UUID)
 RETURNS TABLE (
-    module_code VARCHAR(50),
-    module_name VARCHAR(100),
-    permission_code VARCHAR(50),
-    permission_name VARCHAR(100)
+    module_code text,
+    module_name text,
+    permission_code text,
+    permission_name text
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -494,37 +494,37 @@ BEGIN
     FROM app_user au
     JOIN access_profile ap ON au.access_profile_id = ap.id
     WHERE au.auth_user_id = auth.uid()
-    AND au.active = TRUE;
+    AND au.is_active = TRUE;
 
     IF v_is_admin THEN
         -- Admin tem todas as permissões
         RETURN QUERY
         SELECT 
-            sm.code::VARCHAR(50) as module_code,
-            sm.name::VARCHAR(100) as module_name,
-            mp.code::VARCHAR(50) as permission_code,
-            mp.name::VARCHAR(100) as permission_name
+            sm.code::text as module_code,
+            sm.name::text as module_name,
+            mp.code::text as permission_code,
+            mp.name::text as permission_name
         FROM module_permission mp
         JOIN system_module sm ON mp.module_id = sm.id
-        WHERE sm.active = TRUE
+        WHERE sm.is_active = TRUE
         ORDER BY sm.display_order, mp.code;
     ELSE
         -- Retorna permissões do perfil
         RETURN QUERY
         SELECT 
-            sm.code::VARCHAR(50) as module_code,
-            sm.name::VARCHAR(100) as module_name,
-            mp.code::VARCHAR(50) as permission_code,
-            mp.name::VARCHAR(100) as permission_name
+            sm.code::text as module_code,
+            sm.name::text as module_name,
+            mp.code::text as permission_code,
+            mp.name::text as permission_name
         FROM app_user au
         JOIN access_profile ap ON au.access_profile_id = ap.id
         JOIN access_profile_permission app ON app.profile_id = ap.id
         JOIN module_permission mp ON app.permission_id = mp.id
         JOIN system_module sm ON mp.module_id = sm.id
         WHERE au.auth_user_id = auth.uid()
-        AND au.active = TRUE
-        AND ap.active = TRUE
-        AND sm.active = TRUE
+        AND au.is_active = TRUE
+        AND ap.is_active = TRUE
+        AND sm.is_active = TRUE
         ORDER BY sm.display_order, mp.code;
     END IF;
 END;
@@ -648,5 +648,5 @@ CREATE POLICY "access_profile_permission_delete_policy" ON access_profile_permis
 -- 14) GRANT PERMISSIONS
 -- =====================================================
 
-GRANT EXECUTE ON FUNCTION has_permission(UUID, VARCHAR, VARCHAR) TO authenticated;
+GRANT EXECUTE ON FUNCTION has_permission(UUID, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_user_permissions(UUID) TO authenticated;
