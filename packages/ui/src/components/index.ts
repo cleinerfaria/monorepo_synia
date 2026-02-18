@@ -1,5 +1,6 @@
 ﻿// UI Components - Barrel export
 export { Input } from './Input';
+export { Checkbox } from './Checkbox';
 export { Select } from './Select';
 export { Select as ListboxSelect } from './Select';
 export { Select as SearchableSelect } from './Select';
@@ -33,6 +34,7 @@ export { ActionButton } from './ActionButton';
 
 // Re-export types
 export type { InputProps } from './Input';
+export type { CheckboxProps } from './Checkbox';
 export type { SelectProps, SelectOption } from './Select';
 export type {
   SelectProps as ListboxSelectProps,
