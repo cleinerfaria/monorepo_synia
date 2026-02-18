@@ -1053,14 +1053,16 @@ export default function ProductFormPage() {
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
-                      variant="neutral"
+                      icon={<Search className="h-4 w-4" />}
+                      variant="solid"
                       onClick={() => setIsPresentationSearchModalOpen(true)}
                     >
-                      <Search className="h-4 w-4" />
                       Buscar nas Tabelas
                     </Button>
                     <Button
                       size="sm"
+                      icon={<Plus className="h-4 w-4" />}
+                      variant="neutral"
                       onClick={() => {
                         setSelectedPresentation(null);
                         setSelectedPresentationUnit('');
@@ -1075,7 +1077,6 @@ export default function ProductFormPage() {
                         setIsPresentationModalOpen(true);
                       }}
                     >
-                      <Plus className="h-4 w-4" />
                       Manual
                     </Button>
                   </div>
@@ -1193,14 +1194,15 @@ export default function ProductFormPage() {
                     </p>
                     <div className="mt-4 flex items-center justify-center gap-3">
                       <Button
-                        variant="primary"
+                        variant="solid"
+                        icon={<Search className="h-4 w-4" />}
                         onClick={() => setIsPresentationSearchModalOpen(true)}
                       >
-                        <Search className="h-4 w-4" />
                         Buscar nas Tabelas
                       </Button>
                       <Button
                         variant="neutral"
+                        icon={<Plus className="h-4 w-4" />}
                         onClick={() => {
                           setSelectedPresentation(null);
                           setSelectedPresentationUnit('');
@@ -1215,7 +1217,6 @@ export default function ProductFormPage() {
                           setIsPresentationModalOpen(true);
                         }}
                       >
-                        <Plus className="h-4 w-4" />
                         Cadastrar Manualmente
                       </Button>
                     </div>
