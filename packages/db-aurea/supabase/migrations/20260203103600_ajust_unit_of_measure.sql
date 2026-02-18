@@ -310,20 +310,28 @@ seed AS (
     ('bisn',   'Bisnaga',        'BISN', 'Bisnaga de produto'),
     ('pct',    'Pacote',         'PCT',  'Pacote contendo múltiplas unidades'),
     ('rl',     'Rolo',           'RL',   'Rolo de material'),
-    ('kit',    'Kit',            'KIT',  'Kit com múltiplos itens'),
+    ('kit',    'Kit',            'KIT',  'Kit com múltiplos itens'), 
     ('par',    'Par',            'PAR',  'Par de itens (ex.: luvas)'),
     ('sess',   'Sessão',         'SESS', 'Sessão/atendimento (procedimento)'),
     ('visit',  'Visita',         'VIS',  'Visita (procedimento)'),
     ('dia',    'Dia',            'DIA',  'Diária (equipamento/serviço)'),
+    ('lata',   'Lata',           'LATA', 'Lata de medicamento ou material'),
     ('ml',     'Mililitro',      'ML',   'Volume em mililitros'),
-    ('l',      'Litro',          'L',    'Volume em litros'),
+    ('cm',     'Centímetro',     'CM',   'Comprimento em centímetros'),
+    ('mt',      'Metro',         'MT',    'Comprimento em metros'),
+    ('lt',     'Litro',          'LT',   'Volume em litros'),
+    ('kg',     'Quilograma',     'KG',   'Massa em quilogramas'),
     ('mg',     'Miligrama',      'MG',   'Massa em miligramas'),
+    ('ser',    'Seringa',        'SER',  'Seringa para injetáveis'),
     ('g',      'Grama',          'G',    'Massa em gramas'),
     ('gota',   'Gota',           'GOTA', 'Gota (dose)'),
     ('dose',   'Dose',           'DOSE', 'Dose unitária'),
     ('sache',  'Sachê',          'SACH', 'Gel/líquido monodose'),
     ('drg',    'Drágea',         'DRG',  'Drágea (comprimido revestido)'),
     ('env',    'Envelope',       'ENV',  'Envelope pó/granulado para diluição'),
+    ('flac',   'Flaconete',      'FLAC', 'Flaconete para líquidos'),
+    ('bolsa',  'Bolsa',          'BOLS', 'Bolsa para líquidos'),
+    ('ades',   'Adesivo',        'ADES', 'Unidade de medida para medicamentos por adesivo'),
     ('minuto', 'Minuto',         'MIN',  'Unidade de tempo (minuto)'),
     ('hora',   'Hora',           'H',    'Unidade de tempo (hora)'),
     ('semana', 'Semana',         'SEM',  'Unidade de tempo (semana)'),
@@ -335,8 +343,8 @@ scoped AS (
   SELECT
     s.*,
     ARRAY_REMOVE(ARRAY[
-      -- medicamento base: tudo menos ml, mg, gota, dose
-      CASE WHEN s.code NOT IN ('ml','mg','gota','dose') THEN 'medication_base'::public.enum_unit_scope END,
+      -- medicamento base: tudo menos ml, mg, gota, dose, cm, mt
+      CASE WHEN s.code NOT IN ('ml','mg','gota','dose','cm','mt') THEN 'medication_base'::public.enum_unit_scope END,
 
       -- medicamento prescrição: tudo menos blister e tubo
       CASE WHEN s.code NOT IN ('bl','tb') THEN 'medication_prescription'::public.enum_unit_scope END,
@@ -348,10 +356,10 @@ scoped AS (
       CASE WHEN s.code NOT IN ('cp','drg','fa','amp') THEN 'material_prescription'::public.enum_unit_scope END,
 
       -- dieta base: tudo menos ml, mg, gota, blister e dose
-      CASE WHEN s.code NOT IN ('ml','mg','gota','bl','dose') THEN 'diet_base'::public.enum_unit_scope END,
+      CASE WHEN s.code NOT IN ('ml','mg','gota','bl','dose','cm','mt') THEN 'diet_base'::public.enum_unit_scope END,
 
       -- dieta prescrição: tudo menos blister e tubo
-      CASE WHEN s.code NOT IN ('bl','tb') THEN 'diet_prescription'::public.enum_unit_scope END,
+      CASE WHEN s.code NOT IN ('bl','tb','cm','mt') THEN 'diet_prescription'::public.enum_unit_scope END,
 
       -- procedimento: apenas sessão, visita, hora, plantão
       CASE WHEN s.code IN ('sess','visit','hora','plantao') THEN 'procedure'::public.enum_unit_scope END,

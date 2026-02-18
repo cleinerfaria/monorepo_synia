@@ -6,14 +6,16 @@ BEGIN;
 
 DO $$
 DECLARE
-  v_company_id UUID;
-  v_patient_id UUID;
+  v_company_id      UUID;
+  v_patient_id      UUID;
   v_professional_id UUID;
   v_prescription_id UUID;
-  v_product_ids UUID[];
-  v_item_order INT := 1;
-  v_product_id UUID;
-  i INT;
+  v_product_ids     UUID[];
+  v_route_vo        UUID;
+  v_route_ev        UUID;
+  v_route_im        UUID;
+  v_route_sc        UUID;
+  v_route_gtm        UUID;
 BEGIN
   SELECT id INTO v_company_id
   FROM public.company
@@ -40,19 +42,23 @@ BEGIN
     RAISE EXCEPTION 'Dados base ausentes para seed de prescrição.';
   END IF;
 
-  -- Buscar até 10 produtos de medicamento
   SELECT ARRAY_AGG(id) INTO v_product_ids
   FROM (
-    SELECT id
-    FROM public.product
-    WHERE company_id = v_company_id
-      AND item_type = 'medication'
+    SELECT id FROM public.product
+    WHERE company_id = v_company_id AND item_type = 'medication'
     LIMIT 10
   ) subq;
 
   IF v_product_ids IS NULL OR ARRAY_LENGTH(v_product_ids, 1) = 0 THEN
     RAISE EXCEPTION 'Nenhum produto de medicamento encontrado para seed de prescrição.';
   END IF;
+
+  -- Buscar vias de administração
+  SELECT id INTO v_route_vo FROM public.administration_routes WHERE company_id = v_company_id AND abbreviation = 'VO' LIMIT 1;
+  SELECT id INTO v_route_ev FROM public.administration_routes WHERE company_id = v_company_id AND abbreviation = 'EV' LIMIT 1;
+  SELECT id INTO v_route_im FROM public.administration_routes WHERE company_id = v_company_id AND abbreviation = 'IM' LIMIT 1;
+  SELECT id INTO v_route_sc FROM public.administration_routes WHERE company_id = v_company_id AND abbreviation = 'SC' LIMIT 1;
+  SELECT id INTO v_route_gtm FROM public.administration_routes WHERE company_id = v_company_id AND abbreviation = 'GTM' LIMIT 1;
 
   SELECT p.id INTO v_prescription_id
   FROM public.prescription p
@@ -67,95 +73,71 @@ BEGIN
     INSERT INTO public.prescription
       (company_id, patient_id, professional_id, type, status, start_date, end_date, notes)
     VALUES
-      (
-        v_company_id,
-        v_patient_id,
-        v_professional_id,
-        'medical',
-        'active',
-        DATE '2026-02-01',
-        NULL,
-        'Prescrição de exemplo para fluxo de desenvolvimento.'
-      )
+      (v_company_id, v_patient_id, v_professional_id, 'medical', 'active', DATE '2026-02-01', NULL, 'Prescrição de exemplo para fluxo de desenvolvimento.')
     RETURNING id INTO v_prescription_id;
   END IF;
 
-  -- Inserir até 10 itens de prescrição
-  FOR i IN 1..LEAST(ARRAY_LENGTH(v_product_ids, 1), 10) LOOP
-    v_product_id := v_product_ids[i];
-    v_item_order := i;
+  -- Item 1 — VO, com data inicial e final
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[1] AND COALESCE(item_order, 999) = 1) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[1], 1, DATE '2026-02-01', DATE '2026-03-01', 'every', 120, '08:00:00', 2, 'hour', NULL, FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #1.', NULL, 'company', TRUE, 1, v_route_vo);
+  END IF;
 
-    IF NOT EXISTS (
-      SELECT 1
-      FROM public.prescription_item pi
-      WHERE pi.company_id = v_company_id
-        AND pi.prescription_id = v_prescription_id
-        AND pi.item_type = 'medication'
-        AND pi.product_id = v_product_id
-        AND COALESCE(pi.item_order, 999) = v_item_order
-    ) THEN
-      INSERT INTO public.prescription_item
-        (
-          company_id,
-          prescription_id,
-          item_type,
-          product_id,
-          quantity,
-          start_date,
-          end_date,
-          frequency_mode,
-          interval_minutes,
-          time_start,
-          times_value,
-          times_unit,
-          time_checks,
-          is_prn,
-          is_continuous_use,
-          instructions_use,
-          instructions_pharmacy,
-          week_days,
-          supplier,
-          is_active,
-          item_order
-        )
-      VALUES
-        (
-          v_company_id,
-          v_prescription_id,
-          'medication',
-          v_product_id,
-          (1.0 + (i * 0.5))::numeric,
-          DATE '2026-02-01',
-          NULL,
-          CASE
-            WHEN i % 3 = 0 THEN 'times_per'
-            WHEN i % 3 = 1 THEN 'interval'
-            ELSE 'continuous'
-          END,
-          CASE WHEN i % 3 = 1 THEN (i * 120) ELSE NULL END,
-          CASE WHEN i % 3 = 1 THEN '08:00:00'::time ELSE NULL END,
-          CASE
-            WHEN i % 3 = 0 THEN (2 + (i % 4))
-            ELSE NULL
-          END,
-          CASE WHEN i % 3 = 0 THEN 'day' ELSE NULL END,
-          CASE
-            WHEN i % 3 = 0 THEN ARRAY_FILL('08:00:00'::time, ARRAY[2 + (i % 4)])
-            ELSE NULL
-          END,
-          (i % 2 = 0),
-          (i % 2 = 1),
-          'Administrar conforme horários ou conforme necessário.',
-          'Dispensar conforme protocolo. Item #' || v_item_order || '.',
-          NULL,
-          'company',
-          TRUE,
-          v_item_order
-        );
-    END IF;
-  END LOOP;
+  -- Item 2 — VO, sem data
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[2] AND COALESCE(item_order, 999) = 2) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[2], 2, NULL, NULL, 'shift', NULL, NULL, 3, 'week', NULL, FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #2.', NULL, 'company', TRUE, 2, v_route_vo);
+  END IF;
 
-  RAISE NOTICE 'Seed 07 applied: % prescrição items criados', LEAST(ARRAY_LENGTH(v_product_ids, 1), 10);
+  -- Item 3 — VO, sem data
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[3] AND COALESCE(item_order, 999) = 3) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[3], 1, NULL, NULL, 'times_per', NULL, NULL, 3, 'day', ARRAY['07:00:00','15:00:00','23:00:00']::time[], FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #3.', NULL, 'company', TRUE, 3, v_route_vo);
+  END IF;
+
+  -- Item 4 — VO, sem data
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[4] AND COALESCE(item_order, 999) = 4) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[4], 1, NULL, NULL, 'every', 480, '08:00:00', 8, 'hour', NULL, FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #4.', NULL, 'company', TRUE, 4, v_route_vo);
+  END IF;
+
+  -- Item 5 — VO, sem data
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[5] AND COALESCE(item_order, 999) = 5) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[5], 1, NULL, NULL, 'shift', NULL, NULL, 4, 'week', NULL, FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #5.', NULL, 'company', TRUE, 5, v_route_gtm);
+  END IF;
+
+  -- Item 6 — EV, com data inicial e final
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[6] AND COALESCE(item_order, 999) = 6) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[6], 1, DATE '2026-02-01', DATE '2026-02-15', 'times_per', NULL, NULL, 4, 'day', ARRAY['07:00:00','11:00:00','15:00:00','19:00:00']::time[], FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #6.', NULL, 'company', TRUE, 6, v_route_gtm);
+  END IF;
+
+  -- Item 7 — IM, sem data
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[7] AND COALESCE(item_order, 999) = 7) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[7], 0.5, NULL, NULL, 'every', 840, '08:00:00', 12, 'hour', NULL, FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #7.', NULL, 'company', TRUE, 7, v_route_ev);
+  END IF;
+
+  -- Item 8 — SC, sem data
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[8] AND COALESCE(item_order, 999) = 8) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[8], 1, NULL, NULL, 'shift', NULL, NULL, 3, 'week', NULL, FALSE, TRUE, NULL, 'Dispensar conforme protocolo. Item #8.', NULL, 'company', TRUE, 8, v_route_gtm);
+  END IF;
+
+  -- Item 9 — SL, sem data
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[9] AND COALESCE(item_order, 999) = 9) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[9], 1, NULL, NULL, 'times_per', NULL, NULL, 3, 'day', ARRAY['08:00:00','14:00:00','22:00:00']::time[], FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #9.', NULL, 'company', TRUE, 9, v_route_gtm);
+  END IF;
+
+  -- Item 10 — VO, sem data
+  IF NOT EXISTS (SELECT 1 FROM public.prescription_item WHERE company_id = v_company_id AND prescription_id = v_prescription_id AND product_id = v_product_ids[10] AND COALESCE(item_order, 999) = 10) THEN
+    INSERT INTO public.prescription_item (company_id, prescription_id, item_type, product_id, quantity, start_date, end_date, frequency_mode, interval_minutes, time_start, times_value, times_unit, time_checks, is_prn, is_continuous_use, instructions_use, instructions_pharmacy, week_days, supplier, is_active, item_order, route_id)
+    VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[10], 1, NULL, NULL, 'every', 1200, '08:00:00', 2, 'hour', NULL, FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #10.', NULL, 'company', TRUE, 10, v_route_vo);
+  END IF;
+
+  RAISE NOTICE 'Seed 07 aplicado: até 10 itens de prescrição inseridos.';
 END $$;
 
 COMMIT;
