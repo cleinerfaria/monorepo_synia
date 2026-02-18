@@ -3,6 +3,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Card, Button, DataTable, EmptyState, Modal, IconButton } from '@/components/ui';
 import {
   useAccessProfiles,
+  useAccessProfile,
   useDeleteAccessProfile,
   AccessProfile,
 } from '@/hooks/useAccessProfiles';
@@ -24,6 +25,7 @@ export default function AccessProfilesPage() {
   const { data: accessProfiles = [], isLoading: isLoadingProfiles } = useAccessProfiles(
     company?.id
   );
+  const { data: selectedProfileWithPermissions } = useAccessProfile(selectedProfile?.id);
   const deleteProfile = useDeleteAccessProfile();
 
   const filteredProfiles = useMemo(() => {
@@ -206,6 +208,9 @@ export default function AccessProfilesPage() {
           }}
           profile={selectedProfile}
           companyId={company.id}
+          existingPermissionIds={
+            selectedProfileWithPermissions?.permissions?.map((permission) => permission.id) || []
+          }
         />
       )}
 

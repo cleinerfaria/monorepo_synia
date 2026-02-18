@@ -323,8 +323,7 @@ export default function NfeImportsPage() {
             Importação de NFe
           </h1>
         </div>
-        <Button onClick={openImportModal}>
-          <Upload className="h-5 w-5" />
+        <Button icon={<Upload className="h-5 w-5" />} onClick={openImportModal}>
           Importar XML
         </Button>
       </div>
@@ -514,8 +513,7 @@ export default function NfeImportsPage() {
                   title="Nenhuma NFe importada"
                   description="Importe notas fiscais para dar entrada no estoque automaticamente"
                   action={
-                    <Button onClick={openImportModal}>
-                      <Upload className="h-4 w-4" />
+                    <Button icon={<Upload className="h-5 w-5" />} onClick={openImportModal}>
                       Importar XML
                     </Button>
                   }

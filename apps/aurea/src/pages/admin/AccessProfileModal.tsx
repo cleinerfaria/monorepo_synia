@@ -135,6 +135,23 @@ export default function AccessProfileModal({
     setSelectedPermissions(newSelected);
   };
 
+  const toggleModulePermissions = (modulePermissionIds: string[]) => {
+    if (modulePermissionIds.length === 0) return;
+
+    const areAllSelected = modulePermissionIds.every((permissionId) =>
+      selectedPermissions.has(permissionId)
+    );
+
+    const newSelected = new Set(selectedPermissions);
+    if (areAllSelected) {
+      modulePermissionIds.forEach((permissionId) => newSelected.delete(permissionId));
+    } else {
+      modulePermissionIds.forEach((permissionId) => newSelected.add(permissionId));
+    }
+
+    setSelectedPermissions(newSelected);
+  };
+
   const selectAll = () => {
     setSelectedPermissions(new Set(allPermissions.map((p) => p.id)));
   };
@@ -242,45 +259,57 @@ export default function AccessProfileModal({
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="is_admin"
-            checked={formData.is_admin}
-            onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
-            className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
-          />
-          <label htmlFor="is_admin" className="text-sm text-gray-700 dark:text-gray-300">
-            Administrador (acesso total a todas as funcionalidades)
-          </label>
-        </div>
+        {!formData.is_admin && !!shiftPagePermission ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+              <input
+                type="checkbox"
+                id="is_admin"
+                checked={formData.is_admin}
+                onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
+                className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+              />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Administrador (acesso total)
+              </span>
+            </label>
 
-        {!formData.is_admin && !!shiftPagePermission && (
-          <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+            <label
+              htmlFor="has_shift_page_access"
+              className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+            >
+              <input
+                type="checkbox"
+                id="has_shift_page_access"
+                checked={hasShiftPageAccess}
+                onChange={(e) => toggleShiftPageAccess(e.target.checked)}
+                className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Acesso à página Meu Plantão
+                </span>
+              </div>
+            </label>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              id="has_shift_page_access"
-              checked={hasShiftPageAccess}
-              onChange={(e) => toggleShiftPageAccess(e.target.checked)}
+              id="is_admin"
+              checked={formData.is_admin}
+              onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
               className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
             />
-            <div>
-              <label
-                htmlFor="has_shift_page_access"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Acesso à página Meu Plantão
-              </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Permite abrir a área de plantão para check-in e check-out.
-              </p>
-            </div>
+            <label htmlFor="is_admin" className="text-sm text-gray-700 dark:text-gray-300">
+              Administrador (acesso total)
+            </label>
           </div>
         )}
 
         {/* Permissões */}
         {!formData.is_admin && (
-          <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+          <div>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-medium text-gray-900 dark:text-white">Permissões</h3>
               <div className="flex gap-2">
@@ -303,6 +332,9 @@ export default function AccessProfileModal({
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
                         Módulo
                       </th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
+                        Tudo
+                      </th>
                       {crudColumns.map((column) => (
                         <th
                           key={column.code}
@@ -314,31 +346,50 @@ export default function AccessProfileModal({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
-                    {groupedPermissions.map(({ module, permissions }) => (
-                      <tr key={module.code}>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                          {module.name}
-                        </td>
-                        {crudColumns.map((column) => {
-                          const permission = permissions.find((item) => item.code === column.code);
+                    {groupedPermissions.map(({ module, permissions }) => {
+                      const modulePermissionIds = permissions.map((permission) => permission.id);
+                      const allModulePermissionsSelected =
+                        modulePermissionIds.length > 0 &&
+                        modulePermissionIds.every((permissionId) =>
+                          selectedPermissions.has(permissionId)
+                        );
 
-                          return (
-                            <td key={column.code} className="px-4 py-3 text-center">
-                              {permission ? (
-                                <input
-                                  type="checkbox"
-                                  checked={selectedPermissions.has(permission.id)}
-                                  onChange={() => togglePermission(permission.id)}
-                                  className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
-                                />
-                              ) : (
-                                <span className="text-sm text-gray-400">-</span>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
+                      return (
+                        <tr key={module.code}>
+                          <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                            {module.name}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={allModulePermissionsSelected}
+                              onChange={() => toggleModulePermissions(modulePermissionIds)}
+                              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                            />
+                          </td>
+                          {crudColumns.map((column) => {
+                            const permission = permissions.find(
+                              (item) => item.code === column.code
+                            );
+
+                            return (
+                              <td key={column.code} className="px-4 py-3 text-center">
+                                {permission ? (
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedPermissions.has(permission.id)}
+                                    onChange={() => togglePermission(permission.id)}
+                                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                                  />
+                                ) : (
+                                  <span className="text-sm text-gray-400">-</span>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -1,6 +1,15 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX, Plus } from 'lucide-react';
+import {
+  Stethoscope,
+  Pencil,
+  Trash2,
+  UserPlus,
+  UserMinus,
+  Search,
+  FunnelX,
+  Plus,
+} from 'lucide-react';
 import {
   Card,
   Button,

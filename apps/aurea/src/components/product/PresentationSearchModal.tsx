@@ -6,7 +6,7 @@ import type { RefItemUnified, ProductPresentation } from '@/types/database';
 import toast from 'react-hot-toast';
 import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
-import { Search, Link, X, Filter, Check, FunnelX } from 'lucide-react';
+import { Search, Link, Filter, Check, FunnelX } from 'lucide-react';
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 interface SearchFilters {

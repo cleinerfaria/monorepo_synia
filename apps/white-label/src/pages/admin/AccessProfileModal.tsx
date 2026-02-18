@@ -232,7 +232,7 @@ export default function AccessProfileModal({
             className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
           />
           <label htmlFor="is_admin" className="text-sm text-gray-700 dark:text-gray-300">
-            Administrador (acesso total a todas as funcionalidades)
+            Administrador (acesso total)
           </label>
         </div>
 
