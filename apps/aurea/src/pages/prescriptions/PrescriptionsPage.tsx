@@ -334,7 +334,7 @@ export default function PrescriptionsPage() {
             <span className="text-gray-700 dark:text-gray-300">
               {start ? format(parseDateOnly(start), 'dd/MM/yyyy') : '...'}
               {' - '}
-              {end ? format(parseDateOnly(end), 'dd/MM/yyyy') : 'Indeterminado'}
+              {end ? format(parseDateOnly(end), 'dd/MM/yyyy') : '-'}
             </span>
           );
         },

@@ -2115,7 +2115,7 @@ export default function PrescriptionDetailPage() {
                       {' â†’ '}
                       {prescription.end_date
                         ? format(parseDateOnly(prescription.end_date), 'dd/MM/yyyy')
-                        : 'Indeterminado'}
+                        : '-'}
                     </p>
                   </div>
                 </div>

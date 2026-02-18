@@ -118,9 +118,7 @@ export default function PadPage() {
         header: 'Término',
         cell: ({ row }) => (
           <span className="text-gray-700 dark:text-gray-300">
-            {row.original.end_date
-              ? format(parseISO(row.original.end_date), 'dd/MM/yyyy')
-              : 'Indeterminado'}
+            {row.original.end_date ? format(parseISO(row.original.end_date), 'dd/MM/yyyy') : '-'}
           </span>
         ),
       },

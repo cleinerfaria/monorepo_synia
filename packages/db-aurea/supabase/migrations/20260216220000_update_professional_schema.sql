@@ -8,23 +8,36 @@
 CREATE TABLE IF NOT EXISTS profession (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
+
+    -- New: technical code used for lookup/integrations (e.g., CBO)
+    code TEXT,
+
     name TEXT NOT NULL,
     description TEXT,
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
+
     UNIQUE(company_id, name)
 );
 
+COMMENT ON COLUMN profession.code IS 'Technical code for the profession (e.g., nursing classification code)';
+
 -- Trigger for updated_at on profession
-CREATE TRIGGER update_profession_updated_at 
-BEFORE UPDATE ON profession 
+CREATE TRIGGER update_profession_updated_at
+BEFORE UPDATE ON profession
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- 2. Enable RLS and add policies
 ALTER TABLE profession ENABLE ROW LEVEL SECURITY;
 
+-- Indexes
 CREATE INDEX IF NOT EXISTS idx_profession_company ON profession(company_id);
+
+-- New: fast lookup by code + avoid duplicates per company (allows multiple NULLs)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_profession_company_code
+ON profession(company_id, code)
+WHERE code IS NOT NULL;
 
 CREATE POLICY "Users can view professions in their company"
     ON profession FOR SELECT
@@ -44,7 +57,7 @@ CREATE POLICY "Users can delete professions in their company"
     USING (company_id = get_user_company_id());
 
 -- 3. Add profession_id column to professional table
-ALTER TABLE professional 
+ALTER TABLE professional
 ADD COLUMN IF NOT EXISTS profession_id UUID REFERENCES profession(id) ON DELETE SET NULL;
 
 -- 4. Change professional columns from VARCHAR to TEXT and DROP ROLE
@@ -58,10 +71,14 @@ ALTER TABLE professional
     ALTER COLUMN email TYPE TEXT;
 
 -- Drop role column as requested ("ajuste para excluir a coluna role")
--- We do this carefully: if it exists, drop it.
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'professional' AND column_name = 'role') THEN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'professional'
+          AND column_name = 'role'
+    ) THEN
         ALTER TABLE professional DROP COLUMN role;
     END IF;
 END $$;

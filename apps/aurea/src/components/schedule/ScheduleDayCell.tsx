@@ -38,6 +38,14 @@ function ScheduleDayCellInner({
   const dayNumber = parseInt(date.slice(8, 10), 10);
   const dayAssignments = useMemo(() => assignments.get(date) || [], [assignments, date]);
   const hasAssignments = dayAssignments.length > 0;
+  const hasSingleOvernightAssignment = useMemo(() => {
+    if (dayAssignments.length !== 1) return false;
+    const assignment = dayAssignments[0];
+    const start = new Date(assignment.start_at);
+    const end = new Date(assignment.end_at);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+    return end.toISOString().slice(0, 10) > start.toISOString().slice(0, 10);
+  }, [dayAssignments]);
 
   // Verificar se o dia esta completo (horas preenchidas >= horas do regime)
   const isDayFull = useMemo(() => {
@@ -96,6 +104,11 @@ function ScheduleDayCellInner({
     return classes.join(' ');
   }, [isSelected, isToday, isWeekend, isDropTarget, isOver, hasAssignments, isLocked]);
 
+  const showAddButton = !isDayFull && !isLocked;
+  const showAddButtonBeforeAssignments = showAddButton && hasSingleOvernightAssignment;
+  const addButtonClass =
+    'border-border-default text-content-muted hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 flex min-h-[26px] w-full items-center justify-center rounded border border-dashed px-1 py-0.5 text-[10px] transition-colors md:min-h-[30px]';
+
   return (
     <div ref={setNodeRef} className={cellClasses} onClick={handleClick}>
       {/* Numero do dia */}
@@ -116,6 +129,16 @@ function ScheduleDayCellInner({
 
       {/* Assignments do dia */}
       <div className="space-y-0.5">
+        {showAddButtonBeforeAssignments && (
+          <button
+            onClick={handleAddClick}
+            className={addButtonClass}
+            title="Adicionar profissional"
+          >
+            +
+          </button>
+        )}
+
         {dayAssignments.map((assignment, idx) => {
           const prof = profMap.get(assignment.professional_id);
           if (!prof) return null;
@@ -135,10 +158,10 @@ function ScheduleDayCellInner({
         })}
 
         {/* Botao para adicionar (so aparece se o dia nao estiver completo) */}
-        {!isDayFull && !isLocked && (
+        {showAddButton && !showAddButtonBeforeAssignments && (
           <button
             onClick={handleAddClick}
-            className="border-border-default text-content-muted hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 flex w-full items-center justify-center rounded border border-dashed px-1 py-0.5 text-[10px] transition-colors"
+            className={addButtonClass}
             title="Adicionar profissional"
           >
             +

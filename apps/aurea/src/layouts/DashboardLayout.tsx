@@ -47,6 +47,7 @@ const navigation: NavItem[] = [
       { name: 'Produtos', href: '/produtos' },
       { name: 'Produtos Apresentação', href: '/produto-apresentacao' },
       { name: 'Profissionais', href: '/profissionais' },
+      { name: 'Profissões', href: '/profissoes' },
       { name: 'Unidades de Medida', href: '/unidades-medida' },
       { name: 'Vias de Administração', href: '/vias-administracao' },
     ],

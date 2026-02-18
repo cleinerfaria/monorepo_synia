@@ -114,12 +114,7 @@ function resolveAssignmentSlotType(
   for (const slotType of SLOTS_BY_REGIME[regime]) {
     const expectedTimes = getSlotTimes(slotType, date, startTime);
     if (
-      isSameInterval(
-        expectedTimes.start,
-        expectedTimes.end,
-        assignment.start_at,
-        assignment.end_at
-      )
+      isSameInterval(expectedTimes.start, expectedTimes.end, assignment.start_at, assignment.end_at)
     ) {
       return slotType;
     }

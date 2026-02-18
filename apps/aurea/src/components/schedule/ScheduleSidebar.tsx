@@ -65,8 +65,7 @@ function ScheduleSidebarInner({ professionals, onAutoFillClick }: ScheduleSideba
     );
   }, [availableSlots]);
 
-  const canBatchApply =
-    selectedDates.size > 0 && selectedPreset !== null && selectedSlot !== null;
+  const canBatchApply = selectedDates.size > 0 && selectedPreset !== null && selectedSlot !== null;
 
   const filteredProfessionals = useMemo(() => {
     if (!search.trim()) return professionals;

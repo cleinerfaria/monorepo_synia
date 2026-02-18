@@ -22,10 +22,10 @@ BEGIN
     RAISE EXCEPTION 'Initial company not found. Run migrations first.';
   END IF;
 
-  SELECT id INTO v_medico_id FROM public.profession WHERE company_id = v_company_id AND name = 'Médico';
-  SELECT id INTO v_enfermeiro_id FROM public.profession WHERE company_id = v_company_id AND name = 'Enfermeiro';
-  SELECT id INTO v_tec_enfermagem_id FROM public.profession WHERE company_id = v_company_id AND name = 'Técnico de Enfermagem';
-  SELECT id INTO v_fisioterapeuta_id FROM public.profession WHERE company_id = v_company_id AND name = 'Fisioterapeuta';
+  SELECT id INTO v_medico_id FROM public.profession WHERE company_id = v_company_id AND code = 'medico';
+  SELECT id INTO v_enfermeiro_id FROM public.profession WHERE company_id = v_company_id AND code = 'enfermeiro';
+  SELECT id INTO v_tec_enfermagem_id FROM public.profession WHERE company_id = v_company_id AND code = 'tecnico';
+  SELECT id INTO v_fisioterapeuta_id FROM public.profession WHERE company_id = v_company_id AND code = 'fisioterapeuta';
 
   IF v_medico_id IS NULL OR v_enfermeiro_id IS NULL OR v_tec_enfermagem_id IS NULL OR v_fisioterapeuta_id IS NULL THEN
     RAISE EXCEPTION 'Missing required profession ids. Verify seed-01-professions.sql execution.';

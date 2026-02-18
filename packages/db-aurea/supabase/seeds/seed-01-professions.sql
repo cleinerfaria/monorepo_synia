@@ -17,20 +17,22 @@ BEGIN
     RAISE EXCEPTION 'Initial company not found. Run migrations first.';
   END IF;
 
-  INSERT INTO public.profession (company_id, name, active)
+  INSERT INTO public.profession (company_id, code, name, active)
   VALUES
-    (v_company_id, 'Médico', TRUE),
-    (v_company_id, 'Enfermeiro', TRUE),
-    (v_company_id, 'Técnico de Enfermagem', TRUE),
-    (v_company_id, 'Fisioterapeuta', TRUE),
-    (v_company_id, 'Nutricionista', TRUE),
-    (v_company_id, 'Farmacêutico', TRUE),
-    (v_company_id, 'Psicólogo', TRUE),
-    (v_company_id, 'Fonoaudiólogo', TRUE),
-    (v_company_id, 'Assistente Social', TRUE),
-    (v_company_id, 'Cuidador', TRUE),
-    (v_company_id, 'Outro', TRUE)
-  ON CONFLICT (company_id, name) DO UPDATE SET active = TRUE;
+    (v_company_id, 'medico', 'Médico', TRUE),
+    (v_company_id, 'enfermeiro', 'Enfermeiro', TRUE),
+    (v_company_id, 'tecnico', 'Técnico de Enfermagem', TRUE),
+    (v_company_id, 'fisioterapeuta', 'Fisioterapeuta', TRUE),
+    (v_company_id, 'nutricionista', 'Nutricionista', TRUE),
+    (v_company_id, 'farmaceutico', 'Farmacêutico', TRUE),
+    (v_company_id, 'psicologo', 'Psicólogo', TRUE),
+    (v_company_id, 'fonoaudiologo', 'Fonoaudiólogo', TRUE),
+    (v_company_id, 'assistente', 'Assistente Social', TRUE),
+    (v_company_id, 'cuidador', 'Cuidador', TRUE),
+    (v_company_id, 'outro', 'Outro', TRUE)
+  ON CONFLICT (company_id, name) DO UPDATE SET
+    code = EXCLUDED.code,
+    active = TRUE;
 
   RAISE NOTICE 'Seed 01 applied: professions';
 END $$;

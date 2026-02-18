@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, ModalFooter, Button, SearchableSelect } from '@/components/ui';
 import type { ScheduleProfessional, ScheduleAssignment, ScheduleRegime } from '@/types/schedule';
 import { getRegimeMaxHours, getSlotTimes } from '@/types/schedule';
@@ -85,7 +85,7 @@ export function ProfessionalPicker({
   const [activePreset, setActivePreset] = useState<SlotType | null>(null);
 
   // Inicializar quando o modal abre
-  useMemo(() => {
+  useEffect(() => {
     if (isOpen) {
       if (existingAssignment) {
         setSelectedProfId(existingAssignment.professional_id);
@@ -205,7 +205,7 @@ export function ProfessionalPicker({
     onClose();
   }, [onClose]);
 
-  const modalTitle = existingAssignment ? 'Editar plantao' : 'Novo plantao';
+  const modalTitle = existingAssignment ? 'Editar plantão' : 'Novo plantão';
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title={modalTitle} size="sm">
@@ -217,10 +217,14 @@ export function ProfessionalPicker({
         <SearchableSelect
           label="Profissional"
           placeholder="Selecione o profissional..."
-          searchPlaceholder="Buscar por nome ou funcao..."
+          searchPlaceholder="Buscar por nome ou função..."
           options={professionalOptions}
           value={selectedProfId}
-          onChange={(val: string) => setSelectedProfId(val)}
+          onChange={(eventOrValue) => {
+            const nextValue =
+              typeof eventOrValue === 'string' ? eventOrValue : eventOrValue.target?.value || '';
+            setSelectedProfId(nextValue);
+          }}
           emptyMessage="Nenhum profissional encontrado"
           required
         />
@@ -228,7 +232,7 @@ export function ProfessionalPicker({
         {/* Selecao rapida de turno */}
         <div>
           <p className="text-content-muted mb-1.5 text-xs font-semibold uppercase tracking-wide">
-            Turno rapido
+            Turno rápido
           </p>
           <div className="flex gap-1.5">
             {SHIFT_PRESETS.map((preset) => (

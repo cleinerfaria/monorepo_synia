@@ -142,9 +142,9 @@ export function getRegimeMaxHours(regime: ScheduleRegime): number {
     case '24h':
       return 24;
     case '12h':
-      return 12;
+      return 24;
     case '8h':
-      return 8;
+      return 24;
   }
 }
 

@@ -194,7 +194,7 @@ export default function PadPreviewPage() {
             <p className="font-medium text-gray-900 dark:text-white">
               {format(parseISO(demand.start_date), 'dd/MM/yyyy')}
               {' — '}
-              {demand.end_date ? format(parseISO(demand.end_date), 'dd/MM/yyyy') : 'Indeterminado'}
+              {demand.end_date ? format(parseISO(demand.end_date), 'dd/MM/yyyy') : '-'}
             </p>
           </div>
           <div>
