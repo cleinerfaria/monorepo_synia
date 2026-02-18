@@ -10,7 +10,10 @@ DECLARE
   v_patient_id UUID;
   v_professional_id UUID;
   v_prescription_id UUID;
+  v_product_ids UUID[];
+  v_item_order INT := 1;
   v_product_id UUID;
+  i INT;
 BEGIN
   SELECT id INTO v_company_id
   FROM public.company
@@ -33,15 +36,22 @@ BEGIN
     AND code = 'E2E-PRO-001'
   LIMIT 1;
 
-  SELECT id INTO v_product_id
-  FROM public.product
-  WHERE company_id = v_company_id
-    AND code = 'E2E-MED-001'
-    AND item_type = 'medication'
-  LIMIT 1;
-
-  IF v_patient_id IS NULL OR v_professional_id IS NULL OR v_product_id IS NULL THEN
+  IF v_patient_id IS NULL OR v_professional_id IS NULL THEN
     RAISE EXCEPTION 'Dados base ausentes para seed de prescrição.';
+  END IF;
+
+  -- Buscar até 10 produtos de medicamento
+  SELECT ARRAY_AGG(id) INTO v_product_ids
+  FROM (
+    SELECT id
+    FROM public.product
+    WHERE company_id = v_company_id
+      AND item_type = 'medication'
+    LIMIT 10
+  ) subq;
+
+  IF v_product_ids IS NULL OR ARRAY_LENGTH(v_product_ids, 1) = 0 THEN
+    RAISE EXCEPTION 'Nenhum produto de medicamento encontrado para seed de prescrição.';
   END IF;
 
   SELECT p.id INTO v_prescription_id
@@ -70,66 +80,82 @@ BEGIN
     RETURNING id INTO v_prescription_id;
   END IF;
 
-  IF NOT EXISTS (
-    SELECT 1
-    FROM public.prescription_item pi
-    WHERE pi.company_id = v_company_id
-      AND pi.prescription_id = v_prescription_id
-      AND pi.item_type = 'medication'
-      AND pi.product_id = v_product_id
-      AND COALESCE(pi.item_order, 999) = 1
-  ) THEN
-    INSERT INTO public.prescription_item
-      (
-        company_id,
-        prescription_id,
-        item_type,
-        product_id,
-        quantity,
-        start_date,
-        end_date,
-        frequency_mode,
-        interval_minutes,
-        time_start,
-        times_value,
-        times_unit,
-        time_checks,
-        is_prn,
-        is_continuous_use,
-        instructions_use,
-        instructions_pharmacy,
-        week_days,
-        supplier,
-        is_active,
-        item_order
-      )
-    VALUES
-      (
-        v_company_id,
-        v_prescription_id,
-        'medication',
-        v_product_id,
-        1.000,
-        DATE '2026-02-01',
-        NULL,
-        'times_per',
-        NULL,
-        NULL,
-        3,
-        'day',
-        ARRAY['08:00:00'::time, '14:00:00'::time, '20:00:00'::time],
-        FALSE,
-        TRUE,
-        'Administrar conforme horários definidos.',
-        'Dispensar para uso domiciliar.',
-        NULL,
-        'company',
-        TRUE,
-        1
-      );
-  END IF;
+  -- Inserir até 10 itens de prescrição
+  FOR i IN 1..LEAST(ARRAY_LENGTH(v_product_ids, 1), 10) LOOP
+    v_product_id := v_product_ids[i];
+    v_item_order := i;
 
-  RAISE NOTICE 'Seed 07 applied: prescricoes';
+    IF NOT EXISTS (
+      SELECT 1
+      FROM public.prescription_item pi
+      WHERE pi.company_id = v_company_id
+        AND pi.prescription_id = v_prescription_id
+        AND pi.item_type = 'medication'
+        AND pi.product_id = v_product_id
+        AND COALESCE(pi.item_order, 999) = v_item_order
+    ) THEN
+      INSERT INTO public.prescription_item
+        (
+          company_id,
+          prescription_id,
+          item_type,
+          product_id,
+          quantity,
+          start_date,
+          end_date,
+          frequency_mode,
+          interval_minutes,
+          time_start,
+          times_value,
+          times_unit,
+          time_checks,
+          is_prn,
+          is_continuous_use,
+          instructions_use,
+          instructions_pharmacy,
+          week_days,
+          supplier,
+          is_active,
+          item_order
+        )
+      VALUES
+        (
+          v_company_id,
+          v_prescription_id,
+          'medication',
+          v_product_id,
+          (1.0 + (i * 0.5))::numeric,
+          DATE '2026-02-01',
+          NULL,
+          CASE
+            WHEN i % 3 = 0 THEN 'times_per'
+            WHEN i % 3 = 1 THEN 'interval'
+            ELSE 'continuous'
+          END,
+          CASE WHEN i % 3 = 1 THEN (i * 120) ELSE NULL END,
+          CASE WHEN i % 3 = 1 THEN '08:00:00'::time ELSE NULL END,
+          CASE
+            WHEN i % 3 = 0 THEN (2 + (i % 4))
+            ELSE NULL
+          END,
+          CASE WHEN i % 3 = 0 THEN 'day' ELSE NULL END,
+          CASE
+            WHEN i % 3 = 0 THEN ARRAY_FILL('08:00:00'::time, ARRAY[2 + (i % 4)])
+            ELSE NULL
+          END,
+          (i % 2 = 0),
+          (i % 2 = 1),
+          'Administrar conforme horários ou conforme necessário.',
+          'Dispensar conforme protocolo. Item #' || v_item_order || '.',
+          NULL,
+          'company',
+          TRUE,
+          v_item_order
+        );
+    END IF;
+  END LOOP;
+
+  RAISE NOTICE 'Seed 07 applied: % prescrição items criados', LEAST(ARRAY_LENGTH(v_product_ids, 1), 10);
 END $$;
 
 COMMIT;

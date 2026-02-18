@@ -58,7 +58,7 @@ interface ShiftPreset {
 }
 
 const SHIFT_PRESETS: ShiftPreset[] = [
-  { label: 'Plantao 24h', slot: '24h' },
+  { label: 'Plantão 24h', slot: '24h' },
   { label: '12h Diurno', slot: '12h_day' },
   { label: '12h Noturno', slot: '12h_night' },
 ];

@@ -36,11 +36,15 @@ interface AuthState {
 
 async function fetchSystemUserData(userId: string) {
   // Busca o system_user do usuário atual
-  const { data: systemUser } = await supabase
+  const { data: systemUser, error: systemUserError } = await supabase
     .from('system_user')
     .select('*')
     .eq('auth_user_id', userId)
-    .single();
+    .maybeSingle();
+
+  if (systemUserError) {
+    throw systemUserError;
+  }
 
   // Verifica se existe algum system_user cadastrado (para lógica de bootstrap/onboarding)
   const { data: countResult } = await supabase.rpc('count_system_users');
@@ -91,7 +95,7 @@ export const useAuthStore = create<AuthState>()(
               .from('app_user')
               .select('*, access_profile(id, code, name, is_admin)')
               .eq('auth_user_id', session.user.id)
-              .single();
+              .maybeSingle();
 
             if (appUser) {
               set({ appUser });
@@ -141,7 +145,7 @@ export const useAuthStore = create<AuthState>()(
               .from('app_user')
               .select('*, access_profile(id, code, name, is_admin)')
               .eq('auth_user_id', data.session.user.id)
-              .single();
+              .maybeSingle();
 
             if (appUser) {
               set({ appUser });

@@ -39,6 +39,19 @@ function formatTime(dateStr: string) {
   });
 }
 
+function isSameLocalDate(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+  );
+}
+
+function isWithinCheckInWindow(shiftStartAt: string, shiftEndAt: string, now: Date) {
+  const nowMs = now.getTime();
+  const startMs = new Date(shiftStartAt).getTime();
+  const endMs = new Date(shiftEndAt).getTime();
+  return nowMs >= startMs - 60 * 60 * 1000 && nowMs <= endMs;
+}
+
 export default function MyShiftsPage() {
   const [weekOffset, setWeekOffset] = useState(0);
 
@@ -86,6 +99,8 @@ export default function MyShiftsPage() {
     return `${startOfWeek.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} - ${endOfWeek.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`;
   }, [from, to]);
 
+  const now = new Date();
+
   return (
     <div className="space-y-4">
       {/* Week Navigator */}
@@ -127,64 +142,73 @@ export default function MyShiftsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {shifts.map((shift) => (
-            <div
-              key={shift.id}
-              className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
-            >
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {formatDate(shift.start_at)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                      {formatTime(shift.start_at)} - {formatTime(shift.end_at)}
-                    </span>
-                  </div>
-                  {shift.check_in_at && (
+          {shifts.map((shift) => {
+            const shiftStartAt = new Date(shift.start_at);
+            const isShiftDay = isSameLocalDate(shiftStartAt, now);
+            const fallbackCanCheckIn =
+              (shift.status === 'open' || shift.status === 'assigned') &&
+              isWithinCheckInWindow(shift.start_at, shift.end_at, now);
+            const canCheckIn = (shift.can_check_in ?? fallbackCanCheckIn) && isShiftDay;
+
+            return (
+              <div
+                key={shift.id}
+                className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Check-in: {formatTime(shift.check_in_at)}
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        {formatDate(shift.start_at)}
                       </span>
                     </div>
-                  )}
-                  {shift.check_out_at && (
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-red-500" />
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Check-out: {formatTime(shift.check_out_at)}
+                      <Clock className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        {formatTime(shift.start_at)} - {formatTime(shift.end_at)}
                       </span>
                     </div>
-                  )}
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <span
-                    className={clsx(
-                      'rounded-full px-2.5 py-0.5 text-xs font-medium',
-                      STATUS_COLORS[shift.status] || STATUS_COLORS.planned
+                    {shift.check_in_at && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-emerald-500" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Check-in: {formatTime(shift.check_in_at)}
+                        </span>
+                      </div>
                     )}
-                  >
-                    {STATUS_LABELS[shift.status] || shift.status}
-                  </span>
-                  {(shift.status === 'open' || shift.status === 'assigned') && (
-                    <button
-                      onClick={() => handleCheckIn(shift.id)}
-                      disabled={checkIn.isPending}
-                      className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                    {shift.check_out_at && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-red-500" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Check-out: {formatTime(shift.check_out_at)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={clsx(
+                        'rounded-full px-2.5 py-0.5 text-xs font-medium',
+                        STATUS_COLORS[shift.status] || STATUS_COLORS.planned
+                      )}
                     >
-                      {checkIn.isPending ? 'Entrando...' : 'Check-in'}
-                    </button>
-                  )}
+                      {STATUS_LABELS[shift.status] || shift.status}
+                    </span>
+                    {canCheckIn && (
+                      <button
+                        onClick={() => handleCheckIn(shift.id)}
+                        disabled={checkIn.isPending}
+                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                      >
+                        {checkIn.isPending ? 'Entrando...' : 'Check-in'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

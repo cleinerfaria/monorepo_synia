@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/authStore';
 import toast from 'react-hot-toast';
 
 export interface PadShift {
@@ -21,6 +22,7 @@ export interface PadShift {
   closure_note: string | null;
   created_at: string;
   updated_at: string;
+  can_check_in?: boolean;
 }
 
 const QUERY_KEY = 'my_shifts';
@@ -29,8 +31,10 @@ const QUERY_KEY = 'my_shifts';
  * Lista os plantões do profissional logado em um período
  */
 export function useMyShifts(from: string, to: string) {
+  const userId = useAuthStore((state) => state.user?.id);
+
   return useQuery({
-    queryKey: [QUERY_KEY, from, to],
+    queryKey: [QUERY_KEY, 'list', userId, from, to],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('list_my_shifts', {
         p_from: from,
@@ -40,7 +44,7 @@ export function useMyShifts(from: string, to: string) {
       if (error) throw error;
       return (data || []) as PadShift[];
     },
-    enabled: !!from && !!to,
+    enabled: !!userId && !!from && !!to,
   });
 }
 
@@ -48,14 +52,17 @@ export function useMyShifts(from: string, to: string) {
  * Busca o plantão ativo do profissional logado
  */
 export function useMyActiveShift() {
+  const userId = useAuthStore((state) => state.user?.id);
+
   return useQuery({
-    queryKey: [QUERY_KEY, 'active'],
+    queryKey: [QUERY_KEY, 'active', userId],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_my_active_shift');
 
       if (error) throw error;
       return data as PadShift | null;
     },
+    enabled: !!userId,
     refetchInterval: 30000,
   });
 }

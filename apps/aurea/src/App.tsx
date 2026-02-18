@@ -237,11 +237,15 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUserData = async (userId: string): Promise<boolean> => {
     try {
       // Fetch system_user data
-      const { data: systemUserData } = await supabase
+      const { data: systemUserData, error: systemUserError } = await supabase
         .from('system_user')
         .select('*')
         .eq('auth_user_id', userId)
-        .single();
+        .maybeSingle();
+
+      if (systemUserError) {
+        throw systemUserError;
+      }
 
       const { data: countResult } = await supabase.rpc('count_system_users');
       const hasAny = (countResult ?? 0) > 0;
@@ -254,7 +258,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('app_user')
         .select('*, access_profile(id, code, name, is_admin)')
         .eq('auth_user_id', userId)
-        .single();
+        .maybeSingle();
 
       // Se não tem app_user, permite continuar (system_user ou bootstrap)
       if (userError || !userData) {

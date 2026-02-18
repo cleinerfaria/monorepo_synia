@@ -308,16 +308,13 @@ seed AS (
     ('bl',     'Blister',        'BL',   'Blister/cartela de doses'),
     ('tb',     'Tubo',           'TB',   'Tubo de pomada/gel'),
     ('bisn',   'Bisnaga',        'BISN', 'Bisnaga de produto'),
-
     ('pct',    'Pacote',         'PCT',  'Pacote contendo múltiplas unidades'),
     ('rl',     'Rolo',           'RL',   'Rolo de material'),
     ('kit',    'Kit',            'KIT',  'Kit com múltiplos itens'),
     ('par',    'Par',            'PAR',  'Par de itens (ex.: luvas)'),
-
     ('sess',   'Sessão',         'SESS', 'Sessão/atendimento (procedimento)'),
     ('visit',  'Visita',         'VIS',  'Visita (procedimento)'),
     ('dia',    'Dia',            'DIA',  'Diária (equipamento/serviço)'),
-
     ('ml',     'Mililitro',      'ML',   'Volume em mililitros'),
     ('l',      'Litro',          'L',    'Volume em litros'),
     ('mg',     'Miligrama',      'MG',   'Massa em miligramas'),
@@ -327,7 +324,6 @@ seed AS (
     ('sache',  'Sachê',          'SACH', 'Gel/líquido monodose'),
     ('drg',    'Drágea',         'DRG',  'Drágea (comprimido revestido)'),
     ('env',    'Envelope',       'ENV',  'Envelope pó/granulado para diluição'),
-
     ('minuto', 'Minuto',         'MIN',  'Unidade de tempo (minuto)'),
     ('hora',   'Hora',           'H',    'Unidade de tempo (hora)'),
     ('semana', 'Semana',         'SEM',  'Unidade de tempo (semana)'),
