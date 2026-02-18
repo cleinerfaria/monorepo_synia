@@ -126,8 +126,12 @@ export default function ReferenceTablesPage() {
             Gerencie tabelas de preços SIMPRO, BRASÍNDICE e CMED
           </p>
         </div>
-        <Button variant="neutral" size="sm" onClick={() => refetch()}>
-          <RefreshCw className="h-4 w-4" />
+        <Button
+          variant="neutral"
+          icon={<RefreshCw className="h-4 w-4" />}
+          size="sm"
+          onClick={() => refetch()}
+        >
           Atualizar
         </Button>
       </div>
@@ -228,24 +232,24 @@ export default function ReferenceTablesPage() {
                       <Button
                         variant="primary"
                         size="sm"
+                        icon={<Upload className="h-4 w-4" />}
                         className="flex-1"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOpenImport(source);
                         }}
                       >
-                        <Upload className="h-4 w-4" />
                         Importar
                       </Button>
                       <Button
                         variant="neutral"
                         size="sm"
+                        icon={<Clock className="h-4 w-4" />}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOpenDetail(source);
                         }}
                       >
-                        <Clock className="h-4 w-4" />
                         Histórico
                       </Button>
                     </div>

@@ -10,15 +10,19 @@ export interface Pad {
   id: string;
   company_id: string;
   patient_id: string;
+  patient_payer_id: string | null;
+  company_unit_id: string | null;
+  professional_id: string | null;
+  pad_service_id: string | null;
   start_date: string;
   end_date: string | null;
   start_time: string;
+  start_at: string | null;
+  end_at: string | null;
   is_active: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;
-  hours_per_day: number;
-  is_split: boolean;
 }
 
 export type PadWithPatient = Pad & {
@@ -31,13 +35,17 @@ export type ShiftWithProfessional = PadShift & {
 
 export interface CreatePadData {
   patient_id: string;
+  patient_payer_id: string;
+  company_unit_id: string;
+  professional_id: string;
+  pad_service_id: string;
   start_date: string;
   end_date?: string | null;
   start_time: string;
+  start_at: string;
+  end_at: string;
   is_active?: boolean;
   notes?: string | null;
-  hours_per_day: number;
-  is_split: boolean;
 }
 
 export interface UpdatePadData extends Partial<CreatePadData> {

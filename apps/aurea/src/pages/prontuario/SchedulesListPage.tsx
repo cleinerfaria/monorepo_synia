@@ -7,7 +7,6 @@ import {
   Button,
   DataTable,
   ListPagination,
-  Badge,
   StatusBadge,
   EmptyState,
   SearchableSelect,
@@ -29,7 +28,6 @@ export default function SchedulesListPage() {
 
   // Filtros
   const [statusFilter, setStatusFilter] = useState('');
-  const [regimeFilter, setRegimeFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
   // Paginacao client-side
@@ -48,11 +46,10 @@ export default function SchedulesListPage() {
     setSearchInput('');
     setSearchTerm('');
     setStatusFilter('');
-    setRegimeFilter('');
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = searchTerm || statusFilter || regimeFilter;
+  const hasActiveFilters = searchTerm || statusFilter;
 
   // Agrupar por paciente (manter a demand mais recente de cada paciente)
   const uniqueDemands = useMemo(() => {
@@ -74,10 +71,9 @@ export default function SchedulesListPage() {
       }
       if (statusFilter === 'active' && !d.is_active) return false;
       if (statusFilter === 'inactive' && d.is_active) return false;
-      if (regimeFilter && String(d.hours_per_day) !== regimeFilter) return false;
       return true;
     });
-  }, [uniqueDemands, searchTerm, statusFilter, regimeFilter]);
+  }, [uniqueDemands, searchTerm, statusFilter]);
 
   // Paginacao
   const totalCount = filteredData.length;
@@ -116,28 +112,6 @@ export default function SchedulesListPage() {
         cell: ({ row }) => (
           <div className="text-center text-gray-700 dark:text-gray-300">
             {row.original.end_date ? formatDateOnly(row.original.end_date) : 'Indefinido'}
-          </div>
-        ),
-      },
-      {
-        accessorKey: 'hours_per_day',
-        header: () => <span className="block w-full text-center">REGIME</span>,
-        enableSorting: false,
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <Badge variant="info">{row.original.hours_per_day}h/dia</Badge>
-          </div>
-        ),
-      },
-      {
-        accessorKey: 'is_split',
-        header: () => <span className="block w-full text-center">TIPO</span>,
-        enableSorting: false,
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <Badge variant={row.original.is_split ? 'warning' : 'neutral'}>
-              {row.original.is_split ? 'Dividido' : 'Integral'}
-            </Badge>
           </div>
         ),
       },
@@ -216,7 +190,7 @@ export default function SchedulesListPage() {
                 active={Boolean(showFilters || hasActiveFilters)}
                 onClick={() => setShowFilters(!showFilters)}
                 icon={<Funnel className="mr-1 h-4 w-4" />}
-                count={[searchTerm, statusFilter, regimeFilter].filter(Boolean).length}
+                count={[searchTerm, statusFilter].filter(Boolean).length}
                 className="min-w-24 justify-center"
               />
               {hasActiveFilters && (
@@ -238,7 +212,7 @@ export default function SchedulesListPage() {
           {/* Painel de filtros */}
           {showFilters && (
             <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-1">
                 <SearchableSelect
                   label="Status"
                   options={[
@@ -251,24 +225,6 @@ export default function SchedulesListPage() {
                   value={statusFilter}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setStatusFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-                <SearchableSelect
-                  label="Regime"
-                  options={[
-                    { value: '', label: 'Todos' },
-                    { value: '24', label: '24h/dia' },
-                    { value: '12', label: '12h/dia' },
-                    { value: '8', label: '8h/dia' },
-                    { value: '6', label: '6h/dia' },
-                    { value: '4', label: '4h/dia' },
-                  ]}
-                  placeholder="Selecione..."
-                  searchPlaceholder="Buscar regime..."
-                  value={regimeFilter}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setRegimeFilter(e.target.value);
                     setCurrentPage(1);
                   }}
                 />

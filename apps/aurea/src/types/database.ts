@@ -1,4 +1,4 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+﻿export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
@@ -499,7 +499,7 @@ export type Database = {
           care_modality: string | null;
           cnae: string | null;
           cnes: string | null;
-          company_parent_id: string | null;
+          company_unit_id: string | null;
           created_at: string | null;
           document: string | null;
           email: string | null;
@@ -522,7 +522,7 @@ export type Database = {
           care_modality?: string | null;
           cnae?: string | null;
           cnes?: string | null;
-          company_parent_id?: string | null;
+          company_unit_id?: string | null;
           created_at?: string | null;
           document?: string | null;
           email?: string | null;
@@ -545,7 +545,7 @@ export type Database = {
           care_modality?: string | null;
           cnae?: string | null;
           cnes?: string | null;
-          company_parent_id?: string | null;
+          company_unit_id?: string | null;
           created_at?: string | null;
           document?: string | null;
           email?: string | null;
@@ -566,15 +566,15 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'company_company_parent_id_fkey';
-            columns: ['company_parent_id'];
+            foreignKeyName: 'company_company_unit_id_fkey';
+            columns: ['company_unit_id'];
             isOneToOne: false;
-            referencedRelation: 'company_parent';
+            referencedRelation: 'company_unit';
             referencedColumns: ['id'];
           },
         ];
       };
-      company_parent: {
+      company_unit: {
         Row: {
           address: string | null;
           city: string | null;
@@ -589,6 +589,7 @@ export type Database = {
           postal_code: string | null;
           state: string | null;
           trade_name: string | null;
+          unit_type: Database['public']['Enums']['enum_company_unit_type'];
           updated_at: string | null;
         };
         Insert: {
@@ -605,6 +606,7 @@ export type Database = {
           postal_code?: string | null;
           state?: string | null;
           trade_name?: string | null;
+          unit_type?: Database['public']['Enums']['enum_company_unit_type'];
           updated_at?: string | null;
         };
         Update: {
@@ -621,6 +623,7 @@ export type Database = {
           postal_code?: string | null;
           state?: string | null;
           trade_name?: string | null;
+          unit_type?: Database['public']['Enums']['enum_company_unit_type'];
           updated_at?: string | null;
         };
         Relationships: [];
@@ -3584,6 +3587,7 @@ export type Database = {
     };
     Enums: {
       client_contact_type: 'phone' | 'whatsapp' | 'email' | 'other';
+      enum_company_unit_type: 'matriz' | 'filial';
       enum_prescription_frequency_mode: 'every' | 'times_per' | 'shift';
       enum_prescription_item_supplier: 'company' | 'family' | 'government' | 'other';
       enum_prescription_item_type: 'medication' | 'material' | 'diet' | 'procedure' | 'equipment';
@@ -3829,6 +3833,7 @@ export const Constants = {
   public: {
     Enums: {
       client_contact_type: ['phone', 'whatsapp', 'email', 'other'],
+      enum_company_unit_type: ['matriz', 'filial'],
       enum_prescription_frequency_mode: ['every', 'times_per', 'shift'],
       enum_prescription_item_supplier: ['company', 'family', 'government', 'other'],
       enum_prescription_item_type: ['medication', 'material', 'diet', 'procedure', 'equipment'],
@@ -3855,3 +3860,4 @@ export const Constants = {
     },
   },
 } as const;
+

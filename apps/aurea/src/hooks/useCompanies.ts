@@ -12,7 +12,7 @@ export interface Company {
   logo_url_collapsed?: string | null;
   primary_color: string;
   theme_preference: string;
-  company_parent_id: string | null;
+  company_unit_id: string | null;
   care_modality: string | null;
   tax_regime: string | null;
   special_tax_regime: string | null;
@@ -33,7 +33,7 @@ export interface CreateCompanyInput {
   document?: string;
   primary_color?: string;
   theme_preference?: string;
-  company_parent_id?: string | null;
+  company_unit_id?: string | null;
   care_modality?: string | null;
   tax_regime?: string | null;
   special_tax_regime?: string | null;
@@ -90,7 +90,7 @@ export function useCreateCompany() {
         trade_name: input.trade_name || null,
         document: input.document || null,
         primary_color: input.primary_color || DEFAULT_PRIMARY_COLOR,
-        company_parent_id: input.company_parent_id || null,
+        company_unit_id: input.company_unit_id || null,
         care_modality: input.care_modality || null,
         tax_regime: input.tax_regime || null,
         special_tax_regime: input.special_tax_regime || null,

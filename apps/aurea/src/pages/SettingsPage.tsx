@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Card,
   CardHeader,
@@ -8,6 +8,9 @@ import {
   Input,
   ImageCropper,
   Select,
+  Badge,
+  Modal,
+  ModalFooter,
   Switch,
   TabButton,
 } from '@/components/ui';
@@ -16,13 +19,14 @@ import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Building, SwatchBook, Landmark, Layers, Plus } from 'lucide-react';
+import { Building, SwatchBook, Landmark, Layers, Plus, Pencil } from 'lucide-react';
 import {
-  useCompanyParents,
-  useCreateCompanyParent,
-  useUpdateCompanyParent,
-  CompanyParent,
-} from '@/hooks/useCompanyParents';
+  type CompanyUnit,
+  type CompanyUnitType,
+  useCompanyUnits,
+  useCreateCompanyUnit,
+  useUpdateCompanyUnit,
+} from '@/hooks/useCompanyUnits';
 
 type ActiveTab = 'company' | 'fiscal' | 'parent' | 'theme';
 
@@ -44,7 +48,7 @@ interface FiscalFormData {
   cnes: string;
 }
 
-interface CompanyParentFormData {
+interface CompanyUnitFormData {
   name: string;
   trade_name: string;
   document: string;
@@ -55,10 +59,11 @@ interface CompanyParentFormData {
   city: string;
   state: string;
   complement: string;
+  unit_type: CompanyUnitType;
   is_active: boolean;
 }
 
-const emptyParentForm: CompanyParentFormData = {
+const emptyUnitForm: CompanyUnitFormData = {
   name: '',
   trade_name: '',
   document: '',
@@ -69,7 +74,18 @@ const emptyParentForm: CompanyParentFormData = {
   city: '',
   state: '',
   complement: '',
+  unit_type: 'filial',
   is_active: true,
+};
+
+const UNIT_TYPE_OPTIONS: Array<{ value: CompanyUnitType; label: string }> = [
+  { value: 'matriz', label: 'Matriz' },
+  { value: 'filial', label: 'Filial' },
+];
+
+const UNIT_TYPE_LABEL: Record<CompanyUnitType, string> = {
+  matriz: 'Matriz',
+  filial: 'Filial',
 };
 
 const toNull = (value: string) => (value?.trim() ? value.trim() : null);
@@ -78,9 +94,8 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('company');
   const [isUploadingCollapsed, setIsUploadingCollapsed] = useState(false);
   const [isUploadingExpanded, setIsUploadingExpanded] = useState(false);
-  const [isCreatingParent, setIsCreatingParent] = useState(false);
-  const [previousParentId, setPreviousParentId] = useState('');
-  const [selectedParentId, setSelectedParentId] = useState('');
+  const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<CompanyUnit | null>(null);
   const fileInputCollapsedRef = useRef<HTMLInputElement>(null);
   const fileInputExpandedRef = useRef<HTMLInputElement>(null);
 
@@ -94,9 +109,9 @@ export default function SettingsPage() {
   const { company } = useAuthStore();
   const queryClient = useQueryClient();
 
-  const { data: parents = [], isLoading: isLoadingParents } = useCompanyParents();
-  const createParent = useCreateCompanyParent();
-  const updateParent = useUpdateCompanyParent();
+  const { data: units = [], isLoading: isLoadingUnits } = useCompanyUnits();
+  const createUnit = useCreateCompanyUnit();
+  const updateUnit = useUpdateCompanyUnit();
 
   const companyForm = useForm<CompanyFormData>({
     defaultValues: {
@@ -120,24 +135,18 @@ export default function SettingsPage() {
     },
   });
 
-  const parentForm = useForm<CompanyParentFormData>({
-    defaultValues: emptyParentForm,
+  const unitForm = useForm<CompanyUnitFormData>({
+    defaultValues: emptyUnitForm,
   });
 
-  const selectedParent = useMemo<CompanyParent | undefined>(
-    () => parents.find((parent) => parent.id === selectedParentId),
-    [parents, selectedParentId]
+  const linkedUnit = useMemo<CompanyUnit | undefined>(
+    () => units.find((unit) => unit.id === company?.company_unit_id),
+    [units, company?.company_unit_id]
   );
 
-  const parentOptions = useMemo(
-    () => [
-      { value: '', label: 'Sem matriz' },
-      ...parents.map((parent) => ({
-        value: parent.id,
-        label: parent.trade_name ? `${parent.name} (${parent.trade_name})` : parent.name,
-      })),
-    ],
-    [parents]
+  const hasMatrizUnit = useMemo(
+    () => units.some((unit) => unit.unit_type === 'matriz'),
+    [units]
   );
 
   useEffect(() => {
@@ -161,33 +170,8 @@ export default function SettingsPage() {
       cnes: company.cnes || '',
     });
 
-    setSelectedParentId(company.company_parent_id || '');
   }, [company, companyForm, fiscalForm]);
 
-  useEffect(() => {
-    if (isCreatingParent) {
-      parentForm.reset(emptyParentForm);
-      return;
-    }
-
-    if (selectedParent) {
-      parentForm.reset({
-        name: selectedParent.name || '',
-        trade_name: selectedParent.trade_name || '',
-        document: selectedParent.document || '',
-        postal_code: selectedParent.postal_code || '',
-        address: selectedParent.address || '',
-        neiborhood: selectedParent.neiborhood || '',
-        number: selectedParent.number || '',
-        city: selectedParent.city || '',
-        state: selectedParent.state || '',
-        complement: selectedParent.complement || '',
-        is_active: selectedParent.is_active ?? true,
-      });
-    } else {
-      parentForm.reset(emptyParentForm);
-    }
-  }, [isCreatingParent, parentForm, selectedParent]);
 
   const updateCompany = useMutation({
     mutationFn: async (updates: Record<string, any>) => {
@@ -228,23 +212,49 @@ export default function SettingsPage() {
     });
   };
 
-  const handleSaveParentLink = () => {
-    updateCompany.mutate({ company_parent_id: selectedParentId || null });
+  const handleLinkUnit = (unitId: string) => {
+    if (unitId === company?.company_unit_id) return;
+    updateCompany.mutate({ company_unit_id: unitId });
   };
 
-  const handleStartCreateParent = () => {
-    setPreviousParentId(selectedParentId || '');
-    setIsCreatingParent(true);
-    setSelectedParentId('');
+  const handleOpenCreateUnitModal = () => {
+    setEditingUnit(null);
+    unitForm.reset({
+      ...emptyUnitForm,
+      unit_type: hasMatrizUnit ? 'filial' : 'matriz',
+    });
+    setIsUnitModalOpen(true);
   };
 
-  const handleCancelCreateParent = () => {
-    setIsCreatingParent(false);
-    setSelectedParentId(previousParentId);
-    setPreviousParentId('');
+  const handleOpenEditUnitModal = (unit: CompanyUnit) => {
+    setEditingUnit(unit);
+    unitForm.reset({
+      name: unit.name || '',
+      trade_name: unit.trade_name || '',
+      document: unit.document || '',
+      postal_code: unit.postal_code || '',
+      address: unit.address || '',
+      neiborhood: unit.neiborhood || '',
+      number: unit.number || '',
+      city: unit.city || '',
+      state: unit.state || '',
+      complement: unit.complement || '',
+      unit_type: unit.unit_type || 'filial',
+      is_active: unit.is_active ?? true,
+    });
+    setIsUnitModalOpen(true);
   };
 
-  const handleParentSubmit = async (data: CompanyParentFormData) => {
+  const handleCloseUnitModal = () => {
+    setIsUnitModalOpen(false);
+    setEditingUnit(null);
+    unitForm.reset({
+      ...emptyUnitForm,
+      unit_type: hasMatrizUnit ? 'filial' : 'matriz',
+    });
+  };
+
+  const handleUnitSubmit = async (data: CompanyUnitFormData) => {
     const payload = {
       name: data.name.trim(),
       trade_name: toNull(data.trade_name),
@@ -256,20 +266,19 @@ export default function SettingsPage() {
       city: toNull(data.city),
       state: toNull(data.state),
       complement: toNull(data.complement),
+      unit_type: data.unit_type,
       is_active: data.is_active,
     };
 
-    if (isCreatingParent) {
-      const created = await createParent.mutateAsync(payload);
-      setIsCreatingParent(false);
-      setSelectedParentId(created.id);
-      updateCompany.mutate({ company_parent_id: created.id });
+    if (editingUnit) {
+      await updateUnit.mutateAsync({ id: editingUnit.id, ...payload });
+      handleCloseUnitModal();
       return;
     }
 
-    if (selectedParentId) {
-      await updateParent.mutateAsync({ id: selectedParentId, ...payload });
-    }
+    const created = await createUnit.mutateAsync(payload);
+    updateCompany.mutate({ company_unit_id: created.id });
+    handleCloseUnitModal();
   };
 
   // Upload logo collapsed (quadrada)
@@ -385,7 +394,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'company' as const, name: 'Empresa', icon: Building },
     { id: 'fiscal' as const, name: 'Fiscal', icon: Landmark },
-    { id: 'parent' as const, name: 'Matriz', icon: Layers },
+    { id: 'parent' as const, name: 'Organização', icon: Layers },
     { id: 'theme' as const, name: 'Aparência', icon: SwatchBook },
   ];
 
@@ -399,13 +408,10 @@ export default function SettingsPage() {
     { name: 'Teal', value: '#56A6B4' },
   ];
 
-  const {
-    name: parentActiveName,
-    ref: parentActiveRef,
-    onBlur: parentActiveOnBlur,
-  } = parentForm.register('is_active');
-  const parentIsActive = parentForm.watch('is_active');
-
+  const { name: unitActiveName, ref: unitActiveRef, onBlur: unitActiveOnBlur } =
+    unitForm.register('is_active');
+  const unitIsActive = unitForm.watch('is_active');
+  const unitTypeValue = unitForm.watch('unit_type');
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -606,110 +612,100 @@ export default function SettingsPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Vínculo com Matriz</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <Select
-                  label="Matriz"
-                  value={selectedParentId}
-                  onChange={(event: any) => setSelectedParentId(event.target.value)}
-                  options={parentOptions}
-                  disabled={isCreatingParent || isLoadingParents}
-                />
-                <div className="flex items-end gap-2">
-                  <Button
-                    type="button"
-                    variant="neutral"
-                    onClick={handleSaveParentLink}
-                    isLoading={updateCompany.isPending}
-                    disabled={isCreatingParent}
-                  >
-                    Salvar Vínculo
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={handleStartCreateParent}
-                    disabled={isCreatingParent}
-                  >
-                    <Plus className="mr-1 h-4 w-4" />
-                    Nova Matriz
-                  </Button>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle>Unidades da Organização</CardTitle>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {linkedUnit
+                      ? `Unidade vinculada: ${linkedUnit.trade_name || linkedUnit.name}`
+                      : 'Nenhuma unidade vinculada a esta empresa.'}
+                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Dados da Matriz</CardTitle>
-                {isCreatingParent && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCancelCreateParent}
-                    showIcon={false}
-                  >
-                    Cancelar
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant="solid"
+                  icon={<Plus className="h-4 w-4" />}
+                  onClick={handleOpenCreateUnitModal}
+                >
+                  Adicionar Unidade
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {!selectedParentId && !isCreatingParent ? (
+              {isLoadingUnits && (
                 <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                  Nenhuma matriz vinculada. Use o botão "Nova Matriz" ou selecione uma existente.
+                  Carregando unidades...
                 </div>
-              ) : (
-                <form onSubmit={parentForm.handleSubmit(handleParentSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <Input
-                      label="Razão Social"
-                      {...parentForm.register('name', {
-                        required: 'Razão social é obrigatória',
-                      })}
-                      error={parentForm.formState.errors.name?.message}
-                      required
-                    />
-                    <Input label="Nome Fantasia" {...parentForm.register('trade_name')} />
-                    <Input label="CNPJ" {...parentForm.register('document')} />
-                  </div>
+              )}
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                    <Input label="CEP" {...parentForm.register('postal_code')} />
-                    <Input label="Endereço" {...parentForm.register('address')} />
-                    <Input label="Bairro" {...parentForm.register('neiborhood')} />
-                    <Input label="Número" {...parentForm.register('number')} />
-                  </div>
+              {!isLoadingUnits && units.length === 0 && (
+                <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                  Nenhuma unidade cadastrada. Clique em "Adicionar Unidade" para começar.
+                </div>
+              )}
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <Input label="Cidade" {...parentForm.register('city')} />
-                    <Input label="Estado" {...parentForm.register('state')} />
-                    <Input label="Complemento" {...parentForm.register('complement')} />
-                  </div>
+              {!isLoadingUnits && units.length > 0 && (
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {units.map((unit) => {
+                    const isLinked = company?.company_unit_id === unit.id;
+                    return (
+                      <Card
+                        key={unit.id}
+                        className={isLinked ? 'border-primary-500 ring-primary-500 ring-1' : ''}
+                      >
+                        <CardHeader>
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <CardTitle className="text-base">{unit.trade_name || unit.name}</CardTitle>
+                              {unit.trade_name && (
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{unit.name}</p>
+                              )}
+                            </div>
+                            <Badge variant={unit.unit_type === 'matriz' ? 'info' : 'neutral'}>
+                              {UNIT_TYPE_LABEL[unit.unit_type]}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                            <p>CNPJ: {unit.document || '-'}</p>
+                            <p>
+                              Cidade: {unit.city || '-'}
+                              {unit.state ? `/${unit.state}` : ''}
+                            </p>
+                          </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <Switch
-                      label="Status da Matriz"
-                      showStatus
-                      name={parentActiveName}
-                      ref={parentActiveRef}
-                      onBlur={parentActiveOnBlur}
-                      checked={!!parentIsActive}
-                      onChange={(e) =>
-                        parentForm.setValue('is_active', e.target.checked, { shouldDirty: true })
-                      }
-                    />
-                    <Button
-                      type="submit"
-                      isLoading={createParent.isPending || updateParent.isPending}
-                    >
-                      {isCreatingParent ? 'Criar Matriz' : 'Salvar Matriz'}
-                    </Button>
-                  </div>
-                </form>
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge variant={unit.is_active === false ? 'neutral' : 'success'}>
+                              {unit.is_active === false ? 'Inativa' : 'Ativa'}
+                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                icon={<Pencil className="h-4 w-4" />}
+                                onClick={() => handleOpenEditUnitModal(unit)}
+                              >
+                                Editar
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={isLinked ? 'neutral' : 'solid'}
+                                onClick={() => handleLinkUnit(unit.id)}
+                                isLoading={updateCompany.isPending && !isLinked}
+                                disabled={isLinked}
+                              >
+                                {isLinked ? 'Vinculada' : 'Vincular'}
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -786,6 +782,75 @@ export default function SettingsPage() {
         </div>
       )}
 
+      <Modal
+        isOpen={isUnitModalOpen}
+        onClose={handleCloseUnitModal}
+        title={editingUnit ? 'Editar Unidade' : 'Adicionar Unidade'}
+        size="lg"
+      >
+        <form onSubmit={unitForm.handleSubmit(handleUnitSubmit)} className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Input
+              label="Razão Social"
+              {...unitForm.register('name', { required: 'Razão social é obrigatória' })}
+              error={unitForm.formState.errors.name?.message}
+              required
+            />
+            <Input label="Nome Fantasia" {...unitForm.register('trade_name')} />
+            <Input label="CNPJ" {...unitForm.register('document')} />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <Input label="CEP" {...unitForm.register('postal_code')} />
+            <Input label="Endereço" {...unitForm.register('address')} />
+            <Input label="Bairro" {...unitForm.register('neiborhood')} />
+            <Input label="Número" {...unitForm.register('number')} />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Input label="Cidade" {...unitForm.register('city')} />
+            <Input label="Estado" {...unitForm.register('state')} />
+            <Input label="Complemento" {...unitForm.register('complement')} />
+          </div>
+
+          <Select
+            label="Tipo da Unidade"
+            options={UNIT_TYPE_OPTIONS}
+            value={unitTypeValue}
+            {...unitForm.register('unit_type', { required: 'Tipo da unidade é obrigatória' })}
+            error={unitForm.formState.errors.unit_type?.message}
+            required
+          />
+
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <Switch
+              label={unitTypeValue === 'matriz' ? 'Status da Matriz' : 'Status da Filial'}
+              showStatus
+              name={unitActiveName}
+              ref={unitActiveRef}
+              onBlur={unitActiveOnBlur}
+              checked={!!unitIsActive}
+              onChange={(e) => unitForm.setValue('is_active', e.target.checked, { shouldDirty: true })}
+            />
+            <Badge variant={unitTypeValue === 'matriz' ? 'info' : 'neutral'}>
+              {UNIT_TYPE_LABEL[unitTypeValue || 'filial']}
+            </Badge>
+          </div>
+
+          <ModalFooter>
+            <Button type="button" variant="outline" showIcon={false} onClick={handleCloseUnitModal}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              showIcon={false}
+              isLoading={createUnit.isPending || updateUnit.isPending}
+            >
+              {editingUnit ? 'Salvar Unidade' : 'Adicionar Unidade'}
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
       {/* Image Crop Modal */}
       {imageToCrop && (
         <ImageCropper
@@ -804,3 +869,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

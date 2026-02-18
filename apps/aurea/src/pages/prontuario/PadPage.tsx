@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Eye, Power, Calendar, Search, FunnelX } from 'lucide-react';
+import { Pencil, Eye, Power, Calendar, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -192,14 +192,15 @@ export default function PadPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            Escalas de Atendimento (PAD)
+            Plano de Atendimento Domiciliar (PAD)
           </h1>
         </div>
         {canEdit && (
           <Button
             onClick={() => navigate('/prontuario/pad/novo')}
             variant="solid"
-            label="Nova Escala"
+            icon={<Plus className="h-4 w-4" />}
+            label="Novo PAD"
           />
         )}
       </div>
@@ -241,15 +242,16 @@ export default function PadPage() {
             emptyState={
               <EmptyState
                 icon={<Calendar className="h-12 w-12 text-gray-400" />}
-                title="Nenhuma escala cadastrada"
-                description="Crie a primeira escala de atendimento"
+                title="Nenhum PAD cadastrado"
+                description="Crie o primeiro Plano de Atendimento Domiciliar (PAD)"
                 action={
                   canEdit ? (
                     <Button
                       onClick={() => navigate('/prontuario/pad/novo')}
                       size="sm"
                       variant="solid"
-                      label="Nova Escala"
+                      icon={<Plus className="h-4 w-4" />}
+                      label="Novo PAD"
                     />
                   ) : undefined
                 }
@@ -261,7 +263,7 @@ export default function PadPage() {
             totalPages={totalPages}
             totalCount={totalCount}
             pageSize={PAGE_SIZE}
-            itemLabel="escalas"
+            itemLabel="PADs"
             onPreviousPage={() => setCurrentPage((page) => page - 1)}
             onNextPage={() => setCurrentPage((page) => page + 1)}
             isLoading={isLoading}
@@ -273,11 +275,11 @@ export default function PadPage() {
       <Modal
         isOpen={isToggleModalOpen}
         onClose={() => setIsToggleModalOpen(false)}
-        title={selectedDemand?.is_active ? 'Desativar Escala' : 'Ativar Escala'}
+        title={selectedDemand?.is_active ? 'Desativar PAD' : 'Ativar PAD'}
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja {selectedDemand?.is_active ? 'desativar' : 'ativar'} a escala do
+          Tem certeza que deseja {selectedDemand?.is_active ? 'desativar' : 'ativar'} o PAD do
           paciente{' '}
           <strong className="text-gray-900 dark:text-white">{selectedDemand?.patient?.name}</strong>
           ?

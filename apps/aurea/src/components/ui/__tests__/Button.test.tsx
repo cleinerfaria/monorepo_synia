@@ -17,7 +17,7 @@ describe('Button', () => {
     });
 
     it('should apply secondary variant', () => {
-      render(<Button variant="neutral">Secondary</Button>);
+      render(<Button variant="secondary">Secondary</Button>);
       const button = screen.getByRole('button');
       expect(button).toHaveClass('bg-surface-elevated/90');
     });

@@ -40,7 +40,7 @@ export default function PatientMonthSchedulePage() {
     regime,
     startTime,
     minEditableDate,
-    padId,
+    padItemId,
     isDirty,
     isSaving,
     assignments,
@@ -74,14 +74,14 @@ export default function PatientMonthSchedulePage() {
   const saveSchedule = useSaveSchedule();
 
   const handleSave = useCallback(async () => {
-    if (!patientId || !isDirty || !padId) return;
+    if (!patientId || !isDirty || !padItemId) return;
 
     setSaving(true);
     try {
       const allAssignments = getFullAssignments();
       await saveSchedule.mutateAsync({
         patient_id: patientId,
-        pad_item_id: padId,
+        pad_item_id: padItemId,
         year,
         month,
         assignments: allAssignments,
@@ -92,7 +92,7 @@ export default function PatientMonthSchedulePage() {
     }
   }, [
     patientId,
-    padId,
+    padItemId,
     isDirty,
     year,
     month,
