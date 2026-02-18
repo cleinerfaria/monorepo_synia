@@ -1,6 +1,7 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useScheduleStore } from '@/stores/scheduleStore';
-import type { ScheduleProfessional, BatchSelectionPreset } from '@/types/schedule';
+import { SLOTS_BY_REGIME } from '@/types/schedule';
+import type { ScheduleProfessional, BatchSelectionPreset, SlotType } from '@/types/schedule';
 import { Input, Button } from '@/components/ui';
 import { ScheduleSlotChip } from './ScheduleSlotChip';
 
@@ -19,10 +20,20 @@ const BATCH_PRESETS: Array<{ value: BatchSelectionPreset; label: string }> = [
   { value: 'full_month', label: 'Mes todo' },
 ];
 
+const SLOT_OPTIONS: Array<{ value: SlotType; label: string }> = [
+  { value: '24h', label: '24h' },
+  { value: '12h_day', label: '12h diurno' },
+  { value: '12h_night', label: '12h noturno' },
+  { value: '8h_morning', label: '8h manha' },
+  { value: '8h_afternoon', label: '8h tarde' },
+  { value: '8h_night', label: '8h noite' },
+];
+
 function ScheduleSidebarInner({ professionals, onAutoFillClick }: ScheduleSidebarProps) {
   const {
     year,
     month,
+    regime,
     assignments,
     selectedDates,
     applyBatchPreset,
@@ -33,6 +44,29 @@ function ScheduleSidebarInner({ professionals, onAutoFillClick }: ScheduleSideba
 
   const [search, setSearch] = useState('');
   const [substituteIds, setSubstituteIds] = useState<Set<string>>(new Set());
+  const [selectedPreset, setSelectedPreset] = useState<BatchSelectionPreset | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<SlotType | null>(null);
+
+  const availableSlots = useMemo(() => {
+    const allowedSlots = new Set<SlotType>(SLOTS_BY_REGIME[regime]);
+    return SLOT_OPTIONS.filter((option) => allowedSlots.has(option.value));
+  }, [regime]);
+
+  useEffect(() => {
+    if (availableSlots.length === 0) {
+      setSelectedSlot(null);
+      return;
+    }
+
+    setSelectedSlot((current) =>
+      current && availableSlots.some((option) => option.value === current)
+        ? current
+        : availableSlots[0].value
+    );
+  }, [availableSlots]);
+
+  const canBatchApply =
+    selectedDates.size > 0 && selectedPreset !== null && selectedSlot !== null;
 
   const filteredProfessionals = useMemo(() => {
     if (!search.trim()) return professionals;
@@ -70,10 +104,10 @@ function ScheduleSidebarInner({ professionals, onAutoFillClick }: ScheduleSideba
 
   const handleBatchApply = useCallback(
     (profId: string) => {
-      if (selectedDates.size === 0) return;
-      applyBatchAssignment(profId);
+      if (!canBatchApply || !selectedSlot) return;
+      applyBatchAssignment(profId, selectedSlot);
     },
-    [selectedDates, applyBatchAssignment]
+    [canBatchApply, selectedSlot, applyBatchAssignment]
   );
 
   const weekStarts = useMemo(() => {
@@ -115,11 +149,9 @@ function ScheduleSidebarInner({ professionals, onAutoFillClick }: ScheduleSideba
             return (
               <div key={prof.id} className="group flex items-center gap-1">
                 <div
-                  className="min-w-0 flex-1 cursor-pointer"
+                  className={`min-w-0 flex-1 ${canBatchApply ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
                   onClick={() => {
-                    if (selectedDates.size > 0) {
-                      handleBatchApply(prof.id);
-                    }
+                    handleBatchApply(prof.id);
                   }}
                 >
                   <ScheduleSlotChip professional={profWithSubstitute} />
@@ -155,33 +187,65 @@ function ScheduleSidebarInner({ professionals, onAutoFillClick }: ScheduleSideba
         </h3>
 
         <div className="mb-3">
-          <p className="text-content-secondary mb-1 text-[11px]">Selecao rapida:</p>
+          <p className="text-content-secondary mb-1 text-[11px]">Selecao de dias:</p>
           <div className="flex flex-wrap gap-1">
             {BATCH_PRESETS.map((preset) => (
               <button
                 key={preset.value}
-                onClick={() => applyBatchPreset(preset.value)}
-                className="border-border-default bg-surface-card text-content-secondary hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors"
+                onClick={() => {
+                  setSelectedPreset(preset.value);
+                  applyBatchPreset(preset.value);
+                }}
+                className={`rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                  selectedPreset === preset.value
+                    ? 'border-primary-500 bg-primary-500 text-white'
+                    : 'border-border-default bg-surface-card text-content-secondary hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400'
+                }`}
               >
                 {preset.label}
               </button>
             ))}
           </div>
-
-          {selectedDates.size > 0 && (
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-primary-600 dark:text-primary-400 text-[11px]">
-                {selectedDates.size} dia(s) selecionado(s)
-              </span>
-              <button
-                onClick={clearSelection}
-                className="text-content-muted hover:text-content-primary text-[10px] underline"
-              >
-                Limpar
-              </button>
-            </div>
-          )}
         </div>
+
+        <div className="mb-3">
+          <p className="text-content-secondary mb-1 text-[11px]">Horario do plantao:</p>
+          <div className="flex flex-wrap gap-1">
+            {availableSlots.map((slot) => (
+              <button
+                key={slot.value}
+                onClick={() => setSelectedSlot(slot.value)}
+                className={`rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                  selectedSlot === slot.value
+                    ? 'border-primary-500 bg-primary-500 text-white'
+                    : 'border-border-default bg-surface-card text-content-secondary hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400'
+                }`}
+              >
+                {slot.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {!canBatchApply && (
+          <p className="text-content-muted mb-2 text-[10px]">
+            Selecione o dia e o horario para preencher com profissional.
+          </p>
+        )}
+
+        {selectedDates.size > 0 && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-primary-600 dark:text-primary-400 text-[11px]">
+              {selectedDates.size} dia(s) selecionado(s)
+            </span>
+            <button
+              onClick={clearSelection}
+              className="text-content-muted hover:text-content-primary text-[10px] underline"
+            >
+              Limpar
+            </button>
+          </div>
+        )}
 
         <div className="space-y-1.5">
           <Button

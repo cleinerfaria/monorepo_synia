@@ -10,7 +10,13 @@ import {
   type DragOverEvent,
 } from '@dnd-kit/core';
 import { useScheduleStore } from '@/stores/scheduleStore';
-import type { ScheduleProfessional } from '@/types/schedule';
+import { SLOTS_BY_REGIME, getSlotTimes } from '@/types/schedule';
+import type {
+  ScheduleProfessional,
+  SlotType,
+  ScheduleRegime,
+  ScheduleAssignment,
+} from '@/types/schedule';
 import { ScheduleDayCell } from './ScheduleDayCell';
 import { ScheduleSlotChip } from './ScheduleSlotChip';
 import { SwapConfirmModal } from './SwapConfirmModal';
@@ -23,6 +29,14 @@ interface ScheduleCalendarGridProps {
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+const SLOT_TYPE_LABELS: Record<SlotType, string> = {
+  '24h': '24h',
+  '12h_day': '12h diurno',
+  '12h_night': '12h noturno',
+  '8h_morning': '8h manha',
+  '8h_afternoon': '8h tarde',
+  '8h_night': '8h noite',
+};
 
 function getDaysInMonth(year: number, month: number): string[] {
   const days: string[] = [];
@@ -45,6 +59,55 @@ function gridColumn(dayOfWeek: number): number {
   return dayOfWeek;
 }
 
+function formatTimeRange(startAt: string, endAt: string): string {
+  const start = new Date(startAt);
+  const end = new Date(endAt);
+  const startLabel = start.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const endLabel = end.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const crossesDay = end.toISOString().slice(0, 10) > start.toISOString().slice(0, 10);
+  return `${startLabel}-${endLabel}${crossesDay ? ' (+1 dia)' : ''}`;
+}
+
+function resolveAssignmentSlotType(
+  date: string,
+  assignment: ScheduleAssignment,
+  regime: ScheduleRegime,
+  startTime: string
+): SlotType | null {
+  for (const slotType of SLOTS_BY_REGIME[regime]) {
+    const expectedTimes = getSlotTimes(slotType, date, startTime);
+    if (expectedTimes.start === assignment.start_at && expectedTimes.end === assignment.end_at) {
+      return slotType;
+    }
+  }
+
+  return null;
+}
+
+function buildAssignmentLabel(
+  date: string,
+  assignment: ScheduleAssignment,
+  regime: ScheduleRegime,
+  startTime: string
+): string {
+  const slotType = resolveAssignmentSlotType(date, assignment, regime, startTime);
+  const timeRange = formatTimeRange(assignment.start_at, assignment.end_at);
+
+  if (!slotType) {
+    return `(${timeRange})`;
+  }
+
+  return `${SLOT_TYPE_LABELS[slotType]} (${timeRange})`;
+}
+
 function ScheduleCalendarGridInner({
   professionals,
   onSlotClick,
@@ -55,12 +118,13 @@ function ScheduleCalendarGridInner({
     year,
     month,
     regime,
+    startTime,
     assignments,
     selectedDates,
     toggleDateSelection,
     moveAssignment,
     copyAssignment,
-    swapDayAssignments,
+    swapAssignments,
     removeAssignment,
   } = useScheduleStore();
 
@@ -72,9 +136,23 @@ function ScheduleCalendarGridInner({
 
   const [swapModal, setSwapModal] = useState<{
     open: boolean;
-    dateA: string;
-    dateB: string;
-  }>({ open: false, dateA: '', dateB: '' });
+    sourceDate: string;
+    sourceIndex: number;
+    sourceLabel: string;
+    sourceProfessionalName: string;
+    targetDate: string;
+    targetOptions: Array<{ index: number; label: string; professionalName: string }>;
+    selectedTargetIndex: number | null;
+  }>({
+    open: false,
+    sourceDate: '',
+    sourceIndex: -1,
+    sourceLabel: '',
+    sourceProfessionalName: '',
+    targetDate: '',
+    targetOptions: [],
+    selectedTargetIndex: null,
+  });
 
   const [overDate, setOverDate] = useState<string | null>(null);
   const copyModeRef = useRef(false);
@@ -172,36 +250,115 @@ function ScheduleCalendarGridInner({
 
       const overIdStr = over.id as string;
       let toDate: string;
+      let toIndex: number | null = null;
       if (overIdStr.startsWith('day::')) {
         toDate = overIdStr.replace('day::', '');
       } else {
-        [toDate] = overIdStr.split('::');
+        const [parsedDate, parsedIndex] = overIdStr.split('::');
+        toDate = parsedDate;
+        const nextIndex = Number.parseInt(parsedIndex, 10);
+        toIndex = Number.isNaN(nextIndex) ? null : nextIndex;
       }
       if (minEditableDate && toDate < minEditableDate) return;
 
-      if (fromDate === toDate) return;
+      if (fromDate === toDate) {
+        const sameDayAssignments = assignments.get(fromDate) || [];
 
-      // Se o destino ja tem assignments, abrir modal de swap
+        // No mesmo dia, se o drop cair no container do dia (sem indice),
+        // troca com o outro slot quando houver apenas um par de plantoes.
+        if (toIndex === null) {
+          if (sameDayAssignments.length === 2) {
+            const otherIndex = fromIndex === 0 ? 1 : 0;
+            swapAssignments(fromDate, fromIndex, toDate, otherIndex);
+          }
+          return;
+        }
+
+        if (toIndex === fromIndex) return;
+        swapAssignments(fromDate, fromIndex, toDate, toIndex);
+        return;
+      }
+
+      const sourceAssignments = assignments.get(fromDate);
+      const sourceAssignment = sourceAssignments?.[fromIndex];
+      if (!sourceAssignment) return;
+
       const targetAssignments = assignments.get(toDate);
       if (targetAssignments && targetAssignments.length > 0) {
-        setSwapModal({ open: true, dateA: fromDate, dateB: toDate });
+        const sourceLabel = buildAssignmentLabel(fromDate, sourceAssignment, regime, startTime);
+        const sourceProfessionalName =
+          profMap.get(sourceAssignment.professional_id)?.name || 'Profissional';
+        const targetOptions = targetAssignments.map((assignment, index) => ({
+          index,
+          label: buildAssignmentLabel(toDate, assignment, regime, startTime),
+          professionalName: profMap.get(assignment.professional_id)?.name || 'Sem profissional',
+        }));
+
+        if (targetOptions.length === 1) {
+          swapAssignments(fromDate, fromIndex, toDate, targetOptions[0].index);
+          return;
+        }
+
+        setSwapModal({
+          open: true,
+          sourceDate: fromDate,
+          sourceIndex: fromIndex,
+          sourceLabel,
+          sourceProfessionalName,
+          targetDate: toDate,
+          targetOptions,
+          selectedTargetIndex: null,
+        });
       } else if (copyModeRef.current) {
         copyAssignment(fromDate, fromIndex, toDate);
       } else {
         moveAssignment(fromDate, fromIndex, toDate);
       }
     },
-    [assignments, moveAssignment, copyAssignment, minEditableDate]
+    [
+      assignments,
+      moveAssignment,
+      copyAssignment,
+      minEditableDate,
+      regime,
+      startTime,
+      profMap,
+      swapAssignments,
+    ]
   );
 
+  const closeSwapModal = useCallback(() => {
+    setSwapModal({
+      open: false,
+      sourceDate: '',
+      sourceIndex: -1,
+      sourceLabel: '',
+      sourceProfessionalName: '',
+      targetDate: '',
+      targetOptions: [],
+      selectedTargetIndex: null,
+    });
+  }, []);
+
+  const handleSwapTargetSelect = useCallback((index: number) => {
+    setSwapModal((prev) => ({ ...prev, selectedTargetIndex: index }));
+  }, []);
+
   const handleSwapConfirm = useCallback(() => {
-    swapDayAssignments(swapModal.dateA, swapModal.dateB);
-    setSwapModal({ open: false, dateA: '', dateB: '' });
-  }, [swapModal, swapDayAssignments]);
+    if (swapModal.selectedTargetIndex === null) return;
+
+    swapAssignments(
+      swapModal.sourceDate,
+      swapModal.sourceIndex,
+      swapModal.targetDate,
+      swapModal.selectedTargetIndex
+    );
+    closeSwapModal();
+  }, [swapModal, swapAssignments, closeSwapModal]);
 
   const handleSwapCancel = useCallback(() => {
-    setSwapModal({ open: false, dateA: '', dateB: '' });
-  }, []);
+    closeSwapModal();
+  }, [closeSwapModal]);
 
   const handleDateClick = useCallback(
     (date: string, event: React.MouseEvent) => {
@@ -238,19 +395,6 @@ function ScheduleCalendarGridInner({
   }, [dragItem, profMap, assignments]);
 
   const today = new Date().toISOString().slice(0, 10);
-
-  // Nomes dos profissionais para o modal de swap
-  const swapProfNamesA = useMemo(() => {
-    if (!swapModal.open) return '';
-    const dayA = assignments.get(swapModal.dateA) || [];
-    return dayA.map((a) => profMap.get(a.professional_id)?.name || '?').join(', ');
-  }, [swapModal, assignments, profMap]);
-
-  const swapProfNamesB = useMemo(() => {
-    if (!swapModal.open) return '';
-    const dayB = assignments.get(swapModal.dateB) || [];
-    return dayB.map((a) => profMap.get(a.professional_id)?.name || '?').join(', ');
-  }, [swapModal, assignments, profMap]);
 
   return (
     <>
@@ -324,10 +468,13 @@ function ScheduleCalendarGridInner({
 
       <SwapConfirmModal
         isOpen={swapModal.open}
-        dateA={swapModal.dateA}
-        dateB={swapModal.dateB}
-        profNamesA={swapProfNamesA}
-        profNamesB={swapProfNamesB}
+        sourceDate={swapModal.sourceDate}
+        sourceLabel={swapModal.sourceLabel}
+        sourceProfessionalName={swapModal.sourceProfessionalName}
+        targetDate={swapModal.targetDate}
+        targetOptions={swapModal.targetOptions}
+        selectedTargetIndex={swapModal.selectedTargetIndex}
+        onSelectTarget={handleSwapTargetSelect}
         onConfirm={handleSwapConfirm}
         onCancel={handleSwapCancel}
       />

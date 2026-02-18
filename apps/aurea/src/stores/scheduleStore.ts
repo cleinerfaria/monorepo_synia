@@ -6,6 +6,7 @@ import type {
   AutoFillConfig,
   BatchSelectionPreset,
   DayAssignmentsMap,
+  SlotType,
 } from '@/types/schedule';
 import { generateDefaultSlots, getSlotTimes } from '@/types/schedule';
 
@@ -61,9 +62,9 @@ function isDateLocked(date: string, minEditableDate: string | null): boolean {
 function mergeShiftAssignmentInDay(
   existing: ScheduleAssignment[],
   incoming: ScheduleAssignment,
-  shiftType: AutoFillConfig['shiftType']
+  slotType: SlotType
 ): ScheduleAssignment[] {
-  if (shiftType === '24h') {
+  if (slotType === '24h') {
     return [incoming];
   }
 
@@ -143,13 +144,14 @@ interface ScheduleStoreActions {
   moveAssignment(fromDate: string, fromIndex: number, toDate: string): void;
   copyAssignment(fromDate: string, fromIndex: number, toDate: string): void;
   swapDayAssignments(dateA: string, dateB: string): void;
+  swapAssignments(dateA: string, indexA: number, dateB: string, indexB: number): void;
 
   // Lote
   toggleDateSelection(date: string): void;
   selectDateRange(dates: string[]): void;
   clearSelection(): void;
   applyBatchPreset(preset: BatchSelectionPreset): void;
-  applyBatchAssignment(professionalId: string): void;
+  applyBatchAssignment(professionalId: string, slotType?: SlotType): void;
 
   // Auto-preencher
   generateAutoFillPreview(config: AutoFillConfig): DayAssignmentsMap;
@@ -464,6 +466,39 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       markDirty();
     },
 
+    swapAssignments(dateA, indexA, dateB, indexB) {
+      const state = get();
+      if (
+        isDateLocked(dateA, state.minEditableDate) ||
+        isDateLocked(dateB, state.minEditableDate)
+      ) {
+        return;
+      }
+
+      if (dateA === dateB && indexA === indexB) {
+        return;
+      }
+
+      const newMap = cloneMap(state.assignments);
+      const dayA = newMap.get(dateA);
+      const dayB = newMap.get(dateB);
+
+      if (!dayA || !dayB) return;
+      if (indexA < 0 || indexA >= dayA.length) return;
+      if (indexB < 0 || indexB >= dayB.length) return;
+
+      const assignmentA = dayA[indexA];
+      const assignmentB = dayB[indexB];
+
+      const professionalA = assignmentA.professional_id;
+      assignmentA.professional_id = assignmentB.professional_id;
+      assignmentB.professional_id = professionalA;
+
+      set({ assignments: newMap });
+      pushHistory(`Trocar plantoes ${dateA} e ${dateB}`);
+      markDirty();
+    },
+
     // ===== Selecao =====
     toggleDateSelection(date) {
       const state = get();
@@ -534,7 +569,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       set({ selectedDates: new Set(unlockedSelected) });
     },
 
-    applyBatchAssignment(professionalId) {
+    applyBatchAssignment(professionalId, slotType) {
       const state = get();
       if (state.selectedDates.size === 0) return;
 
@@ -542,7 +577,26 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
       for (const date of state.selectedDates) {
         if (isDateLocked(date, state.minEditableDate)) continue;
-        // Gerar slots padrao para o dia com base no regime
+
+        if (slotType) {
+          const { start, end } = getSlotTimes(slotType, date, state.startTime);
+          const incomingAssignment: ScheduleAssignment = {
+            date,
+            professional_id: professionalId,
+            start_at: start,
+            end_at: end,
+          };
+
+          const existingDayAssignments = newMap.get(date) || [];
+          const mergedDayAssignments = mergeShiftAssignmentInDay(
+            existingDayAssignments,
+            incomingAssignment,
+            slotType
+          );
+          newMap.set(date, mergedDayAssignments);
+          continue;
+        }
+
         const slots = generateDefaultSlots(date, state.regime, state.startTime);
         const dayAssignments: ScheduleAssignment[] = slots.map((s) => ({
           date,

@@ -389,12 +389,11 @@ export default function PadFormPage() {
       const startTimeFromTimestamp = getTimeFromTimestamp(demand.start_at);
       const endTimeFromTimestamp = getTimeFromTimestamp(demand.end_at);
       const endDateFromTimestamp = getDateFromTimestamp(demand.end_at);
-      const enforcedCompanyUnitId = company?.company_unit_id || '';
 
       reset({
         patient_id: demand.patient_id,
         patient_payer_id: demand.patient_payer_id || '',
-        company_unit_id: enforcedCompanyUnitId,
+        company_unit_id: demand.company_unit_id || '',
         professional_id: demand.professional_id || '',
         pad_service_id: demand.pad_service_id || '',
         start_date: demand.start_date,
@@ -404,7 +403,7 @@ export default function PadFormPage() {
         notes: demand.notes || '',
       });
     }
-  }, [isEditing, demand, reset, company?.company_unit_id]);
+  }, [isEditing, demand, reset]);
 
   useEffect(() => {
     if (!patientIdValue) {
@@ -428,19 +427,10 @@ export default function PadFormPage() {
   }, [patientIdValue, patientPayerOptions, patientPayerIdValue, setValue]);
 
   useEffect(() => {
-    const enforcedCompanyUnitId = company?.company_unit_id;
-
-    if (enforcedCompanyUnitId) {
-      if (companyUnitIdValue !== enforcedCompanyUnitId) {
-        setValue('company_unit_id', enforcedCompanyUnitId, { shouldDirty: false });
-      }
-      return;
-    }
-
     if (companyUnitOptions.length === 1 && companyUnitOptions[0].value !== companyUnitIdValue) {
       setValue('company_unit_id', companyUnitOptions[0].value, { shouldDirty: false });
     }
-  }, [company?.company_unit_id, companyUnitOptions, companyUnitIdValue, setValue]);
+  }, [companyUnitOptions, companyUnitIdValue, setValue]);
 
   useEffect(() => {
     setGlobalUnsavedChanges(isDirty);
@@ -465,12 +455,11 @@ export default function PadFormPage() {
     const endDate = data.end_date?.trim() || null;
     const endTime = data.end_time?.trim() || null;
     const endAt = endDate && endTime ? `${endDate}T${endTime}:00` : null;
-    const companyUnitId = company?.company_unit_id || data.company_unit_id;
 
     const demandData: CreateDemandData = {
       patient_id: data.patient_id,
       patient_payer_id: data.patient_payer_id,
-      company_unit_id: companyUnitId,
+      company_unit_id: data.company_unit_id,
       professional_id: data.professional_id,
       pad_service_id: data.pad_service_id,
       start_date: data.start_date,
@@ -487,7 +476,7 @@ export default function PadFormPage() {
         reset({
           patient_id: data.patient_id,
           patient_payer_id: data.patient_payer_id,
-          company_unit_id: companyUnitId,
+          company_unit_id: data.company_unit_id,
           professional_id: data.professional_id,
           pad_service_id: data.pad_service_id,
           start_date: data.start_date,
@@ -779,7 +768,6 @@ export default function PadFormPage() {
                 {...register('company_unit_id', { required: 'Unidade é obrigatória' })}
                 error={errors.company_unit_id?.message}
                 required
-                disabled={Boolean(company?.company_unit_id)}
               />
             </div>
           </div>
@@ -916,7 +904,7 @@ export default function PadFormPage() {
                 label="Observações"
                 placeholder="Observações opcionais sobre este PAD..."
                 {...register('notes')}
-                rows={3}
+                rows={2}
               />
             </div>
           </div>
@@ -1008,7 +996,6 @@ export default function PadFormPage() {
                             variant="outline"
                             icon={<Pencil className="h-4 w-4" />}
                             showIcon
-                            label="Editar"
                             onClick={() => handleOpenEditPadItem(item)}
                           />
                           <Button
@@ -1017,7 +1004,6 @@ export default function PadFormPage() {
                             variant="danger"
                             icon={<Trash2 className="h-4 w-4" />}
                             showIcon
-                            label="Remover"
                             onClick={() => handleDeletePadItem(item)}
                             disabled={deletePadItem.isPending}
                           />
