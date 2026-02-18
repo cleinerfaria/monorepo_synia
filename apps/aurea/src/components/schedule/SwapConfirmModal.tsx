@@ -44,21 +44,22 @@ export function SwapConfirmModal({
       <div className="space-y-4">
         <p className="text-content-secondary text-sm">
           {hasMultipleTargets
-            ? 'Escolha o horario de destino para confirmar a troca do plantao.'
-            : 'Confirme a troca do plantao selecionado.'}
+            ? 'Escolha o horário de destino.'
+            : 'Confirme a troca do plantão selecionado.'}
         </p>
 
         <div className="space-y-2">
-          <div className="border-border-default bg-surface-canvas rounded-lg border p-3 text-center">
-            <div className="text-content-muted text-xs">
-              Origem: {formatDateBR(sourceDate)} - {sourceLabel}
-            </div>
-            <div className="text-content-primary mt-1 text-sm font-semibold">
+          <div className="text-content-muted text-sm font-semibold uppercase tracking-wide">
+            Origem: {formatDateBR(sourceDate)}
+          </div>
+          <div className="border-border-default bg-surface-canvas rounded-lg border px-3 py-2 text-left text-sm">
+            <div className="text-content-primary text-base font-semibold">
               {sourceProfessionalName}
             </div>
+            <div className="text-content-secondary font-medium">{sourceLabel}</div>
           </div>
 
-          <div className="text-content-muted text-xs font-semibold uppercase tracking-wide">
+          <div className="text-content-muted pt-4 text-sm font-semibold uppercase tracking-wide">
             Destino: {formatDateBR(targetDate)}
           </div>
 
@@ -74,19 +75,17 @@ export function SwapConfirmModal({
                     : 'border-border-default text-content-secondary hover:border-primary-300 hover:bg-surface-hover'
                 }`}
               >
-                <div className="font-medium">{option.label}</div>
-                <div className="text-xs opacity-80">
+                <div className="text-content-primary text-base font-semibold">
                   {option.professionalName || 'Sem profissional'}
                 </div>
+                <div className="font-medium">{option.label}</div>
               </button>
             ))}
           </div>
         </div>
 
         {selectedTargetIndex === null && hasMultipleTargets && (
-          <p className="text-content-muted text-xs">
-            Selecione se a troca sera no plantao diurno ou noturno.
-          </p>
+          <p className="text-content-muted text-xs">Selecione por qual plantão será a troca.</p>
         )}
       </div>
 
