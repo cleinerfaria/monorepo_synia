@@ -28,6 +28,16 @@ interface ScheduleCalendarGridProps {
   minEditableDate: string | null;
 }
 
+interface SwapTargetOptionState {
+  id: string;
+  label: string;
+  professionalName: string;
+  mode: 'swap' | 'move';
+  targetIndex?: number;
+  startAt?: string;
+  endAt?: string;
+}
+
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 const SLOT_TYPE_LABELS: Record<SlotType, string> = {
   '24h': '24h',
@@ -59,6 +69,25 @@ function gridColumn(dayOfWeek: number): number {
   return dayOfWeek;
 }
 
+function buildIntervalKey(startAt: string, endAt: string): string | null {
+  const startMs = new Date(startAt).getTime();
+  const endMs = new Date(endAt).getTime();
+  if (Number.isNaN(startMs) || Number.isNaN(endMs)) return null;
+  return `${startMs}|${endMs}`;
+}
+
+function isSameInterval(
+  startAtA: string,
+  endAtA: string,
+  startAtB: string,
+  endAtB: string
+): boolean {
+  const keyA = buildIntervalKey(startAtA, endAtA);
+  const keyB = buildIntervalKey(startAtB, endAtB);
+  if (!keyA || !keyB) return false;
+  return keyA === keyB;
+}
+
 function formatTimeRange(startAt: string, endAt: string): string {
   const start = new Date(startAt);
   const end = new Date(endAt);
@@ -84,7 +113,14 @@ function resolveAssignmentSlotType(
 ): SlotType | null {
   for (const slotType of SLOTS_BY_REGIME[regime]) {
     const expectedTimes = getSlotTimes(slotType, date, startTime);
-    if (expectedTimes.start === assignment.start_at && expectedTimes.end === assignment.end_at) {
+    if (
+      isSameInterval(
+        expectedTimes.start,
+        expectedTimes.end,
+        assignment.start_at,
+        assignment.end_at
+      )
+    ) {
       return slotType;
     }
   }
@@ -123,6 +159,7 @@ function ScheduleCalendarGridInner({
     selectedDates,
     toggleDateSelection,
     moveAssignment,
+    moveAssignmentToSlot,
     copyAssignment,
     swapAssignments,
     removeAssignment,
@@ -141,8 +178,8 @@ function ScheduleCalendarGridInner({
     sourceLabel: string;
     sourceProfessionalName: string;
     targetDate: string;
-    targetOptions: Array<{ index: number; label: string; professionalName: string }>;
-    selectedTargetIndex: number | null;
+    targetOptions: SwapTargetOptionState[];
+    selectedTargetId: string | null;
   }>({
     open: false,
     sourceDate: '',
@@ -151,7 +188,7 @@ function ScheduleCalendarGridInner({
     sourceProfessionalName: '',
     targetDate: '',
     targetOptions: [],
-    selectedTargetIndex: null,
+    selectedTargetId: null,
   });
 
   const [overDate, setOverDate] = useState<string | null>(null);
@@ -283,19 +320,49 @@ function ScheduleCalendarGridInner({
       const sourceAssignment = sourceAssignments?.[fromIndex];
       if (!sourceAssignment) return;
 
-      const targetAssignments = assignments.get(toDate);
-      if (targetAssignments && targetAssignments.length > 0) {
+      const targetAssignments = assignments.get(toDate) || [];
+      if (targetAssignments.length > 0) {
         const sourceLabel = buildAssignmentLabel(fromDate, sourceAssignment, regime, startTime);
         const sourceProfessionalName =
           profMap.get(sourceAssignment.professional_id)?.name || 'Profissional';
-        const targetOptions = targetAssignments.map((assignment, index) => ({
-          index,
-          label: buildAssignmentLabel(toDate, assignment, regime, startTime),
-          professionalName: profMap.get(assignment.professional_id)?.name || 'Sem profissional',
-        }));
 
-        if (targetOptions.length === 1) {
-          swapAssignments(fromDate, fromIndex, toDate, targetOptions[0].index);
+        const targetOptions: SwapTargetOptionState[] = targetAssignments.map(
+          (assignment, index) => ({
+            id: `swap-${index}`,
+            label: buildAssignmentLabel(toDate, assignment, regime, startTime),
+            professionalName: profMap.get(assignment.professional_id)?.name || 'Sem profissional',
+            mode: 'swap',
+            targetIndex: index,
+          })
+        );
+
+        const occupiedRanges = new Set(
+          targetAssignments
+            .map((assignment) => buildIntervalKey(assignment.start_at, assignment.end_at))
+            .filter((key): key is string => key !== null)
+        );
+
+        for (const slotType of SLOTS_BY_REGIME[regime]) {
+          const slotTimes = getSlotTimes(slotType, toDate, startTime);
+          const rangeKey = buildIntervalKey(slotTimes.start, slotTimes.end);
+          if (!rangeKey || occupiedRanges.has(rangeKey)) continue;
+
+          targetOptions.push({
+            id: `move-${slotType}`,
+            label: `${SLOT_TYPE_LABELS[slotType]} (${formatTimeRange(slotTimes.start, slotTimes.end)})`,
+            professionalName: 'Horario vago',
+            mode: 'move',
+            startAt: slotTimes.start,
+            endAt: slotTimes.end,
+          });
+        }
+
+        if (
+          targetOptions.length === 1 &&
+          targetOptions[0].mode === 'swap' &&
+          targetOptions[0].targetIndex !== undefined
+        ) {
+          swapAssignments(fromDate, fromIndex, toDate, targetOptions[0].targetIndex);
           return;
         }
 
@@ -307,7 +374,7 @@ function ScheduleCalendarGridInner({
           sourceProfessionalName,
           targetDate: toDate,
           targetOptions,
-          selectedTargetIndex: null,
+          selectedTargetId: null,
         });
       } else if (copyModeRef.current) {
         copyAssignment(fromDate, fromIndex, toDate);
@@ -323,6 +390,7 @@ function ScheduleCalendarGridInner({
       regime,
       startTime,
       profMap,
+      moveAssignmentToSlot,
       swapAssignments,
     ]
   );
@@ -336,25 +404,45 @@ function ScheduleCalendarGridInner({
       sourceProfessionalName: '',
       targetDate: '',
       targetOptions: [],
-      selectedTargetIndex: null,
+      selectedTargetId: null,
     });
   }, []);
 
-  const handleSwapTargetSelect = useCallback((index: number) => {
-    setSwapModal((prev) => ({ ...prev, selectedTargetIndex: index }));
+  const handleSwapTargetSelect = useCallback((id: string) => {
+    setSwapModal((prev) => ({ ...prev, selectedTargetId: id }));
   }, []);
 
   const handleSwapConfirm = useCallback(() => {
-    if (swapModal.selectedTargetIndex === null) return;
+    if (!swapModal.selectedTargetId) return;
 
-    swapAssignments(
-      swapModal.sourceDate,
-      swapModal.sourceIndex,
-      swapModal.targetDate,
-      swapModal.selectedTargetIndex
+    const selectedTarget = swapModal.targetOptions.find(
+      (option) => option.id === swapModal.selectedTargetId
     );
+    if (!selectedTarget) return;
+
+    if (selectedTarget.mode === 'swap' && selectedTarget.targetIndex !== undefined) {
+      swapAssignments(
+        swapModal.sourceDate,
+        swapModal.sourceIndex,
+        swapModal.targetDate,
+        selectedTarget.targetIndex
+      );
+      closeSwapModal();
+      return;
+    }
+
+    if (selectedTarget.mode === 'move' && selectedTarget.startAt && selectedTarget.endAt) {
+      moveAssignmentToSlot(
+        swapModal.sourceDate,
+        swapModal.sourceIndex,
+        swapModal.targetDate,
+        selectedTarget.startAt,
+        selectedTarget.endAt
+      );
+    }
+
     closeSwapModal();
-  }, [swapModal, swapAssignments, closeSwapModal]);
+  }, [swapModal, swapAssignments, moveAssignmentToSlot, closeSwapModal]);
 
   const handleSwapCancel = useCallback(() => {
     closeSwapModal();
@@ -473,7 +561,7 @@ function ScheduleCalendarGridInner({
         sourceProfessionalName={swapModal.sourceProfessionalName}
         targetDate={swapModal.targetDate}
         targetOptions={swapModal.targetOptions}
-        selectedTargetIndex={swapModal.selectedTargetIndex}
+        selectedTargetId={swapModal.selectedTargetId}
         onSelectTarget={handleSwapTargetSelect}
         onConfirm={handleSwapConfirm}
         onCancel={handleSwapCancel}

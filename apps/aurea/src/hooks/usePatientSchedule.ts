@@ -129,7 +129,7 @@ export function useScheduleProfessionals() {
 
       const { data, error } = await supabase
         .from('professional')
-        .select('id, name, profession_id, active, email, phone')
+        .select('id, name, social_name, profession_id, active, email, phone')
         .eq('company_id', company.id)
         .order('name');
 
@@ -137,7 +137,8 @@ export function useScheduleProfessionals() {
 
       return (data || []).map((p: any) => ({
         id: p.id,
-        name: p.name,
+        name: p.social_name?.trim() || p.name,
+        social_name: p.social_name ?? null,
         role: null,
         active: p.active ?? false,
         email: p.email,

@@ -142,6 +142,13 @@ interface ScheduleStoreActions {
     changes: Partial<Pick<ScheduleAssignment, 'professional_id' | 'start_at' | 'end_at'>>
   ): void;
   moveAssignment(fromDate: string, fromIndex: number, toDate: string): void;
+  moveAssignmentToSlot(
+    fromDate: string,
+    fromIndex: number,
+    toDate: string,
+    startAt: string,
+    endAt: string
+  ): void;
   copyAssignment(fromDate: string, fromIndex: number, toDate: string): void;
   swapDayAssignments(dateA: string, dateB: string): void;
   swapAssignments(dateA: string, indexA: number, dateB: string, indexB: number): void;
@@ -384,6 +391,35 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
       set({ assignments: newMap });
       pushHistory(`Mover de ${fromDate} para ${toDate}`);
+      markDirty();
+    },
+
+    moveAssignmentToSlot(fromDate, fromIndex, toDate, startAt, endAt) {
+      const state = get();
+      if (
+        isDateLocked(fromDate, state.minEditableDate) ||
+        isDateLocked(toDate, state.minEditableDate)
+      ) {
+        return;
+      }
+
+      const newMap = cloneMap(state.assignments);
+      const fromDay = newMap.get(fromDate);
+      if (!fromDay || fromIndex < 0 || fromIndex >= fromDay.length) return;
+
+      const assignment = fromDay.splice(fromIndex, 1)[0];
+      if (fromDay.length === 0) newMap.delete(fromDate);
+
+      assignment.date = toDate;
+      assignment.start_at = startAt;
+      assignment.end_at = endAt;
+
+      if (!newMap.has(toDate)) newMap.set(toDate, []);
+      newMap.get(toDate)!.push(assignment);
+      newMap.get(toDate)!.sort((a, b) => a.start_at.localeCompare(b.start_at));
+
+      set({ assignments: newMap });
+      pushHistory(`Mover para horario em ${toDate}`);
       markDirty();
     },
 

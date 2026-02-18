@@ -12,6 +12,7 @@ export type ScheduleRegime = '24h' | '12h' | '8h';
 export interface ScheduleProfessional {
   id: string;
   name: string;
+  social_name: string | null;
   role: string | null;
   active: boolean;
   email: string | null;

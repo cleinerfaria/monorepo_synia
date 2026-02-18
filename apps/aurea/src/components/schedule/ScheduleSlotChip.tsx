@@ -25,13 +25,9 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-/** Abreviar nome: primeiro nome + inicial do sobrenome */
-function getShortName(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) {
-    return `${parts[0]} ${parts[parts.length - 1][0]}.`;
-  }
-  return parts[0];
+function getDisplayName(professional: ScheduleProfessional): string {
+  const socialName = professional.social_name?.trim();
+  return socialName || professional.name;
 }
 
 function buildChipStyles(color: string | null, isDarkMode: boolean) {
@@ -145,8 +141,8 @@ function ScheduleSlotChipInner({
 
   const color = professional.color;
   const chipStyles = buildChipStyles(color, isDarkMode);
-  const shortName = getShortName(professional.name);
-  const initials = getInitials(professional.name);
+  const displayName = getDisplayName(professional);
+  const initials = getInitials(displayName);
   const startTime = formatTime(startAt);
   const endTime = formatTime(endAt);
 
@@ -162,7 +158,7 @@ function ScheduleSlotChipInner({
       className={`group flex w-full items-center gap-1 rounded border px-1 py-0.5 text-[10px] font-medium leading-tight transition-shadow md:text-[11px] ${
         isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
       } ${isDragging ? 'shadow-lg' : 'shadow-sm hover:shadow'}`}
-      title={`${professional.name}${professional.role ? ` — ${professional.role}` : ''}${professional.is_substitute ? ' (Folguista)' : ''}${startTime && endTime ? ` | ${startTime}–${endTime}` : ''}`}
+      title={`${displayName}${professional.role ? ` — ${professional.role}` : ''}${professional.is_substitute ? ' (Folguista)' : ''}${startTime && endTime ? ` | ${startTime}–${endTime}` : ''}`}
     >
       {/* Initials avatar */}
       <span
@@ -174,7 +170,7 @@ function ScheduleSlotChipInner({
 
       {/* Nome e horarios */}
       <div className="min-w-0 flex-1">
-        <span className="block min-w-0 truncate">{shortName}</span>
+        <span className="block min-w-0 truncate">{displayName}</span>
         {(startTime || endTime) && (
           <span className="block text-[7px] leading-tight opacity-70 dark:opacity-95">
             {startTime && endTime ? `${startTime}–${endTime}` : startTime || endTime}

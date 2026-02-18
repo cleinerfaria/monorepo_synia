@@ -1,7 +1,7 @@
 import { Modal, ModalFooter, Button } from '@/components/ui';
 
 interface SwapTargetOption {
-  index: number;
+  id: string;
   label: string;
   professionalName: string;
 }
@@ -13,8 +13,8 @@ interface SwapConfirmModalProps {
   sourceProfessionalName: string;
   targetDate: string;
   targetOptions: SwapTargetOption[];
-  selectedTargetIndex: number | null;
-  onSelectTarget: (index: number) => void;
+  selectedTargetId: string | null;
+  onSelectTarget: (id: string) => void;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -32,7 +32,7 @@ export function SwapConfirmModal({
   sourceProfessionalName,
   targetDate,
   targetOptions,
-  selectedTargetIndex,
+  selectedTargetId,
   onSelectTarget,
   onConfirm,
   onCancel,
@@ -66,11 +66,11 @@ export function SwapConfirmModal({
           <div className="space-y-1.5">
             {targetOptions.map((option) => (
               <button
-                key={option.index}
+                key={option.id}
                 type="button"
-                onClick={() => onSelectTarget(option.index)}
+                onClick={() => onSelectTarget(option.id)}
                 className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
-                  selectedTargetIndex === option.index
+                  selectedTargetId === option.id
                     ? 'border-primary-500 bg-primary-50/60 text-primary-700 dark:border-primary-400 dark:bg-primary-900/30 dark:text-primary-300'
                     : 'border-border-default text-content-secondary hover:border-primary-300 hover:bg-surface-hover'
                 }`}
@@ -84,8 +84,8 @@ export function SwapConfirmModal({
           </div>
         </div>
 
-        {selectedTargetIndex === null && hasMultipleTargets && (
-          <p className="text-content-muted text-xs">Selecione por qual plantão será a troca.</p>
+        {selectedTargetId === null && hasMultipleTargets && (
+          <p className="text-content-muted text-xs">Selecione por qual plantão será a ação.</p>
         )}
       </div>
 
@@ -93,7 +93,7 @@ export function SwapConfirmModal({
         <Button variant="ghost" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button variant="primary" onClick={onConfirm} disabled={selectedTargetIndex === null}>
+        <Button variant="primary" onClick={onConfirm} disabled={selectedTargetId === null}>
           Trocar
         </Button>
       </ModalFooter>
