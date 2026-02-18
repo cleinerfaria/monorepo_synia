@@ -292,7 +292,7 @@ END $$;
 WITH c AS (
   SELECT id AS company_id
   FROM public.company
-  WHERE document = '04.947.934/0001-96'
+  WHERE document = '00.000.000/0001-00'
   LIMIT 1
 ),
 seed AS (
@@ -318,18 +318,21 @@ seed AS (
     ('visit',  'Visita',         'VIS',  'Visita (procedimento)'),
     ('dia',    'Dia',            'DIA',  'Diária (equipamento/serviço)'),
 
-    ('ml',     'Mililitro',      'mL',   'Volume em mililitros'),
+    ('ml',     'Mililitro',      'ML',   'Volume em mililitros'),
     ('l',      'Litro',          'L',    'Volume em litros'),
-    ('mg',     'Miligrama',      'mg',   'Massa em miligramas'),
-    ('g',      'Grama',          'g',    'Massa em gramas'),
-    ('gota',   'Gota',           'gota', 'Gota (dose)'),
-    ('dose',   'Dose',           'dose', 'Dose unitária'),
+    ('mg',     'Miligrama',      'MG',   'Massa em miligramas'),
+    ('g',      'Grama',          'G',    'Massa em gramas'),
+    ('gota',   'Gota',           'GOTA', 'Gota (dose)'),
+    ('dose',   'Dose',           'DOSE', 'Dose unitária'),
+    ('sache',  'Sachê',          'SACH', 'Gel/líquido monodose'),
+    ('drg',    'Drágea',         'DRG',  'Drágea (comprimido revestido)'),
+    ('env',    'Envelope',       'ENV',  'Envelope pó/granulado para diluição'),
 
-    ('minuto', 'Minuto',         'min',  'Unidade de tempo (minuto)'),
-    ('hora',   'Hora',           'h',    'Unidade de tempo (hora)'),
-    ('semana', 'Semana',         'sem',  'Unidade de tempo (semana)'),
-    ('mes',    'Mês',            'mês',  'Unidade de tempo (mês)'),
-    ('plantao','Plantão',        'pl',   'Plantão (turno/escala)')
+    ('minuto', 'Minuto',         'MIN',  'Unidade de tempo (minuto)'),
+    ('hora',   'Hora',           'H',    'Unidade de tempo (hora)'),
+    ('semana', 'Semana',         'SEM',  'Unidade de tempo (semana)'),
+    ('mes',    'Mês',            'MÊS',  'Unidade de tempo (mês)'),
+    ('plantao','Plantão',        'PL',   'Plantão (turno/escala)')
   ) AS t(code, name, symbol, description)
 ),
 scoped AS (
