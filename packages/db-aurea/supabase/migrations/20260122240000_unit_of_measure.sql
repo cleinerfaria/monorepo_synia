@@ -1,26 +1,19 @@
 -- =============================================
 -- UNIT OF MEASURE + RLS + SEED (escopo granular)
 -- =============================================
-
-BEGIN;
-
 -- 1) ENUMs (prefixo enum_)
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_unit_scope') THEN
-    CREATE TYPE public.enum_unit_scope AS ENUM (
-      'medication_base',
-      'medication_prescription',
-      'material_base',
-      'material_prescription',
-      'diet_base',
-      'diet_prescription',
-      'procedure',
-      'equipment',
-      'scale'
-    );
-  END IF;
-END $$;
+
+CREATE TYPE public.enum_unit_scope AS ENUM (
+  'medication_base',
+  'medication_prescription',
+  'material_base',
+  'material_prescription',
+  'diet_base',
+  'diet_prescription',
+  'procedure',
+  'equipment',
+  'scale'
+);
 
 -- 2) Tabela
 CREATE TABLE IF NOT EXISTS public.unit_of_measure (

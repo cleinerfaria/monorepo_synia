@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from 'react';
-import { useDroppable } from '@dnd-kit/core';
+import { useDroppable } from '@/lib/dnd-kit/core';
 import type { ScheduleProfessional, ScheduleRegime, DayAssignmentsMap } from '@/types/schedule';
 import { getRegimeMaxHours } from '@/types/schedule';
 import { ScheduleSlotChip } from './ScheduleSlotChip';

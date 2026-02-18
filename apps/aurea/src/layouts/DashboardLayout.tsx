@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { useAuthStore } from '@/stores/authStore';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
+import { useCurrentUserPermissions, useModulePermissions } from '@/hooks/useAccessProfiles';
 import { IconButton } from '@/components/ui';
 import {
   Home,
@@ -27,7 +28,8 @@ interface NavItem {
   name: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  children?: { name: string; href: string }[];
+  accessLabels?: string[];
+  children?: { name: string; href: string; accessLabels?: string[] }[];
 }
 
 const navigation: NavItem[] = [
@@ -90,6 +92,30 @@ const navigation: NavItem[] = [
 
 const SIDEBAR_STORAGE_KEY = 'aurea-sidebar-pinned';
 
+function normalizeLabel(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function hasAccessToNavEntry(
+  labels: string[] | undefined,
+  knownModuleNames: Set<string>,
+  grantedModuleNames: Set<string>,
+  isAdmin: boolean
+) {
+  if (isAdmin || !labels || labels.length === 0) return true;
+
+  const normalizedLabels = labels.map(normalizeLabel);
+  const hasAnyKnownLabel = normalizedLabels.some((label) => knownModuleNames.has(label));
+
+  if (!hasAnyKnownLabel) return true;
+
+  return normalizedLabels.some((label) => grantedModuleNames.has(label));
+}
+
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const { appUser, company, signOut, systemUser } = useAuthStore();
@@ -102,6 +128,52 @@ export default function DashboardLayout() {
   });
   const [isHovered, setIsHovered] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const isAdminProfile = appUser?.access_profile?.is_admin === true;
+
+  const { data: userPermissions = [] } = useCurrentUserPermissions();
+  const { data: allModulePermissions = [] } = useModulePermissions();
+
+  const knownModuleNames = new Set(
+    allModulePermissions
+      .map((permission) => permission.module?.name)
+      .filter((name): name is string => Boolean(name))
+      .map(normalizeLabel)
+  );
+
+  const grantedModuleNames = new Set(userPermissions.map((permission) => normalizeLabel(permission.module_name)));
+
+  const filteredNavigation = navigation
+    .map((item) => {
+      if (!item.children || item.children.length === 0) {
+        return hasAccessToNavEntry(
+          item.accessLabels ?? [item.name],
+          knownModuleNames,
+          grantedModuleNames,
+          isAdminProfile
+        )
+          ? item
+          : null;
+      }
+
+      const filteredChildren = item.children.filter((child) =>
+        hasAccessToNavEntry(
+          child.accessLabels ?? [child.name],
+          knownModuleNames,
+          grantedModuleNames,
+          isAdminProfile
+        )
+      );
+
+      if (filteredChildren.length === 0) {
+        return null;
+      }
+
+      return {
+        ...item,
+        children: filteredChildren,
+      };
+    })
+    .filter((item): item is NavItem => item !== null);
 
   // Persistir preferência de pinned
   useEffect(() => {
@@ -166,7 +238,7 @@ export default function DashboardLayout() {
                 <X className="h-5 w-5 text-gray-500" />
               </button>
               <SidebarContent
-                navigation={navigation}
+                navigation={filteredNavigation}
                 toggleExpanded={toggleExpanded}
                 isExpanded={isExpanded}
                 company={company}
@@ -194,7 +266,7 @@ export default function DashboardLayout() {
       >
         <div className="flex h-full flex-col border-r border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
           <SidebarContent
-            navigation={navigation}
+            navigation={filteredNavigation}
             toggleExpanded={toggleExpanded}
             isExpanded={isExpanded}
             company={company}
