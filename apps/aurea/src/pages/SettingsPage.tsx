@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Card,
   CardHeader,
@@ -469,7 +469,7 @@ export default function SettingsPage() {
                   onChange={handleLogoCollapsedUpload}
                 />
                 <Button
-                  variant="secondary"
+                  variant="neutral"
                   size="sm"
                   onClick={() => fileInputCollapsedRef.current?.click()}
                   isLoading={isUploadingCollapsed}
@@ -507,7 +507,7 @@ export default function SettingsPage() {
                   onChange={handleLogoExpandedUpload}
                 />
                 <Button
-                  variant="secondary"
+                  variant="neutral"
                   size="sm"
                   onClick={() => fileInputExpandedRef.current?.click()}
                   isLoading={isUploadingExpanded}
@@ -620,7 +620,7 @@ export default function SettingsPage() {
                 <div className="flex items-end gap-2">
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="neutral"
                     onClick={handleSaveParentLink}
                     isLoading={updateCompany.isPending}
                     disabled={isCreatingParent}

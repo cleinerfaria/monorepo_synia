@@ -230,7 +230,7 @@ export default function PresentationSearchModal({
               Filtros
             </Button>
             {hasActiveFilters && (
-              <Button type="button" size="sm" variant="secondary" onClick={clearFilters}>
+              <Button type="button" size="sm" variant="neutral" onClick={clearFilters}>
                 <X className="h-4 w-4" />
                 Limpar
               </Button>
@@ -490,7 +490,7 @@ export default function PresentationSearchModal({
           onPreviousPage={() => setCurrentPage((page) => page - 1)}
           onNextPage={() => setCurrentPage((page) => page + 1)}
           trailingContent={
-            <Button type="button" variant="secondary" onClick={onClose}>
+            <Button type="button" variant="neutral" onClick={onClose}>
               Fechar
             </Button>
           }

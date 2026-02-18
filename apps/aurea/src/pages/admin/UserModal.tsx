@@ -431,7 +431,7 @@ export default function UserModal({
           <div className="flex gap-2">
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={onClose}
               disabled={isLoading}
               showIcon={false}

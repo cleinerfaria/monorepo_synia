@@ -109,7 +109,7 @@ export default function ClientContactForm({
               Salvar Contatos
             </Button>
           )}
-          <Button type="button" variant="secondary" size="sm" onClick={handleAddContact}>
+          <Button type="button" variant="neutral" size="sm" onClick={handleAddContact}>
             <Plus className="h-4 w-4" />
             Adicionar Contato
           </Button>

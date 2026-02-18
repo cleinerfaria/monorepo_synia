@@ -245,7 +245,7 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
           <div className="flex justify-between gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={() => {
                 setStep('superadmin');
                 setErrors({});

@@ -338,7 +338,7 @@ export default function UserModal({
             {!showResetPassword ? (
               <Button
                 type="button"
-                variant="secondary"
+                variant="neutral"
                 size="sm"
                 onClick={() => setShowResetPassword(true)}
               >
@@ -428,7 +428,7 @@ export default function UserModal({
             )}
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+            <Button type="button" variant="neutral" onClick={onClose} disabled={isLoading}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>

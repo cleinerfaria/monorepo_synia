@@ -126,7 +126,7 @@ export default function ReferenceTablesPage() {
             Gerencie tabelas de preços SIMPRO, BRASÍNDICE e CMED
           </p>
         </div>
-        <Button variant="secondary" size="sm" onClick={() => refetch()}>
+        <Button variant="neutral" size="sm" onClick={() => refetch()}>
           <RefreshCw className="h-4 w-4" />
           Atualizar
         </Button>
@@ -238,7 +238,7 @@ export default function ReferenceTablesPage() {
                         Importar
                       </Button>
                       <Button
-                        variant="secondary"
+                        variant="neutral"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();

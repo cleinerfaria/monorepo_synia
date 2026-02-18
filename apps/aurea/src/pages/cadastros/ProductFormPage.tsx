@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Plus,
@@ -1053,7 +1053,7 @@ export default function ProductFormPage() {
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
-                      variant="secondary"
+                      variant="neutral"
                       onClick={() => setIsPresentationSearchModalOpen(true)}
                     >
                       <Search className="h-4 w-4" />
@@ -1200,7 +1200,7 @@ export default function ProductFormPage() {
                         Buscar nas Tabelas
                       </Button>
                       <Button
-                        variant="secondary"
+                        variant="neutral"
                         onClick={() => {
                           setSelectedPresentation(null);
                           setSelectedPresentationUnit('');
@@ -1507,7 +1507,7 @@ export default function ProductFormPage() {
                               <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-2 dark:border-gray-700">
                                 {item.cmed_item_id && !hasCmed && (
                                   <Button
-                                    variant="secondary"
+                                    variant="neutral"
                                     size="sm"
                                     onClick={() => {
                                       // Buscar o source_id da CMED
@@ -1531,7 +1531,7 @@ export default function ProductFormPage() {
                                 )}
                                 {item.brasindice_item_id && !hasBrasindice && (
                                   <Button
-                                    variant="secondary"
+                                    variant="neutral"
                                     size="sm"
                                     onClick={() => {
                                       const brasindiceSource = refSources.find(
@@ -1554,7 +1554,7 @@ export default function ProductFormPage() {
                                 )}
                                 {item.simpro_item_id && !hasSimpro && (
                                   <Button
-                                    variant="secondary"
+                                    variant="neutral"
                                     size="sm"
                                     onClick={() => {
                                       const simproSource = refSources.find(
@@ -2034,7 +2034,7 @@ export default function ProductFormPage() {
                   {presentationLinkData.cmed_item_id && (
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="neutral"
                       onClick={() => {
                         if (product) {
                           linkToRef.mutate(
@@ -2107,7 +2107,7 @@ export default function ProductFormPage() {
                   {presentationLinkData.brasindice_item_id && (
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="neutral"
                       onClick={() => {
                         if (product) {
                           linkToRef.mutate(
@@ -2180,7 +2180,7 @@ export default function ProductFormPage() {
                   {presentationLinkData.simpro_item_id && (
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="neutral"
                       onClick={() => {
                         if (product) {
                           linkToRef.mutate(
@@ -2283,7 +2283,7 @@ export default function ProductFormPage() {
             <ModalFooter className="mt-6">
               <Button
                 type="button"
-                variant="secondary"
+                variant="neutral"
                 onClick={() => {
                   setIsPresentationLinkModalOpen(false);
                   setPresentationLinkData(null);

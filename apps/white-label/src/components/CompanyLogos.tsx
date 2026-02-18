@@ -185,7 +185,7 @@ export function CompanyLogos({
                   />
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="neutral"
                     className="w-full"
                     disabled={isUploading || isLoading}
                     onClick={(e) => {

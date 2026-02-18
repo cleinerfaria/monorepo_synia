@@ -303,7 +303,7 @@ export default function NfeImportsPage() {
               <Trash2 className="h-5 w-5" />
             </IconButton>
             {hasActiveFilters && (
-              <Button variant="secondary" onClick={clearFilters}>
+              <Button variant="neutral" onClick={clearFilters}>
                 Limpar
               </Button>
             )}
@@ -408,7 +408,7 @@ export default function NfeImportsPage() {
                 className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
             </div>
-            <Button variant="secondary" onClick={handleSearch}>
+            <Button variant="neutral" onClick={handleSearch}>
               Buscar
             </Button>
             <Button
@@ -423,7 +423,7 @@ export default function NfeImportsPage() {
               }
             />
             {hasActiveFilters && (
-              <Button variant="secondary" onClick={clearFilters}>
+              <Button variant="neutral" onClick={clearFilters}>
                 Limpar
               </Button>
             )}
@@ -503,7 +503,7 @@ export default function NfeImportsPage() {
                   title="Nenhuma NFe encontrada"
                   description="Nenhuma NFe corresponde aos filtros selecionados"
                   action={
-                    <Button variant="secondary" onClick={clearFilters} size="sm">
+                    <Button variant="neutral" onClick={clearFilters} size="sm">
                       <X className="h-4 w-4" />
                       Limpar filtros
                     </Button>
@@ -576,7 +576,7 @@ export default function NfeImportsPage() {
                 <p className="mb-4 text-sm text-gray-400 dark:text-gray-500">ou</p>
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="neutral"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   Selecionar arquivo
@@ -601,7 +601,7 @@ export default function NfeImportsPage() {
           <ModalFooter>
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={() => setIsImportModalOpen(false)}
               showIcon={false}
             >
@@ -626,7 +626,7 @@ export default function NfeImportsPage() {
         <ModalFooter>
           <Button
             type="button"
-            variant="secondary"
+            variant="neutral"
             onClick={() => setIsDeleteModalOpen(false)}
             showIcon={false}
           >

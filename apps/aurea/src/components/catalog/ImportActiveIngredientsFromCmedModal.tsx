@@ -405,7 +405,7 @@ export function ImportActiveIngredientsFromCmedModal({
           <div className="flex items-center gap-2">
             <Button
               size="sm"
-              variant="secondary"
+              variant="neutral"
               onClick={handleSelectAllOnPage}
               disabled={isLoading || isLoadingStats}
             >
@@ -413,7 +413,7 @@ export function ImportActiveIngredientsFromCmedModal({
             </Button>
             <Button
               size="sm"
-              variant="secondary"
+              variant="neutral"
               onClick={handleDeselectAll}
               disabled={isLoading || selectedCount === 0}
             >
@@ -558,7 +558,7 @@ export function ImportActiveIngredientsFromCmedModal({
       </div>
 
       <ModalFooter>
-        <Button variant="secondary" onClick={handleClose} showIcon={false}>
+        <Button variant="neutral" onClick={handleClose} showIcon={false}>
           Cancelar
         </Button>
         <Button onClick={handleImport} disabled={selectedCount === 0} isLoading={isImporting}>

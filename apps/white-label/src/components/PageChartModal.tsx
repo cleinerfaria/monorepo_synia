@@ -343,7 +343,7 @@ export default function PageChartModal({
             <h4 className="font-medium text-gray-900 dark:text-white">Séries (Eixo Y)</h4>
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               size="sm"
               onClick={addYAxisField}
               disabled={isLoading}
@@ -575,7 +575,7 @@ export default function PageChartModal({
 
         {/* Botões */}
         <div className="flex justify-end gap-3 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+          <Button type="button" variant="neutral" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
           <Button type="submit" isLoading={isLoading}>

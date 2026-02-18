@@ -306,7 +306,7 @@ export function AutoFillModal({ isOpen, onClose, professionals }: AutoFillModalP
         </div>
 
         <Button
-          variant="secondary"
+          variant="neutral"
           onClick={handleGeneratePreview}
           disabled={rotation.length === 0}
           className="w-full"

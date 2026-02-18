@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,33 +8,33 @@ import {
   ColumnDef,
   PaginationState,
   Updater,
-} from '@tanstack/react-table'
-import { clsx } from 'clsx'
-import { DEFAULT_LIST_PAGE_SIZE } from './Pagination'
-import { Button } from './Button'
-import { Input } from './Input'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+} from '@tanstack/react-table';
+import { clsx } from 'clsx';
+import { DEFAULT_LIST_PAGE_SIZE } from './Pagination';
+import { Button } from './Button';
+import { Input } from './Input';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface DataTableProps<TData> {
-  data: TData[]
-  columns: ColumnDef<TData, unknown>[]
-  searchPlaceholder?: string
-  searchKey?: string
-  searchKeys?: string[] // Multiple keys for global search
-  emptyState?: ReactNode
-  isLoading?: boolean
-  onRowClick?: (row: TData) => void
-  persistenceKey?: string
-  showPagination?: boolean
+  data: TData[];
+  columns: ColumnDef<TData, unknown>[];
+  searchPlaceholder?: string;
+  searchKey?: string;
+  searchKeys?: string[]; // Multiple keys for global search
+  emptyState?: ReactNode;
+  isLoading?: boolean;
+  onRowClick?: (row: TData) => void;
+  persistenceKey?: string;
+  showPagination?: boolean;
 }
 
 const readPageIndex = (storageKey: string) => {
-  if (typeof window === 'undefined') return 0
+  if (typeof window === 'undefined') return 0;
 
-  const rawPageIndex = window.sessionStorage.getItem(storageKey)
-  const parsedPageIndex = Number.parseInt(rawPageIndex ?? '', 10)
-  return Number.isFinite(parsedPageIndex) && parsedPageIndex >= 0 ? parsedPageIndex : 0
-}
+  const rawPageIndex = window.sessionStorage.getItem(storageKey);
+  const parsedPageIndex = Number.parseInt(rawPageIndex ?? '', 10);
+  return Number.isFinite(parsedPageIndex) && parsedPageIndex >= 0 ? parsedPageIndex : 0;
+};
 
 export function DataTable<TData>({
   data,
@@ -48,38 +48,38 @@ export function DataTable<TData>({
   persistenceKey,
   showPagination = true,
 }: DataTableProps<TData>) {
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const defaultPersistenceKey = useMemo(() => {
-    const pathname = typeof window === 'undefined' ? 'unknown' : window.location.pathname
+    const pathname = typeof window === 'undefined' ? 'unknown' : window.location.pathname;
     const columnSignature = columns
       .map((column, index) => {
-        const explicitColumnId = (column as { id?: string }).id
-        const accessorKey = (column as { accessorKey?: string }).accessorKey
-        return explicitColumnId || accessorKey || `column-${index + 1}`
+        const explicitColumnId = (column as { id?: string }).id;
+        const accessorKey = (column as { accessorKey?: string }).accessorKey;
+        return explicitColumnId || accessorKey || `column-${index + 1}`;
       })
-      .join('|')
+      .join('|');
 
-    return `datatable:${pathname}:${columnSignature}`
-  }, [columns])
+    return `datatable:${pathname}:${columnSignature}`;
+  }, [columns]);
 
-  const storageKey = persistenceKey || defaultPersistenceKey
+  const storageKey = persistenceKey || defaultPersistenceKey;
 
   const [pagination, setPagination] = useState<PaginationState>(() => ({
     pageIndex: readPageIndex(storageKey),
     pageSize: DEFAULT_LIST_PAGE_SIZE,
-  }))
+  }));
 
   const onPaginationChange = (updater: Updater<PaginationState>) => {
     setPagination((currentPagination) => {
-      const nextPagination = typeof updater === 'function' ? updater(currentPagination) : updater
+      const nextPagination = typeof updater === 'function' ? updater(currentPagination) : updater;
 
       return {
         ...nextPagination,
         pageSize: DEFAULT_LIST_PAGE_SIZE,
-      }
-    })
-  }
+      };
+    });
+  };
 
   // Custom global filter function to search in multiple fields
   const globalFilterFn = (
@@ -87,10 +87,10 @@ export function DataTable<TData>({
     _columnId: string,
     filterValue: string
   ): boolean => {
-    if (!filterValue) return true
+    if (!filterValue) return true;
 
-    const searchValue = filterValue.toLowerCase()
-    const keysToSearch = searchKeys || (searchKey ? [searchKey] : [])
+    const searchValue = filterValue.toLowerCase();
+    const keysToSearch = searchKeys || (searchKey ? [searchKey] : []);
 
     // If no keys specified, search all string values
     if (keysToSearch.length === 0) {
@@ -98,17 +98,17 @@ export function DataTable<TData>({
         String(value ?? '')
           .toLowerCase()
           .includes(searchValue)
-      )
+      );
     }
 
     // Search in specified keys
     return keysToSearch.some((key) => {
-      const value = (row.original as Record<string, unknown>)[key]
+      const value = (row.original as Record<string, unknown>)[key];
       return String(value ?? '')
         .toLowerCase()
-        .includes(searchValue)
-    })
-  }
+        .includes(searchValue);
+    });
+  };
 
   const table = useReactTable({
     data,
@@ -123,40 +123,40 @@ export function DataTable<TData>({
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-  })
+  });
 
-  const pageCount = Math.max(table.getPageCount(), 1)
-  const pageIndex = table.getState().pagination.pageIndex
-  const currentPage = Math.min(pageIndex + 1, pageCount)
-  const totalRecords = table.getFilteredRowModel().rows.length
-  const recordsInCurrentPage = table.getRowModel().rows.length
-  const startRecord = totalRecords === 0 ? 0 : pageIndex * DEFAULT_LIST_PAGE_SIZE + 1
-  const endRecord = totalRecords === 0 ? 0 : startRecord + recordsInCurrentPage - 1
+  const pageCount = Math.max(table.getPageCount(), 1);
+  const pageIndex = table.getState().pagination.pageIndex;
+  const currentPage = Math.min(pageIndex + 1, pageCount);
+  const totalRecords = table.getFilteredRowModel().rows.length;
+  const recordsInCurrentPage = table.getRowModel().rows.length;
+  const startRecord = totalRecords === 0 ? 0 : pageIndex * DEFAULT_LIST_PAGE_SIZE + 1;
+  const endRecord = totalRecords === 0 ? 0 : startRecord + recordsInCurrentPage - 1;
 
-  const showSearch = searchKey || (searchKeys && searchKeys.length > 0)
+  const showSearch = searchKey || (searchKeys && searchKeys.length > 0);
 
   useEffect(() => {
     setPagination({
       pageIndex: readPageIndex(storageKey),
       pageSize: DEFAULT_LIST_PAGE_SIZE,
-    })
-  }, [storageKey])
+    });
+  }, [storageKey]);
 
   useEffect(() => {
-    if (pageIndex <= pageCount - 1) return
+    if (pageIndex <= pageCount - 1) return;
 
     setPagination((currentPagination) => ({
       ...currentPagination,
       pageIndex: Math.max(pageCount - 1, 0),
       pageSize: DEFAULT_LIST_PAGE_SIZE,
-    }))
-  }, [pageCount, pageIndex])
+    }));
+  }, [pageCount, pageIndex]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return;
 
-    window.sessionStorage.setItem(storageKey, String(pageIndex))
-  }, [storageKey, pageIndex])
+    window.sessionStorage.setItem(storageKey, String(pageIndex));
+  }, [storageKey, pageIndex]);
 
   return (
     <div className="space-y-4">
@@ -195,7 +195,7 @@ export function DataTable<TData>({
                 <td colSpan={columns.length} className="py-8 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <svg
-                      className="h-5 w-5 animate-spin text-primary-500"
+                      className="text-primary-500 h-5 w-5 animate-spin"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -222,7 +222,7 @@ export function DataTable<TData>({
               <tr>
                 <td colSpan={columns.length}>
                   {emptyState || (
-                    <div className="py-8 text-center text-content-muted">
+                    <div className="text-content-muted py-8 text-center">
                       Nenhum registro encontrado
                     </div>
                   )}
@@ -233,7 +233,7 @@ export function DataTable<TData>({
                 <tr
                   key={row.id}
                   onClick={() => onRowClick?.(row.original)}
-                  className={clsx(onRowClick && 'cursor-pointer hover:bg-surface-hover')}
+                  className={clsx(onRowClick && 'hover:bg-surface-hover cursor-pointer')}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id}>
@@ -250,7 +250,7 @@ export function DataTable<TData>({
       {/* Pagination */}
       {showPagination && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-content-muted">
+          <p className="text-content-muted text-sm">
             {totalRecords > 0
               ? `Mostrando ${startRecord} a ${endRecord} de ${totalRecords} registros`
               : 'Total: 0 registros'}
@@ -258,7 +258,7 @@ export function DataTable<TData>({
 
           <div className="flex items-center gap-2">
             <Button
-              variant="secondary"
+              variant="neutral"
               size="sm"
               aria-label="Página anterior"
               onClick={() => table.previousPage()}
@@ -267,12 +267,12 @@ export function DataTable<TData>({
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            <span className="text-sm text-content-secondary">
+            <span className="text-content-secondary text-sm">
               Página {currentPage} de {pageCount}
             </span>
 
             <Button
-              variant="secondary"
+              variant="neutral"
               size="sm"
               aria-label="Próxima página"
               onClick={() => table.nextPage()}
@@ -284,5 +284,5 @@ export function DataTable<TData>({
         </div>
       )}
     </div>
-  )
+  );
 }

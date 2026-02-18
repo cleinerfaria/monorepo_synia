@@ -230,7 +230,7 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
                   </Button>
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="neutral"
                     size="sm"
                     onClick={() => setShowDeleteConfirm(false)}
                   >
@@ -260,7 +260,7 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
           <div className="flex gap-2">
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={onClose}
               disabled={isLoading}
               showIcon={false}

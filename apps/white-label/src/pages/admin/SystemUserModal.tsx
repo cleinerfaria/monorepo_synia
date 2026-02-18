@@ -304,7 +304,7 @@ export default function SystemUserModal({ isOpen, onClose, user }: SystemUserMod
                   </Button>
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="neutral"
                     size="sm"
                     onClick={() => setShowDeleteConfirm(false)}
                   >
@@ -332,7 +332,7 @@ export default function SystemUserModal({ isOpen, onClose, user }: SystemUserMod
             <div />
           )}
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+            <Button type="button" variant="neutral" onClick={onClose} disabled={isLoading}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>

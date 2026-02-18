@@ -84,7 +84,7 @@ function NavigationGuardProvider({ children }: { children: ReactNode }) {
           </p>
         </div>
         <ModalFooter>
-          <Button variant="secondary" onClick={cancelExit}>
+          <Button variant="neutral" onClick={cancelExit}>
             Continuar Editando
           </Button>
           <Button variant="danger" onClick={confirmExit}>

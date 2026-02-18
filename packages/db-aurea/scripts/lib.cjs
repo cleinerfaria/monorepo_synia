@@ -1,6 +1,7 @@
 // Load environment variables from app .env.local
-const { spawn, execFileSync } = require('node:child_process');
+const { spawn } = require('node:child_process');
 const path = require('node:path');
+const fs = require('node:fs');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../apps/aurea/.env.local') });
 
@@ -9,6 +10,7 @@ const DB_URL_ENV = 'DB_URL';
 const SUPABASE_URL_ENV = 'VITE_SUPABASE_URL';
 const SERVICE_ROLE_ENV = 'SUPABASE_SERVICE_ROLE_KEY';
 const APP_DIR = path.resolve(__dirname, '..');
+const FUNCTIONS_DIR = path.resolve(APP_DIR, 'supabase/functions');
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -106,6 +108,41 @@ async function runSqlSeed() {
   });
 }
 
+function listFunctions() {
+  if (!fs.existsSync(FUNCTIONS_DIR)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(FUNCTIONS_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+}
+
+async function deployAureaFunctions() {
+  const functions = listFunctions();
+  if (!functions.length) {
+    process.stdout.write('\n⚠️  No Aurea edge functions found to deploy.\n');
+    return;
+  }
+
+  process.stdout.write(`\n🚀 Deploying Aurea edge functions (${functions.join(', ')})...\n`);
+  for (const fnName of functions) {
+    const args = ['functions', 'deploy', fnName, '--workdir', APP_DIR];
+
+    // manage-user validates JWT manually and must keep gateway verification disabled
+    if (fnName === 'manage-user') {
+      args.push('--no-verify-jwt');
+    }
+
+    await run('supabase', args, {
+      timeout: 180_000,
+    });
+  }
+  process.stdout.write('✅ Aurea edge functions deployed\n');
+}
+
 async function dbReset() {
   ensureDevEnv();
   const dbUrl = getDbUrl();
@@ -114,6 +151,7 @@ async function dbReset() {
   });
   await seedAureaDev();
   await runSqlSeed();
+  await deployAureaFunctions();
 }
 
 async function dbMigrate() {

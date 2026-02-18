@@ -77,7 +77,7 @@ export default function DynamicPage() {
             <p className="text-gray-600 dark:text-gray-400">{page.meta_data.description}</p>
           )}
         </div>
-        <Button variant="secondary" onClick={handleRefresh}>
+        <Button variant="neutral" onClick={handleRefresh}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Atualizar
         </Button>

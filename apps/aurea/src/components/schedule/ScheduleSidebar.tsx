@@ -185,7 +185,7 @@ function ScheduleSidebarInner({ professionals, onAutoFillClick }: ScheduleSideba
 
         <div className="space-y-1.5">
           <Button
-            variant="secondary"
+            variant="neutral"
             size="sm"
             onClick={onAutoFillClick}
             className="w-full justify-center text-xs"

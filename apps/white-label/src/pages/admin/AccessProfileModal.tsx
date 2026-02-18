@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Input, Button, Badge } from '@synia/ui';
 import {
   AccessProfile,
@@ -333,7 +333,7 @@ export default function AccessProfileModal({
 
         {/* Actions */}
         <div className="flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+          <Button type="button" variant="neutral" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
           {!isSystemProfile && (

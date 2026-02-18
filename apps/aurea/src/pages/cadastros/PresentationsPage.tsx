@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import { Plus, Pencil, Trash2, Package, Search, ExternalLink, FunnelX } from 'lucide-react';
@@ -547,7 +547,7 @@ export default function PresentationsPage() {
                 action={
                   !searchTerm && (
                     <div className="flex gap-2">
-                      <Button onClick={openCreateFromReferenceModal} size="sm" variant="secondary">
+                      <Button onClick={openCreateFromReferenceModal} size="sm" variant="neutral">
                         <Search className="h-4 w-4" />
                         Buscar nas Tabelas
                       </Button>

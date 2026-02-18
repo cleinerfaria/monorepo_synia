@@ -371,7 +371,7 @@ export default function ProductModal({
           />
 
           <ModalFooter>
-            <Button type="button" variant="secondary" onClick={onClose} showIcon={false}>
+            <Button type="button" variant="neutral" onClick={onClose} showIcon={false}>
               Cancelar
             </Button>
             <Button
@@ -420,7 +420,7 @@ export default function ProductModal({
           <ModalFooter>
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={() => setIsNewActiveIngredientModalOpen(false)}
               showIcon={false}
             >
@@ -476,7 +476,7 @@ export default function ProductModal({
           <ModalFooter>
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={() => setIsNewGroupModalOpen(false)}
               showIcon={false}
             >

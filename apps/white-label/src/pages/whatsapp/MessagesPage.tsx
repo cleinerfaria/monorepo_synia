@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FileText, Image, MessageSquare, RefreshCw, Search, Send } from 'lucide-react';
 import { Button, Card, EmptyState, Loading, Skeleton, Badge, Select } from '@synia/ui';
 import { useAuthStore } from '@/stores/authStore';
@@ -429,7 +429,7 @@ export default function MessagesPage() {
                     </p>
                   </div>
                   {canManageMessages && (
-                    <Button variant="secondary" size="sm" onClick={handleSyncMessages}>
+                    <Button variant="neutral" size="sm" onClick={handleSyncMessages}>
                       <RefreshCw className="h-4 w-4" />
                       Sync
                     </Button>
@@ -465,7 +465,7 @@ export default function MessagesPage() {
                     {hasMoreMessages && (
                       <div className="flex justify-center">
                         <Button
-                          variant="secondary"
+                          variant="neutral"
                           size="sm"
                           onClick={handleLoadMore}
                           disabled={syncMessages.isPending}

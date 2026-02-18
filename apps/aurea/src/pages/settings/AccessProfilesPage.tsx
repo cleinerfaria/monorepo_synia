@@ -229,7 +229,7 @@ export default function AccessProfilesPage() {
           </p>
           <div className="flex justify-end gap-3 pt-4">
             <Button
-              variant="secondary"
+              variant="neutral"
               onClick={() => {
                 setIsDeleteModalOpen(false);
                 setProfileToDelete(null);
