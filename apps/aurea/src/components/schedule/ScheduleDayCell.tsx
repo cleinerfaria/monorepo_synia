@@ -107,7 +107,7 @@ function ScheduleDayCellInner({
   const showAddButton = !isDayFull && !isLocked;
   const showAddButtonBeforeAssignments = showAddButton && hasSingleOvernightAssignment;
   const addButtonClass =
-    'border-border-default text-content-muted hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 flex min-h-[26px] w-full items-center justify-center rounded border border-dashed px-1 py-0.5 text-[10px] transition-colors md:min-h-[30px]';
+    'border-border-default text-content-muted hover:border-primary-300 hover:bg-primary-50/30 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400 flex min-h-[24px] w-full items-center justify-center rounded border border-dashed px-1 py-0.5 text-[10px] transition-colors md:min-h-[28px]';
 
   return (
     <div ref={setNodeRef} className={cellClasses} onClick={handleClick}>

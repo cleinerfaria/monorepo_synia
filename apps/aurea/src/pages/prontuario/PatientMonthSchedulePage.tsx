@@ -17,6 +17,7 @@ import { AutoFillModal } from '@/components/schedule/AutoFillModal';
 import { ProfessionalPicker } from '@/components/schedule/ProfessionalPicker';
 import { Loading } from '@/components/ui';
 import { Breadcrumbs } from '@/components/ui';
+import toast from 'react-hot-toast';
 
 const SCHEDULE_PROFESSIONAL_COLORS = [
   '#0057B8',
@@ -184,6 +185,23 @@ export default function PatientMonthSchedulePage() {
     (professionalId: string, selectedStartAt: string, selectedEndAt: string) => {
       if (!pickerState.open) return;
 
+      const currentEditAssignment =
+        pickerState.editIndex !== null
+          ? assignments.get(pickerState.date)?.[pickerState.editIndex] ?? null
+          : null;
+      const isKeepingCurrentProfessional =
+        currentEditAssignment?.professional_id === professionalId;
+
+      const isEligibleProfessional = professionals.some(
+        (professional) =>
+          professional.id === professionalId && professional.profession_code === 'tecnico'
+      );
+
+      if (!isEligibleProfessional && !isKeepingCurrentProfessional) {
+        toast.error('Somente tecnicos de enfermagem podem ser adicionados na escala.');
+        return;
+      }
+
       if (pickerState.editIndex !== null) {
         // Editar existente
         updateAssignment(pickerState.date, pickerState.editIndex, {
@@ -196,7 +214,7 @@ export default function PatientMonthSchedulePage() {
         addAssignment(pickerState.date, professionalId, selectedStartAt, selectedEndAt);
       }
     },
-    [pickerState, updateAssignment, addAssignment]
+    [pickerState, assignments, professionals, updateAssignment, addAssignment]
   );
 
   // Remover assignment do picker
@@ -287,6 +305,27 @@ export default function PatientMonthSchedulePage() {
     });
   }, [professionals, assignments]);
 
+  const scheduleEligibleProfessionals = useMemo(
+    () => professionalsWithPalette.filter((professional) => professional.profession_code === 'tecnico'),
+    [professionalsWithPalette]
+  );
+
+  const pickerProfessionals = useMemo(() => {
+    if (!existingPickerAssignment) return scheduleEligibleProfessionals;
+
+    const alreadyEligible = scheduleEligibleProfessionals.some(
+      (professional) => professional.id === existingPickerAssignment.professional_id
+    );
+    if (alreadyEligible) return scheduleEligibleProfessionals;
+
+    const assignedProfessional = professionalsWithPalette.find(
+      (professional) => professional.id === existingPickerAssignment.professional_id
+    );
+    if (!assignedProfessional) return scheduleEligibleProfessionals;
+
+    return [assignedProfessional, ...scheduleEligibleProfessionals];
+  }, [existingPickerAssignment, scheduleEligibleProfessionals, professionalsWithPalette]);
+
   // Aviso de saida com alteracoes pendentes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -341,7 +380,7 @@ export default function PatientMonthSchedulePage() {
 
         <aside className="border-border-default bg-surface-card hidden w-[280px] shrink-0 overflow-hidden rounded-lg border lg:block">
           <ScheduleSidebar
-            professionals={professionalsWithPalette}
+            professionals={scheduleEligibleProfessionals}
             onAutoFillClick={() => setAutoFillOpen(true)}
           />
         </aside>
@@ -380,7 +419,7 @@ export default function PatientMonthSchedulePage() {
                 </button>
               </div>
               <ScheduleSidebar
-                professionals={professionalsWithPalette}
+                professionals={scheduleEligibleProfessionals}
                 onAutoFillClick={() => {
                   toggleSidebar();
                   setAutoFillOpen(true);
@@ -394,13 +433,13 @@ export default function PatientMonthSchedulePage() {
       <AutoFillModal
         isOpen={autoFillOpen}
         onClose={() => setAutoFillOpen(false)}
-        professionals={professionalsWithPalette}
+        professionals={scheduleEligibleProfessionals}
       />
 
       <ProfessionalPicker
         isOpen={pickerState.open}
         onClose={() => setPickerState({ open: false, date: '', editIndex: null })}
-        professionals={professionalsWithPalette}
+        professionals={pickerProfessionals}
         date={pickerState.date}
         existingAssignment={existingPickerAssignment}
         defaultStartAt={defaultTimes.startAt}

@@ -14,6 +14,7 @@ export interface ScheduleProfessional {
   name: string;
   social_name: string | null;
   role: string | null;
+  profession_code?: string | null;
   active: boolean;
   email: string | null;
   phone: string | null;

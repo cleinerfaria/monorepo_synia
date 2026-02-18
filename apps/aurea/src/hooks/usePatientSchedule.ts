@@ -129,23 +129,29 @@ export function useScheduleProfessionals() {
 
       const { data, error } = await supabase
         .from('professional')
-        .select('id, name, social_name, profession_id, active, email, phone')
+        .select('id, name, social_name, active, email, phone, profession(code, name)')
         .eq('company_id', company.id)
         .order('name');
 
       if (error) throw error;
 
-      return (data || []).map((p: any) => ({
-        id: p.id,
-        name: p.social_name?.trim() || p.name,
-        social_name: p.social_name ?? null,
-        role: null,
-        active: p.active ?? false,
-        email: p.email,
-        phone: p.phone,
-        color: null,
-        is_substitute: false,
-      }));
+      return (data || []).map((p: any) => {
+        const profession =
+          p.profession && !Array.isArray(p.profession) ? p.profession : p.profession?.[0] || null;
+
+        return {
+          id: p.id,
+          name: p.social_name?.trim() || p.name,
+          social_name: p.social_name ?? null,
+          role: profession?.name ?? null,
+          profession_code: profession?.code ?? null,
+          active: p.active ?? false,
+          email: p.email,
+          phone: p.phone,
+          color: null,
+          is_substitute: false,
+        };
+      });
     },
     enabled: !!company?.id,
     staleTime: 10 * 60 * 1000,

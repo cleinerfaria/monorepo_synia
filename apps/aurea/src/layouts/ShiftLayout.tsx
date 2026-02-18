@@ -30,7 +30,7 @@ export default function ShiftLayout() {
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-            <span className="text-sm font-semibold text-gray-900 dark:text-white">Meu Plantao</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">Meu Plantão</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500 dark:text-gray-400">{appUser?.name}</span>
@@ -71,7 +71,7 @@ export default function ShiftLayout() {
             }
           >
             <Calendar className="h-5 w-5" />
-            <span>Meus Plantoes</span>
+            <span>Meus Plantões</span>
           </NavLink>
           <NavLink
             to="/meu-plantao/ativo"
@@ -85,7 +85,7 @@ export default function ShiftLayout() {
             }
           >
             <Clock className="h-5 w-5" />
-            <span>Plantao Ativo</span>
+            <span>Plantão Ativo</span>
           </NavLink>
         </div>
       </nav>

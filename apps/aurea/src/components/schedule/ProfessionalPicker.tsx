@@ -220,7 +220,7 @@ export function ProfessionalPicker({
           searchPlaceholder="Buscar por nome ou função..."
           options={professionalOptions}
           value={selectedProfId}
-          onChange={(eventOrValue) => {
+          onChange={(eventOrValue: string | { target?: { value?: string } }) => {
             const nextValue =
               typeof eventOrValue === 'string' ? eventOrValue : eventOrValue.target?.value || '';
             setSelectedProfId(nextValue);
