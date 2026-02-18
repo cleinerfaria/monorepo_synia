@@ -19,7 +19,7 @@ export function useClients() {
 
       const { data, error } = await supabase
         .from('client')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .order('name');
 
@@ -40,7 +40,7 @@ export function useClient(id: string | undefined) {
 
       const { data, error } = await supabase
         .from('client')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
         .single();
@@ -60,11 +60,16 @@ export function useCreateClient() {
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'client'>, 'company_id'>) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: client, error } = await supabase
         .from('client')
-        .insert({ ...data, company_id: company.id } as any)
-        .select()
+        .insert({ ...payload, company_id: company.id } as any)
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -104,17 +109,22 @@ export function useUpdateClient() {
       // Buscar dados antigos para o log
       const { data: oldClient } = await supabase
         .from('client')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
         .single();
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: client, error } = await supabase
         .from('client')
-        .update(data as any)
+        .update(payload as any)
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -157,7 +167,7 @@ export function useDeleteClient() {
       // Buscar dados do cliente antes de excluir para o log
       const { data: clientToDelete } = await supabase
         .from('client')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
         .single();

@@ -64,7 +64,7 @@ BEGIN
   -- =====================================================
   -- 0) PROFISSÕES (Novas)
   -- =====================================================
-  INSERT INTO public.profession (company_id, name, active)
+  INSERT INTO public.profession (company_id, name, is_active)
   VALUES 
     (v_company_id, 'Médico', TRUE),
     (v_company_id, 'Enfermeiro', TRUE),
@@ -77,7 +77,7 @@ BEGIN
     (v_company_id, 'Assistente Social', TRUE),
     (v_company_id, 'Cuidador', TRUE),
     (v_company_id, 'Outro', TRUE)
-  ON CONFLICT (company_id, name) DO UPDATE SET active = TRUE;
+  ON CONFLICT (company_id, name) DO UPDATE SET is_active = TRUE;
 
   -- Recuperar IDs das profissões para uso posterior
   SELECT id INTO v_medico_id FROM public.profession WHERE company_id = v_company_id AND name = 'Médico';
@@ -89,7 +89,7 @@ BEGIN
   -- 1) PROFISSIONAIS
   -- =====================================================
   INSERT INTO public.professional 
-    (company_id, code, name, profession_id, council_type, council_number, council_uf, phone, email, active)
+    (company_id, code, name, profession_id, council_type, council_number, council_uf, phone, email, is_active)
   VALUES 
     (v_company_id, 'E2E-PRO-001', 'Ana Maria Silva', v_medico_id, 'CRM', '123456', 'RN', '(84) 99999-0001', 'ana.silva@e2e.local', TRUE),
     (v_company_id, 'E2E-PRO-002', 'Carlos Alexandre Santos', v_enfermeiro_id, 'COREN', '654321', 'RN', '(84) 99999-0002', 'carlos.santos@e2e.local', TRUE),
@@ -109,7 +109,7 @@ BEGIN
   -- 2) PACIENTES (3 pacientes)
   -- =====================================================
   INSERT INTO public.patient 
-    (company_id, code, name, cpf, birth_date, gender, phone, email, active)
+    (company_id, code, name, cpf, birth_date, gender, phone, email, is_active)
   VALUES 
     (v_company_id, 'E2E-PAT-001', 'João da Silva', '12345678900', '1960-05-15', 'male', '(11) 98888-0001', 'joao.silva@e2e.local', TRUE),
     (v_company_id, 'E2E-PAT-002', 'Maria dos Santos', '23456789011', '1965-08-22', 'female', '(11) 98888-0002', 'maria.santos@e2e.local', TRUE),
@@ -120,7 +120,7 @@ BEGIN
   -- 3) MEDICAÇÕES (10 produtos de tipo medication)
   -- =====================================================
   INSERT INTO public.product 
-    (company_id, item_type, code, name, description, concentration, antibiotic, psychotropic, active)
+    (company_id, item_type, code, name, description, concentration, antibiotic, psychotropic, is_active)
   VALUES 
     (v_company_id, 'medication', 'E2E-MED-001', 'Dipirona 500mg', 'Analgésico e antitérmico', '500mg', FALSE, FALSE, TRUE),
     (v_company_id, 'medication', 'E2E-MED-002', 'Amoxicilina 500mg', 'Antibiótico betalactâmico', '500mg', TRUE, FALSE, TRUE),
@@ -153,7 +153,7 @@ BEGIN
   -- =====================================================
   IF v_system_admin_auth_id IS NOT NULL THEN
     INSERT INTO public.app_user 
-      (company_id, auth_user_id, name, email, active, access_profile_id)
+      (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
       (v_company_id, v_system_admin_auth_id, 'Super Admin', 'superadmin@aurea.com', true, v_admin_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
@@ -161,7 +161,7 @@ BEGIN
 
   IF v_admin_auth_id IS NOT NULL THEN
     INSERT INTO public.app_user 
-      (company_id, auth_user_id, name, email, active, access_profile_id)
+      (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
       (v_company_id, v_admin_auth_id, 'Admin', 'admin@aurea.com', true, v_admin_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
@@ -169,7 +169,7 @@ BEGIN
 
   IF v_manager_auth_id IS NOT NULL THEN
     INSERT INTO public.app_user 
-      (company_id, auth_user_id, name, email, active, access_profile_id)
+      (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
       (v_company_id, v_manager_auth_id, 'Manager', 'manager@aurea.com', true, v_manager_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
@@ -177,7 +177,7 @@ BEGIN
 
   IF v_user_auth_id IS NOT NULL THEN
     INSERT INTO public.app_user 
-      (company_id, auth_user_id, name, email, active, access_profile_id)
+      (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
       (v_company_id, v_user_auth_id, 'User', 'user@aurea.com', true, v_viewer_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;

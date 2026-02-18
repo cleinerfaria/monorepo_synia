@@ -22,7 +22,7 @@ export function useProfessionals() {
 
       const { data, error } = await supabase
         .from('professional')
-        .select('*, profession(name)')
+        .select('*, active:is_active, profession(name)')
         .eq('company_id', company.id)
         .order('name');
 
@@ -43,7 +43,7 @@ export function useProfessional(id: string | undefined) {
 
       const { data, error } = await supabase
         .from('professional')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
         .single();
@@ -62,11 +62,16 @@ export function useCreateProfessional() {
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'professional'>, 'company_id'>) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: professional, error } = await supabase
         .from('professional')
-        .insert({ ...data, company_id: company.id } as any)
-        .select()
+        .insert({ ...payload, company_id: company.id } as any)
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -90,13 +95,18 @@ export function useUpdateProfessional() {
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'professional'> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: professional, error } = await supabase
         .from('professional')
-        .update(data as any)
+        .update(payload as any)
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -150,9 +160,9 @@ export function useProfessions() {
 
       const { data, error } = await supabase
         .from('profession')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;

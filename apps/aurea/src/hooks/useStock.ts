@@ -9,7 +9,10 @@ export function useStockLocations() {
   return useQuery({
     queryKey: ['stock-locations'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('stock_location').select('*').order('name');
+      const { data, error } = await supabase
+        .from('stock_location')
+        .select('*, active:is_active')
+        .order('name');
 
       if (error) throw error;
       return data as StockLocation[];
@@ -24,10 +27,15 @@ export function useCreateStockLocation() {
     mutationFn: async (
       location: Omit<StockLocation, 'id' | 'company_id' | 'created_at' | 'updated_at'>
     ) => {
+      const payload: Record<string, any> = { ...location };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
       const { data, error } = await supabase
         .from('stock_location')
-        .insert(location as any)
-        .select()
+        .insert(payload as any)
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -44,11 +52,16 @@ export function useUpdateStockLocation() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<StockLocation> & { id: string }) => {
+      const payload: Record<string, any> = { ...updates };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
       const { data, error } = await supabase
         .from('stock_location')
-        .update(updates as any)
+        .update(payload as any)
         .eq('id', id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -92,7 +105,7 @@ export function useStockBalance(locationId?: string) {
             unit_stock:unit_stock_id(id, code, name),
             item_type,
             min_stock,
-            active,
+            active:is_active,
             concentration,
             manufacturer_rel:manufacturer(id, name)
           ),

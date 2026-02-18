@@ -2,6 +2,8 @@
 -- UNIT OF MEASURE + RLS + SEED (escopo granular)
 -- =============================================
 -- 1) ENUMs (prefixo enum_)
+BEGIN;
+
 
 CREATE TYPE public.enum_unit_scope AS ENUM (
   'medication_base',

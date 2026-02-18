@@ -39,6 +39,7 @@ export function usePatients() {
         .select(
           `
           *,
+          active:is_active,
           billing_client:client(id, name)
         `
         )
@@ -93,6 +94,7 @@ export function usePatientsPaginated(
         .select(
           `
           *,
+          active:is_active,
           billing_client:client(id, name),
           patient_payer(
             id,
@@ -151,8 +153,8 @@ export function usePatientsPaginated(
       }
       if (filters?.status) {
         const isActive = filters.status === 'active';
-        countQuery = countQuery.eq('active', isActive);
-        dataQuery = dataQuery.eq('active', isActive);
+        countQuery = countQuery.eq('is_active', isActive);
+        dataQuery = dataQuery.eq('is_active', isActive);
       }
 
       // Get total count
@@ -196,6 +198,7 @@ export function usePatient(id: string | undefined) {
         .select(
           `
           *,
+          active:is_active,
           billing_client:client(id, name),
           patient_payer(
             id,
@@ -222,11 +225,16 @@ export function useCreatePatient() {
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'patient'>, 'company_id'>) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: patient, error } = await supabase
         .from('patient')
-        .insert({ ...data, company_id: company.id } as any)
-        .select()
+        .insert({ ...payload, company_id: company.id } as any)
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -250,13 +258,18 @@ export function useUpdatePatient() {
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'patient'> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: patient, error } = await supabase
         .from('patient')
-        .update(data as any)
+        .update(payload as any)
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -314,7 +327,7 @@ export function usePatientAddresses(patientId: string | undefined) {
 
       const { data, error } = await supabase
         .from('patient_address')
-        .select('*')
+        .select('*, active:is_active')
         .eq('patient_id', patientId)
         .eq('company_id', company.id)
         .order('is_primary', { ascending: false })
@@ -358,11 +371,15 @@ export function useSavePatientAddresses() {
 
       // Processar cada endereço
       for (const address of addresses) {
-        const addressData = {
+        const addressData: Record<string, any> = {
           ...address,
           patient_id: patientId,
           company_id: company.id,
         };
+        if (addressData.active !== undefined) {
+          addressData.is_active = addressData.active;
+          delete addressData.active;
+        }
 
         if (address.id.startsWith('temp-')) {
           // Inserir novo
@@ -401,7 +418,7 @@ export function usePatientContacts(patientId: string | undefined) {
 
       const { data, error } = await supabase
         .from('patient_contact')
-        .select('*')
+        .select('*, active:is_active')
         .eq('patient_id', patientId)
         .eq('company_id', company.id)
         .order('is_primary', { ascending: false })
@@ -445,11 +462,15 @@ export function useSavePatientContacts() {
 
       // Processar cada contato
       for (const contact of contacts) {
-        const contactData = {
+        const contactData: Record<string, any> = {
           ...contact,
           patient_id: patientId,
           company_id: company.id,
         };
+        if (contactData.active !== undefined) {
+          contactData.is_active = contactData.active;
+          delete contactData.active;
+        }
 
         if (contact.id.startsWith('temp-')) {
           // Inserir novo
@@ -491,6 +512,7 @@ export function usePatientPayers(patientId: string | undefined) {
         .select(
           `
           *,
+          active:is_active,
           client:client(id, name, color, type)
         `
         )
@@ -531,11 +553,15 @@ export function useSavePatientPayers() {
 
       // Processar cada pagador
       for (const payer of payers) {
-        const payerData = {
+        const payerData: Record<string, any> = {
           ...payer,
           patient_id: patientId,
           company_id: company.id,
         };
+        if (payerData.active !== undefined) {
+          payerData.is_active = payerData.active;
+          delete payerData.active;
+        }
 
         if (payer.id.startsWith('temp-')) {
           // Inserir novo

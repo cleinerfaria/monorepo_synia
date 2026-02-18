@@ -36,6 +36,9 @@ CREATE TABLE IF NOT EXISTS public.patient_address (
   city text NULL,
   state text NULL,
   country text NULL DEFAULT 'BR',
+  longitude numeric(10, 8) NULL,
+  latitude numeric(10, 8) NULL,
+  use_for_service boolean NOT NULL DEFAULT true,
   reference text NULL,
 
   is_primary boolean NOT NULL DEFAULT false,
@@ -46,6 +49,16 @@ CREATE TABLE IF NOT EXISTS public.patient_address (
 
   CONSTRAINT patient_address_pkey PRIMARY KEY (id)
 );
+
+-- Create index for service addresses for faster queries
+CREATE INDEX IF NOT EXISTS idx_patient_address_use_for_service
+ON public.patient_address (patient_id, use_for_service)
+WHERE use_for_service IS TRUE AND is_active IS TRUE;
+
+-- Create index for geographic queries
+CREATE INDEX IF NOT EXISTS idx_patient_address_geolocation
+ON public.patient_address (latitude, longitude)
+WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_patient_address_company
 ON public.patient_address (company_id);

@@ -41,7 +41,7 @@ BEGIN
   END IF;
 
   INSERT INTO public.product
-    (company_id, item_type, code, name, description, concentration, unit_stock_id, unit_prescription_id, antibiotic, psychotropic, active)
+    (company_id, item_type, code, name, description, concentration, unit_stock_id, unit_prescription_id, antibiotic, psychotropic, is_active)
   VALUES
     (v_company_id, 'medication', 'E2E-MED-001', 'DIPIRONA', 'Analgésico e antitérmico', '500mg', v_unit_cp_id, v_unit_cp_id, FALSE, FALSE, TRUE),
     (v_company_id, 'medication', 'E2E-MED-002', 'AMOXICILINA', 'Antibiótico betalactâmico', '500mg', v_unit_cp_id, v_unit_cp_id, TRUE, FALSE, TRUE),

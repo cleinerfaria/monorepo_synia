@@ -116,7 +116,7 @@ export function useSyncManufacturersFromReference() {
             trade_name: mfr.nome_fantasia,
             document: mfr.cnpj,
             brasindice_code: mfr.brasindice_codigo,
-            active: true,
+            is_active: true,
           });
 
           if (insertError) {
@@ -158,7 +158,7 @@ export function useManufacturers() {
 
       const { data, error } = await supabase
         .from('manufacturer')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .order('name');
 
@@ -195,7 +195,10 @@ export function useManufacturersPaginated(
         .eq('company_id', company.id);
 
       // Build base query for data
-      let dataQuery = supabase.from('manufacturer').select('*').eq('company_id', company.id);
+      let dataQuery = supabase
+        .from('manufacturer')
+        .select('*, active:is_active')
+        .eq('company_id', company.id);
 
       // Apply search filter if provided
       if (searchTerm) {
@@ -240,7 +243,7 @@ export function useManufacturer(id: string | undefined) {
 
       const { data, error } = await supabase
         .from('manufacturer')
-        .select('*')
+        .select('*, active:is_active')
         .eq('id', id)
         .eq('company_id', company.id)
         .single();
@@ -259,11 +262,16 @@ export function useCreateManufacturer() {
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'manufacturer'>, 'company_id'>) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: manufacturer, error } = await supabase
         .from('manufacturer')
-        .insert({ ...data, company_id: company.id } as any)
-        .select()
+        .insert({ ...payload, company_id: company.id } as any)
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -287,13 +295,18 @@ export function useUpdateManufacturer() {
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'manufacturer'> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: manufacturer, error } = await supabase
         .from('manufacturer')
-        .update(data as any)
+        .update(payload as any)
         .eq('id', id)
         .eq('company_id', company.id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;

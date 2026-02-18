@@ -364,7 +364,7 @@ async function seedAureaDev() {
         auth_user_id: systemAdminId,
         name: 'System Admin',
         email: systemAdminEmail,
-        active: true,
+        is_active: true,
         access_profile_id: adminProfile.id,
       },
       {
@@ -372,7 +372,7 @@ async function seedAureaDev() {
         auth_user_id: adminId,
         name: 'Admin',
         email: adminEmail,
-        active: true,
+        is_active: true,
         access_profile_id: adminProfile.id,
       },
       {
@@ -380,7 +380,7 @@ async function seedAureaDev() {
         auth_user_id: managerId,
         name: 'Manager',
         email: managerEmail,
-        active: true,
+        is_active: true,
         access_profile_id: managerProfile.id,
       },
       {
@@ -388,7 +388,7 @@ async function seedAureaDev() {
         auth_user_id: userId,
         name: 'User',
         email: userEmail,
-        active: true,
+        is_active: true,
         access_profile_id: viewerProfile.id,
       },
     ],

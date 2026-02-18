@@ -32,7 +32,7 @@ BEGIN
   END IF;
 
   INSERT INTO public.professional
-    (company_id, code, name, profession_id, council_type, council_number, council_uf, phone, email, active)
+    (company_id, code, name, profession_id, council_type, council_number, council_uf, phone, email, is_active)
   VALUES
     (v_company_id, 'E2E-PRO-001', 'Ana Maria Silva', v_medico_id, 'CRM', '123456', 'RN', '(84) 99999-0001', 'ana.silva@e2e.local', TRUE),
     (v_company_id, 'E2E-PRO-002', 'Carlos Alexandre Santos', v_enfermeiro_id, 'COREN', '654321', 'RN', '(84) 99999-0002', 'carlos.santos@e2e.local', TRUE),

@@ -64,7 +64,7 @@ export function useUnitsOfMeasurePaginated(
       // Build query for data
       let dataQuery = supabase
         .from('unit_of_measure')
-        .select('*')
+        .select('*, active:is_active')
         .or(`company_id.is.null,company_id.eq.${company.id}`)
         .order('name');
 
@@ -116,9 +116,9 @@ export function useUnitsOfMeasure() {
       // Busca unidades globais (company_id IS NULL) e da empresa
       const { data, error } = await supabase
         .from('unit_of_measure')
-        .select('*')
+        .select('*, active:is_active')
         .or(`company_id.is.null,company_id.eq.${company.id}`)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('code');
 
       if (error) throw error;
@@ -138,7 +138,7 @@ export function useUnitOfMeasure(id: string | undefined) {
 
       const { data, error } = await supabase
         .from('unit_of_measure')
-        .select('*')
+        .select('*, active:is_active')
         .eq('id', id)
         .single();
 
@@ -161,15 +161,20 @@ export function useCreateUnitOfMeasure() {
       > & { allowed_scopes?: UnitScope[] }
     ) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: unit, error } = await supabase
         .from('unit_of_measure')
         .insert({
-          ...data,
-          allowed_scopes: data.allowed_scopes ?? [],
+          ...payload,
+          allowed_scopes: payload.allowed_scopes ?? [],
           company_id: company.id,
         })
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -197,12 +202,17 @@ export function useUpdateUnitOfMeasure() {
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<UnitOfMeasure> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: unit, error } = await supabase
         .from('unit_of_measure')
-        .update(data)
+        .update(payload)
         .eq('id', id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;

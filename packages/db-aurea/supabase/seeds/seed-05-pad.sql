@@ -67,7 +67,7 @@ BEGIN
   FROM public.profession
   WHERE company_id = v_company_id
     AND LOWER(name) LIKE '%cnic%enferm%'
-    AND active = true
+    AND is_active = true
   LIMIT 1;
 
   IF v_profession_id IS NOT NULL AND NOT EXISTS (
@@ -85,7 +85,7 @@ BEGIN
   FROM public.profession
   WHERE company_id = v_company_id
     AND LOWER(name) = 'médico'
-    AND active = true
+    AND is_active = true
   LIMIT 1;
 
   IF v_profession_id IS NOT NULL AND NOT EXISTS (
@@ -103,7 +103,7 @@ BEGIN
   FROM public.profession
   WHERE company_id = v_company_id
     AND LOWER(name) = 'fisioterapeuta'
-    AND active = true
+    AND is_active = true
   LIMIT 1;
 
   IF v_profession_id IS NOT NULL AND NOT EXISTS (

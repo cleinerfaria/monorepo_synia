@@ -62,6 +62,7 @@ export function usePresentationsPaginated(
         .from('product_presentation')
         .select(
           `*,
+          active:is_active,
           product:product_id(id, name, concentration, item_type),
           manufacturer:manufacturer_id(id, name, trade_name)`
         )
@@ -90,11 +91,11 @@ export function usePresentationsPaginated(
 
       // Apply status filter
       if (filters.status === 'active') {
-        countQuery = countQuery.eq('active', true);
-        dataQuery = dataQuery.eq('active', true);
+        countQuery = countQuery.eq('is_active', true);
+        dataQuery = dataQuery.eq('is_active', true);
       } else if (filters.status === 'inactive') {
-        countQuery = countQuery.eq('active', false);
-        dataQuery = dataQuery.eq('active', false);
+        countQuery = countQuery.eq('is_active', false);
+        dataQuery = dataQuery.eq('is_active', false);
       }
 
       // Get total count
@@ -133,7 +134,7 @@ export function usePresentations(productId: string | undefined) {
 
       const { data, error } = await supabase
         .from('product_presentation')
-        .select('*, manufacturer:manufacturer_id(id, name, trade_name)')
+        .select('*, active:is_active, manufacturer:manufacturer_id(id, name, trade_name)')
         .eq('product_id', productId)
         .eq('company_id', company.id)
         .order('conversion_factor');
@@ -154,11 +155,16 @@ export function useCreatePresentation() {
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'product_presentation'>, 'company_id'>) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: presentation, error } = await supabase
         .from('product_presentation')
-        .insert({ ...data, company_id: company.id })
-        .select()
+        .insert({ ...payload, company_id: company.id })
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -187,13 +193,18 @@ export function useUpdatePresentation() {
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'product_presentation'> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: presentation, error } = await supabase
         .from('product_presentation')
-        .update(data)
+        .update(payload)
         .eq('id', id)
         .eq('company_id', company.id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -239,7 +250,7 @@ export function usePresentationByBarcode(barcode: string | null | undefined) {
         )
         .eq('company_id', company.id)
         .eq('barcode', barcode)
-        .eq('active', true)
+        .eq('is_active', true)
         .maybeSingle();
 
       if (error) throw error;
@@ -275,7 +286,7 @@ export async function findPresentationsByBarcodes(
     .from('product_presentation')
     .select('id, barcode, product_id')
     .eq('company_id', companyId)
-    .eq('active', true)
+    .eq('is_active', true)
     .in('barcode', validBarcodes);
 
   if (error) {

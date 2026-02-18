@@ -39,11 +39,12 @@ export function useProductGroups() {
         .select(
           `
           *,
+          active:is_active,
           parent:parent_id(id, name, code, color)
         `
         )
         .or(`company_id.is.null,company_id.eq.${company.id}`)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('sort_order')
         .order('name');
 
@@ -67,6 +68,7 @@ export function useProductGroup(id: string | undefined) {
         .select(
           `
           *,
+          active:is_active,
           parent:parent_id(id, name, code, color)
         `
         )
@@ -89,11 +91,16 @@ export function useCreateProductGroup() {
       data: Omit<ProductGroup, 'id' | 'company_id' | 'is_system' | 'created_at' | 'updated_at'>
     ) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: group, error } = await supabase
         .from('product_group')
-        .insert({ ...data, company_id: company.id, is_system: false })
-        .select()
+        .insert({ ...payload, company_id: company.id, is_system: false })
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -117,13 +124,18 @@ export function useUpdateProductGroup() {
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<ProductGroup> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: group, error } = await supabase
         .from('product_group')
-        .update(data)
+        .update(payload)
         .eq('id', id)
         .eq('company_id', company.id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;

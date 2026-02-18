@@ -16,7 +16,7 @@ export function useSuppliers() {
 
       const { data, error } = await supabase
         .from('supplier')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .order('name');
 
@@ -37,7 +37,7 @@ export function useSupplier(id: string | undefined) {
 
       const { data, error } = await supabase
         .from('supplier')
-        .select('*')
+        .select('*, active:is_active')
         .eq('id', id)
         .eq('company_id', company.id)
         .single();
@@ -59,7 +59,7 @@ export function useSupplierByDocument(document: string | undefined) {
 
       const { data, error } = await supabase
         .from('supplier')
-        .select('*')
+        .select('*, active:is_active')
         .eq('document', document)
         .eq('company_id', company.id)
         .maybeSingle();
@@ -78,11 +78,16 @@ export function useCreateSupplier() {
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'supplier'>, 'company_id'>) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: supplier, error } = await supabase
         .from('supplier')
-        .insert({ ...data, company_id: company.id } as any)
-        .select()
+        .insert({ ...payload, company_id: company.id } as any)
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -111,19 +116,24 @@ export function useUpsertSupplierByDocument() {
       // Check if supplier exists
       const { data: existing } = await supabase
         .from('supplier')
-        .select('*')
+        .select('*, active:is_active')
         .eq('document', data.document)
         .eq('company_id', company.id)
         .maybeSingle();
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       if (existing) {
         // Update existing
         const { data: supplier, error } = await supabase
           .from('supplier')
-          .update(data as any)
+          .update(payload as any)
           .eq('id', existing.id)
           .eq('company_id', company.id)
-          .select()
+          .select('*, active:is_active')
           .single();
 
         if (error) throw error;
@@ -132,8 +142,8 @@ export function useUpsertSupplierByDocument() {
         // Insert new
         const { data: supplier, error } = await supabase
           .from('supplier')
-          .insert({ ...data, company_id: company.id } as any)
-          .select()
+          .insert({ ...payload, company_id: company.id } as any)
+          .select('*, active:is_active')
           .single();
 
         if (error) throw error;
@@ -153,13 +163,18 @@ export function useUpdateSupplier() {
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'supplier'> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: supplier, error } = await supabase
         .from('supplier')
-        .update(data as any)
+        .update(payload as any)
         .eq('id', id)
         .eq('company_id', company.id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;

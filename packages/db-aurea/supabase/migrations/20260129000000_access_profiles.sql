@@ -11,7 +11,7 @@ CREATE TABLE access_profile (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID REFERENCES company(id) ON DELETE CASCADE, -- NULL = perfil do sistema (default)
     code text NOT NULL,
-    name text(100) NOT NULL,
+    name text NOT NULL,
     description text,
     is_system BOOLEAN DEFAULT FALSE, -- Perfis padrão do sistema (não podem ser excluídos)
     is_admin BOOLEAN DEFAULT FALSE, -- Se true, tem acesso total

@@ -304,7 +304,7 @@ export function ImportActiveIngredientsFromCmedModal({
       const insertData = toImportNames.map((name) => ({
         company_id: company.id,
         name: name.trim().substring(0, 255),
-        active: true,
+        is_active: true,
       }));
 
       // Insert in batches

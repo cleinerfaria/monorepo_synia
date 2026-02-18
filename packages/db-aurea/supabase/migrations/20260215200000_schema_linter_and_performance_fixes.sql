@@ -73,6 +73,7 @@ ALTER PROCEDURE public.recalculate_stock_balances()
 -- Mover extensão unaccent do schema public para extensions.
 -- =====================================================
 
+CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA extensions;
 ALTER EXTENSION unaccent SET SCHEMA extensions;
 
 -- Wrapper para retrocompatibilidade com referências a public.unaccent()

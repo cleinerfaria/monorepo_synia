@@ -14,7 +14,7 @@ export function useAdministrationRoutes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('administration_routes')
-        .select('*')
+        .select('*, active:is_active')
         .order('prescription_order', { ascending: true })
         .order('name', { ascending: true });
 
@@ -30,16 +30,22 @@ export function useCreateAdministrationRoute() {
   return useMutation({
     mutationFn: async (route: Omit<AdministrationRouteInsert, 'company_id'>) => {
       // Get current user's company_id
-      const { data: userData } = await supabase.from('app_users').select('company_id').single();
+      const { data: userData } = await supabase.from('app_user').select('company_id').single();
 
       if (!userData?.company_id) {
         throw new Error('Usuário não encontrado');
       }
 
+      const payload: Record<string, any> = { ...route };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
+
       const { data, error } = await supabase
         .from('administration_routes')
-        .insert({ ...route, company_id: userData.company_id })
-        .select()
+        .insert({ ...payload, company_id: userData.company_id })
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -56,11 +62,16 @@ export function useUpdateAdministrationRoute() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: AdministrationRouteUpdate & { id: string }) => {
+      const payload: Record<string, any> = { ...updates };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
       const { data, error } = await supabase
         .from('administration_routes')
-        .update(updates)
+        .update(payload)
         .eq('id', id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;

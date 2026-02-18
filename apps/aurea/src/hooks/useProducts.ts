@@ -44,6 +44,7 @@ export function useProducts(itemType?: 'medication' | 'material' | 'diet') {
           .select(
             `
             *,
+            active:is_active,
             presentations:product_presentation(id),
             active_ingredient_rel:active_ingredient(id, name),
             unit_stock:unit_stock_id(id, code, name, symbol),
@@ -151,6 +152,7 @@ export function useProductsPaginated(
         .select(
           `
           *,
+          active:is_active,
           presentations:product_presentation(id),
           active_ingredient_rel:active_ingredient(id, name),
           unit_stock:unit_stock_id(id, code, name, symbol),
@@ -188,8 +190,8 @@ export function useProductsPaginated(
       }
       if (filters?.status) {
         const isActive = filters.status === 'active';
-        countQuery = countQuery.eq('active', isActive);
-        dataQuery = dataQuery.eq('active', isActive);
+        countQuery = countQuery.eq('is_active', isActive);
+        dataQuery = dataQuery.eq('is_active', isActive);
       }
 
       // Get total count
@@ -234,6 +236,7 @@ export function useProductsWithPresentations() {
         .select(
           `
           *,
+          active:is_active,
           presentations:product_presentation(*),
           active_ingredient_rel:active_ingredient(id, name),
           unit_stock:unit_stock_id(id, code, name, symbol),
@@ -242,7 +245,7 @@ export function useProductsWithPresentations() {
         `
         )
         .eq('company_id', company.id)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
@@ -265,6 +268,7 @@ export function useProduct(id: string | undefined) {
         .select(
           `
           *,
+          active:is_active,
           active_ingredient_rel:active_ingredient(id, name),
           unit_stock:unit_of_measure!product_unit_stock_id_fkey(id, code, name, symbol),
           unit_prescription:unit_of_measure!product_unit_prescription_id_fkey(id, code, name),
@@ -290,11 +294,16 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'product'>, 'company_id'>) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: item, error } = await supabase
         .from('product')
-        .insert({ ...data, company_id: company.id } as any)
-        .select()
+        .insert({ ...payload, company_id: company.id } as any)
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -329,6 +338,11 @@ export function useUpdateProduct() {
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'product'> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       // Buscar dados anteriores para o log
       const { data: oldItem } = await supabase
@@ -340,10 +354,10 @@ export function useUpdateProduct() {
 
       const { data: item, error } = await supabase
         .from('product')
-        .update(data as any)
+        .update(payload as any)
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -510,7 +524,7 @@ export function useProductsSearchWithPresentations(
           .from('product_presentation')
           .select('product_id, name, product:product_id(id, item_type)')
           .eq('company_id', company.id)
-          .eq('active', true)
+          .eq('is_active', true)
           .range(0, pageSize * 10 - 1);
 
         if (presentationsError) {
@@ -545,6 +559,7 @@ export function useProductsSearchWithPresentations(
         .select(
           `
           *,
+          active:is_active,
           presentations:product_presentation(id),
           active_ingredient_rel:active_ingredient(id, name),
           unit_stock:unit_stock_id(id, code, name, symbol),
@@ -553,7 +568,7 @@ export function useProductsSearchWithPresentations(
         `
         )
         .eq('company_id', company.id)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('name');
 
       // Filtrar por tipo se especificado

@@ -62,7 +62,13 @@ CREATE TABLE client (
     document text,
     email text,
     phone text,
-    address text,
+    zip text null,
+    street text null,
+    number text null,
+    complement text null,
+    district text null,
+    city text null,
+    state text null,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -242,14 +248,20 @@ CREATE TYPE enum_reference_type AS ENUM (
 'consumption'
 );
 
+CREATE TYPE enum_movement_type AS ENUM (
+'in',
+'out',
+'adjust'
+);
+
 -- Movimentações de estoque
 CREATE TABLE stock_movement (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
     location_id UUID NOT NULL REFERENCES stock_location(id) ON DELETE CASCADE,
     product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
-    movement_type text NOT NULL CHECK (movement_type IN ('IN', 'OUT', 'ADJUST')),
-    qty DECIMAL(15, 3) NOT NULL,
+    movement_type enum_movement_type NOT NULL DEFAULT 'in',
+    quantity DECIMAL(15, 3) NOT NULL,
     unit_cost DECIMAL(15, 4) DEFAULT 0,
     total_cost DECIMAL(15, 4) DEFAULT 0,
     reference_type enum_reference_type NOT NULL DEFAULT 'nfe_import',
@@ -313,7 +325,7 @@ CREATE TABLE prescription_item (
     product_id UUID REFERENCES product(id) ON DELETE SET NULL,
     equipment_id UUID REFERENCES equipment(id) ON DELETE SET NULL,
     dosage_text text,
-    qty DECIMAL(10, 3),
+    quantity DECIMAL(10, 3),
     frequency_text text,
     route_text text,
     notes text,
@@ -337,7 +349,7 @@ CREATE TABLE patient_consumption (
     patient_id UUID NOT NULL REFERENCES patient(id) ON DELETE CASCADE,
     product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
     location_id UUID REFERENCES stock_location(id) ON DELETE SET NULL,
-    qty DECIMAL(15, 3) NOT NULL,
+    quantity DECIMAL(15, 3) NOT NULL,
     consumed_at TIMESTAMPTZ DEFAULT NOW(),
     notes text,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -378,7 +390,7 @@ CREATE TABLE nfe_import_item (
     nfe_import_id UUID NOT NULL REFERENCES nfe_import(id) ON DELETE CASCADE,
     raw_description text NOT NULL,
     unit text,
-    qty DECIMAL(15, 3) NOT NULL,
+    quantity DECIMAL(15, 3) NOT NULL,
     unit_price DECIMAL(15, 4) NOT NULL,
     total_price DECIMAL(15, 4) NOT NULL,
     product_id UUID REFERENCES product(id) ON DELETE SET NULL,
@@ -465,22 +477,22 @@ BEGIN
       AND product_id = NEW.product_id;
 
     -- Calculate new quantity based on movement type
-    IF NEW.movement_type = 'IN' THEN
-        new_qty := COALESCE(current_balance.qty_on_hand, 0) + NEW.qty;
+    IF NEW.movement_type = 'in' THEN
+        new_qty := COALESCE(current_balance.qty_on_hand, 0) + NEW.quantity;
         -- Calculate weighted average cost
-        IF COALESCE(current_balance.qty_on_hand, 0) + NEW.qty > 0 THEN
+        IF COALESCE(current_balance.qty_on_hand, 0) + NEW.quantity > 0 THEN
             new_avg_cost := (
                 (COALESCE(current_balance.qty_on_hand, 0) * COALESCE(current_balance.avg_cost, 0)) +
-                (NEW.qty * COALESCE(NEW.unit_cost, 0))
-            ) / (COALESCE(current_balance.qty_on_hand, 0) + NEW.qty);
+                (NEW.quantity * COALESCE(NEW.unit_cost, 0))
+            ) / (COALESCE(current_balance.qty_on_hand, 0) + NEW.quantity);
         ELSE
             new_avg_cost := COALESCE(NEW.unit_cost, 0);
         END IF;
-    ELSIF NEW.movement_type = 'OUT' THEN
-        new_qty := COALESCE(current_balance.qty_on_hand, 0) - NEW.qty;
+    ELSIF NEW.movement_type = 'out' THEN
+        new_qty := COALESCE(current_balance.qty_on_hand, 0) - NEW.quantity;
         new_avg_cost := COALESCE(current_balance.avg_cost, 0);
     ELSE -- ADJUST
-        new_qty := NEW.qty;
+        new_qty := NEW.quantity;
         new_avg_cost := COALESCE(NEW.unit_cost, current_balance.avg_cost, 0);
     END IF;
 

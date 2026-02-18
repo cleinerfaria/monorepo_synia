@@ -17,7 +17,7 @@ BEGIN
     RAISE EXCEPTION 'Initial company not found. Run migrations first.';
   END IF;
 
-  INSERT INTO public.profession (company_id, code, name, active)
+  INSERT INTO public.profession (company_id, code, name, is_active)
   VALUES
     (v_company_id, 'medico', 'Médico', TRUE),
     (v_company_id, 'enfermeiro', 'Enfermeiro', TRUE),
@@ -32,7 +32,7 @@ BEGIN
     (v_company_id, 'outro', 'Outro', TRUE)
   ON CONFLICT (company_id, name) DO UPDATE SET
     code = EXCLUDED.code,
-    active = TRUE;
+    is_active = TRUE;
 
   RAISE NOTICE 'Seed 01 applied: professions';
 END $$;

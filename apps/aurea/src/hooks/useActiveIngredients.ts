@@ -40,7 +40,7 @@ export function useActiveIngredientsPaginated(
       // Build query for data
       let dataQuery = supabase
         .from('active_ingredient')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .order('name');
 
@@ -92,7 +92,7 @@ export function useActiveIngredients() {
 
       const { data, error } = await supabase
         .from('active_ingredient')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .order('name');
 
@@ -113,9 +113,9 @@ export function useSearchActiveIngredients(searchTerm: string = '') {
 
       let query = supabase
         .from('active_ingredient')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('name');
 
       if (searchTerm?.trim()) {
@@ -143,7 +143,7 @@ export function useActiveIngredient(id: string | undefined) {
 
       const { data, error } = await supabase
         .from('active_ingredient')
-        .select('*')
+        .select('*, active:is_active')
         .eq('id', id)
         .eq('company_id', company.id)
         .single();
@@ -162,11 +162,16 @@ export function useCreateActiveIngredient() {
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'active_ingredient'>, 'company_id'>) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: activeIngredient, error } = await supabase
         .from('active_ingredient')
-        .insert({ ...data, company_id: company.id } as any)
-        .select()
+        .insert({ ...payload, company_id: company.id } as any)
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -194,13 +199,18 @@ export function useUpdateActiveIngredient() {
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'active_ingredient'> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: activeIngredient, error } = await supabase
         .from('active_ingredient')
-        .update(data as any)
+        .update(payload as any)
         .eq('id', id)
         .eq('company_id', company.id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -231,10 +241,10 @@ export function useToggleActiveIngredientStatus() {
 
       const { data: activeIngredient, error } = await supabase
         .from('active_ingredient')
-        .update({ active })
+        .update({ is_active: active })
         .eq('id', id)
         .eq('company_id', company.id)
-        .select()
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;

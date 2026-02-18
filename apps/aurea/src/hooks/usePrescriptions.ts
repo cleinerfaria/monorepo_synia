@@ -170,7 +170,7 @@ export function usePrescriptionItems(prescriptionId: string | undefined) {
         .select(
           `
           *,
-          product:product_id(id, name, concentration, active, unit_stock:unit_stock_id(id, code, name, symbol), unit_prescription:unit_prescription_id(id, code, name, symbol)),
+          product:product_id(id, name, concentration, active:is_active, unit_stock:unit_stock_id(id, code, name, symbol), unit_prescription:unit_prescription_id(id, code, name, symbol)),
           equipment:equipment_id(id, name, serial_number, status),
           procedure:procedure_id(id, name),
           components:prescription_item_component(id, quantity, product:product_id(id, name, concentration, unit_stock:unit_stock_id(id, code, name, symbol), unit_prescription:unit_prescription_id(id, code, name, symbol)))

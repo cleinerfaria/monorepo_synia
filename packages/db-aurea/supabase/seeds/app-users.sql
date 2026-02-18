@@ -70,13 +70,13 @@ BEGIN
 
   -- 2) APP USERS (vinculação condicional)
   IF v_system_admin_auth_id IS NOT NULL THEN
-    INSERT INTO public.app_user (company_id, auth_user_id, name, email, active, access_profile_id)
+    INSERT INTO public.app_user (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES (v_company_id, v_system_admin_auth_id, 'Super Admin', 'superadmin@aurea.com', TRUE, v_admin_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 
   IF v_admin_auth_id IS NOT NULL THEN
-    INSERT INTO public.app_user (company_id, auth_user_id, name, email, active, access_profile_id)
+    INSERT INTO public.app_user (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES (v_company_id, v_admin_auth_id, 'Admin', 'admin@aurea.com', TRUE, v_admin_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   ELSE
@@ -84,7 +84,7 @@ BEGIN
   END IF;
 
   IF v_manager_auth_id IS NOT NULL THEN
-    INSERT INTO public.app_user (company_id, auth_user_id, name, email, active, access_profile_id)
+    INSERT INTO public.app_user (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES (v_company_id, v_manager_auth_id, 'Manager', 'manager@aurea.com', TRUE, v_manager_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   ELSE
@@ -92,7 +92,7 @@ BEGIN
   END IF;
 
   IF v_user_auth_id IS NOT NULL THEN
-    INSERT INTO public.app_user (company_id, auth_user_id, name, email, active, access_profile_id)
+    INSERT INTO public.app_user (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES (v_company_id, v_user_auth_id, 'User', 'user@aurea.com', TRUE, v_viewer_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   ELSE
