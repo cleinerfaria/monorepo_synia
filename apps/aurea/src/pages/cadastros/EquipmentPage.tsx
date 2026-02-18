@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX } from 'lucide-react';
+import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -299,7 +299,12 @@ export default function EquipmentPage() {
             Equipamentos
           </h1>
         </div>
-        <Button onClick={openAddModal} variant="solid" label="Novo Equipamento" />
+        <Button
+          onClick={openAddModal}
+          variant="solid"
+          icon={<Plus className="h-4 w-4" />}
+          label="Novo Equipamento"
+        />
       </div>
       <Card padding="none">
         <div className="space-y-4 p-6">

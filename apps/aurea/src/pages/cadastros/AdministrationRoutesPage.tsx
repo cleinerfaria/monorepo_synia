@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Route, Search, FunnelX } from 'lucide-react';
+import { Pencil, Route, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Badge,
   Button,
@@ -232,7 +232,12 @@ export default function AdministrationRoutesPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={openCreateModal} variant="solid" label="Nova Via" />
+          <Button
+            onClick={openCreateModal}
+            variant="solid"
+            icon={<Plus className="h-4 w-4" />}
+            label="Nova Via"
+          />
         </div>
       </div>
 

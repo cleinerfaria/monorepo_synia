@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Beaker, Download, Search, FunnelX } from 'lucide-react';
+import { Pencil, Beaker, Download, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -209,7 +209,12 @@ export default function ActiveIngredientsPage() {
           >
             Importar do CMED
           </Button>
-          <Button onClick={openCreateModal} variant="solid" label="Novo Princípio Ativo" />
+          <Button
+            onClick={openCreateModal}
+            variant="solid"
+            icon={<Plus className="h-4 w-4" />}
+            label="Novo Princípio Ativo"
+          />
         </div>
       </div>
 

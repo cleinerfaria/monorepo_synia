@@ -1,7 +1,7 @@
 ﻿import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Trash2, Search, UserIcon, FunnelX } from 'lucide-react';
+import { Pencil, Trash2, Search, UserIcon, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -217,6 +217,7 @@ export default function ProfessionalsPage() {
         <Button
           onClick={() => navigate('/profissionais/novo')}
           variant="solid"
+          icon={<Plus className="h-4 w-4" />}
           label="Novo Profissional"
         />
       </div>

@@ -20,7 +20,7 @@ if (firstLine.startsWith('Merge ') || firstLine.startsWith('Revert "')) {
 }
 
 const conventionalCommitPattern =
-  /^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|db|revert|hotfix)(\([a-z0-9._/-]+\))?(!)?: .{5,}$/;
+  /^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|db|revert|hotfix|ui)(\([a-z0-9._/-]+\))?(!)?: .{5,}$/;
 
 if (!conventionalCommitPattern.test(firstLine)) {
   process.stderr.write(
@@ -28,7 +28,7 @@ if (!conventionalCommitPattern.test(firstLine)) {
       'Invalid commit message format.',
       'Use: <type>(optional-scope): <description>',
       'Example: feat(auth): add session timeout guard',
-      'Allowed types: feat, fix, chore, docs, style, refactor, perf, test, build, ci, revert, hotfix',
+      'Allowed types: feat, fix, chore, docs, style, refactor, perf, test, build, ci, revert, hotfix, ui, db',
     ].join('\n') + '\n'
   );
   process.exit(1);

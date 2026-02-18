@@ -1,7 +1,7 @@
 ﻿import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
-import { Users, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX } from 'lucide-react';
+import { Users, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -315,7 +315,12 @@ export default function PatientsPage() {
             Pacientes
           </h1>
         </div>
-        <Button onClick={() => navigate('/pacientes/novo')} variant="solid" label="Novo Paciente" />
+        <Button
+          onClick={() => navigate('/pacientes/novo')}
+          variant="solid"
+          icon={<Plus className="h-4 w-4" />}
+          label="Novo Paciente"
+        />
       </div>
 
       {/* Table */}
@@ -464,6 +469,7 @@ export default function PatientsPage() {
                     <Button
                       onClick={() => navigate('/pacientes/novo')}
                       variant="solid"
+                      icon={<Plus className="h-4 w-4" />}
                       label="Novo Paciente"
                     />
                   }

@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, SlidersHorizontal, Search, FunnelX } from 'lucide-react';
+import { Pencil, SlidersHorizontal, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -259,7 +259,12 @@ export default function UnitsOfMeasurePage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={openCreateModal} variant="solid" label="Nova Unidade" />
+          <Button
+            onClick={openCreateModal}
+            variant="solid"
+            icon={<Plus className="h-4 w-4" />}
+            label="Nova Unidade"
+          />
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, ClipboardList, Search, FunnelX } from 'lucide-react';
+import { Pencil, ClipboardList, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -246,7 +246,12 @@ export default function ProceduresPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={openCreateModal} variant="solid" label="Novo Procedimento" />
+          <Button
+            onClick={openCreateModal}
+            variant="solid"
+            icon={<Plus className="h-4 w-4" />}
+            label="Novo Procedimento"
+          />
         </div>
       </div>
 

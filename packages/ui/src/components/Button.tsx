@@ -265,7 +265,7 @@ function resolveVariant(
 }
 
 export function Button({
-  label = 'Novo',
+  label,
   children,
   variant = 'solid',
   active = false,
@@ -290,7 +290,8 @@ export function Button({
   return (
     <div
       className={cx(
-        'group relative items-stretch overflow-x-clip',
+        'group relative items-stretch',
+        variant === 'filter' && count > 0 ? 'overflow-visible' : 'overflow-x-clip',
         fullWidth ? 'flex w-full' : 'inline-flex'
       )}
     >

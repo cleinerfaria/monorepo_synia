@@ -491,11 +491,16 @@ export default function PresentationsPage() {
           <Button
             icon={<Search className="mr-1 h-4 w-4" />}
             onClick={openCreateFromReferenceModal}
-            variant="neutral"
+            variant="solid"
           >
             Buscar nas Tabelas
           </Button>
-          <Button onClick={openCreateModal} variant="solid" label="Manual" />
+          <Button
+            onClick={openCreateModal}
+            variant="neutral"
+            label="Manual"
+            icon={<Plus className="h-4 w-4" />}
+          />
         </div>
       </div>
 
@@ -547,11 +552,21 @@ export default function PresentationsPage() {
                 action={
                   !searchTerm && (
                     <div className="flex gap-2">
-                      <Button onClick={openCreateFromReferenceModal} size="sm" variant="neutral">
-                        <Search className="h-4 w-4" />
+                      <Button
+                        onClick={openCreateFromReferenceModal}
+                        icon={<Search className="h-4 w-4" />}
+                        size="sm"
+                        variant="solid"
+                      >
                         Buscar nas Tabelas
                       </Button>
-                      <Button onClick={openCreateModal} size="sm" variant="solid" label="Manual" />
+                      <Button
+                        onClick={openCreateModal}
+                        size="sm"
+                        variant="neutral"
+                        label="Manual"
+                        icon={<Plus className="h-4 w-4" />}
+                      />
                     </div>
                   )
                 }

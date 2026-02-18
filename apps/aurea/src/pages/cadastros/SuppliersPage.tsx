@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Trash2, Truck, Search, FunnelX } from 'lucide-react';
+import { Pencil, Trash2, Truck, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -417,7 +417,12 @@ export default function SuppliersPage() {
             Fornecedores
           </h1>
         </div>
-        <Button onClick={openCreateModal} variant="solid" label="Novo Fornecedor" />
+        <Button
+          onClick={openCreateModal}
+          variant="solid"
+          icon={<Plus className="h-4 w-4" />}
+          label="Novo Fornecedor"
+        />
       </div>
 
       {/* Table */}

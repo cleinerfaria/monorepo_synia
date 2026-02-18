@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Trash2, Search, FunnelX } from 'lucide-react';
+import { Pencil, Trash2, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -379,7 +379,13 @@ export default function ClientsPage() {
             Clientes
           </h1>
         </div>
-        <Button onClick={openCreateModal} size="md" variant="solid" label="Novo Cliente" />
+        <Button
+          onClick={openCreateModal}
+          size="md"
+          variant="solid"
+          icon={<Plus className="h-4 w-4" />}
+          label="Novo Cliente"
+        />
       </div>
 
       {/* Table */}
@@ -425,6 +431,7 @@ export default function ClientsPage() {
                     onClick={openCreateModal}
                     size="sm"
                     variant="solid"
+                    icon={<Plus className="h-4 w-4" />}
                     label="Cadastrar Cliente"
                   />
                 }

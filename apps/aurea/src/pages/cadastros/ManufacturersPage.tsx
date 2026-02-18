@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Trash2, Building2, RefreshCw, Search, FunnelX } from 'lucide-react';
+import { Pencil, Trash2, Building2, RefreshCw, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -286,7 +286,12 @@ export default function ManufacturersPage() {
           >
             Sincronizar de Referência
           </Button>
-          <Button onClick={openCreateModal} variant="solid" label="Novo Fabricante" />
+          <Button
+            onClick={openCreateModal}
+            variant="solid"
+            icon={<Plus className="h-4 w-4" />}
+            label="Novo Fabricante"
+          />
         </div>
       </div>
 
