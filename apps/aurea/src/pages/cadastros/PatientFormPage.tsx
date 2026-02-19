@@ -94,7 +94,6 @@ interface PatientFormData {
   mother_name: string;
   phone: string;
   email: string;
-  address: string;
   billing_client_id: string;
   active: boolean;
 }
@@ -210,7 +209,6 @@ export default function PatientFormPage() {
       mother_name: '',
       phone: '',
       email: '',
-      address: '',
       billing_client_id: '',
       active: true,
     },
@@ -221,7 +219,7 @@ export default function PatientFormPage() {
     min: _birthDateMin,
     max: _birthDateMax,
     ...birthDateField
-  } = register('birth_date');
+  } = register('birth_date', { required: 'Data de nascimento é obrigatória' });
 
   // Assistir mudanças na data de nascimento
   const birthDate = watch('birth_date');
@@ -355,7 +353,6 @@ export default function PatientFormPage() {
         mother_name: patient.mother_name || '',
         phone: patient.phone || '',
         email: patient.email || '',
-        address: patient.address || '',
         billing_client_id: patient.billing_client_id || '',
         active: patient.active ?? true,
       });
@@ -379,7 +376,6 @@ export default function PatientFormPage() {
         mother_name: '',
         phone: '',
         email: '',
-        address: '',
         billing_client_id: '',
         active: true,
       });
@@ -601,9 +597,12 @@ export default function PatientFormPage() {
                   <div className="md:col-span-2">
                     <DatePicker
                       label="Data de Nascimento"
-                      placeholder="Selecione uma data"
+                      placeholder="Selecione..."
                       max={todayDateOnly()}
                       value={birthDate}
+                      displayMode="compact"
+                      required
+                      error={errors.birth_date?.message}
                       {...birthDateField}
                       ref={birthDateRef}
                     />

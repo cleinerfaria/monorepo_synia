@@ -514,7 +514,7 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
                 ? 'border-red-500 dark:border-red-500'
                 : 'focus:border-primary-500 dark:focus:border-primary-500 border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500',
               !disabled && 'hover:border-gray-300 dark:hover:border-gray-600',
-              'focus:ring-primary-500/10 focus:outline-none focus:ring-4',
+              'focus:ring-primary-500/10 focus:outline-none focus:ring-2',
               'text-gray-900 dark:text-white',
               'placeholder:text-gray-400',
               disabled && 'cursor-not-allowed opacity-50'

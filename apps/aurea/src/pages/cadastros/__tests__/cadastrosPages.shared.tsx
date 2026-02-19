@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
-import { describe, expect, it, vi, waitFor } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import ActiveIngredientsPage from '@/pages/cadastros/ActiveIngredientsPage';
@@ -981,7 +981,6 @@ export const getCadastrosPageMocks = () => mocks;
 export const resetCadastrosPageMocks = () => {
   vi.clearAllMocks();
 };
-
 
 
 

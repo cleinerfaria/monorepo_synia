@@ -14,6 +14,16 @@ import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 
 const QUERY_KEY = 'patients';
 
+const sanitizePatientPayload = (data: Record<string, any>) => {
+  const payload = { ...data };
+  delete payload.address;
+  delete payload.billing_client;
+  delete payload.patient_address;
+  delete payload.patient_contact;
+  delete payload.patient_payer;
+  return payload;
+};
+
 // Extended type with relations
 export type PatientWithRelations = Patient & {
   billing_client: { id: string; name: string } | null;
@@ -225,7 +235,7 @@ export function useCreatePatient() {
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'patient'>, 'company_id'>) => {
       if (!company?.id) throw new Error('No company');
-      const payload: Record<string, any> = { ...data };
+      const payload = sanitizePatientPayload(data as Record<string, any>);
       if (payload.active !== undefined) {
         payload.is_active = payload.active;
         delete payload.active;
@@ -258,7 +268,7 @@ export function useUpdatePatient() {
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'patient'> & { id: string }) => {
       if (!company?.id) throw new Error('No company');
-      const payload: Record<string, any> = { ...data };
+      const payload = sanitizePatientPayload(data as Record<string, any>);
       if (payload.active !== undefined) {
         payload.is_active = payload.active;
         delete payload.active;
