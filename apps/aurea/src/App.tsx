@@ -38,6 +38,7 @@ const SuppliersPage = lazy(() => import('@/pages/cadastros/SuppliersPage'));
 const AdministrationRoutesPage = lazy(() => import('@/pages/cadastros/AdministrationRoutesPage'));
 const PresentationsPage = lazy(() => import('@/pages/cadastros/PresentationsPage'));
 const ProfessionsPage = lazy(() => import('@/pages/cadastros/ProfessionsPage'));
+const BusinessPartnersPage = lazy(() => import('@/pages/cadastros/BusinessPartnersPage'));
 const CensoPage = lazy(() => import('@/pages/prontuario/CensoPage'));
 const ProntuarioRelatoriosPage = lazy(() => import('@/pages/prontuario/RelatoriosPage'));
 const PadPage = lazy(() => import('@/pages/prontuario/PadPage'));
@@ -562,6 +563,14 @@ function App() {
                   element={
                     <Suspense fallback={<RouteLoader />}>
                       <PresentationsPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="parceiros-negocio"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <BusinessPartnersPage />
                     </Suspense>
                   }
                 />

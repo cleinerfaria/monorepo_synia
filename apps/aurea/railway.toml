@@ -1,9 +1,9 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "../../Dockerfile"
+buildArgs = {APP_NAME = "aurea"}
 
 [deploy]
-startCommand = "serve -s dist -l ${PORT:-3000}"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"

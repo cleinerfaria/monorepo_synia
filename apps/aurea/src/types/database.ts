@@ -320,6 +320,80 @@ export type Database = {
           },
         ];
       };
+      business_partner: {
+        Row: {
+          city: string | null;
+          code: string | null;
+          company_id: string;
+          complement: string | null;
+          created_at: string;
+          district: string | null;
+          document: string | null;
+          email: string | null;
+          id: string;
+          is_active: boolean;
+          legal_name: string | null;
+          name: string;
+          notes: string | null;
+          number: string | null;
+          phone: string | null;
+          state: string | null;
+          street: string | null;
+          updated_at: string;
+          zip: string | null;
+        };
+        Insert: {
+          city?: string | null;
+          code?: string | null;
+          company_id: string;
+          complement?: string | null;
+          created_at?: string;
+          district?: string | null;
+          document?: string | null;
+          email?: string | null;
+          id?: string;
+          is_active?: boolean;
+          legal_name?: string | null;
+          name: string;
+          notes?: string | null;
+          number?: string | null;
+          phone?: string | null;
+          state?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          zip?: string | null;
+        };
+        Update: {
+          city?: string | null;
+          code?: string | null;
+          company_id?: string;
+          complement?: string | null;
+          created_at?: string;
+          district?: string | null;
+          document?: string | null;
+          email?: string | null;
+          id?: string;
+          is_active?: boolean;
+          legal_name?: string | null;
+          name?: string;
+          notes?: string | null;
+          number?: string | null;
+          phone?: string | null;
+          state?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          zip?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_partner_company_id_fkey';
+            columns: ['company_id'];
+            isOneToOne: false;
+            referencedRelation: 'company';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       calendar: {
         Row: {
           created_at: string;
@@ -3680,6 +3754,7 @@ export type PatientContact = Tables<'patient_contact'>;
 export type PatientPayer = Tables<'patient_payer'>;
 export type Professional = Tables<'professional'>;
 export type AppUser = Tables<'app_user'>;
+export type BusinessPartner = Tables<'business_partner'>;
 
 export interface SystemUser {
   auth_user_id: string;
