@@ -140,7 +140,9 @@ export default function DashboardLayout() {
       .map(normalizeLabel)
   );
 
-  const grantedModuleNames = new Set(userPermissions.map((permission) => normalizeLabel(permission.module_name)));
+  const grantedModuleNames = new Set(
+    userPermissions.map((permission) => normalizeLabel(permission.module_name))
+  );
 
   const filteredNavigation = navigation
     .map((item) => {

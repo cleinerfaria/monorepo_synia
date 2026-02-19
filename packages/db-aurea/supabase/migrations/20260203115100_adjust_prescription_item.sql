@@ -30,8 +30,6 @@ BEGIN
 END$$;
 
 -- 1.4) Create index on route_id
-CREATE INDEX IF NOT EXISTS idx_prescription_item_route_id
-ON public.prescription_item(route_id);
 
 -- 1.5) Add comment
 COMMENT ON COLUMN public.prescription_item.route_id IS

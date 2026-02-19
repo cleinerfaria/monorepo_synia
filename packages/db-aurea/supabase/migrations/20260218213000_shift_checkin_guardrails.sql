@@ -1,4 +1,3 @@
-BEGIN;
 
 -- Recreate list_my_shifts with check-in eligibility metadata for the mobile UI.
 DROP FUNCTION IF EXISTS public.list_my_shifts(timestamptz, timestamptz);
@@ -178,5 +177,3 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.shift_check_in(uuid, numeric, numeric) TO authenticated;
-
-COMMIT;

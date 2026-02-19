@@ -69,18 +69,24 @@ export default function AdministrationRoutesPage() {
     return () => clearTimeout(timeout);
   }, [searchInput, setCurrentPage]);
 
+  const sortedRoutes = useMemo(() => {
+    return [...routes].sort((a, b) =>
+      String(a.name ?? '').localeCompare(String(b.name ?? ''), 'pt-BR', { sensitivity: 'base' })
+    );
+  }, [routes]);
+
   const filteredRoutes = useMemo(() => {
-    if (!searchTerm) return routes;
+    if (!searchTerm) return sortedRoutes;
 
     const normalizedSearch = searchTerm.toLowerCase();
-    return routes.filter((route) =>
+    return sortedRoutes.filter((route) =>
       [route.name, route.abbreviation, route.description].some((value) =>
         String(value ?? '')
           .toLowerCase()
           .includes(normalizedSearch)
       )
     );
-  }, [routes, searchTerm]);
+  }, [sortedRoutes, searchTerm]);
 
   const hasActiveSearch = searchTerm.trim().length > 0;
 

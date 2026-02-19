@@ -35,14 +35,8 @@ CREATE TABLE IF NOT EXISTS public.client_contact (
 );
 
 -- Índices para performance
-CREATE INDEX IF NOT EXISTS idx_client_contact_company
-ON public.client_contact (company_id);
 
-CREATE INDEX IF NOT EXISTS idx_client_contact_client
-ON public.client_contact (client_id);
 
-CREATE INDEX IF NOT EXISTS idx_client_contact_client_type
-ON public.client_contact (client_id, type);
 
 -- Evita duplicar o mesmo contato (por cliente, tipo, valor) enquanto ativo
 CREATE UNIQUE INDEX IF NOT EXISTS idx_client_contact_unique_active

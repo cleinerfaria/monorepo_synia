@@ -1,4 +1,3 @@
-BEGIN;
 
 -- =====================================================
 -- MIGRATION: Refatoração PAD (Plano de Atendimento Domiciliar)
@@ -538,4 +537,3 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.shift_check_out(uuid, numeric, numeric) TO authenticated;
 
-COMMIT;

@@ -31,8 +31,6 @@ CREATE TABLE administration_routes (
 );
 
 -- Índices
-CREATE INDEX idx_administration_routes_company ON administration_routes(company_id);
-CREATE INDEX idx_administration_routes_active ON administration_routes(is_active);
 
 -- RLS
 ALTER TABLE administration_routes ENABLE ROW LEVEL SECURITY;
@@ -52,7 +50,7 @@ CREATE POLICY "Admin/managers can manage administration routes"
     company_id IN (
       SELECT company_id FROM app_user 
       WHERE auth_user_id = auth.uid() 
-      AND role IN ('admin', 'manager')
+      AND is_user_admin()
     )
   );
 

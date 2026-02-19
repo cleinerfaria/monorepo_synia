@@ -34,7 +34,6 @@ BEGIN
     code = EXCLUDED.code,
     is_active = TRUE;
 
-  RAISE NOTICE 'Seed 01 applied: professions';
 END $$;
 
 COMMIT;

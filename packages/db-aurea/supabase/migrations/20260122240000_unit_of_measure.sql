@@ -40,18 +40,11 @@ CREATE TABLE IF NOT EXISTS public.unit_of_measure (
 );
 
 -- 3) Índices
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company
-ON public.unit_of_measure(company_id);
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_code
-ON public.unit_of_measure(company_id, code);
 
 CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_is_active
 ON public.unit_of_measure(company_id, is_active);
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_allowed_scopes_gin
-ON public.unit_of_measure
-USING GIN (allowed_scopes);
 
 -- 4) RLS
 ALTER TABLE public.unit_of_measure ENABLE ROW LEVEL SECURITY;

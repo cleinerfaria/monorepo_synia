@@ -10,7 +10,7 @@
 UPDATE stock_movement
 SET quantity = ABS(quantity),
     unit_cost = ABS(unit_cost)
-WHERE movement_type = 'IN' AND quantity < 0;
+WHERE movement_type = 'in' AND quantity < 0;
 
 -- Atualizar o stock_balance para refletir as correções
 -- Este procedimento recalcula o saldo baseado em todas as movimentações
@@ -52,7 +52,7 @@ BEGIN
             WHERE company_id = v_company_id
               AND location_id = v_location_id
               AND product_id = v_product_id
-              AND movement_type = 'IN'
+              AND movement_type = 'in'
             ORDER BY created_at DESC
             LIMIT 100
         ) t;

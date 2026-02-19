@@ -46,9 +46,6 @@ BEGIN
 END $$;
 
 -- Índices otimizados para alta taxa de escrita
-CREATE INDEX idx_user_action_logs_company_date ON user_action_logs(company_id, created_at DESC);
-CREATE INDEX idx_user_action_logs_company_entity_date ON user_action_logs(company_id, entity, created_at DESC);
-CREATE INDEX idx_user_action_logs_company_user_date ON user_action_logs(company_id, user_id, created_at DESC);
 
 -- Comentários da tabela
 COMMENT ON TABLE user_action_logs IS 'Registra ações de CRUD realizadas pelos usuários';
@@ -84,7 +81,7 @@ CREATE POLICY "Only admins can delete logs"
       SELECT 1 FROM app_user au
       WHERE au.auth_user_id = auth.uid()
       AND au.company_id = user_action_logs.company_id
-      AND au.role = 'admin'
+      AND is_user_admin()
     )
   );
 

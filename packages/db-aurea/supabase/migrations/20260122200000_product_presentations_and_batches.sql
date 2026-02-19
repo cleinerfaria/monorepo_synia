@@ -23,9 +23,6 @@ CREATE TABLE product_presentation (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_presentation_company ON product_presentation(company_id);
-CREATE INDEX idx_presentation_product ON product_presentation(product_id);
-CREATE INDEX idx_presentation_barcode ON product_presentation(barcode);
 
 -- Trigger para updated_at
 CREATE TRIGGER update_presentation_updated_at 
@@ -72,11 +69,6 @@ CREATE TABLE stock_batch (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_batch_company ON stock_batch(company_id);
-CREATE INDEX idx_batch_product ON stock_batch(product_id);
-CREATE INDEX idx_batch_location ON stock_batch(location_id);
-CREATE INDEX idx_batch_number ON stock_batch(batch_number);
-CREATE INDEX idx_batch_expiration ON stock_batch(expiration_date);
 
 -- Trigger para updated_at
 CREATE TRIGGER update_batch_updated_at 
@@ -115,8 +107,6 @@ COMMENT ON COLUMN stock_movement.batch_id IS 'Lote associado à movimentação';
 COMMENT ON COLUMN stock_movement.presentation_id IS 'Apresentação usada na movimentação';
 COMMENT ON COLUMN stock_movement.presentation_qty IS 'Quantidade na unidade da apresentação';
 
-CREATE INDEX idx_stock_movement_batch ON stock_movement(batch_id);
-CREATE INDEX idx_stock_movement_presentation ON stock_movement(presentation_id);
 
 -- =====================================================
 -- 4. ADICIONAR REFERÊNCIA DE APRESENTAÇÃO NA NFE

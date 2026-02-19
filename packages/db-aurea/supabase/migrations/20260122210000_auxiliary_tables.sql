@@ -19,8 +19,6 @@ CREATE TABLE active_ingredient (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_active_ingredient_company ON active_ingredient(company_id);
-CREATE INDEX idx_active_ingredient_name ON active_ingredient(name);
 CREATE UNIQUE INDEX idx_active_ingredient_unique ON active_ingredient(company_id, LOWER(name));
 CREATE UNIQUE INDEX idx_active_ingredient_code_unique ON active_ingredient(company_id, code) WHERE code IS NOT NULL;
 
@@ -76,8 +74,6 @@ CREATE TABLE manufacturer (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_manufacturer_company ON manufacturer(company_id);
-CREATE INDEX idx_manufacturer_name ON manufacturer(name);
 CREATE UNIQUE INDEX idx_manufacturer_document ON manufacturer(company_id, document) WHERE document IS NOT NULL;
 CREATE UNIQUE INDEX idx_manufacturer_code_unique ON manufacturer(company_id, code) WHERE code IS NOT NULL;
 
@@ -137,9 +133,6 @@ CREATE TABLE supplier (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_supplier_company ON supplier(company_id);
-CREATE INDEX idx_supplier_name ON supplier(name);
-CREATE INDEX idx_supplier_document ON supplier(document);
 CREATE UNIQUE INDEX idx_supplier_document_unique ON supplier(company_id, document) WHERE document IS NOT NULL;
 CREATE UNIQUE INDEX idx_supplier_code_unique ON supplier(company_id, code) WHERE code IS NOT NULL;
 
@@ -188,7 +181,6 @@ COMMENT ON COLUMN product.manufacturer_id IS 'Fabricante do produto (FK)';
 ALTER TABLE nfe_import
 ADD COLUMN supplier_id UUID REFERENCES supplier(id) ON DELETE SET NULL;
 
-CREATE INDEX idx_nfe_import_supplier ON nfe_import(supplier_id);
 
 COMMENT ON COLUMN nfe_import.supplier_id IS 'Fornecedor da NFe';
 
@@ -199,7 +191,6 @@ COMMENT ON COLUMN nfe_import.supplier_id IS 'Fornecedor da NFe';
 ALTER TABLE stock_batch
 ADD COLUMN supplier_id UUID REFERENCES supplier(id) ON DELETE SET NULL;
 
-CREATE INDEX idx_stock_batch_supplier ON stock_batch(supplier_id);
 
 COMMENT ON COLUMN stock_batch.supplier_id IS 'Fornecedor do lote';
 

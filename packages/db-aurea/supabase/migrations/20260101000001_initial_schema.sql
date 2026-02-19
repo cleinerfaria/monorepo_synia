@@ -13,18 +13,63 @@ CREATE TYPE enum_theme_preference AS ENUM (
 'system'
 );
 
+CREATE TYPE public.enum_company_unit_type AS ENUM (
+'matriz', 
+'filial'
+);
+
 -- Tabela de empresas (multi-tenant)
 CREATE TABLE company (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name text NOT NULL,
     trade_name text,
     document text UNIQUE, -- CNPJ/CPF
-    logo_url text,
+    tax_regime text,
+    special_tax_regime text,
+    taxation_nature text,
+    cnae text,
+    cnes text,
+    state_registration text,
+    email text,
+    website text,
+    logo_url_expanded_dark TEXT,
+    logo_url_collapsed_dark TEXT,
+    logo_url_expanded_light TEXT,
+    logo_url_collapsed_light TEXT,
     primary_color text DEFAULT '#1aa2ff', -- Azul elegante
-    theme_preference enum_theme_preference DEFAULT 'system',
+    theme_preference enum_theme_preference NOT NULL DEFAULT 'system',
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Comentários nas colunas
+COMMENT ON COLUMN company.logo_url_expanded_dark IS 'Logo completa para exibição em áreas amplas (menu expandido) - tema escuro';
+COMMENT ON COLUMN company.logo_url_collapsed_dark IS 'Logo reduzida/ícone para exibição em áreas compactas (menu colapsado) - tema escuro';
+COMMENT ON COLUMN company.logo_url_expanded_light IS 'Logo completa para exibição em áreas amplas (menu expandido) - tema claro';
+COMMENT ON COLUMN company.logo_url_collapsed_light IS 'Logo reduzida/ícone para exibição em áreas compactas (menu colapsado) - tema claro';
+
+-- Parent company (matriz) table
+CREATE TABLE IF NOT EXISTS company_unit (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    trade_name TEXT,
+    unit_type public.enum_company_unit_type NOT NULL DEFAULT 'matriz',
+    document TEXT UNIQUE,
+    zip text null,
+    street text null,
+    number text null,
+    complement text null,
+    district text null,
+    city text null,
+    state text null,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
 
 -- Tabela de usuários (vinculada ao Supabase Auth)
 CREATE TABLE app_user (
@@ -33,14 +78,13 @@ CREATE TABLE app_user (
     auth_user_id UUID UNIQUE NOT NULL, -- Referência ao auth.users
     name text NOT NULL,
     email text NOT NULL,
-    role text NOT NULL DEFAULT 'viewer' CHECK (role IN ('admin', 'manager', 'clinician', 'stock', 'finance', 'viewer')),
+    theme_preference enum_theme_preference NOT NULL DEFAULT 'system', -- Preferência de tema do usuário (pode sobrescrever a da empresa)
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX idx_app_user_company ON app_user(company_id);
-CREATE INDEX idx_app_user_auth ON app_user(auth_user_id);
 
 -- =====================================================
 -- B) CADASTROS PRINCIPAIS
@@ -101,7 +145,6 @@ CREATE TABLE professional (
     CONSTRAINT uq_professional_company_code UNIQUE (company_id, code)
 );
 
-CREATE INDEX idx_professional_company ON professional(company_id);
 
 -- Pacientes
 CREATE TABLE patient (
@@ -124,13 +167,10 @@ CREATE TABLE patient (
     CONSTRAINT uq_patient_company_code UNIQUE (company_id, code)
 );
 
-CREATE INDEX idx_patient_company ON patient(company_id);
-CREATE INDEX idx_patient_billing_client ON patient(billing_client_id);
 -- Add unique constraint on CPF per company
 CREATE UNIQUE INDEX idx_patient_cpf_unique ON patient(company_id, cpf) WHERE cpf IS NOT NULL AND cpf <> '';
 
 -- Add index for better search performance
-CREATE INDEX idx_patient_name ON patient(company_id, name);
 CREATE INDEX idx_patient_cpf ON patient(company_id, cpf) WHERE cpf IS NOT NULL;
 
 -- =====================================================
@@ -170,12 +210,7 @@ CREATE TABLE product (
     CONSTRAINT uq_product_company_code UNIQUE (company_id, code)
 );
 
-CREATE INDEX idx_product_company ON product(company_id);
-CREATE INDEX idx_product_type ON product(item_type);
-CREATE INDEX idx_product_active_ingredient ON product(active_ingredient_id);
 CREATE INDEX idx_product_manufacturer ON product(manufacturer_id);
-CREATE INDEX idx_product_unit_stock ON product(unit_stock_id);
-CREATE INDEX idx_product_unit_prescription ON product(unit_prescription_id);
 
 -- =====================================================
 -- D) EQUIPAMENTOS (Controle Patrimonial)
@@ -204,9 +239,6 @@ CREATE TABLE equipment (
     CONSTRAINT uq_equipment_company_code UNIQUE (company_id, code)
 );
 
-CREATE INDEX idx_equipment_company ON equipment(company_id);
-CREATE INDEX idx_equipment_status ON equipment(status);
-CREATE INDEX idx_equipment_patient ON equipment(assigned_patient_id);
 
 -- =====================================================
 -- E) ESTOQUE
@@ -223,7 +255,6 @@ CREATE TABLE stock_location (
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT uq_stock_location_company_code UNIQUE (company_id, code)
 );
-create index idx_stock_location_company on stock_location(company_id);
 
 -- Saldo de estoque
 CREATE TABLE stock_balance (
@@ -237,9 +268,6 @@ CREATE TABLE stock_balance (
     UNIQUE(company_id, location_id, product_id)
 );
 
-CREATE INDEX idx_stock_balance_company ON stock_balance(company_id);
-CREATE INDEX idx_stock_balance_location ON stock_balance(location_id);
-CREATE INDEX idx_stock_balance_product ON stock_balance(product_id);
 
 CREATE TYPE enum_reference_type AS ENUM (
 'nfe_import',
@@ -271,10 +299,6 @@ CREATE TABLE stock_movement (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_stock_movement_company ON stock_movement(company_id);
-CREATE INDEX idx_stock_movement_location ON stock_movement(location_id);
-CREATE INDEX idx_stock_movement_product ON stock_movement(product_id);
-CREATE INDEX idx_stock_movement_date ON stock_movement(occurred_at);
 
 -- =====================================================
 -- F) PRESCRIÇÃO
@@ -303,10 +327,6 @@ CREATE TABLE prescription (
     CONSTRAINT uq_prescription_company_code UNIQUE (company_id, code)
 );
 
-CREATE INDEX idx_prescription_company ON prescription(company_id);
-CREATE INDEX idx_prescription_patient ON prescription(patient_id);
-CREATE INDEX idx_prescription_professional ON prescription(professional_id);
-CREATE INDEX idx_prescription_status ON prescription(status);
 
 CREATE TYPE enum_prescription_item_type AS ENUM (
 'medication',
@@ -336,8 +356,6 @@ CREATE TABLE prescription_item (
     CONSTRAINT uq_prescription_item_company_code UNIQUE (company_id, code)
 );
 
-CREATE INDEX idx_prescription_item_company ON prescription_item(company_id);
-CREATE INDEX idx_prescription_item_prescription ON prescription_item(prescription_id);
 
 -- =====================================================
 -- G) CONSUMO DO PACIENTE
@@ -355,10 +373,6 @@ CREATE TABLE patient_consumption (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_patient_consumption_company ON patient_consumption(company_id);
-CREATE INDEX idx_patient_consumption_patient ON patient_consumption(patient_id);
-CREATE INDEX idx_patient_consumption_product ON patient_consumption(product_id);
-CREATE INDEX idx_patient_consumption_date ON patient_consumption(consumed_at);
 
 -- =====================================================
 -- H) IMPORTAÇÃO DE NFe
@@ -379,9 +393,6 @@ CREATE TABLE nfe_import (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_nfe_import_company ON nfe_import(company_id);
-CREATE INDEX idx_nfe_import_status ON nfe_import(status);
-CREATE INDEX idx_nfe_import_key ON nfe_import(access_key);
 
 -- Itens da NFe importada
 CREATE TABLE nfe_import_item (
@@ -397,8 +408,6 @@ CREATE TABLE nfe_import_item (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_nfe_import_item_company ON nfe_import_item(company_id);
-CREATE INDEX idx_nfe_import_item_nfe ON nfe_import_item(nfe_import_id);
 
 -- =====================================================
 -- TRIGGERS PARA ATUALIZAÇÃO DE updated_at
@@ -449,12 +458,41 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION is_user_admin()
 RETURNS BOOLEAN AS $$
 DECLARE
-    user_role text;
+    has_profile_table boolean;
+    has_access_profile boolean;
+    user_is_admin boolean;
 BEGIN
-    SELECT role INTO user_role
-    FROM app_user
-    WHERE auth_user_id = auth.uid();
-    RETURN user_role = 'admin';
+    SELECT to_regclass('public.access_profile') IS NOT NULL
+    INTO has_profile_table;
+
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.columns c
+      WHERE c.table_schema = 'public'
+        AND c.table_name = 'app_user'
+        AND c.column_name = 'access_profile_id'
+    )
+    INTO has_access_profile;
+
+    IF NOT has_profile_table OR NOT has_access_profile THEN
+      RETURN FALSE;
+    END IF;
+
+    EXECUTE '
+      SELECT EXISTS (
+        SELECT 1
+        FROM app_user au
+        JOIN access_profile ap ON ap.id = au.access_profile_id
+        WHERE au.auth_user_id = $1
+          AND au.is_active = TRUE
+          AND ap.is_admin = TRUE
+          AND ap.is_active = TRUE
+      )
+    '
+    INTO user_is_admin
+    USING auth.uid();
+
+    RETURN COALESCE(user_is_admin, FALSE);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

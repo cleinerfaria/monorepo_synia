@@ -22,7 +22,3 @@ CHECK (
 
 -- Índice opcional para buscas por dia (ex: pegar itens de hoje)
 -- Só faz sentido se você realmente filtrar por week_days com frequência.
-CREATE INDEX IF NOT EXISTS idx_prescription_item_company_week_days_gin
-ON public.prescription_item
-USING gin (week_days)
-WHERE week_days IS NOT NULL;

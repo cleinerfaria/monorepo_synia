@@ -13,7 +13,11 @@ import {
 import type { PrescriptionItem } from '@/types/database';
 import type { PrescriptionPrintAction } from '@/components/prescription/PrescriptionPrintModal';
 import type { PrescriptionPrintHistoryItem } from '@/types/prescriptionPrint';
-import { calculateInclusiveDays, parseDateOnly, convertTimeToShiftCode } from './prescriptionDetailFrequency';
+import {
+  calculateInclusiveDays,
+  parseDateOnly,
+  convertTimeToShiftCode,
+} from './prescriptionDetailFrequency';
 
 type PrintRowAction = { id: string; action: PrescriptionPrintAction } | null;
 

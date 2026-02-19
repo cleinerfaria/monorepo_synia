@@ -116,7 +116,6 @@ BEGIN
       (v_pad_id, v_company_id, 'session', v_profession_id, 'weekly', 3, 'Fisioterapia 3x por semana');
   END IF;
 
-  RAISE NOTICE 'Seed 05 applied: PAD + PAD Items';
 END $$;
 
 COMMIT;

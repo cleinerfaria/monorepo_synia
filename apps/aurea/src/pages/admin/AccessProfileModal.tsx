@@ -209,7 +209,10 @@ export default function AccessProfileModal({
       }
 
       if (!baseCodes.has(permission.code) && !extraColumnsMap.has(permission.code)) {
-        extraColumnsMap.set(permission.code, permission.name || formatPermissionCodeLabel(permission.code));
+        extraColumnsMap.set(
+          permission.code,
+          permission.name || formatPermissionCodeLabel(permission.code)
+        );
       }
     });
 

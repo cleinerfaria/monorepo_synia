@@ -78,7 +78,6 @@ WHERE NOT EXISTS (
 
 -- =====================================================
 -- PAD: new business fields
--- company_parent -> company_unit
 -- =====================================================
 ALTER TABLE public.pad
   ADD COLUMN IF NOT EXISTS patient_payer_id uuid NULL REFERENCES public.patient_payer(id) ON DELETE SET NULL,

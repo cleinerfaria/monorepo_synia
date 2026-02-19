@@ -52,10 +52,6 @@ CREATE TABLE IF NOT EXISTS public.prescription_print (
   CONSTRAINT prescription_print_company_number_unique UNIQUE (company_id, print_number)
 );
 
-CREATE INDEX IF NOT EXISTS idx_prescription_print_company_created
-  ON public.prescription_print (company_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_prescription_print_company_prescription_created
-  ON public.prescription_print (company_id, prescription_id, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS public.prescription_print_item (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -71,8 +67,6 @@ CREATE TABLE IF NOT EXISTS public.prescription_print_item (
   CONSTRAINT prescription_print_item_order_unique UNIQUE (prescription_print_id, order_index)
 );
 
-CREATE INDEX IF NOT EXISTS idx_prescription_print_item_company_print
-  ON public.prescription_print_item (company_id, prescription_print_id);
 
 ALTER TABLE public.prescription_print ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prescription_print_item ENABLE ROW LEVEL SECURITY;
@@ -166,7 +160,7 @@ SELECT ap.id, mp.id
 FROM public.access_profile ap
 JOIN public.system_module sm ON sm.code = 'prescriptions'
 JOIN public.module_permission mp ON mp.module_id = sm.id AND mp.code = 'print'
-WHERE ap.is_system = TRUE
+WHERE ap.company_id IS NOT NULL
   AND ap.code IN ('manager', 'clinician')
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
 

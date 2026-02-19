@@ -187,7 +187,7 @@ export default function PatientMonthSchedulePage() {
 
       const currentEditAssignment =
         pickerState.editIndex !== null
-          ? assignments.get(pickerState.date)?.[pickerState.editIndex] ?? null
+          ? (assignments.get(pickerState.date)?.[pickerState.editIndex] ?? null)
           : null;
       const isKeepingCurrentProfessional =
         currentEditAssignment?.professional_id === professionalId;
@@ -306,7 +306,8 @@ export default function PatientMonthSchedulePage() {
   }, [professionals, assignments]);
 
   const scheduleEligibleProfessionals = useMemo(
-    () => professionalsWithPalette.filter((professional) => professional.profession_code === 'tecnico'),
+    () =>
+      professionalsWithPalette.filter((professional) => professional.profession_code === 'tecnico'),
     [professionalsWithPalette]
   );
 

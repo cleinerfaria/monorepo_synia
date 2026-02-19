@@ -39,11 +39,7 @@ CREATE TABLE IF NOT EXISTS public.procedure (
 ) TABLESPACE pg_default;
 
 -- 3) Índices
-CREATE INDEX IF NOT EXISTS idx_procedure_company
-  ON public.procedure USING btree (company_id) TABLESPACE pg_default;
 
-CREATE INDEX IF NOT EXISTS idx_procedure_company_category
-  ON public.procedure USING btree (company_id, category) TABLESPACE pg_default;
 
 --  4) Trigger updated_at
 DO $$

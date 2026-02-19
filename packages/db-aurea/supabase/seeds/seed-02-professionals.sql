@@ -47,7 +47,6 @@ BEGIN
     (v_company_id, 'E2E-PRO-011', 'Helena Santos', v_tec_enfermagem_id, 'COREN', '888888', 'RN', '(84) 99999-0011', 'helena.santos@e2e.local', TRUE)
   ON CONFLICT (company_id, code) WHERE code IS NOT NULL DO NOTHING;
 
-  RAISE NOTICE 'Seed 02 applied: professionals';
 END $$;
 
 COMMIT;

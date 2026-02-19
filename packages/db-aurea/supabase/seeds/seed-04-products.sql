@@ -55,7 +55,6 @@ BEGIN
     (v_company_id, 'medication', 'E2E-MED-010', 'LOSARTANA', 'Antagonista de receptor de angiotensina II', '50mg', v_unit_cp_id, v_unit_cp_id, FALSE, FALSE, TRUE)
   ON CONFLICT (company_id, code) WHERE code IS NOT NULL DO NOTHING;
 
-  RAISE NOTICE 'Seed 04 applied: products';
 END $$;
 
 COMMIT;

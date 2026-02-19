@@ -51,26 +51,14 @@ CREATE TABLE IF NOT EXISTS public.patient_address (
 );
 
 -- Create index for service addresses for faster queries
-CREATE INDEX IF NOT EXISTS idx_patient_address_use_for_service
-ON public.patient_address (patient_id, use_for_service)
-WHERE use_for_service IS TRUE AND is_active IS TRUE;
 
 -- Create index for geographic queries
-CREATE INDEX IF NOT EXISTS idx_patient_address_geolocation
-ON public.patient_address (latitude, longitude)
-WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
 
-CREATE INDEX IF NOT EXISTS idx_patient_address_company
-ON public.patient_address (company_id);
 
-CREATE INDEX IF NOT EXISTS idx_patient_address_patient
-ON public.patient_address (patient_id);
 
 CREATE INDEX IF NOT EXISTS idx_patient_address_patient_is_active
 ON public.patient_address (patient_id, is_active);
 
-CREATE INDEX IF NOT EXISTS idx_patient_address_patient_city
-ON public.patient_address (patient_id, city);
 
 -- Garante no máximo 1 endereço primário ativo por paciente
 CREATE UNIQUE INDEX IF NOT EXISTS idx_patient_address_primary_unique
@@ -110,14 +98,8 @@ CREATE TABLE IF NOT EXISTS public.patient_contact (
   CONSTRAINT patient_contact_pkey PRIMARY KEY (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_patient_contact_company
-ON public.patient_contact (company_id);
 
-CREATE INDEX IF NOT EXISTS idx_patient_contact_patient
-ON public.patient_contact (patient_id);
 
-CREATE INDEX IF NOT EXISTS idx_patient_contact_patient_type
-ON public.patient_contact (patient_id, type);
 
 -- Evita duplicar o mesmo contato (por paciente, tipo, valor) enquanto ativo
 CREATE UNIQUE INDEX IF NOT EXISTS idx_patient_contact_unique_active
@@ -165,14 +147,8 @@ CREATE TABLE IF NOT EXISTS public.patient_identifier (
   CONSTRAINT patient_identifier_pkey PRIMARY KEY (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_patient_identifier_company
-ON public.patient_identifier (company_id);
 
-CREATE INDEX IF NOT EXISTS idx_patient_identifier_patient
-ON public.patient_identifier (patient_id);
 
-CREATE INDEX IF NOT EXISTS idx_patient_identifier_patient_source
-ON public.patient_identifier (patient_id, source);
 
 -- Um identificador por fonte/tipo por paciente (enquanto ativo)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_patient_identifier_unique_active
@@ -214,14 +190,8 @@ CREATE TABLE IF NOT EXISTS public.patient_payer (
     CHECK (start_date IS NULL OR end_date IS NULL OR start_date <= end_date)
 );
 
-CREATE INDEX IF NOT EXISTS idx_patient_payer_company
-ON public.patient_payer (company_id);
 
-CREATE INDEX IF NOT EXISTS idx_patient_payer_patient
-ON public.patient_payer (patient_id);
 
-CREATE INDEX IF NOT EXISTS idx_patient_payer_client
-ON public.patient_payer (client_id);
 
 CREATE INDEX IF NOT EXISTS idx_patient_payer_patient_is_active
 ON public.patient_payer (patient_id, is_active);

@@ -16,8 +16,6 @@ COMMENT ON COLUMN public.client.color IS 'Cor associada ao cliente (hex color co
 COMMENT ON COLUMN public.client.logo_url IS 'URL do logo do cliente';
 
 -- Índices opcionais para otimização de consultas
-CREATE INDEX IF NOT EXISTS idx_client_ans_code ON public.client(ans_code) WHERE ans_code IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_client_tiss ON public.client(tiss) WHERE tiss IS NOT NULL;
 
 -- Atualizar timestamp de updated_at
 UPDATE public.client SET updated_at = NOW() WHERE id IS NOT NULL;

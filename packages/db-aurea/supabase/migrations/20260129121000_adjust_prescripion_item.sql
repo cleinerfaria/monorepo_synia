@@ -230,8 +230,6 @@ ADD CONSTRAINT chk_prescription_item_time_checks_len CHECK (
 -- =====================================================
 -- 4) INDEXES
 -- =====================================================
-CREATE INDEX IF NOT EXISTS idx_prescription_item_company_type
-  ON public.prescription_item USING btree (company_id, item_type) TABLESPACE pg_default;
 
 CREATE INDEX IF NOT EXISTS idx_prescription_item_company_frequency
   ON public.prescription_item USING btree (company_id, frequency_mode) TABLESPACE pg_default;

@@ -8,8 +8,6 @@
 -- POLÍTICAS PARA COMPANY
 -- =============================================
 
--- Enable RLS (caso não esteja habilitado)
-ALTER TABLE company ENABLE ROW LEVEL SECURITY;
 
 -- Todos os usuários autenticados podem ver empresas
 CREATE POLICY "company_select_policy" ON company

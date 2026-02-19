@@ -57,8 +57,6 @@ BEGIN
 END;
 $$;
 
-CREATE INDEX IF NOT EXISTS idx_prescription_print_company_prescription_period
-  ON public.prescription_print (company_id, prescription_id, period_start, period_end);
 
 -- =====================================================
 -- Incremental period range expansion (1..14 days)

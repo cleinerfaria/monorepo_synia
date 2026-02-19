@@ -1,68 +1,36 @@
 -- =====================================================
--- MIGRATION: Remover coluna role de app_user,
--- remover is_system de access_profile,
--- tornar company_id NOT NULL em access_profile,
--- tornar access_profile_id NOT NULL em app_user,
--- adicionar coluna theme em app_user
+-- MIGRATION: Consolidar perfis por empresa, fortalecer constraints/RLS e adicionar coluna theme em app_user
 -- =====================================================
 
 BEGIN;
 
 -- =====================================================
--- PARTE 0: REMOVER CONSTRAINTS LEGADAS DE is_system
--- (precisa ocorrer antes de inserir perfis por empresa)
+-- PARTE 1: GARANTIR PERFIS PADRAO POR EMPRESA
 -- =====================================================
 
-ALTER TABLE access_profile DROP CONSTRAINT IF EXISTS chk_access_profile_scope;
-ALTER TABLE access_profile DROP CONSTRAINT IF EXISTS chk_access_profile_admin_scope;
-
--- =====================================================
--- PARTE 1: REMOVER PERFIS DE SISTEMA E CRIAR PERFIS
--- POR EMPRESA (sem ambiente de producao, limpa tudo)
--- =====================================================
-
--- 1a) Remover referencias de app_user a perfis de sistema
-UPDATE app_user au
-SET access_profile_id = NULL
-WHERE EXISTS (
-    SELECT 1 FROM access_profile ap
-    WHERE ap.id = au.access_profile_id
-      AND ap.is_system = TRUE
-);
-
--- 1b) Deletar permissoes dos perfis de sistema
-DELETE FROM access_profile_permission
-WHERE profile_id IN (
-    SELECT id FROM access_profile WHERE is_system = TRUE
-);
-
--- 1c) Deletar perfis de sistema
-DELETE FROM access_profile WHERE is_system = TRUE;
-
--- 1d) Criar perfis padrao para cada empresa existente
-INSERT INTO access_profile (company_id, code, name, description, is_system, is_admin, is_active)
+INSERT INTO access_profile (company_id, code, name, description, is_admin, is_active)
 SELECT
     c.id,
     p.code,
     p.name,
     p.description,
-    FALSE,
     p.is_admin,
     TRUE
 FROM company c
 CROSS JOIN (VALUES
-    ('admin',     'Diretor',        'Acesso total ao sistema',           TRUE),
-    ('manager',   'Gerente',        'Gerencia operacoes e relatorios',   FALSE),
-    ('clinician', 'Clinico',        'Acesso a prescricoes e pacientes',  FALSE),
-    ('stock',     'Estoque',        'Gerencia estoque e produtos',       FALSE),
-    ('finance',   'Financeiro',     'Acesso a financeiro e relatorios',  FALSE),
-    ('viewer',    'Visualizador',   'Apenas visualizacao',               FALSE),
-    ('tecnico',   'Técnico de Enfermagem',    'Acesso para tecnicos de enfermagem evoluirem nas casas',      FALSE)
+    ('admin',     'Diretor',      'Acesso total ao sistema',                         TRUE),
+    ('manager',   'Gerente',      'Gerencia operacoes e relatorios',                 FALSE),
+    ('clinician', 'Clinico',      'Acesso a prescricoes e pacientes',                FALSE),
+    ('stock',     'Estoque',      'Gerencia estoque e produtos',                     FALSE),
+    ('finance',   'Financeiro',   'Acesso a financeiro e relatorios',                FALSE),
+    ('viewer',    'Visualizador', 'Apenas visualizacao',                             FALSE),
+    ('tecnico',   'Técnico de Enfermagem', 'Acesso para técnicos de enfermagem evoluírem nas casas', FALSE)
 ) AS p(code, name, description, is_admin)
 ON CONFLICT (company_id, code) DO NOTHING;
 
--- 1e) Copiar permissoes dos modulos para os novos perfis
--- Admin: is_admin=true, nao precisa permissoes individuais
+-- =====================================================
+-- PARTE 2: GARANTIR PERMISSOES DOS PERFIS PADRAO
+-- =====================================================
 
 -- Gerente: quase tudo
 INSERT INTO access_profile_permission (profile_id, permission_id)
@@ -116,54 +84,28 @@ WHERE ap.code = 'viewer' AND ap.company_id IS NOT NULL
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
 
 -- =====================================================
--- PARTE 3: REMOVER COLUNA is_system
--- (CASCADE remove automaticamente policies dependentes)
+-- PARTE 3: GARANTIR PERFIL PADRAO EM app_user
 -- =====================================================
 
-ALTER TABLE access_profile DROP COLUMN IF EXISTS is_system CASCADE;
+UPDATE app_user au
+SET access_profile_id = ap.id
+FROM access_profile ap
+WHERE au.access_profile_id IS NULL
+  AND ap.company_id = au.company_id
+  AND ap.code = 'viewer';
 
 -- =====================================================
--- PARTE 4: TORNAR company_id NOT NULL
+-- PARTE 4: TORNAR company_id NOT NULL EM access_profile
 -- =====================================================
 
 ALTER TABLE access_profile ALTER COLUMN company_id SET NOT NULL;
 
 -- =====================================================
--- PARTE 7: REMOVER COLUNA role DE app_user
+-- PARTE 5: TORNAR access_profile_id NOT NULL + ON DELETE RESTRICT
 -- =====================================================
 
--- Dropar CHECK constraint do role
-ALTER TABLE app_user DROP CONSTRAINT IF EXISTS app_user_role_check;
--- Nome original do CHECK na initial_schema (inline CHECK gera nome automatico)
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM pg_constraint c
-    JOIN pg_class t ON t.oid = c.conrelid
-    JOIN pg_namespace n ON n.oid = t.relnamespace
-    WHERE c.conname = 'app_user_check'
-      AND t.relname = 'app_user'
-      AND n.nspname = 'public'
-  ) THEN
-    ALTER TABLE app_user DROP CONSTRAINT app_user_check;
-  END IF;
-END $$;
-
--- Dropar a coluna role (CASCADE remove policies dependentes em outras tabelas)
-ALTER TABLE app_user DROP COLUMN IF EXISTS role CASCADE;
-
--- =====================================================
--- PARTE 8: TORNAR access_profile_id NOT NULL + ON DELETE RESTRICT
--- =====================================================
-
--- Dropar a FK antiga (ON DELETE SET NULL)
 ALTER TABLE app_user DROP CONSTRAINT IF EXISTS app_user_access_profile_id_fkey;
-
--- Tornar NOT NULL
 ALTER TABLE app_user ALTER COLUMN access_profile_id SET NOT NULL;
-
--- Recriar FK com ON DELETE RESTRICT
 ALTER TABLE app_user
     ADD CONSTRAINT app_user_access_profile_id_fkey
     FOREIGN KEY (access_profile_id) REFERENCES access_profile(id) ON DELETE RESTRICT;
@@ -221,7 +163,7 @@ $$;
 
 -- =====================================================
 -- PARTE 11: ATUALIZAR RLS DE user_action_logs
--- Substituir au.role = 'admin' por check via access_profile
+-- Garantir check de admin via access_profile
 -- =====================================================
 
 DO $$
@@ -251,7 +193,7 @@ CREATE POLICY "Only admins can delete logs"
 
 -- =====================================================
 -- PARTE 12: ATUALIZAR RLS DE administration_routes
--- Substituir role IN ('admin','manager') por is_user_admin()
+-- Garantir check de admin via access_profile
 -- =====================================================
 
 DO $$
@@ -325,7 +267,6 @@ CREATE POLICY "Admin/managers can delete administration routes"
 
 -- =====================================================
 -- PARTE 13: ATUALIZAR RLS DE access_profile
--- Substituir is_system = FALSE (ja nao existe a coluna)
 -- Agora todos os perfis pertencem a uma empresa
 -- =====================================================
 
@@ -396,7 +337,7 @@ CREATE POLICY "access_profile_delete_policy" ON public.access_profile
 
 -- =====================================================
 -- PARTE 14: ATUALIZAR RLS DE access_profile_permission
--- Remover check de is_system
+-- Garantir isolamento por company_id
 -- =====================================================
 
 DROP POLICY IF EXISTS "access_profile_permission_select_policy" ON public.access_profile_permission;
@@ -465,24 +406,5 @@ CREATE POLICY "access_profile_permission_delete_policy" ON public.access_profile
         )
     );
 
--- =====================================================
--- PARTE 15: REMOVER PARTIAL INDEX DE PERFIS DE SISTEMA
--- O index era para garantir unicidade de code quando
--- company_id IS NULL, o que nao faz mais sentido
--- =====================================================
 
-DROP INDEX IF EXISTS ux_access_profile_system_code;
 
--- =====================================================
--- PARTE 16: ADICIONAR COLUNA theme EM app_user
--- =====================================================
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_app_theme') THEN
-    CREATE TYPE enum_app_theme AS ENUM ('light', 'dark', 'system');
-  END IF;
-END $$;
-
-ALTER TABLE app_user ADD COLUMN IF NOT EXISTS theme enum_app_theme NOT NULL DEFAULT 'system';
-
-COMMIT;

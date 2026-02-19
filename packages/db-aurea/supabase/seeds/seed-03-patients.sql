@@ -25,7 +25,6 @@ BEGIN
     (v_company_id, 'E2E-PAT-003', 'Pedro Costa', '34567890122', '1955-12-10', 'male', '(11) 98888-0003', 'pedro.costa@e2e.local', TRUE)
   ON CONFLICT (company_id, code) WHERE code IS NOT NULL DO NOTHING;
 
-  RAISE NOTICE 'Seed 03 applied: patients';
 END $$;
 
 COMMIT;
