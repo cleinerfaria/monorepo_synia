@@ -26,4 +26,7 @@ COPY --from=build /workspace/apps/${APP_NAME}/ ./
 
 EXPOSE 3000
 
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/ || exit 1
+
 CMD ["sh", "-c", "if [ \"$APP_NAME\" = \"white-label\" ]; then node server.cjs; else serve -s dist -l ${PORT:-3000}; fi"]
