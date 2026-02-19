@@ -555,11 +555,11 @@ export default function PatientFormPage() {
             {/* Aba: Dados Básicos */}
             {activeTab === 'basic' && (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
-                  <div className="md:col-span-1">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                  <div className="md:col-span-2">
                     <Input label="Código" placeholder="Código" {...register('code')} />
                   </div>
-                  <div className="md:col-span-5">
+                  <div className="md:col-span-6">
                     <Input
                       label="Nome Completo"
                       placeholder="Nome do paciente"
@@ -567,6 +567,8 @@ export default function PatientFormPage() {
                       error={errors.name?.message}
                       required
                     />
+                  </div>
+                  <div className="md:col-span-4">
                     <Input
                       label="Nome Social"
                       placeholder="Como gostaria de ser chamado"
@@ -575,23 +577,27 @@ export default function PatientFormPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
-                  <Select
-                    label="Sexo"
-                    options={genderOptions}
-                    value={gender}
-                    {...register('gender', { required: 'Sexo é obrigatório' })}
-                    error={errors.gender?.message}
-                    required
-                  />
-                  <Input
-                    label="CPF"
-                    placeholder="000.000.000-00"
-                    value={cpfValue}
-                    onChange={handleCPFChange}
-                    onBlur={handleCPFBlur}
-                    error={cpfError}
-                  />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                  <div className="md:col-span-2">
+                    <Select
+                      label="Sexo"
+                      options={genderOptions}
+                      value={gender}
+                      {...register('gender', { required: 'Sexo é obrigatório' })}
+                      error={errors.gender?.message}
+                      required
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Input
+                      label="CPF"
+                      placeholder="000.000.000-00"
+                      value={cpfValue}
+                      onChange={handleCPFChange}
+                      onBlur={handleCPFBlur}
+                      error={cpfError}
+                    />
+                  </div>
                   <div className="md:col-span-2">
                     <DatePicker
                       label="Data de Nascimento"

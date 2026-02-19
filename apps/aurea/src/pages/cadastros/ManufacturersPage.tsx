@@ -9,6 +9,7 @@ import {
   Modal,
   ModalFooter,
   Input,
+  Select,
   Textarea,
   Badge,
   EmptyState,
@@ -27,6 +28,7 @@ import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import { useForm } from 'react-hook-form';
 import type { Manufacturer } from '@/types/database';
+import { UF_OPTIONS, fetchAddressFromZip, formatZipInput } from '@/lib/addressZip';
 
 interface ManufacturerFormData {
   code: string;
@@ -36,7 +38,13 @@ interface ManufacturerFormData {
   website: string;
   phone: string;
   email: string;
-  address: string;
+  zip: string;
+  street: string;
+  number: string;
+  complement: string;
+  district: string;
+  city: string;
+  state: string;
   notes: string;
   active: boolean;
 }
@@ -85,6 +93,8 @@ export default function ManufacturersPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [selectedManufacturer, setSelectedManufacturer] = useState<Manufacturer | null>(null);
+  const [zipValue, setZipValue] = useState('');
+  const [isZipLookupLoading, setIsZipLookupLoading] = useState(false);
 
   const canSync = refStatus?.hasCmed && refStatus?.hasBrasindice;
 
@@ -99,6 +109,7 @@ export default function ManufacturersPage() {
 
   const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active');
   const activeValue = watch('active');
+  const watchState = watch('state');
 
   const openCreateModal = () => {
     setSelectedManufacturer(null);
@@ -110,10 +121,18 @@ export default function ManufacturersPage() {
       website: '',
       phone: '',
       email: '',
-      address: '',
+      zip: '',
+      street: '',
+      number: '',
+      complement: '',
+      district: '',
+      city: '',
+      state: '',
       notes: '',
       active: true,
     });
+    setZipValue('');
+    setIsZipLookupLoading(false);
     setIsModalOpen(true);
   };
 
@@ -127,10 +146,18 @@ export default function ManufacturersPage() {
       website: manufacturer.website || '',
       phone: manufacturer.phone || '',
       email: manufacturer.email || '',
-      address: manufacturer.address || '',
+      zip: manufacturer.zip || '',
+      street: manufacturer.street || '',
+      number: manufacturer.number || '',
+      complement: manufacturer.complement || '',
+      district: manufacturer.district || '',
+      city: manufacturer.city || '',
+      state: manufacturer.state || '',
       notes: manufacturer.notes || '',
       active: manufacturer.active ?? true,
     });
+    setZipValue(formatZipInput(manufacturer.zip || ''));
+    setIsZipLookupLoading(false);
     setIsModalOpen(true);
   };
 
@@ -139,17 +166,60 @@ export default function ManufacturersPage() {
     setIsDeleteModalOpen(true);
   };
 
+  const handleZipChange = async (value: string) => {
+    const formattedZip = formatZipInput(value);
+    setZipValue(formattedZip);
+    setValue('zip', formattedZip, { shouldDirty: true });
+
+    const digits = formattedZip.replace(/\D/g, '');
+    if (digits.length !== 8) {
+      setIsZipLookupLoading(false);
+      return;
+    }
+
+    setIsZipLookupLoading(true);
+    const zipData = await fetchAddressFromZip(formattedZip);
+    setIsZipLookupLoading(false);
+
+    if (watch('zip') !== formattedZip) return;
+    if (!zipData) return;
+
+    const mappedFields: Array<[keyof ManufacturerFormData, string | undefined]> = [
+      ['street', zipData.logradouro],
+      ['district', zipData.bairro],
+      ['city', zipData.localidade],
+      ['state', zipData.uf],
+      ['complement', zipData.complemento],
+    ];
+
+    mappedFields.forEach(([field, fieldValue]) => {
+      if (!fieldValue) return;
+      setValue(field, fieldValue, { shouldDirty: true });
+    });
+  };
+
   const onSubmit = async (data: ManufacturerFormData) => {
+    const toNullable = (value: string): string | null => {
+      const trimmed = value?.trim();
+      return trimmed ? trimmed : null;
+    };
+
     const payload = {
       ...data,
-      code: data.code || null,
-      trade_name: data.trade_name || null,
-      document: data.document || null,
-      website: data.website || null,
-      phone: data.phone || null,
-      email: data.email || null,
-      address: data.address || null,
-      notes: data.notes || null,
+      code: toNullable(data.code),
+      trade_name: toNullable(data.trade_name),
+      document: toNullable(data.document),
+      website: toNullable(data.website),
+      phone: toNullable(data.phone),
+      email: toNullable(data.email),
+      zip: toNullable(data.zip),
+      street: toNullable(data.street),
+      number: toNullable(data.number),
+      complement: toNullable(data.complement),
+      district: toNullable(data.district),
+      city: toNullable(data.city),
+      state: toNullable(data.state),
+      notes: toNullable(data.notes),
     };
 
     if (selectedManufacturer) {
@@ -405,12 +475,79 @@ export default function ManufacturersPage() {
             {...register('website')}
           />
 
-          <Textarea
-            label="Endereço"
-            placeholder="Endereço completo"
-            rows={2}
-            {...register('address')}
-          />
+          <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Endereço</h3>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
+              <div className="relative md:col-span-6">
+                <Input
+                  label="CEP"
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                  {...register('zip')}
+                  value={zipValue}
+                  onChange={(e) => {
+                    void handleZipChange(e.target.value);
+                  }}
+                  hint="Digite o CEP para buscar o endereço automaticamente"
+                />
+                {isZipLookupLoading && (
+                  <div className="absolute right-3 top-9 flex items-center gap-2">
+                    <svg
+                      className="text-primary-500 h-4 w-4 animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Buscando...</span>
+                  </div>
+                )}
+              </div>
+              <div className="md:col-span-14">
+                <Input
+                  label="Logradouro"
+                  placeholder="Rua, Avenida, etc."
+                  {...register('street')}
+                />
+              </div>
+              <div className="md:col-span-4">
+                <Input label="Número" placeholder="123" {...register('number')} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
+              <div className="md:col-span-8">
+                <Input
+                  label="Complemento"
+                  placeholder="Apto, bloco, sala..."
+                  {...register('complement')}
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input label="Bairro" placeholder="Bairro" {...register('district')} />
+              </div>
+              <div className="md:col-span-6">
+                <Input label="Cidade" placeholder="Cidade" {...register('city')} />
+              </div>
+              <div className="md:col-span-4">
+                <Select label="UF" options={UF_OPTIONS} value={watchState} {...register('state')} />
+              </div>
+            </div>
+          </div>
 
           <Textarea
             label="Observações"

@@ -8,6 +8,7 @@ export { Select as NativeSelect } from './Select';
 export { MultiSelect } from './MultiSelect';
 export { DatePicker } from './DatePicker';
 export { TimePicker } from './TimePicker';
+export { ColorPicker } from './ColorPicker';
 export { Textarea } from './Textarea';
 export { Button, PlusIcon } from './Button';
 export { createButton } from './Button';
@@ -49,6 +50,7 @@ export type {
   SelectOption as NativeSelectOption,
 } from './Select';
 export type { MultiSelectProps, MultiSelectOption } from './MultiSelect';
+export type { ColorPickerProps } from './ColorPicker';
 export type { TextareaProps } from './Textarea';
 export type {
   ButtonDropdownItem,

@@ -16,7 +16,6 @@ import {
   ModalFooter,
   Input,
   Select,
-  Textarea,
 } from '@/components/ui';
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients';
 import { useClientContacts, useSaveClientContacts } from '@/hooks/useClientContacts';
@@ -26,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import type { Client, ClientContact } from '@/types/database';
 import ClientContactForm from '@/components/client/ClientContactForm';
 import { useAuthStore } from '@/stores/authStore';
+import { UF_OPTIONS, fetchAddressFromZip, formatZipInput } from '@/lib/addressZip';
 
 // Funções de formatação
 const formatDocument = (document: string): string => {
@@ -101,7 +101,13 @@ interface ClientFormData {
   document: string;
   email: string;
   phone: string;
-  address: string;
+  zip: string;
+  street: string;
+  number: string;
+  complement: string;
+  district: string;
+  city: string;
+  state: string;
   ans_code: string;
   tiss: string;
   color: string;
@@ -125,6 +131,8 @@ export default function ClientsPage() {
   const [contacts, setContacts] = useState<ClientContact[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [currentPage, setCurrentPage] = useListPageState();
+  const [zipValue, setZipValue] = useState('');
+  const [isZipLookupLoading, setIsZipLookupLoading] = useState(false);
 
   // Hooks para carregar contatos (somente ao editar)
   const { data: existingContactsData } = useClientContacts(selectedClient?.id);
@@ -151,6 +159,7 @@ export default function ClientsPage() {
 
   // Observar mudanças nos campos
   const watchType = watch('type');
+  const watchState = watch('state');
 
   const activeValue = watch('active');
   const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
@@ -172,12 +181,19 @@ export default function ClientsPage() {
           document: selectedClient.document || '',
           email: selectedClient.email || '',
           phone: selectedClient.phone || '',
-          address: selectedClient.address || '',
+          zip: selectedClient.zip || '',
+          street: selectedClient.street || '',
+          number: selectedClient.number || '',
+          complement: selectedClient.complement || '',
+          district: selectedClient.district || '',
+          city: selectedClient.city || '',
+          state: selectedClient.state || '',
           ans_code: (selectedClient as any).ans_code || '',
           tiss: (selectedClient as any).tiss || '',
           color: (selectedClient as any).color || '',
           active: selectedClient.active ? true : false,
         });
+        setZipValue(formatZipInput(selectedClient.zip || ''));
       } else {
         // Creating
         reset({
@@ -187,17 +203,57 @@ export default function ClientsPage() {
           document: '',
           email: '',
           phone: '',
-          address: '',
+          zip: '',
+          street: '',
+          number: '',
+          complement: '',
+          district: '',
+          city: '',
+          state: '',
           ans_code: '',
           tiss: '',
           color: '',
           active: true,
         });
+        setZipValue('');
         setContacts([]);
       }
+      setIsZipLookupLoading(false);
       setActiveTab('basic');
     }
   }, [isModalOpen, selectedClient, reset]);
+
+  const handleZipChange = async (value: string) => {
+    const formattedZip = formatZipInput(value);
+    setZipValue(formattedZip);
+    setValue('zip', formattedZip, { shouldDirty: true });
+
+    const digits = formattedZip.replace(/\D/g, '');
+    if (digits.length !== 8) {
+      setIsZipLookupLoading(false);
+      return;
+    }
+
+    setIsZipLookupLoading(true);
+    const zipData = await fetchAddressFromZip(formattedZip);
+    setIsZipLookupLoading(false);
+
+    if (watch('zip') !== formattedZip) return;
+    if (!zipData) return;
+
+    const mappedFields: Array<[keyof ClientFormData, string | undefined]> = [
+      ['street', zipData.logradouro],
+      ['district', zipData.bairro],
+      ['city', zipData.localidade],
+      ['state', zipData.uf],
+      ['complement', zipData.complemento],
+    ];
+
+    mappedFields.forEach(([field, fieldValue]) => {
+      if (!fieldValue) return;
+      setValue(field, fieldValue, { shouldDirty: true });
+    });
+  };
 
   const handleSaveContacts = async (contactsToSave: ClientContact[]) => {
     if (!selectedClient) {
@@ -226,13 +282,25 @@ export default function ClientsPage() {
   };
 
   const onSubmit = async (data: ClientFormData) => {
+    const toNullable = (value: string): string | null => {
+      const trimmed = value?.trim();
+      return trimmed ? trimmed : null;
+    };
+
     const payload = {
       ...data,
       name: data.name ? data.name.toUpperCase() : '',
-      code: data.code || null,
-      ans_code: data.ans_code || null,
-      tiss: data.tiss || null,
-      color: data.color || null,
+      code: toNullable(data.code),
+      zip: toNullable(data.zip),
+      street: toNullable(data.street),
+      number: toNullable(data.number),
+      complement: toNullable(data.complement),
+      district: toNullable(data.district),
+      city: toNullable(data.city),
+      state: toNullable(data.state),
+      ans_code: toNullable(data.ans_code),
+      tiss: toNullable(data.tiss),
+      color: toNullable(data.color),
     };
     if (selectedClient) {
       await updateClient.mutateAsync({ id: selectedClient.id, ...payload });
@@ -459,88 +527,171 @@ export default function ClientsPage() {
         size="xl"
       >
         <div className="min-h-[500px] space-y-4">
-          {/* Tabs - apenas para edição */}
-          {selectedClient && (
-            <div className="border-b border-gray-200 dark:border-gray-700">
-              <div className="flex">
-                <TabButton active={activeTab === 'basic'} onClick={() => setActiveTab('basic')}>
-                  Dados Básicos
-                </TabButton>
-                <TabButton active={activeTab === 'contact'} onClick={() => setActiveTab('contact')}>
-                  Contatos
-                </TabButton>
-              </div>
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <div className="flex">
+              <TabButton active={activeTab === 'basic'} onClick={() => setActiveTab('basic')}>
+                Dados Básicos
+              </TabButton>
+              <TabButton
+                active={activeTab === 'contact'}
+                onClick={() => {
+                  if (selectedClient) setActiveTab('contact');
+                }}
+                disabled={!selectedClient}
+                className={!selectedClient ? 'cursor-not-allowed opacity-50' : undefined}
+                title={!selectedClient ? 'Salve o cliente para habilitar contatos' : undefined}
+              >
+                Contatos
+              </TabButton>
             </div>
-          )}
+          </div>
 
           {/* Conteúdo das abas */}
           {activeTab === 'basic' && (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Input
-                  label="Código Externo"
-                  placeholder="Código do sistema externo"
-                  {...register('code')}
-                />
-                <Select
-                  label="Tipo de Cliente"
-                  options={typeOptions}
-                  value={watchType}
-                  {...register('type', { required: 'Tipo é obrigatório' })}
-                  error={errors.type?.message}
-                  required
-                />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                <div className="md:col-span-2">
+                  <Input label="Código" placeholder="Código" {...register('code')} />
+                </div>
+                <div className="md:col-span-4">
+                  <Select
+                    label="Tipo de Cliente"
+                    options={typeOptions}
+                    value={watchType}
+                    {...register('type', { required: 'Tipo é obrigatório' })}
+                    error={errors.type?.message}
+                    required
+                  />
+                </div>
+                <div className="md:col-span-6">
+                  <Input
+                    label="Nome / Razão Social"
+                    placeholder="Nome do cliente"
+                    {...register('name', { required: 'Nome é obrigatório' })}
+                    error={errors.name?.message}
+                    required
+                    onBlur={(e) => {
+                      const value = e.target.value.toUpperCase();
+                      if (value !== e.target.value) {
+                        // Atualiza o valor do campo para caixa alta
+                        setValue('name', value);
+                      }
+                    }}
+                  />
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Input
-                  label="Nome / Razão Social"
-                  placeholder="Nome do cliente"
-                  {...register('name', { required: 'Nome é obrigatório' })}
-                  error={errors.name?.message}
-                  required
-                  onBlur={(e) => {
-                    const value = e.target.value.toUpperCase();
-                    if (value !== e.target.value) {
-                      // Atualiza o valor do campo para caixa alta
-                      setValue('name', value);
-                    }
-                  }}
-                />
-                <Input
-                  label="CPF/CNPJ"
-                  placeholder="Números..."
-                  {...register('document')}
-                  onChange={(e) => {
-                    const maskedValue = applyDocumentMask(e.target.value);
-                    setValue('document', maskedValue, { shouldDirty: true });
-                  }}
-                />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                <div className="md:col-span-3">
+                  <Input
+                    label="CPF/CNPJ"
+                    placeholder="Números..."
+                    {...register('document')}
+                    onChange={(e) => {
+                      const maskedValue = applyDocumentMask(e.target.value);
+                      setValue('document', maskedValue, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <Input
+                    label="Telefone"
+                    placeholder="(00) 00000-0000"
+                    {...register('phone')}
+                    onChange={(e) => {
+                      const maskedValue = applyPhoneMask(e.target.value);
+                      setValue('phone', maskedValue, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <div className="md:col-span-6">
+                  <Input
+                    label="E-mail"
+                    type="email"
+                    placeholder="email@exemplo.com"
+                    {...register('email')}
+                  />
+                </div>
               </div>
+              <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Endereço</h3>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Input
-                  label="Telefone"
-                  placeholder="(00) 00000-0000"
-                  {...register('phone')}
-                  onChange={(e) => {
-                    const maskedValue = applyPhoneMask(e.target.value);
-                    setValue('phone', maskedValue, { shouldDirty: true });
-                  }}
-                />
-                <Input
-                  label="E-mail"
-                  type="email"
-                  placeholder="email@exemplo.com"
-                  {...register('email')}
-                />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                  <div className="md:col-span-3">
+                    <Input
+                      label="CEP"
+                      placeholder="00000-000"
+                      inputMode="numeric"
+                      {...register('zip')}
+                      value={zipValue}
+                      onChange={(e) => {
+                        void handleZipChange(e.target.value);
+                      }}
+                    />
+                    {isZipLookupLoading && (
+                      <div className="absolute right-3 top-9 flex items-center gap-2">
+                        <svg
+                          className="text-primary-500 h-4 w-4 animate-spin"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Buscando...
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="md:col-span-7">
+                    <Input
+                      label="Logradouro"
+                      placeholder="Rua, Avenida, etc."
+                      {...register('street')}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Input label="Número" placeholder="123" {...register('number')} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
+                  <div className="md:col-span-8">
+                    <Input
+                      label="Complemento"
+                      placeholder="Apto, bloco, sala..."
+                      {...register('complement')}
+                    />
+                  </div>
+                  <div className="md:col-span-6">
+                    <Input label="Bairro" placeholder="Bairro" {...register('district')} />
+                  </div>
+                  <div className="md:col-span-6">
+                    <Input label="Cidade" placeholder="Cidade" {...register('city')} />
+                  </div>
+                  <div className="md:col-span-4">
+                    <Select
+                      label="UF"
+                      options={UF_OPTIONS}
+                      value={watchState}
+                      {...register('state')}
+                    />
+                  </div>
+                </div>
               </div>
-
-              <Textarea
-                label="Endereço"
-                placeholder="Rua, número, bairro, cidade - UF"
-                {...register('address')}
-              />
 
               {/* Campos específicos para operadoras */}
               {watchType === 'insurer' && (
@@ -554,22 +705,16 @@ export default function ClientsPage() {
                         label="Registro ANS"
                         placeholder="Ex: 123456"
                         {...register('ans_code')}
-                        hint="Número de registro da operadora na ANS"
                       />
-                      <Input
-                        label="Código TISS"
-                        placeholder="Ex: 12345678"
-                        {...register('tiss')}
-                        hint="Código para Troca de Informações de Saúde Suplementar"
-                      />
+                      <Input label="Código TISS" placeholder="Ex: 12345678" {...register('tiss')} />
                       <div className="flex flex-col gap-2">
                         <Input
                           label="Cor da Operadora"
                           type="color"
-                          placeholder="#000000"
+                          placeholder="#1aa2ff"
                           {...register('color')}
                           className="h-12 cursor-pointer"
-                          hint="Cor para identificar visualmente a operadora no sistema"
+                          hint="Cor para identificar a operadora no sistema"
                         />
                       </div>
                     </div>
@@ -577,22 +722,21 @@ export default function ClientsPage() {
                 </div>
               )}
 
-              <SwitchNew
-                label="Status"
-                showStatus
-                name={activeName}
-                ref={activeRef}
-                onBlur={activeOnBlur}
-                checked={!!activeValue}
-                onChange={(e) => {
-                  setValue('active', e.target.checked, { shouldDirty: true });
-                }}
-              />
-
               <ModalFooter>
+                <SwitchNew
+                  label="Status"
+                  showStatus
+                  name={activeName}
+                  ref={activeRef}
+                  onBlur={activeOnBlur}
+                  checked={!!activeValue}
+                  onChange={(e) => {
+                    setValue('active', e.target.checked, { shouldDirty: true });
+                  }}
+                />
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="neutral"
                   showIcon={false}
                   onClick={() => setIsModalOpen(false)}
                   label="Cancelar"
@@ -600,6 +744,7 @@ export default function ClientsPage() {
                 <Button
                   type="submit"
                   variant="solid"
+                  size="md"
                   showIcon={false}
                   disabled={createClient.isPending || updateClient.isPending}
                   label={selectedClient ? 'Salvar Alterações' : 'Cadastrar'}
