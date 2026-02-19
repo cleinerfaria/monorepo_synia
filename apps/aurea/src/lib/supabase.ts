@@ -1,15 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const isTestEnv = import.meta.env.MODE === 'test';
+const fallbackTestUrl = 'https://test-project.supabase.co';
+const fallbackTestAnonKey = 'test-anon-key';
+const runtimeEnv = typeof window !== 'undefined' ? window.__APP_CONFIG__ : undefined;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+export const resolvedSupabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL ||
+  runtimeEnv?.VITE_SUPABASE_URL ||
+  (isTestEnv ? fallbackTestUrl : '');
+export const resolvedSupabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  runtimeEnv?.VITE_SUPABASE_ANON_KEY ||
+  (isTestEnv ? fallbackTestAnonKey : '');
+
+if (!resolvedSupabaseUrl || !resolvedSupabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
 // Create Supabase client without strict types to avoid inference issues
 // Runtime safety is provided by RLS policies and application logic
-export const supabase = createClient<any>(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient<any>(resolvedSupabaseUrl, resolvedSupabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
