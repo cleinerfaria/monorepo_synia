@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import { Users, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX, Plus } from 'lucide-react';
+import { HealthWorkerIcon } from '@/components/icons/HealthWorkerIcon';
 import {
   Card,
   Button,
@@ -24,6 +25,13 @@ import { format, differenceInYears } from 'date-fns';
 import { formatDateOnly, parseDateOnlyOrNull } from '@/lib/dateOnly';
 
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
+
+const formatCPF = (cpf?: string | null): string => {
+  if (!cpf) return '-';
+  const digits = cpf.replace(/\D/g, '');
+  if (digits.length !== 11) return cpf;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+};
 
 export default function PatientsPage() {
   const navigate = useNavigate();
@@ -130,12 +138,24 @@ export default function PatientsPage() {
         ),
         enableSorting: false,
         cell: ({ row }) => (
-          <div>
-            <p className="font-medium text-gray-900 dark:text-white">{row.original.name}</p>
-            {row.original.cpf && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">{row.original.cpf}</p>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+              <HealthWorkerIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate font-medium text-gray-900 dark:text-white">
+                {row.original.name}
+              </p>
+            </div>
           </div>
+        ),
+      },
+      {
+        accessorKey: 'cpf',
+        header: () => <span className="block w-full">CPF</span>,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="text-gray-700 dark:text-gray-300">{formatCPF(row.original.cpf)}</div>
         ),
       },
       {
