@@ -335,19 +335,19 @@ export default function ProfessionsPage() {
             />
             <div className="flex items-center gap-3">
               <Button
-              type="button"
-              variant="neutral"
-              icon={<X className="h-4 w-4" />}
-              onClick={() => setIsModalOpen(false)}
-              label="Cancelar"
-            />
+                type="button"
+                variant="neutral"
+                icon={<X className="h-4 w-4" />}
+                onClick={() => setIsModalOpen(false)}
+                label="Cancelar"
+              />
               <Button
-              type="submit"
-              variant="solid"
-              icon={<Check className="h-4 w-4" />}
-              disabled={createProfession.isPending || updateProfession.isPending}
-              label={selectedProfession ? 'Salvar Alterações' : 'Cadastrar'}
-            />
+                type="submit"
+                variant="solid"
+                icon={<Check className="h-4 w-4" />}
+                disabled={createProfession.isPending || updateProfession.isPending}
+                label={selectedProfession ? 'Salvar Alterações' : 'Cadastrar'}
+              />
             </div>
           </ModalFooter>
         </form>
