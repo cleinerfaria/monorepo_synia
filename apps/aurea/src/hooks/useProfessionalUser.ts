@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { resolvedSupabaseUrl, supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import toast from 'react-hot-toast';
 
@@ -224,7 +224,7 @@ export function useCreateAndLinkProfessionalUser() {
 
       // 1. Criar app_user via Edge Function
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`,
+        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
         {
           method: 'POST',
           headers: {

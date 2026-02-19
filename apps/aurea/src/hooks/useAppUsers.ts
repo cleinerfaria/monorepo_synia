@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { resolvedSupabaseUrl, supabase } from '@/lib/supabase';
 import { useLogAction } from '@/hooks/useLogs';
 import { buildLogDiff, buildLogSnapshot } from '@/lib/logging';
 
@@ -140,7 +140,7 @@ export function useCreateAppUser() {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`,
+        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
         {
           method: 'POST',
           headers: {
@@ -207,7 +207,7 @@ export function useUpdateAppUser() {
         .single();
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`,
+        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
         {
           method: 'POST',
           headers: {
@@ -271,7 +271,7 @@ export function useDeactivateAppUser() {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`,
+        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
         {
           method: 'POST',
           headers: {
@@ -315,7 +315,7 @@ export function useReactivateAppUser() {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`,
+        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
         {
           method: 'POST',
           headers: {
@@ -357,7 +357,7 @@ export function useResetUserPassword() {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`,
+        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
         {
           method: 'POST',
           headers: {
@@ -406,7 +406,7 @@ export function useDeleteAppUser() {
         .single();
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`,
+        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
         {
           method: 'POST',
           headers: {
