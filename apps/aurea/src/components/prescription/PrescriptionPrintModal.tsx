@@ -188,7 +188,7 @@ export function PrescriptionPrintModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Imprimir Prescrição"
-      description="Escolha perÃ­odo de 1 a 14 dias e a orientação da página."
+      description="Escolha período de 1 a 14 dias e a orientação da página."
       size="lg"
     >
       <div className="space-y-4">
@@ -276,7 +276,7 @@ export function PrescriptionPrintModal({
           </div>
           {!canPrint && (
             <p className="text-feedback-danger-fg mt-3 text-sm">
-              Seu perfil não possui permissão para imprimir prescriçÃµes.
+              Seu perfil não possui permissão para imprimir prescrições.
             </p>
           )}
         </div>

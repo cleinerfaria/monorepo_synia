@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Plus,
@@ -184,7 +184,7 @@ export default function ProductFormPage() {
   const { data: selectedActiveIngredient } = useActiveIngredient(
     selectedActiveIngredientId || undefined
   );
-  // TambÃ©m busca lista completa para filtros (limitada a 1000, mas ok para filtros)
+  // Também busca lista completa para filtros (limitada a 1000, mas ok para filtros)
   const { data: _activeIngredients = [] } = useActiveIngredients();
   const createActiveIngredient = useCreateActiveIngredient();
   const { data: manufacturers = [] } = useManufacturers();
@@ -212,7 +212,7 @@ export default function ProductFormPage() {
   const updatePresentation = useUpdatePresentation();
   const deletePresentation = useDeletePresentation();
 
-  // Estado local para rastrear mudanças não salvas (alÃ©m do isDirty do formulário)
+  // Estado local para rastrear mudanças não salvas (além do isDirty do formulário)
   const [localUnsavedChanges, setLocalUnsavedChanges] = useState(false);
 
   const {
@@ -285,7 +285,7 @@ export default function ProductFormPage() {
   const activeValue = watch('active');
   const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
 
-  // Inicializa o formulário quando o produto Ã© carregado
+  // Inicializa o formulário quando o produto é carregado
   useEffect(() => {
     if (isEditing && product) {
       reset({
@@ -472,7 +472,7 @@ export default function ProductFormPage() {
     } else {
       await createItem.mutateAsync(payload);
     }
-    // Resetar estados de alteraçÃµes não salvas antes de navegar
+    // Resetar estados de alterações não salvas antes de navegar
     setLocalUnsavedChanges(false);
     navigate(productsListPath);
   };
@@ -523,7 +523,7 @@ export default function ProductFormPage() {
     } else {
       await createItem.mutateAsync(payload);
     }
-    // Resetar estado de alteraçÃµes não salvas mas permanecer na página
+    // Resetar estado de alterações não salvas mas permanecer na página
     setLocalUnsavedChanges(false);
     toast.success(isEditing ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!');
   };
@@ -563,8 +563,8 @@ export default function ProductFormPage() {
   };
 
   /**
-   * Abre o modal para vincular uma apresentação com as tabelas de referÃªncia
-   * Busca o item no EAN e mostra as fontes disponÃ­veis (CMED, BrasÃ­ndice, Simpro)
+   * Abre o modal para vincular uma apresentação com as tabelas de referência
+   * Busca o item no EAN e mostra as fontes disponíveis (CMED, Brasindice, Simpro)
    */
   const openLinkPresentationModal = async (presentation: ProductPresentation) => {
     if (!presentation.barcode) {
@@ -582,7 +582,7 @@ export default function ProductFormPage() {
       const unifiedData = await fetchRefItemUnifiedByEan(presentation.barcode);
 
       if (!unifiedData) {
-        toast.error('Item não encontrado nas tabelas de referÃªncia');
+        toast.error('Item não encontrado nas tabelas de referência');
         setIsPresentationLinkModalOpen(false);
         return;
       }
@@ -590,7 +590,7 @@ export default function ProductFormPage() {
       setPresentationLinkData(unifiedData);
     } catch (error) {
       console.error('Erro ao buscar item para vinculação:', error);
-      toast.error('Erro ao buscar item nas tabelas de referÃªncia');
+      toast.error('Erro ao buscar item nas tabelas de referência');
       setIsPresentationLinkModalOpen(false);
     } finally {
       setIsLoadingRefData(false);
@@ -598,7 +598,7 @@ export default function ProductFormPage() {
   };
 
   /**
-   * Abre o modal de apresentação prÃ©-preenchido com dados da view vw_ref_item_unified
+   * Abre o modal de apresentação pré-preenchido com dados da view vw_ref_item_unified
    * Busca pelo EAN vinculado e preenche: nome, quantidade (fator de conversão), EAN (barcode), unidade
    */
   const _openPresentationFromRefItem = async (refItemEan: string) => {
@@ -618,14 +618,14 @@ export default function ProductFormPage() {
       handleSelectRefItemForPresentation(unifiedData);
     } catch (error) {
       console.error('Erro ao buscar dados da view unificada:', error);
-      toast.error('Erro ao carregar dados da tabela de referÃªncia');
+      toast.error('Erro ao carregar dados da tabela de referência');
     } finally {
       setIsLoadingRefData(false);
     }
   };
 
   /**
-   * Callback quando um item Ã© selecionado no modal de busca de apresentaçÃµes
+   * Callback quando um item é selecionado no modal de busca de apresentações
    * Preenche os dados no formulário de apresentação
    */
   const handleSelectRefItemForPresentation = useCallback(
@@ -646,7 +646,7 @@ export default function ProductFormPage() {
         }
       }
 
-      // Se não encontrou Frasco ou a unidade não Ã© ml, usar Caixa como padrão
+      // Se não encontrou Frasco ou a unidade não é ml, usar Caixa como padrão
       if (!unitId) {
         const caixaUnit = unitsOfMeasure.find(
           (u) => u.code.toLowerCase() === 'cx' || u.name.toLowerCase() === 'caixa'
@@ -681,7 +681,7 @@ export default function ProductFormPage() {
         setSuggestedManufacturer(null);
       }
 
-      // Converter quantidade para nÃºmero válido
+      // Converter quantidade para número válido
       const quantidade = item.quantity ? Number(item.quantity) : 1;
 
       // Fechar o modal de busca
@@ -728,7 +728,7 @@ export default function ProductFormPage() {
 
   return (
     <div className="space-y-4">
-      {/* Header com Breadcrumbs e BotÃµes */}
+      {/* Header com Breadcrumbs e Botões */}
       <div className="flex items-center justify-between px-4 lg:px-4">
         <Breadcrumbs items={breadcrumbItems} onNavigate={handleBreadcrumbNavigate} />
         <div className="flex items-center gap-1">
@@ -752,7 +752,7 @@ export default function ProductFormPage() {
             variant="solid"
             showIcon={false}
             disabled={createItem.isPending || updateItem.isPending}
-            label={isEditing ? 'Salvar AlteraçÃµes' : 'Criar Produto'}
+            label={isEditing ? 'Salvar Alterações' : 'Criar Produto'}
           />
         </div>
       </div>
@@ -779,7 +779,7 @@ export default function ProductFormPage() {
                       ) : undefined
                     }
                   >
-                    ApresentaçÃµes
+                    Apresentações
                   </TabButton>
                   <TabButton
                     active={activeTab === 'references'}
@@ -793,7 +793,7 @@ export default function ProductFormPage() {
                       ) : undefined
                     }
                   >
-                    Tabelas de ReferÃªncia
+                    Tabelas de Referência
                   </TabButton>
                 </>
               )}
@@ -813,7 +813,7 @@ export default function ProductFormPage() {
               })}
               disabled={createItem.isPending || updateItem.isPending}
               className="border-primary-300/50 bg-primary-100/30 text-primary-800 hover:bg-primary-100/50 hover:text-primary-900 dark:border-primary-700/50 dark:bg-primary-900/40 dark:text-primary-300 dark:hover:bg-primary-900/60 flex h-8 w-8 items-center justify-center rounded-md border transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-              title="Salvar alteraçÃµes"
+              title="Salvar alterações"
             >
               {createItem.isPending || updateItem.isPending ? (
                 <Loading size="sm" />
@@ -837,7 +837,7 @@ export default function ProductFormPage() {
                   { value: 'diet', label: 'Dieta' },
                 ]}
                 value={watchItemType}
-                {...register('item_type', { required: 'Tipo Ã© obrigatório' })}
+                {...register('item_type', { required: 'Tipo é obrigatório' })}
                 required
               />
 
@@ -848,7 +848,7 @@ export default function ProductFormPage() {
                   <Input
                     label="Nome"
                     placeholder="Nome do produto"
-                    {...register('name', { required: 'Nome Ã© obrigatório' })}
+                    {...register('name', { required: 'Nome é obrigatório' })}
                     error={errors.name?.message}
                     required
                   />
@@ -864,7 +864,7 @@ export default function ProductFormPage() {
                 )}
               </div>
 
-              {/* Unidades, Estoque MÃ­nimo, TUSS e TISS na mesma linha */}
+              {/* Unidades, Estoque Mínimo, TUSS e TISS na mesma linha */}
               <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
                 <SearchableSelect
                   label="Unidade de Estoque"
@@ -906,7 +906,7 @@ export default function ProductFormPage() {
                     </label>
                     <span
                       className="mb-1 inline-flex h-4 w-4 items-center justify-center text-gray-600 dark:border-gray-600 dark:text-gray-300"
-                      title="Informe quantas unidades de prescrição equivalem a 1 unidade base (estoque). Ex.: 1 frasco = 20 gotas â†’ fator 20."
+                      title="Informe quantas unidades de prescrição equivalem a 1 unidade base (estoque). Ex.: 1 frasco = 20 gotas → fator 20."
                       aria-label="Informação sobre fator de prescrição"
                     >
                       <Info className="h-3 w-3" />
@@ -919,16 +919,16 @@ export default function ProductFormPage() {
                     step="any"
                     placeholder="1"
                     {...register('unit_prescription_factor', {
-                      required: 'Fator Ã© obrigatório',
+                      required: 'Fator é obrigatório',
                       valueAsNumber: true,
-                      min: { value: 0.001, message: 'MÃ­nimo: 0,001' },
+                      min: { value: 0.001, message: 'Mínimo: 0,001' },
                     })}
                     error={errors.unit_prescription_factor?.message}
                     required
                   />
                 </div>
                 <Input
-                  label="Estoque MÃ­nimo"
+                  label="Estoque Mínimo"
                   type="number"
                   min={0}
                   step={1}
@@ -939,11 +939,11 @@ export default function ProductFormPage() {
                 <Input label="TISS" placeholder="Código TISS" {...register('tiss_ref')} />
               </div>
 
-              {/* Campos especÃ­ficos para medicamentos - PrincÃ­pio Ativo + Grupo */}
+              {/* Campos específicos para medicamentos - Princípio Ativo + Grupo */}
               {watchItemType === 'medication' && (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <SearchableSelect
-                    label="PrincÃ­pio Ativo"
+                    label="Princípio Ativo"
                     options={(() => {
                       // Combina resultados da busca com o item selecionado (se houver)
                       const searchOptions = searchedActiveIngredients.map((ai) => ({
@@ -966,16 +966,16 @@ export default function ProductFormPage() {
 
                       return [{ value: '', label: 'Digite para buscar...' }, ...searchOptions];
                     })()}
-                    placeholder="Selecione o princÃ­pio ativo..."
-                    searchPlaceholder="Buscar princÃ­pio ativo..."
+                    placeholder="Selecione o princípio ativo..."
+                    searchPlaceholder="Buscar princípio ativo..."
                     value={selectedActiveIngredientId}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setSelectedActiveIngredientId(e.target.value)
                     }
                     onSearch={(term) => setActiveIngredientSearchTerm(term)}
                     onCreateNew={openNewActiveIngredientModal}
-                    createNewLabel="Cadastrar novo princÃ­pio ativo"
-                    emptyMessage="Nenhum princÃ­pio ativo encontrado"
+                    createNewLabel="Cadastrar novo princípio ativo"
+                    emptyMessage="Nenhum princípio ativo encontrado"
                   />
                   <SearchableSelect
                     label="Grupo"
@@ -998,10 +998,10 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* Descrição por Ãºltimo */}
+              {/* Descrição por último */}
               <Textarea
                 label="Descrição"
-                placeholder="Descrição detalhada, composição, indicaçÃµes..."
+                placeholder="Descrição detalhada, composição, indicações..."
                 {...register('description')}
               />
 
@@ -1024,7 +1024,7 @@ export default function ProductFormPage() {
                 </div>
               )}
 
-              {/* Status - quando não Ã© medicamento */}
+              {/* Status - quando não é medicamento */}
               {watchItemType !== 'medication' && (
                 <SwitchNew
                   label="Status"
@@ -1048,19 +1048,21 @@ export default function ProductFormPage() {
               <div>
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    ApresentaçÃµes Cadastradas
+                    Apresentações Cadastradas
                   </h3>
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
-                      variant="secondary"
+                      icon={<Search className="h-4 w-4" />}
+                      variant="solid"
                       onClick={() => setIsPresentationSearchModalOpen(true)}
                     >
-                      <Search className="h-4 w-4" />
                       Buscar nas Tabelas
                     </Button>
                     <Button
                       size="sm"
+                      icon={<Plus className="h-4 w-4" />}
+                      variant="neutral"
                       onClick={() => {
                         setSelectedPresentation(null);
                         setSelectedPresentationUnit('');
@@ -1075,7 +1077,6 @@ export default function ProductFormPage() {
                         setIsPresentationModalOpen(true);
                       }}
                     >
-                      <Plus className="h-4 w-4" />
                       Manual
                     </Button>
                   </div>
@@ -1099,13 +1100,13 @@ export default function ProductFormPage() {
                             EAN
                           </th>
                           <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            AçÃµes
+                            Ações
                           </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
                         {presentations.map((p) => {
-                          // Buscar o sÃ­mbolo da unidade pelo ID
+                          // Buscar o símbolo da unidade pelo ID
                           const presentationUnit = p.unit
                             ? unitsOfMeasure.find((u) => u.id === p.unit)
                             : null;
@@ -1147,7 +1148,7 @@ export default function ProductFormPage() {
                                 <div className="flex items-center justify-end gap-1">
                                   <IconButton
                                     onClick={() => openLinkPresentationModal(p)}
-                                    title="Vincular com tabelas de referÃªncia"
+                                    title="Vincular com tabelas de referência"
                                   >
                                     <Link className="h-4 w-4" />
                                   </IconButton>
@@ -1189,18 +1190,19 @@ export default function ProductFormPage() {
                     <Box className="mx-auto mb-3 h-12 w-12 opacity-50" />
                     <p className="font-medium">Nenhuma apresentação cadastrada</p>
                     <p className="mt-1 text-sm">
-                      Busque nas tabelas CMED, BrasÃ­ndice e Simpro ou cadastre manualmente
+                      Busque nas tabelas CMED, Brasíndice e Simpro ou cadastre manualmente
                     </p>
                     <div className="mt-4 flex items-center justify-center gap-3">
                       <Button
-                        variant="primary"
+                        variant="solid"
+                        icon={<Search className="h-4 w-4" />}
                         onClick={() => setIsPresentationSearchModalOpen(true)}
                       >
-                        <Search className="h-4 w-4" />
                         Buscar nas Tabelas
                       </Button>
                       <Button
-                        variant="secondary"
+                        variant="neutral"
+                        icon={<Plus className="h-4 w-4" />}
                         onClick={() => {
                           setSelectedPresentation(null);
                           setSelectedPresentationUnit('');
@@ -1215,7 +1217,6 @@ export default function ProductFormPage() {
                           setIsPresentationModalOpen(true);
                         }}
                       >
-                        <Plus className="h-4 w-4" />
                         Cadastrar Manualmente
                       </Button>
                     </div>
@@ -1231,7 +1232,7 @@ export default function ProductFormPage() {
               {/* Current Links */}
               <div>
                 <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  VÃ­nculos Atuais
+                  Vínculos Atuais
                 </h3>
 
                 {isLoadingRefLinks ? (
@@ -1242,10 +1243,10 @@ export default function ProductFormPage() {
                   <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center dark:border-gray-600 dark:bg-gray-800">
                     <Table className="mx-auto mb-3 h-12 w-12 text-gray-400" />
                     <p className="text-gray-500 dark:text-gray-400">
-                      Nenhum vÃ­nculo com tabelas de referÃªncia
+                      Nenhum vínculo com tabelas de referência
                     </p>
                     <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                      Use a busca abaixo para vincular a CMED, SIMPRO ou BRASÃNDICE
+                      Use a busca abaixo para vincular a CMED, SIMPRO ou BRASÍNDICE
                     </p>
                   </div>
                 ) : (
@@ -1293,7 +1294,7 @@ export default function ProductFormPage() {
                                   : 'hover:text-feedback-warning-fg/80 dark:hover:text-feedback-warning-fg/80 text-gray-300 dark:text-gray-600'
                               }`}
                               title={
-                                link.is_primary ? 'ReferÃªncia principal' : 'Definir como principal'
+                                link.is_primary ? 'Referência principal' : 'Definir como principal'
                               }
                             >
                               {link.is_primary ? (
@@ -1401,14 +1402,14 @@ export default function ProductFormPage() {
               {/* Search and Link */}
               <div className="border-t border-gray-200 pt-6 dark:border-gray-700">
                 <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Adicionar VÃ­nculo
+                  Adicionar Vínculo
                 </h3>
 
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Buscar por nome, código ou EAN nas tabelas de referÃªncia..."
+                    placeholder="Buscar por nome, código ou EAN nas tabelas de referência..."
                     value={refSearchTerm}
                     onChange={(e) => setRefSearchTerm(e.target.value)}
                     className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-4 text-gray-900 placeholder-gray-400 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -1450,14 +1451,14 @@ export default function ProductFormPage() {
                               }`}
                             >
                               <div className="min-w-0 flex-1">
-                                {/* Badges das fontes disponÃ­veis */}
+                                {/* Badges das fontes disponíveis */}
                                 <div className="mb-2 flex flex-wrap items-center gap-2">
                                   {item.cmed_item_id && (
                                     <Badge variant={hasCmed ? 'neutral' : 'success'}>CMED</Badge>
                                   )}
                                   {item.brasindice_item_id && (
                                     <Badge variant={hasBrasindice ? 'neutral' : 'gold'}>
-                                      BrasÃ­ndice
+                                      Brasíndice
                                     </Badge>
                                   )}
                                   {item.simpro_item_id && (
@@ -1470,7 +1471,7 @@ export default function ProductFormPage() {
                                   {item.name}
                                 </p>
 
-                                {/* Detalhes: substÃ¢ncia e concentração */}
+                                {/* Detalhes: substância e concentração */}
                                 {(item.substance || item.concentration) && (
                                   <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
                                     {item.substance}
@@ -1497,17 +1498,17 @@ export default function ProductFormPage() {
                                 {/* Códigos por fonte */}
                                 <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                   {item.brasindice_code && (
-                                    <span>BrasÃ­ndice: {item.brasindice_code} </span>
+                                    <span>Brasíndice: {item.brasindice_code} </span>
                                   )}
                                   {item.simpro_code && <span>â€¢ Simpro: {item.simpro_code}</span>}
                                 </div>
                               </div>
 
-                              {/* BotÃµes de vÃ­nculo por fonte */}
+                              {/* Botões de vínculo por fonte */}
                               <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-2 dark:border-gray-700">
                                 {item.cmed_item_id && !hasCmed && (
                                   <Button
-                                    variant="secondary"
+                                    variant="neutral"
                                     size="sm"
                                     onClick={() => {
                                       // Buscar o source_id da CMED
@@ -1531,7 +1532,7 @@ export default function ProductFormPage() {
                                 )}
                                 {item.brasindice_item_id && !hasBrasindice && (
                                   <Button
-                                    variant="secondary"
+                                    variant="neutral"
                                     size="sm"
                                     onClick={() => {
                                       const brasindiceSource = refSources.find(
@@ -1549,12 +1550,12 @@ export default function ProductFormPage() {
                                     isLoading={linkToRef.isPending}
                                   >
                                     <Link className="mr-1 h-3 w-3" />
-                                    BrasÃ­ndice
+                                    Brasíndice
                                   </Button>
                                 )}
                                 {item.simpro_item_id && !hasSimpro && (
                                   <Button
-                                    variant="secondary"
+                                    variant="neutral"
                                     size="sm"
                                     onClick={() => {
                                       const simproSource = refSources.find(
@@ -1622,7 +1623,7 @@ export default function ProductFormPage() {
             label="Nome da Apresentação"
             placeholder="Ex: Caixa 30 comp, Blister 10 comp"
             {...registerPresentation('name', {
-              required: 'Nome Ã© obrigatório',
+              required: 'Nome é obrigatório',
             })}
             error={presentationErrors.name?.message}
             required
@@ -1728,9 +1729,9 @@ export default function ProductFormPage() {
                   step="any"
                   placeholder="30"
                   {...registerPresentation('conversion_factor', {
-                    required: 'Fator Ã© obrigatório',
+                    required: 'Fator é obrigatório',
                     valueAsNumber: true,
-                    min: { value: 0.001, message: 'MÃ­nimo: 0.001' },
+                    min: { value: 0.001, message: 'Mínimo: 0.001' },
                   })}
                   error={presentationErrors.conversion_factor?.message}
                   required
@@ -1779,7 +1780,7 @@ export default function ProductFormPage() {
       <Modal
         isOpen={isNewActiveIngredientModalOpen}
         onClose={() => setIsNewActiveIngredientModalOpen(false)}
-        title="Cadastrar PrincÃ­pio Ativo"
+        title="Cadastrar Princípio Ativo"
         size="md"
       >
         <form
@@ -1787,20 +1788,20 @@ export default function ProductFormPage() {
           className="space-y-4"
         >
           <Alert tone="info">
-            <p>Após salvar, o princÃ­pio ativo será selecionado automaticamente no formulário.</p>
+            <p>Após salvar, o princípio ativo será selecionado automaticamente no formulário.</p>
           </Alert>
 
           <Input
-            label="Nome do PrincÃ­pio Ativo"
+            label="Nome do Princípio Ativo"
             placeholder="Ex: Dipirona, Paracetamol, Amoxicilina"
-            {...registerNewActiveIngredient('name', { required: 'Nome Ã© obrigatório' })}
+            {...registerNewActiveIngredient('name', { required: 'Nome é obrigatório' })}
             error={newActiveIngredientErrors.name?.message}
             required
           />
 
           <Textarea
             label="Descrição (opcional)"
-            placeholder="Descrição, indicaçÃµes, observaçÃµes..."
+            placeholder="Descrição, indicações, observações..."
             rows={3}
             {...registerNewActiveIngredient('description')}
           />
@@ -1842,7 +1843,7 @@ export default function ProductFormPage() {
           <Input
             label="Razão Social"
             placeholder="Nome completo da empresa"
-            {...registerNewManufacturer('name', { required: 'Razão social Ã© obrigatória' })}
+            {...registerNewManufacturer('name', { required: 'Razão social é obrigatória' })}
             error={newManufacturerErrors.name?.message}
             required
           />
@@ -1899,7 +1900,7 @@ export default function ProductFormPage() {
           <Input
             label="Nome"
             placeholder="Nome do grupo"
-            {...registerNewGroup('name', { required: 'Nome Ã© obrigatório' })}
+            {...registerNewGroup('name', { required: 'Nome é obrigatório' })}
             error={newGroupErrors.name?.message}
             required
           />
@@ -1947,16 +1948,16 @@ export default function ProductFormPage() {
               <Input
                 label="Código"
                 placeholder="UN, CX, FR..."
-                {...registerNewUnit('code', { required: 'Código Ã© obrigatório' })}
+                {...registerNewUnit('code', { required: 'Código é obrigatório' })}
                 error={newUnitErrors.code?.message}
                 required
               />
             </div>
             <div>
               <Input
-                label="SÃ­mbolo"
+                label="Símbolo"
                 placeholder="un, cx, fr..."
-                {...registerNewUnit('symbol', { required: 'SÃ­mbolo Ã© obrigatório' })}
+                {...registerNewUnit('symbol', { required: 'Símbolo é obrigatório' })}
                 error={newUnitErrors.symbol?.message}
                 required
               />
@@ -1965,7 +1966,7 @@ export default function ProductFormPage() {
               <Input
                 label="Nome"
                 placeholder="Unidade, Caixa, Frasco..."
-                {...registerNewUnit('name', { required: 'Nome Ã© obrigatório' })}
+                {...registerNewUnit('name', { required: 'Nome é obrigatório' })}
                 error={newUnitErrors.name?.message}
                 required
               />
@@ -1998,7 +1999,7 @@ export default function ProductFormPage() {
         </form>
       </Modal>
 
-      {/* Modal Vincular Apresentação com Tabelas de ReferÃªncia */}
+      {/* Modal Vincular Apresentação com Tabelas de Referência */}
       <Modal
         isOpen={isPresentationLinkModalOpen}
         onClose={() => {
@@ -2007,14 +2008,14 @@ export default function ProductFormPage() {
           setPresentationForLinking(null);
           setIsLoadingRefData(false);
         }}
-        title="Vincular Apresentação com Tabelas de ReferÃªncia"
+        title="Vincular Apresentação com Tabelas de Referência"
         size="lg"
       >
         {isLoadingRefData ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Loading size="lg" />
             <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-              Buscando item nas tabelas de referÃªncia...
+              Buscando item nas tabelas de referência...
             </p>
             {presentationForLinking && (
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
@@ -2034,7 +2035,7 @@ export default function ProductFormPage() {
                   {presentationLinkData.cmed_item_id && (
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="neutral"
                       onClick={() => {
                         if (product) {
                           linkToRef.mutate(
@@ -2107,18 +2108,18 @@ export default function ProductFormPage() {
                   {presentationLinkData.brasindice_item_id && (
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="neutral"
                       onClick={() => {
                         if (product) {
                           linkToRef.mutate(
                             {
                               productId: product.id,
                               refItemId: presentationLinkData.brasindice_item_id!,
-                              sourceId: '6665ca85-3393-47d4-9cc4-78bdad61d35b', // BrasÃ­ndice
+                              sourceId: '6665ca85-3393-47d4-9cc4-78bdad61d35b', // Brasíndice
                             },
                             {
                               onSuccess: () => {
-                                toast.success('Vinculado com sucesso ao BrasÃ­ndice!');
+                                toast.success('Vinculado com sucesso ao Brasíndice!');
                                 setIsPresentationLinkModalOpen(false);
                                 setPresentationLinkData(null);
                                 setPresentationForLinking(null);
@@ -2132,7 +2133,7 @@ export default function ProductFormPage() {
                     >
                       <div className="flex w-full gap-4">
                         <div className="flex w-[100px] flex-col items-start justify-center">
-                          <Badge variant="gold">BRASÃNDICE</Badge>
+                          <Badge variant="gold">BRASÍNDICE</Badge>
                         </div>
                         <div className="flex flex-1 flex-col items-start gap-1">
                           {presentationLinkData.brasindice_pf_date && (
@@ -2180,7 +2181,7 @@ export default function ProductFormPage() {
                   {presentationLinkData.simpro_item_id && (
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="neutral"
                       onClick={() => {
                         if (product) {
                           linkToRef.mutate(
@@ -2254,7 +2255,7 @@ export default function ProductFormPage() {
                     !presentationLinkData.brasindice_item_id &&
                     !presentationLinkData.simpro_item_id && (
                       <div className="py-6 text-center text-gray-500 dark:text-gray-400">
-                        <p>Nenhuma tabela de referÃªncia disponÃ­vel para este item</p>
+                        <p>Nenhuma tabela de referência disponível para este item</p>
                       </div>
                     )}
                 </div>
@@ -2278,12 +2279,12 @@ export default function ProductFormPage() {
         ) : (
           <div className="flex flex-col items-center justify-center py-12">
             <p className="text-gray-600 dark:text-gray-400">
-              Nenhum item encontrado nas tabelas de referÃªncia
+              Nenhum item encontrado nas tabelas de referência
             </p>
             <ModalFooter className="mt-6">
               <Button
                 type="button"
-                variant="secondary"
+                variant="neutral"
                 onClick={() => {
                   setIsPresentationLinkModalOpen(false);
                   setPresentationLinkData(null);

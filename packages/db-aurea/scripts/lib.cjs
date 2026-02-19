@@ -1,6 +1,7 @@
-﻿// Load environment variables from app .env.local
-const { spawn, execFileSync } = require('node:child_process');
+// Load environment variables from app .env.local
+const { spawn } = require('node:child_process');
 const path = require('node:path');
+const fs = require('node:fs');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../apps/aurea/.env.local') });
 
@@ -8,7 +9,10 @@ const PROJECT = 'aurea';
 const DB_URL_ENV = 'DB_URL';
 const SUPABASE_URL_ENV = 'VITE_SUPABASE_URL';
 const SERVICE_ROLE_ENV = 'SUPABASE_SERVICE_ROLE_KEY';
+const SUPABASE_ACCESS_TOKEN_ENV = 'SUPABASE_ACCESS_TOKEN';
+const PROJECT_REF_ENV = 'AUREA_SUPABASE_PROJECT_REF';
 const APP_DIR = path.resolve(__dirname, '..');
+const FUNCTIONS_DIR = path.resolve(APP_DIR, 'supabase/functions');
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -99,11 +103,119 @@ function getSupabaseConfig() {
   };
 }
 
-async function dbReset() {
+function extractProjectRefFromSupabaseUrl(supabaseUrl) {
+  try {
+    const hostname = new URL(supabaseUrl).hostname.toLowerCase();
+    const match = hostname.match(/^([a-z0-9]{20})\.supabase\.co$/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractProjectRefFromDbUrl(dbUrl) {
+  try {
+    const parsed = new URL(dbUrl);
+    const username = decodeURIComponent(parsed.username || '').toLowerCase();
+    const usernameMatch = username.match(/^postgres\.([a-z0-9]{20})$/);
+    if (usernameMatch) {
+      return usernameMatch[1];
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+    const hostMatch = hostname.match(/^db\.([a-z0-9]{20})\.supabase\.co$/);
+    return hostMatch ? hostMatch[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveProjectRef() {
+  const explicitProjectRef = (process.env[PROJECT_REF_ENV] || '').trim().toLowerCase();
+  if (explicitProjectRef) {
+    return explicitProjectRef;
+  }
+
+  const dbUrl = process.env[DB_URL_ENV];
+  const fromDbUrl = dbUrl ? extractProjectRefFromDbUrl(dbUrl) : null;
+  if (fromDbUrl) {
+    return fromDbUrl;
+  }
+
+  const supabaseUrl = process.env[SUPABASE_URL_ENV];
+  const fromSupabaseUrl = supabaseUrl ? extractProjectRefFromSupabaseUrl(supabaseUrl) : null;
+  if (fromSupabaseUrl) {
+    return fromSupabaseUrl;
+  }
+
+  throw new Error(
+    `Missing project ref for functions deploy. Set ${PROJECT_REF_ENV} or provide ${DB_URL_ENV}/${SUPABASE_URL_ENV} with a valid Supabase project ref.`
+  );
+}
+
+function hasSupabaseAccessToken() {
+  return Boolean((process.env[SUPABASE_ACCESS_TOKEN_ENV] || '').trim());
+}
+
+async function runSqlSeed() {
   const dbUrl = getDbUrl();
-  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR, '--yes'], {
+  await run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-seed', '--workdir', APP_DIR, '--yes'], {
     timeout: 180_000,
   });
+}
+
+function listFunctions() {
+  if (!fs.existsSync(FUNCTIONS_DIR)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(FUNCTIONS_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+}
+
+async function deployAureaFunctions() {
+  if (!hasSupabaseAccessToken()) {
+    process.stdout.write(
+      `\n⚠️  Skipping Aurea edge functions deploy: missing ${SUPABASE_ACCESS_TOKEN_ENV}. Add it to apps/aurea/.env.local to enable deploy.\n`
+    );
+    return;
+  }
+
+  const functions = listFunctions();
+  if (!functions.length) {
+    process.stdout.write('\n⚠️  No Aurea edge functions found to deploy.\n');
+    return;
+  }
+
+  const projectRef = resolveProjectRef();
+  process.stdout.write(`\n🚀 Deploying Aurea edge functions (${functions.join(', ')})...\n`);
+  for (const fnName of functions) {
+    const args = ['functions', 'deploy', fnName, '--project-ref', projectRef, '--workdir', APP_DIR];
+
+    // manage-user validates JWT manually and must keep gateway verification disabled
+    if (fnName === 'manage-user') {
+      args.push('--no-verify-jwt');
+    }
+
+    await run('supabase', args, {
+      timeout: 180_000,
+    });
+  }
+  process.stdout.write('✅ Aurea edge functions deployed\n');
+}
+
+async function dbReset() {
+  ensureDevEnv();
+  const dbUrl = getDbUrl();
+  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR, '--yes', '--no-seed'], {
+    timeout: 180_000,
+  });
+  await seedAureaDev();
+  await runSqlSeed();
+  await deployAureaFunctions();
 }
 
 async function dbMigrate() {
@@ -195,13 +307,13 @@ async function seedAureaDev() {
   const companyDocument = '00.000.000/0001-00';
 
   // Ler credenciais do .env.local
-  const systemAdminEmail = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@aurea.local';
+  const systemAdminEmail = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@aurea.com';
   const systemAdminPassword = process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Aurea123';
-  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@aurea.local';
+  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@aurea.com';
   const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'Aurea123';
-  const managerEmail = process.env.E2E_MANAGER_EMAIL || 'manager@aurea.local';
+  const managerEmail = process.env.E2E_MANAGER_EMAIL || 'manager@aurea.com';
   const managerPassword = process.env.E2E_MANAGER_PASSWORD || 'Aurea123';
-  const userEmail = process.env.E2E_USER_EMAIL || 'user@aurea.local';
+  const userEmail = process.env.E2E_USER_EMAIL || 'user@aurea.com';
   const userPassword = process.env.E2E_USER_PASSWORD || 'Aurea123';
 
   process.stdout.write('\n📝 Creating auth users...\n');
@@ -270,6 +382,40 @@ async function seedAureaDev() {
   });
   process.stdout.write('✅ system_user created\n');
 
+  // Buscar access profiles da empresa
+  process.stdout.write('\n🔍 Fetching access profiles...\n');
+  const adminProfile = await getSingleRow({
+    supabaseUrl,
+    serviceRoleKey,
+    path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.admin&limit=1`,
+  });
+  const managerProfile = await getSingleRow({
+    supabaseUrl,
+    serviceRoleKey,
+    path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.manager&limit=1`,
+  });
+  const viewerProfile = await getSingleRow({
+    supabaseUrl,
+    serviceRoleKey,
+    path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.viewer&limit=1`,
+  });
+
+  if (!adminProfile?.id || !managerProfile?.id || !viewerProfile?.id) {
+    process.stderr.write(`  DEBUG: adminProfile=${JSON.stringify(adminProfile)}\n`);
+    process.stderr.write(`  DEBUG: managerProfile=${JSON.stringify(managerProfile)}\n`);
+    process.stderr.write(`  DEBUG: viewerProfile=${JSON.stringify(viewerProfile)}\n`);
+
+    // Tentar listar todos os perfis da empresa para diagnostico
+    const allProfiles = await requestJson(
+      `${supabaseUrl}/rest/v1/access_profile?select=id,code,company_id&company_id=eq.${company.id}`,
+      { headers: postgrestHeaders(serviceRoleKey, 'return=representation') }
+    );
+    process.stderr.write(`  DEBUG: all profiles for company=${JSON.stringify(allProfiles)}\n`);
+
+    throw new Error('Could not find access profiles (admin/manager/viewer) for the company');
+  }
+  process.stdout.write('✅ Access profiles found\n');
+
   // Criar app_users
   process.stdout.write('\n📝 Creating app_users...\n');
   await upsertRows({
@@ -282,32 +428,32 @@ async function seedAureaDev() {
         auth_user_id: systemAdminId,
         name: 'System Admin',
         email: systemAdminEmail,
-        active: true,
-        role: 'admin',
+        is_active: true,
+        access_profile_id: adminProfile.id,
       },
       {
         company_id: company.id,
         auth_user_id: adminId,
         name: 'Admin',
         email: adminEmail,
-        active: true,
-        role: 'admin',
+        is_active: true,
+        access_profile_id: adminProfile.id,
       },
       {
         company_id: company.id,
         auth_user_id: managerId,
         name: 'Manager',
         email: managerEmail,
-        active: true,
-        role: 'manager',
+        is_active: true,
+        access_profile_id: managerProfile.id,
       },
       {
         company_id: company.id,
         auth_user_id: userId,
         name: 'User',
         email: userEmail,
-        active: true,
-        role: 'viewer',
+        is_active: true,
+        access_profile_id: viewerProfile.id,
       },
     ],
     onConflict: 'auth_user_id,company_id',

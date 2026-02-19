@@ -18,11 +18,11 @@ import {
   useGenerateShifts,
   type ShiftWithProfessional,
 } from '@/hooks/usePatientDemands';
+import { usePadItems } from '@/hooks/usePadItems';
 import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { useAuthStore } from '@/stores/authStore';
+import { useHasPermission } from '@/hooks/useAccessProfiles';
 import { format, parseISO, addDays } from 'date-fns';
-
-const EDITABLE_ROLES = ['admin', 'manager', 'clinician'];
 
 const STATUS_MAP: Record<string, { label: string; variant: string }> = {
   planned: { label: 'Planejado', variant: 'neutral' },
@@ -42,8 +42,9 @@ export default function PadPreviewPage() {
   const navigate = useNavigate();
   const { handleLinkClick: handleBreadcrumbNavigate } = useNavigationGuard();
   const { appUser } = useAuthStore();
+  const { hasPermission } = useHasPermission('prescriptions', 'edit');
 
-  const canEdit = EDITABLE_ROLES.includes(appUser?.role ?? '');
+  const canEdit = hasPermission || appUser?.access_profile?.is_admin === true;
 
   const [fromDate, setFromDate] = useState(todayStr);
   const [toDate, setToDate] = useState(in14DaysStr);
@@ -54,13 +55,19 @@ export default function PadPreviewPage() {
     isLoading: isLoadingShifts,
     refetch,
   } = useDemandShifts(demandId, fromDate, toDate);
+  const { data: padItems = [] } = usePadItems(demandId);
   const generateShifts = useGenerateShifts();
 
+  const shiftPadItem = useMemo(
+    () => padItems.find((item) => item.type === 'shift' && item.is_active) || null,
+    [padItems]
+  );
+
   const handleGenerate = async () => {
-    if (!demandId) return;
+    if (!shiftPadItem?.id) return;
     try {
       await generateShifts.mutateAsync({
-        padId: demandId,
+        padItemId: shiftPadItem.id,
         from: fromDate,
         to: toDate,
       });
@@ -187,7 +194,7 @@ export default function PadPreviewPage() {
             <p className="font-medium text-gray-900 dark:text-white">
               {format(parseISO(demand.start_date), 'dd/MM/yyyy')}
               {' — '}
-              {demand.end_date ? format(parseISO(demand.end_date), 'dd/MM/yyyy') : 'Indeterminado'}
+              {demand.end_date ? format(parseISO(demand.end_date), 'dd/MM/yyyy') : '-'}
             </p>
           </div>
           <div>
@@ -197,10 +204,11 @@ export default function PadPreviewPage() {
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Horas/dia</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Item de Plantão</p>
             <p className="font-medium text-gray-900 dark:text-white">
-              {demand.hours_per_day}h
-              {demand.is_split ? ` (${demand.hours_per_day === 24 ? '2x12h' : '2x6h'})` : ''}
+              {shiftPadItem
+                ? `${shiftPadItem.hours_per_day ?? 0}h/dia - plantões de ${shiftPadItem.shift_duration_hours ?? 0}h`
+                : 'Não configurado'}
             </p>
           </div>
           <div>
@@ -247,10 +255,17 @@ export default function PadPreviewPage() {
                   showIcon
                   label="Gerar Plantões"
                   isLoading={generateShifts.isPending}
+                  disabled={!shiftPadItem}
                 />
               )}
             </div>
           </div>
+
+          {!shiftPadItem && (
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              Cadastre um item do tipo plantão no PAD para gerar escala.
+            </p>
+          )}
 
           {/* Shifts Table */}
           <DataTable
@@ -271,6 +286,7 @@ export default function PadPreviewPage() {
                       variant="solid"
                       label="Gerar Plantões"
                       isLoading={generateShifts.isPending}
+                      disabled={!shiftPadItem}
                     />
                   ) : undefined
                 }

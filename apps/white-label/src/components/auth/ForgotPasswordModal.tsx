@@ -85,7 +85,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
               <div className="flex gap-3">
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="neutral"
                   onClick={handleClose}
                   disabled={isLoading}
                   className="flex-1"

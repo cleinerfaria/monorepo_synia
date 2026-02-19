@@ -32,14 +32,28 @@ export function parseTimeChecks(value?: string | string[] | null): string[] {
 export function parseShiftCodes(value?: string | string[] | null): string[] {
   if (!value) return [];
 
+  let items: string[] = [];
+
   if (Array.isArray(value)) {
-    return value.map((item) => item.trim().toUpperCase()).filter(Boolean);
+    items = value.map((item) => item.trim());
+  } else {
+    items = value.split(',').map((item) => item.trim());
   }
 
-  return value
-    .split(',')
-    .map((item) => item.trim().toUpperCase())
-    .filter((item) => item === 'M' || item === 'T' || item === 'N');
+  // Convert times to shift codes if needed, otherwise filter for valid shift codes
+  const shiftCodes = items
+    .map((item) => {
+      // If it looks like a time (contains colons), try to convert it
+      if (item.includes(':')) {
+        return convertTimeToShiftCode(item);
+      }
+      // Otherwise, treat as shift code
+      const upper = item.toUpperCase();
+      return upper === 'M' || upper === 'T' || upper === 'N' ? upper : null;
+    })
+    .filter((item) => item !== null) as string[];
+
+  return shiftCodes;
 }
 
 export function parseWeekDays(value: unknown): number[] {
@@ -76,8 +90,20 @@ export function formatTimeChecks(values: string[]): string[] | null {
 }
 
 export function formatShiftChecks(values: string[]): string[] | null {
-  const cleaned = values.map((item) => item.trim().toUpperCase()).filter(Boolean);
-  return cleaned.length > 0 ? cleaned : null;
+  const shiftToTime: Record<string, string> = {
+    M: '07:00',
+    T: '13:00',
+    N: '19:00',
+  };
+
+  const converted = values
+    .map((item) => {
+      const shift = item.trim().toUpperCase();
+      return shiftToTime[shift] || null;
+    })
+    .filter(Boolean) as string[];
+
+  return converted.length > 0 ? converted : null;
 }
 
 export function sortWeekDays(values: number[]): number[] {
@@ -86,4 +112,17 @@ export function sortWeekDays(values: number[]): number[] {
 
 export function sortShifts(values: string[]): string[] {
   return SHIFT_ORDER.filter((shift) => values.includes(shift));
+}
+
+export function convertTimeToShiftCode(time: string): string | null {
+  // Normalize time to HH:MM format (remove seconds if present)
+  const normalized = time.includes(':') ? time.split(':').slice(0, 2).join(':') : time;
+
+  const timeToShift: Record<string, string> = {
+    '07:00': 'M',
+    '13:00': 'T',
+    '19:00': 'N',
+  };
+
+  return timeToShift[normalized] || null;
 }

@@ -140,7 +140,7 @@ export default function EvaluationsPage() {
           <p className="text-sm text-gray-500">Acompanhe cortes de atendimento</p>
         </div>
         {canManageEvaluations && selectedSession && (
-          <Button variant="secondary" onClick={() => setIsDetailOpen(true)}>
+          <Button variant="neutral" onClick={() => setIsDetailOpen(true)}>
             <ClipboardCheck className="h-5 w-5" />
             Ver detalhes
           </Button>

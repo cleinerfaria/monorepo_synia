@@ -382,7 +382,7 @@ export default function InstancesPage() {
               </p>
             </div>
             <Button
-              variant="secondary"
+              variant="neutral"
               size="sm"
               onClick={() => qrInstance && refreshStatusMutation.mutateAsync(qrInstance)}
             >

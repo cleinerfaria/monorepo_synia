@@ -36,29 +36,30 @@ export function usePrescriptions() {
         .select(
           `
           *,
-          patient:patient(
+          patient:patient_id(
             id, 
-            name,
-            patient_payer(
-              id,
-              is_primary,
-              client:client(id, name, color, type)
-            )
+            name
           ),
-          professional:professional(id, name, role, signature_path)
+          professional:professional_id(id, name)
         `
         )
         .eq('company_id', company.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching prescriptions:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        throw error;
+      }
       return data as (Prescription & {
         patient: { id: string; name: string } | null;
         professional: {
           id: string;
           name: string;
-          role: string;
-          signature_path: string | null;
         } | null;
       })[];
     },
@@ -101,7 +102,6 @@ export function usePrescription(id: string | undefined) {
           professional:professional_id(
             id,
             name,
-            role,
             council_type,
             council_number,
             council_uf,
@@ -146,7 +146,6 @@ export function usePrescription(id: string | undefined) {
         professional: {
           id: string;
           name: string;
-          role: string;
           council_type: string | null;
           council_number: string | null;
           council_uf: string | null;
@@ -171,7 +170,7 @@ export function usePrescriptionItems(prescriptionId: string | undefined) {
         .select(
           `
           *,
-          product:product_id(id, name, concentration, active, unit_stock:unit_stock_id(id, code, name, symbol), unit_prescription:unit_prescription_id(id, code, name, symbol)),
+          product:product_id(id, name, concentration, active:is_active, unit_stock:unit_stock_id(id, code, name, symbol), unit_prescription:unit_prescription_id(id, code, name, symbol)),
           equipment:equipment_id(id, name, serial_number, status),
           procedure:procedure_id(id, name),
           components:prescription_item_component(id, quantity, product:product_id(id, name, concentration, unit_stock:unit_stock_id(id, code, name, symbol), unit_prescription:unit_prescription_id(id, code, name, symbol)))

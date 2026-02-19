@@ -1,4 +1,4 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+﻿export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
@@ -260,6 +260,7 @@ export type Database = {
           id: string;
           name: string;
           role: string;
+          theme_preference: 'light' | 'dark' | 'system';
           updated_at: string | null;
         };
         Insert: {
@@ -272,6 +273,7 @@ export type Database = {
           id?: string;
           name: string;
           role?: string;
+          theme_preference?: 'light' | 'dark' | 'system' | null;
           updated_at?: string | null;
         };
         Update: {
@@ -284,6 +286,7 @@ export type Database = {
           id?: string;
           name?: string;
           role?: string;
+          theme_preference?: 'light' | 'dark' | 'system' | null;
           updated_at?: string | null;
         };
         Relationships: [
@@ -335,57 +338,75 @@ export type Database = {
       client: {
         Row: {
           active: boolean | null;
-          address: string | null;
           ans_code: string | null;
+          city: string | null;
           code: string | null;
           color: string | null;
           company_id: string;
+          complement: string | null;
           created_at: string | null;
+          district: string | null;
           document: string | null;
           email: string | null;
           id: string;
           logo_url: string | null;
           name: string;
+          number: string | null;
           phone: string | null;
+          state: string | null;
+          street: string | null;
           tiss: string | null;
           type: string;
           updated_at: string | null;
+          zip: string | null;
         };
         Insert: {
           active?: boolean | null;
-          address?: string | null;
           ans_code?: string | null;
+          city?: string | null;
           code?: string | null;
           color?: string | null;
           company_id: string;
+          complement?: string | null;
           created_at?: string | null;
+          district?: string | null;
           document?: string | null;
           email?: string | null;
           id?: string;
           logo_url?: string | null;
           name: string;
+          number?: string | null;
           phone?: string | null;
+          state?: string | null;
+          street?: string | null;
           tiss?: string | null;
           type: string;
           updated_at?: string | null;
+          zip?: string | null;
         };
         Update: {
           active?: boolean | null;
-          address?: string | null;
           ans_code?: string | null;
+          city?: string | null;
           code?: string | null;
           color?: string | null;
           company_id?: string;
+          complement?: string | null;
           created_at?: string | null;
+          district?: string | null;
           document?: string | null;
           email?: string | null;
           id?: string;
           logo_url?: string | null;
           name?: string;
+          number?: string | null;
           phone?: string | null;
+          state?: string | null;
+          street?: string | null;
           tiss?: string | null;
           type?: string;
           updated_at?: string | null;
+          zip?: string | null;
         };
         Relationships: [
           {
@@ -496,7 +517,7 @@ export type Database = {
           care_modality: string | null;
           cnae: string | null;
           cnes: string | null;
-          company_parent_id: string | null;
+          company_unit_id: string | null;
           created_at: string | null;
           document: string | null;
           email: string | null;
@@ -519,7 +540,7 @@ export type Database = {
           care_modality?: string | null;
           cnae?: string | null;
           cnes?: string | null;
-          company_parent_id?: string | null;
+          company_unit_id?: string | null;
           created_at?: string | null;
           document?: string | null;
           email?: string | null;
@@ -542,7 +563,7 @@ export type Database = {
           care_modality?: string | null;
           cnae?: string | null;
           cnes?: string | null;
-          company_parent_id?: string | null;
+          company_unit_id?: string | null;
           created_at?: string | null;
           document?: string | null;
           email?: string | null;
@@ -563,15 +584,15 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'company_company_parent_id_fkey';
-            columns: ['company_parent_id'];
+            foreignKeyName: 'company_company_unit_id_fkey';
+            columns: ['company_unit_id'];
             isOneToOne: false;
-            referencedRelation: 'company_parent';
+            referencedRelation: 'company_unit';
             referencedColumns: ['id'];
           },
         ];
       };
-      company_parent: {
+      company_unit: {
         Row: {
           address: string | null;
           city: string | null;
@@ -586,6 +607,7 @@ export type Database = {
           postal_code: string | null;
           state: string | null;
           trade_name: string | null;
+          unit_type: Database['public']['Enums']['enum_company_unit_type'];
           updated_at: string | null;
         };
         Insert: {
@@ -602,6 +624,7 @@ export type Database = {
           postal_code?: string | null;
           state?: string | null;
           trade_name?: string | null;
+          unit_type?: Database['public']['Enums']['enum_company_unit_type'];
           updated_at?: string | null;
         };
         Update: {
@@ -618,6 +641,7 @@ export type Database = {
           postal_code?: string | null;
           state?: string | null;
           trade_name?: string | null;
+          unit_type?: Database['public']['Enums']['enum_company_unit_type'];
           updated_at?: string | null;
         };
         Relationships: [];
@@ -699,57 +723,75 @@ export type Database = {
       manufacturer: {
         Row: {
           active: boolean | null;
-          address: string | null;
           anvisa_authorization: string | null;
           brasindice_code: string | null;
+          city: string | null;
           code: string | null;
           company_id: string;
+          complement: string | null;
           created_at: string | null;
+          district: string | null;
           document: string | null;
           email: string | null;
           id: string;
           name: string;
           notes: string | null;
+          number: string | null;
           phone: string | null;
+          state: string | null;
+          street: string | null;
           trade_name: string | null;
           updated_at: string | null;
           website: string | null;
+          zip: string | null;
         };
         Insert: {
           active?: boolean | null;
-          address?: string | null;
           anvisa_authorization?: string | null;
           brasindice_code?: string | null;
+          city?: string | null;
           code?: string | null;
           company_id: string;
+          complement?: string | null;
           created_at?: string | null;
+          district?: string | null;
           document?: string | null;
           email?: string | null;
           id?: string;
           name: string;
           notes?: string | null;
+          number?: string | null;
           phone?: string | null;
+          state?: string | null;
+          street?: string | null;
           trade_name?: string | null;
           updated_at?: string | null;
           website?: string | null;
+          zip?: string | null;
         };
         Update: {
           active?: boolean | null;
-          address?: string | null;
           anvisa_authorization?: string | null;
           brasindice_code?: string | null;
+          city?: string | null;
           code?: string | null;
           company_id?: string;
+          complement?: string | null;
           created_at?: string | null;
+          district?: string | null;
           document?: string | null;
           email?: string | null;
           id?: string;
           name?: string;
           notes?: string | null;
+          number?: string | null;
           phone?: string | null;
+          state?: string | null;
+          street?: string | null;
           trade_name?: string | null;
           updated_at?: string | null;
           website?: string | null;
+          zip?: string | null;
         };
         Relationships: [
           {
@@ -3012,75 +3054,84 @@ export type Database = {
       supplier: {
         Row: {
           active: boolean | null;
-          address: string | null;
           city: string | null;
           code: string | null;
           company_id: string;
+          complement: string | null;
           contact_name: string | null;
           contact_phone: string | null;
           created_at: string | null;
+          district: string | null;
           document: string | null;
           email: string | null;
           id: string;
           municipal_registration: string | null;
           name: string;
           notes: string | null;
+          number: string | null;
           payment_terms: string | null;
           phone: string | null;
           state: string | null;
           state_registration: string | null;
+          street: string | null;
           trade_name: string | null;
           updated_at: string | null;
           website: string | null;
-          zip_code: string | null;
+          zip: string | null;
         };
         Insert: {
           active?: boolean | null;
-          address?: string | null;
           city?: string | null;
           code?: string | null;
           company_id: string;
+          complement?: string | null;
           contact_name?: string | null;
           contact_phone?: string | null;
           created_at?: string | null;
+          district?: string | null;
           document?: string | null;
           email?: string | null;
           id?: string;
           municipal_registration?: string | null;
           name: string;
           notes?: string | null;
+          number?: string | null;
           payment_terms?: string | null;
           phone?: string | null;
           state?: string | null;
           state_registration?: string | null;
+          street?: string | null;
           trade_name?: string | null;
           updated_at?: string | null;
           website?: string | null;
-          zip_code?: string | null;
+          zip?: string | null;
         };
         Update: {
           active?: boolean | null;
-          address?: string | null;
           city?: string | null;
           code?: string | null;
           company_id?: string;
+          complement?: string | null;
           contact_name?: string | null;
           contact_phone?: string | null;
           created_at?: string | null;
+          district?: string | null;
           document?: string | null;
           email?: string | null;
           id?: string;
           municipal_registration?: string | null;
           name?: string;
           notes?: string | null;
+          number?: string | null;
           payment_terms?: string | null;
           phone?: string | null;
           state?: string | null;
           state_registration?: string | null;
+          street?: string | null;
           trade_name?: string | null;
           updated_at?: string | null;
           website?: string | null;
-          zip_code?: string | null;
+          zip?: string | null;
         };
         Relationships: [
           {
@@ -3581,6 +3632,7 @@ export type Database = {
     };
     Enums: {
       client_contact_type: 'phone' | 'whatsapp' | 'email' | 'other';
+      enum_company_unit_type: 'matriz' | 'filial';
       enum_prescription_frequency_mode: 'every' | 'times_per' | 'shift';
       enum_prescription_item_supplier: 'company' | 'family' | 'government' | 'other';
       enum_prescription_item_type: 'medication' | 'material' | 'diet' | 'procedure' | 'equipment';
@@ -3826,6 +3878,7 @@ export const Constants = {
   public: {
     Enums: {
       client_contact_type: ['phone', 'whatsapp', 'email', 'other'],
+      enum_company_unit_type: ['matriz', 'filial'],
       enum_prescription_frequency_mode: ['every', 'times_per', 'shift'],
       enum_prescription_item_supplier: ['company', 'family', 'government', 'other'],
       enum_prescription_item_type: ['medication', 'material', 'diet', 'procedure', 'equipment'],

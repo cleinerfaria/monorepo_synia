@@ -14,23 +14,19 @@ CREATE TABLE product_group (
     color TEXT, -- Cor para exibição (hex, ex: "#FF5733")
     icon TEXT, -- Ícone opcional (nome do ícone)
     sort_order INTEGER DEFAULT 0, -- Ordem de exibição
-    active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     is_system BOOLEAN DEFAULT FALSE, -- Grupo de sistema (não pode ser excluído)
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Índices
-CREATE INDEX idx_product_group_company ON product_group(company_id);
-CREATE INDEX idx_product_group_parent ON product_group(parent_id);
-CREATE INDEX idx_product_group_active ON product_group(active) WHERE active = TRUE;
 CREATE UNIQUE INDEX idx_product_group_code_unique ON product_group(company_id, code) WHERE code IS NOT NULL;
 
 -- Adicionar coluna group_id na tabela product
 ALTER TABLE product ADD COLUMN group_id UUID REFERENCES product_group(id) ON DELETE SET NULL;
 
 -- Índice para a nova coluna
-CREATE INDEX idx_product_group ON product(group_id);
 
 -- RLS para product_group
 ALTER TABLE product_group ENABLE ROW LEVEL SECURITY;

@@ -657,7 +657,7 @@ export default function StockPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={() => openMovementModal('out')}>
+          <Button variant="neutral" onClick={() => openMovementModal('out')}>
             <Upload className="h-5 w-5" />
             Saída
           </Button>
@@ -932,7 +932,7 @@ export default function StockPage() {
                   }
                   action={
                     hasActiveFilters ? (
-                      <Button variant="secondary" onClick={clearFilters}>
+                      <Button variant="neutral" onClick={clearFilters}>
                         Limpar filtros
                       </Button>
                     ) : (
@@ -1145,7 +1145,7 @@ export default function StockPage() {
           />
 
           <ModalFooter>
-            <Button type="button" variant="secondary" onClick={() => setIsMovementModalOpen(false)}>
+            <Button type="button" variant="neutral" onClick={() => setIsMovementModalOpen(false)}>
               Cancelar
             </Button>
             <Button type="submit" isLoading={createMovement.isPending}>
@@ -1173,7 +1173,7 @@ export default function StockPage() {
           />
 
           <ModalFooter>
-            <Button type="button" variant="secondary" onClick={() => setIsLocationModalOpen(false)}>
+            <Button type="button" variant="neutral" onClick={() => setIsLocationModalOpen(false)}>
               Cancelar
             </Button>
             <Button type="submit" isLoading={createLocation.isPending || updateLocation.isPending}>
@@ -1198,7 +1198,7 @@ export default function StockPage() {
         <ModalFooter>
           <Button
             type="button"
-            variant="secondary"
+            variant="neutral"
             onClick={() => setIsDeleteLocationModalOpen(false)}
           >
             Cancelar

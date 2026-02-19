@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Eye, Power, Calendar, Search, FunnelX } from 'lucide-react';
+import { Pencil, Eye, Power, Calendar, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -13,30 +13,18 @@ import {
   EmptyState,
   IconButton,
 } from '@/components/ui';
-import {
-  usePatientDemands,
-  useUpdateDemand,
-  type DemandWithPatient,
-} from '@/hooks/usePatientDemands';
+import { usePatientDemands, useUpdateDemand, type PadWithPatient } from '@/hooks/usePatientDemands';
 import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import { useAuthStore } from '@/stores/authStore';
+import { useHasPermission } from '@/hooks/useAccessProfiles';
 import { format, parseISO } from 'date-fns';
-
-const EDITABLE_ROLES = ['admin', 'manager', 'clinician'];
 
 const formatTime = (time: string) => {
   return time.slice(0, 5);
 };
 
-const splitLabel = (hoursPerDay: number, isSplit: boolean): string => {
-  if (!isSplit) return 'Não';
-  if (hoursPerDay === 24) return '2x12h';
-  if (hoursPerDay === 12) return '2x6h';
-  return 'Não';
-};
-
-const filterDemands = (demands: DemandWithPatient[], search: string) => {
+const filterPads = (demands: PadWithPatient[], search: string) => {
   if (!search.trim()) return demands;
   const query = search.toLowerCase();
   return demands.filter((d) => {
@@ -52,14 +40,15 @@ export default function PadPage() {
   const { data: demands = [], isLoading } = usePatientDemands();
   const updateDemand = useUpdateDemand();
   const { appUser } = useAuthStore();
+  const { hasPermission } = useHasPermission('prescriptions', 'edit');
 
-  const canEdit = EDITABLE_ROLES.includes(appUser?.role ?? '');
+  const canEdit = hasPermission || appUser?.access_profile?.is_admin === true;
 
   const [isToggleModalOpen, setIsToggleModalOpen] = useState(false);
-  const [selectedDemand, setSelectedDemand] = useState<DemandWithPatient | null>(null);
+  const [selectedDemand, setSelectedDemand] = useState<PadWithPatient | null>(null);
   const [searchInput, setSearchInput] = useState('');
 
-  const filteredData = useMemo(() => filterDemands(demands, searchInput), [demands, searchInput]);
+  const filteredData = useMemo(() => filterPads(demands, searchInput), [demands, searchInput]);
   const totalCount = filteredData.length;
   const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
   const paginatedDemands = useMemo(() => {
@@ -84,7 +73,7 @@ export default function PadPage() {
     }
   }, [currentPage, totalPages, setCurrentPage]);
 
-  const openToggleModal = useCallback((demand: DemandWithPatient) => {
+  const openToggleModal = useCallback((demand: PadWithPatient) => {
     setSelectedDemand(demand);
     setIsToggleModalOpen(true);
   }, []);
@@ -99,7 +88,7 @@ export default function PadPage() {
     }
   };
 
-  const columns: ColumnDef<DemandWithPatient>[] = useMemo(
+  const columns: ColumnDef<PadWithPatient>[] = useMemo(
     () => [
       {
         accessorKey: 'patient.name',
@@ -129,9 +118,7 @@ export default function PadPage() {
         header: 'Término',
         cell: ({ row }) => (
           <span className="text-gray-700 dark:text-gray-300">
-            {row.original.end_date
-              ? format(parseISO(row.original.end_date), 'dd/MM/yyyy')
-              : 'Indeterminado'}
+            {row.original.end_date ? format(parseISO(row.original.end_date), 'dd/MM/yyyy') : '-'}
           </span>
         ),
       },
@@ -142,22 +129,6 @@ export default function PadPage() {
           <span className="text-gray-700 dark:text-gray-300">
             {formatTime(row.original.start_time)}
           </span>
-        ),
-      },
-      {
-        accessorKey: 'hours_per_day',
-        header: 'Horas/dia',
-        cell: ({ row }) => (
-          <span className="text-gray-700 dark:text-gray-300">{row.original.hours_per_day}h</span>
-        ),
-      },
-      {
-        accessorKey: 'is_split',
-        header: 'Dividido',
-        cell: ({ row }) => (
-          <Badge variant={row.original.is_split ? 'info' : 'neutral'}>
-            {splitLabel(row.original.hours_per_day, row.original.is_split)}
-          </Badge>
         ),
       },
       {
@@ -174,7 +145,7 @@ export default function PadPage() {
             {
               id: 'actions',
               header: '',
-              cell: ({ row }: { row: { original: DemandWithPatient } }) => (
+              cell: ({ row }: { row: { original: PadWithPatient } }) => (
                 <div className="flex items-center justify-end gap-2">
                   <IconButton
                     title="Editar"
@@ -206,7 +177,7 @@ export default function PadPage() {
                   </IconButton>
                 </div>
               ),
-            } as ColumnDef<DemandWithPatient>,
+            } as ColumnDef<PadWithPatient>,
           ]
         : []),
     ],
@@ -219,14 +190,15 @@ export default function PadPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            Escalas de Atendimento (PAD)
+            Plano de Atendimento Domiciliar (PAD)
           </h1>
         </div>
         {canEdit && (
           <Button
             onClick={() => navigate('/prontuario/pad/novo')}
             variant="solid"
-            label="Nova Escala"
+            icon={<Plus className="h-4 w-4" />}
+            label="Novo PAD"
           />
         )}
       </div>
@@ -268,15 +240,16 @@ export default function PadPage() {
             emptyState={
               <EmptyState
                 icon={<Calendar className="h-12 w-12 text-gray-400" />}
-                title="Nenhuma escala cadastrada"
-                description="Crie a primeira escala de atendimento"
+                title="Nenhum PAD cadastrado"
+                description="Crie o primeiro Plano de Atendimento Domiciliar (PAD)"
                 action={
                   canEdit ? (
                     <Button
                       onClick={() => navigate('/prontuario/pad/novo')}
                       size="sm"
                       variant="solid"
-                      label="Nova Escala"
+                      icon={<Plus className="h-4 w-4" />}
+                      label="Novo PAD"
                     />
                   ) : undefined
                 }
@@ -288,7 +261,7 @@ export default function PadPage() {
             totalPages={totalPages}
             totalCount={totalCount}
             pageSize={PAGE_SIZE}
-            itemLabel="escalas"
+            itemLabel="PADs"
             onPreviousPage={() => setCurrentPage((page) => page - 1)}
             onNextPage={() => setCurrentPage((page) => page + 1)}
             isLoading={isLoading}
@@ -300,11 +273,11 @@ export default function PadPage() {
       <Modal
         isOpen={isToggleModalOpen}
         onClose={() => setIsToggleModalOpen(false)}
-        title={selectedDemand?.is_active ? 'Desativar Escala' : 'Ativar Escala'}
+        title={selectedDemand?.is_active ? 'Desativar PAD' : 'Ativar PAD'}
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja {selectedDemand?.is_active ? 'desativar' : 'ativar'} a escala do
+          Tem certeza que deseja {selectedDemand?.is_active ? 'desativar' : 'ativar'} o PAD do
           paciente{' '}
           <strong className="text-gray-900 dark:text-white">{selectedDemand?.patient?.name}</strong>
           ?

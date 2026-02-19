@@ -441,7 +441,7 @@ export default function ContactsPage() {
         {canManageMessages && (
           <div className="flex gap-2">
             <Button
-              variant="secondary"
+              variant="neutral"
               onClick={handleOpenSyncModal}
               disabled={!!syncProgress?.isSyncing || activeInstances.length === 0}
             >
@@ -449,7 +449,7 @@ export default function ContactsPage() {
               {syncProgress?.isSyncing ? 'Sincronizando...' : 'Atualizar'}
             </Button>
             <Button
-              variant="secondary"
+              variant="neutral"
               onClick={handleExportContacts}
               disabled={exportContacts.isPending || contacts.length === 0}
             >
@@ -547,7 +547,7 @@ export default function ContactsPage() {
 
         <ModalFooter>
           <Button
-            variant="secondary"
+            variant="neutral"
             onClick={() => selectedInstance && handleLoadSyncPreview(selectedInstance)}
             disabled={!selectedInstance || syncPreview.isLoading}
           >

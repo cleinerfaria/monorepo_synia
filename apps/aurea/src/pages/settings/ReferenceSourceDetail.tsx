@@ -398,7 +398,7 @@ export default function ReferenceSourceDetail({
                     <div className="flex items-center gap-2">
                       {hasStuckImports && (
                         <Button
-                          variant="secondary"
+                          variant="neutral"
                           size="sm"
                           onClick={() => resetStuckImports.mutate()}
                           disabled={resetStuckImports.isPending}

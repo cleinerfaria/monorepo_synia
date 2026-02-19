@@ -402,6 +402,10 @@ select option:hover {
     @apply bg-surface-elevated text-content-primary placeholder:text-content-muted focus:ring-border-focus/20 dark:focus:border-primary-500 w-full rounded-xl border px-3 py-1.5 text-sm shadow-sm transition-all duration-200 hover:border-gray-300 hover:shadow-lg focus:ring-2 dark:border-gray-600 dark:hover:border-gray-500;
   }
 
+  .input-field:disabled {
+    @apply cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 shadow-none placeholder:text-gray-300 hover:border-gray-200 hover:shadow-none focus:ring-0 dark:border-gray-700 dark:bg-gray-700/50 dark:text-gray-400 dark:placeholder:text-gray-600 dark:hover:border-gray-700;
+  }
+
   .label {
     @apply text-content-secondary mb-1 block text-xs font-medium;
   }

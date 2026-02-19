@@ -2,24 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useLogAction } from '@/hooks/useLogs';
 import { buildLogDiff, buildLogSnapshot } from '@/lib/logging';
-import type { BadgeVariant } from '@/components/ui';
-
-export type UserRole =
-  | 'admin'
-  | 'manager'
-  | 'clinician'
-  | 'stock'
-  | 'finance'
-  | 'viewer'
-  | 'shift_only';
 
 export interface AccessProfile {
   id: string;
-  company_id: string | null;
+  company_id: string;
   code: string;
   name: string;
   description: string | null;
-  is_system: boolean;
   is_admin: boolean;
   active: boolean;
   created_at: string;
@@ -32,8 +21,7 @@ export interface AppUser {
   auth_user_id: string;
   name: string;
   email: string;
-  role: UserRole;
-  access_profile_id: string | null;
+  access_profile_id: string;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -54,14 +42,12 @@ export interface CreateAppUserInput {
   email: string;
   password: string;
   name: string;
-  role?: UserRole;
-  access_profile_id?: string;
+  access_profile_id: string;
 }
 
 export interface UpdateAppUserInput {
   id: string;
   name?: string;
-  role?: UserRole;
   access_profile_id?: string;
   active?: boolean;
 }
@@ -73,6 +59,16 @@ const APP_USER_LOG_EXCLUDE_FIELDS = [
   'created_at',
   'updated_at',
 ];
+
+function normalizeAppUser<T extends { active?: boolean | null; is_active?: boolean | null }>(
+  user: T
+): T & { active: boolean } {
+  const activeValue = user.is_active ?? user.active ?? false;
+  return {
+    ...user,
+    active: activeValue,
+  };
+}
 
 // Buscar todos os usuários (com empresa e perfil)
 export function useAppUsers(companyId?: string) {
@@ -97,7 +93,7 @@ export function useAppUsers(companyId?: string) {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as AppUser[];
+      return (data || []).map((item) => normalizeAppUser(item)) as AppUser[];
     },
   });
 }
@@ -122,7 +118,7 @@ export function useAppUser(id: string | undefined) {
         .single();
 
       if (error) throw error;
-      return data as AppUser;
+      return normalizeAppUser(data) as AppUser;
     },
     enabled: !!id,
   });
@@ -157,7 +153,6 @@ export function useCreateAppUser() {
             password: input.password,
             name: input.name,
             company_id: input.company_id,
-            role: input.role || 'viewer',
             access_profile_id: input.access_profile_id,
           }),
         }
@@ -170,7 +165,7 @@ export function useCreateAppUser() {
         throw new Error(result.details || result.error || 'Erro ao criar usuário');
       }
 
-      return { user: result.user as AppUser, input };
+      return { user: normalizeAppUser(result.user) as AppUser, input };
     },
     onSuccess: ({ user }) => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });
@@ -207,7 +202,7 @@ export function useUpdateAppUser() {
       // Buscar dados antigos para o log
       const { data: oldUser } = await supabase
         .from('app_user')
-        .select('name, email, role, access_profile_id, active')
+        .select('name, email, access_profile_id, active:is_active')
         .eq('id', input.id)
         .single();
 
@@ -223,7 +218,6 @@ export function useUpdateAppUser() {
             action: 'update',
             user_id: input.id,
             name: input.name,
-            role: input.role,
             access_profile_id: input.access_profile_id,
             active: input.active,
           }),
@@ -236,7 +230,10 @@ export function useUpdateAppUser() {
         throw new Error(result.error || 'Erro ao atualizar usuário');
       }
 
-      return { user: result.user as AppUser, oldUser };
+      return {
+        user: normalizeAppUser(result.user) as AppUser,
+        oldUser: oldUser ? (oldUser as Partial<AppUser>) : oldUser,
+      };
     },
     onSuccess: ({ user, oldUser }) => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });
@@ -295,7 +292,7 @@ export function useDeactivateAppUser() {
         throw new Error(result.error || 'Erro ao desativar usuário');
       }
 
-      return result.user;
+      return normalizeAppUser(result.user);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });
@@ -339,7 +336,7 @@ export function useReactivateAppUser() {
         throw new Error(result.error || 'Erro ao reativar usuário');
       }
 
-      return result.user;
+      return normalizeAppUser(result.user);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });
@@ -404,7 +401,7 @@ export function useDeleteAppUser() {
       // Buscar dados do usuário antes de excluir para o log
       const { data: userToDelete } = await supabase
         .from('app_user')
-        .select('id, name, email, role')
+        .select('id, name, email')
         .eq('id', id)
         .single();
 
@@ -450,52 +447,11 @@ export function useDeleteAppUser() {
   });
 }
 
-// Labels para roles (legado, mantido para compatibilidade)
-export const roleLabels: Record<UserRole, string> = {
-  admin: 'Administrador',
-  manager: 'Gerente',
-  clinician: 'Clínico',
-  stock: 'Estoque',
-  finance: 'Financeiro',
-  viewer: 'Visualizador',
-  shift_only: 'Plantão',
-};
-
-export const roleBadgeVariants: Record<UserRole, BadgeVariant> = {
-  admin: 'gold',
-  manager: 'purple',
-  clinician: 'teal',
-  stock: 'warning',
-  finance: 'info',
-  viewer: 'neutral',
-  shift_only: 'info',
-};
-
-export const roleColors: Record<UserRole, { bg: string; text: string }> = {
-  admin: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300' },
-  manager: {
-    bg: 'bg-purple-100 dark:bg-purple-900/30',
-    text: 'text-purple-700 dark:text-purple-300',
-  },
-  clinician: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300' },
-  stock: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300' },
-  finance: {
-    bg: 'bg-yellow-100 dark:bg-yellow-900/30',
-    text: 'text-yellow-700 dark:text-yellow-300',
-  },
-  viewer: { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-700 dark:text-gray-300' },
-  shift_only: {
-    bg: 'bg-emerald-100 dark:bg-emerald-900/30',
-    text: 'text-emerald-700 dark:text-emerald-300',
-  },
-};
-
 // Vincular usuário autenticado atual a uma empresa
 export interface LinkCurrentUserInput {
   company_id: string;
   name: string;
-  role?: UserRole;
-  access_profile_id?: string;
+  access_profile_id: string;
 }
 
 export function useLinkCurrentUser() {
@@ -526,16 +482,15 @@ export function useLinkCurrentUser() {
           .update({
             company_id: input.company_id,
             name: input.name,
-            role: input.role || 'viewer',
             access_profile_id: input.access_profile_id,
-            active: true,
+            is_active: true,
           })
           .eq('auth_user_id', user.id)
           .select()
           .single();
 
         if (error) throw error;
-        return data as AppUser;
+        return normalizeAppUser(data) as AppUser;
       }
 
       // Cria novo registro em app_user
@@ -546,15 +501,14 @@ export function useLinkCurrentUser() {
           auth_user_id: user.id,
           name: input.name,
           email: user.email!,
-          role: input.role || 'viewer',
           access_profile_id: input.access_profile_id,
-          active: true,
+          is_active: true,
         })
         .select()
         .single();
 
       if (error) throw error;
-      return data as AppUser;
+      return normalizeAppUser(data) as AppUser;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });

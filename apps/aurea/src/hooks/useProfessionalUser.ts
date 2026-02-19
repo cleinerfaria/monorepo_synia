@@ -15,8 +15,10 @@ export interface ProfessionalUserLink {
     id: string;
     name: string;
     email: string;
-    role: string;
     active: boolean;
+    access_profile: {
+      name: string;
+    } | null;
   } | null;
 }
 
@@ -25,8 +27,10 @@ export interface AvailableAppUser {
   auth_user_id: string;
   name: string;
   email: string;
-  role: string;
   active: boolean;
+  access_profile: {
+    name: string;
+  } | null;
 }
 
 const QUERY_KEY = 'professional_user';
@@ -56,7 +60,7 @@ export function useProfessionalUser(professionalId: string | undefined) {
       // Em seguida, busca o app_user pelo auth_user_id (que é o user_id do link)
       const { data: appUser, error: userError } = await supabase
         .from('app_user')
-        .select('id, name, email, role, active')
+        .select('id, name, email, active:is_active, access_profile(name)')
         .eq('auth_user_id', linkData.user_id)
         .maybeSingle();
 
@@ -96,9 +100,9 @@ export function useAvailableAppUsers() {
       // Buscar app_users ativos que não estão vinculados
       let query = supabase
         .from('app_user')
-        .select('id, auth_user_id, name, email, role, active')
+        .select('id, auth_user_id, name, email, active:is_active, access_profile(name)')
         .eq('company_id', company.id)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('name');
 
       if (linkedUserIds.length > 0) {
@@ -107,7 +111,7 @@ export function useAvailableAppUsers() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as AvailableAppUser[];
+      return (data || []) as unknown as AvailableAppUser[];
     },
     enabled: !!company?.id,
   });
@@ -208,6 +212,16 @@ export function useCreateAndLinkProfessionalUser() {
 
       if (!session) throw new Error('Nao autenticado');
 
+      // Buscar perfil shift_only da empresa
+      const { data: shiftProfile } = await supabase
+        .from('access_profile')
+        .select('id')
+        .eq('company_id', company.id)
+        .eq('code', 'shift_only')
+        .single();
+
+      if (!shiftProfile) throw new Error('Perfil de plantão não encontrado para esta empresa');
+
       // 1. Criar app_user via Edge Function
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`,
@@ -223,7 +237,7 @@ export function useCreateAndLinkProfessionalUser() {
             password,
             name,
             company_id: company.id,
-            role: 'shift_only',
+            access_profile_id: shiftProfile.id,
           }),
         }
       );

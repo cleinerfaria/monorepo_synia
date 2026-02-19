@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "echo \"@synia/db-aurea: no lint step configured\"",
     "build": "echo \"@synia/db-aurea: no build step configured\"",
-    "test:run": "echo \"@synia/db-aurea: no test step configured\"",
+    "test:run": "true",
     "db:reset": "node scripts/db-reset.cjs",
     "db:migrate": "node scripts/db-migrate.cjs",
     "db:seed:dev": "node scripts/db-seed-dev.cjs",

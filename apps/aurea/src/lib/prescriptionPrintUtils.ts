@@ -93,6 +93,30 @@ function sortShiftChecks(values: string[]): string[] {
   return SHIFT_ORDER.filter((shift) => normalized.includes(shift));
 }
 
+function toShiftCode(value: string): string | null {
+  const normalized = value.trim().toUpperCase();
+  if (SHIFT_ORDER.includes(normalized)) return normalized;
+  return convertTimeToShiftCode(normalized);
+}
+
+function extractSortedShiftCodes(values: string[]): string[] {
+  const shiftCodes = values.map((value) => toShiftCode(value)).filter((code) => code !== null);
+  return sortShiftChecks(shiftCodes);
+}
+
+function convertTimeToShiftCode(time: string): string | null {
+  // Normalize time to HH:MM format (remove seconds if present)
+  const normalized = time.includes(':') ? time.split(':').slice(0, 2).join(':') : time;
+
+  const timeToShift: Record<string, string> = {
+    '07:00': 'M',
+    '13:00': 'T',
+    '19:00': 'N',
+  };
+
+  return timeToShift[normalized] || null;
+}
+
 function normalizeTimeToken(value: string): string {
   const trimmed = value.trim().toUpperCase();
   const timeMatch = trimmed.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
@@ -202,10 +226,9 @@ export function buildPrescriptionWeekColumns(
 }
 
 export function formatPrescriptionPrintFrequency(item: PrescriptionPrintSourceItem): string {
-  if (item.is_prn) return 'SN';
-
   if (item.frequency_mode === 'shift') {
-    const shifts = sortShiftChecks(parseTimeChecks(item.time_checks));
+    const checks = parseTimeChecks(item.time_checks);
+    const shifts = extractSortedShiftCodes(checks);
     if (shifts.length > 0) {
       return `${shifts.length}xDIA`;
     }
@@ -266,7 +289,8 @@ export function getPrescriptionGridValueForDate(
 
   const checks = parseTimeChecks(item.time_checks);
   if (item.frequency_mode === 'shift') {
-    const shifts = sortShiftChecks(checks);
+    // Accept direct shift codes (M/T/N) and equivalent times (07:00/13:00/19:00).
+    const shifts = extractSortedShiftCodes(checks);
     if (shifts.length > 0) return shifts.join(' ');
   }
 

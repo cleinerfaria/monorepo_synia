@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AppUser, Company, SystemUser } from '@/types/database';
+import type { Company, SystemUser } from '@/types/database';
+import type { AppUserWithProfile } from '@/types/auth'; // New type import
 import { supabase } from '@/lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
 
 interface AuthState {
   session: Session | null;
   user: User | null;
-  appUser: AppUser | null;
+  appUser: AppUserWithProfile | null;
   company: Company | null;
   systemUser: SystemUser | null;
   hasAnySystemUser: boolean;
@@ -16,7 +17,7 @@ interface AuthState {
 
   // Actions
   setSession: (session: Session | null) => void;
-  setAppUser: (appUser: AppUser | null) => void;
+  setAppUser: (appUser: AppUserWithProfile | null) => void;
   setCompany: (company: Company | null) => void;
   setSystemUser: (systemUser: SystemUser | null) => void;
   setLoading: (loading: boolean) => void;
@@ -30,15 +31,20 @@ interface AuthState {
   ) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   updateCompany: (updates: Partial<Company>) => Promise<void>;
+  updateAppUserTheme: (theme: 'light' | 'dark' | 'system') => Promise<void>;
 }
 
 async function fetchSystemUserData(userId: string) {
   // Busca o system_user do usuário atual
-  const { data: systemUser } = await supabase
+  const { data: systemUser, error: systemUserError } = await supabase
     .from('system_user')
     .select('*')
     .eq('auth_user_id', userId)
-    .single();
+    .maybeSingle();
+
+  if (systemUserError) {
+    throw systemUserError;
+  }
 
   // Verifica se existe algum system_user cadastrado (para lógica de bootstrap/onboarding)
   const { data: countResult } = await supabase.rpc('count_system_users');
@@ -87,9 +93,9 @@ export const useAuthStore = create<AuthState>()(
             // Fetch app user
             const { data: appUser } = await supabase
               .from('app_user')
-              .select('*')
+              .select('*, access_profile(id, code, name, is_admin)')
               .eq('auth_user_id', session.user.id)
-              .single();
+              .maybeSingle();
 
             if (appUser) {
               set({ appUser });
@@ -137,9 +143,9 @@ export const useAuthStore = create<AuthState>()(
             // Fetch app user
             const { data: appUser } = await supabase
               .from('app_user')
-              .select('*')
+              .select('*, access_profile(id, code, name, is_admin)')
               .eq('auth_user_id', data.session.user.id)
-              .single();
+              .maybeSingle();
 
             if (appUser) {
               set({ appUser });
@@ -176,6 +182,14 @@ export const useAuthStore = create<AuthState>()(
           if (error) throw error;
 
           if (data.user) {
+            // Buscar perfil padrão (viewer) da empresa
+            const { data: defaultProfile } = await supabase
+              .from('access_profile')
+              .select('id')
+              .eq('company_id', companyId)
+              .eq('code', 'viewer')
+              .single();
+
             // Create app user
             const { data: appUser, error: appUserError } = await supabase
               .from('app_user')
@@ -184,14 +198,14 @@ export const useAuthStore = create<AuthState>()(
                 company_id: companyId,
                 name,
                 email,
-                role: 'viewer',
+                access_profile_id: defaultProfile?.id,
               } as any)
-              .select()
+              .select('*, access_profile(id, code, name, is_admin)')
               .single();
 
             if (appUserError) throw appUserError;
 
-            set({ appUser: appUser as AppUser });
+            set({ appUser: appUser as AppUserWithProfile });
           }
 
           return { error: null };
@@ -227,6 +241,22 @@ export const useAuthStore = create<AuthState>()(
 
         if (!error && data) {
           set({ company: data as Company });
+        }
+      },
+
+      updateAppUserTheme: async (theme) => {
+        const { appUser } = get();
+        if (!appUser) return;
+
+        const { data, error } = await supabase
+          .from('app_user')
+          .update({ theme_preference: theme } as any)
+          .eq('id', appUser.id)
+          .select('*, access_profile(id, code, name, is_admin)')
+          .single();
+
+        if (!error && data) {
+          set({ appUser: data as AppUserWithProfile });
         }
       },
     }),

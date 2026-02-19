@@ -15,5 +15,3 @@ ALTER TABLE nfe_import
 ADD COLUMN IF NOT EXISTS total_value DECIMAL(15, 4) DEFAULT 0;
 
 -- Create index for faster product lookups
-CREATE INDEX IF NOT EXISTS idx_nfe_import_item_product_code 
-ON nfe_import_item(product_code);

@@ -152,7 +152,7 @@ export default function LogsPage() {
         id: 'data',
         header: 'Dados',
         cell: ({ row }) => (
-          <Button size="sm" variant="secondary" onClick={() => openDetailsModal(row.original)}>
+          <Button size="sm" variant="neutral" onClick={() => openDetailsModal(row.original)}>
             Ver dados
           </Button>
         ),
@@ -283,7 +283,7 @@ export default function LogsPage() {
         </div>
 
         <ModalFooter>
-          <Button variant="secondary" onClick={closeDetailsModal}>
+          <Button variant="neutral" onClick={closeDetailsModal}>
             Fechar
           </Button>
         </ModalFooter>

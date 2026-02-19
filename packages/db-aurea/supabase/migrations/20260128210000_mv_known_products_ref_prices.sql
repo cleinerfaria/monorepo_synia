@@ -119,18 +119,10 @@ CREATE UNIQUE INDEX idx_mv_known_products_ref_prices_company_ean
   ON public.mv_known_products_ref_prices(company_id, ean);
 
 -- Supporting indexes
-CREATE INDEX idx_mv_known_products_ref_prices_price_date
-  ON public.mv_known_products_ref_prices(price_date);
 
 -- Base-table indexes to speed up refresh
-CREATE INDEX IF NOT EXISTS idx_ref_price_history_item_type_valid_created
-  ON public.ref_price_history(item_id, price_type, valid_from DESC, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_ref_item_company_ean
-  ON public.ref_item(company_id, ean);
 
-CREATE INDEX IF NOT EXISTS idx_product_presentation_company_barcode
-  ON public.product_presentation(company_id, barcode);
 
 -- Optional: notify on presentation barcode changes (does not refresh by itself)
 CREATE OR REPLACE FUNCTION trigger_notify_refresh_known_products_ref_prices()
@@ -148,8 +140,18 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trigger_product_presentation_notify_known_products_ref_prices
-  ON public.product_presentation;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_trigger t
+    WHERE t.tgname = 'trigger_product_presentation_notify_known_products_ref_prices'
+      AND t.tgrelid = 'public.product_presentation'::regclass
+      AND NOT t.tgisinternal
+  ) THEN
+    EXECUTE 'DROP TRIGGER trigger_product_presentation_notify_known_products_ref_prices ON public.product_presentation';
+  END IF;
+END $$;
 
 CREATE TRIGGER trigger_product_presentation_notify_known_products_ref_prices
   AFTER INSERT OR UPDATE OF barcode ON public.product_presentation

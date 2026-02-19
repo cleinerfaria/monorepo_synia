@@ -373,7 +373,7 @@ export default function ReferenceItemDetail({ item, isOpen, onClose }: Reference
 
                 {/* Footer */}
                 <div className="flex items-center justify-end border-t border-gray-200 p-6 dark:border-gray-700">
-                  <Button variant="secondary" onClick={onClose}>
+                  <Button variant="neutral" onClick={onClose}>
                     Fechar
                   </Button>
                 </div>

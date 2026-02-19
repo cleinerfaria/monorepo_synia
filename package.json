@@ -41,11 +41,11 @@
     "prepare": "npm run hooks:install",
     "test:migrations": "node scripts/test-migrations.cjs",
     "build": "npm run build --workspaces",
-    "test": "npm run test:run --workspaces",
+    "test": "node scripts/test-select.cjs",
     "lint": "npm run lint --workspaces"
   },
   "devDependencies": {
     "dotenv": "^17.3.1",
-    "supabase": "^2.76.8"
+    "supabase": "^2.76.10"
   }
 }

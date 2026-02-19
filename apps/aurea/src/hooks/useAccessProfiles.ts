@@ -26,11 +26,10 @@ export interface ModulePermission {
 
 export interface AccessProfile {
   id: string;
-  company_id: string | null;
+  company_id: string;
   code: string;
   name: string;
   description: string | null;
-  is_system: boolean;
   is_admin: boolean;
   active: boolean;
   created_at: string;
@@ -77,8 +76,8 @@ export function useSystemModules() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('system_module')
-        .select('*')
-        .eq('active', true)
+        .select('*, active:is_active')
+        .eq('is_active', true)
         .order('display_order');
 
       if (error) throw error;
@@ -118,15 +117,11 @@ export function useAccessProfiles(companyId?: string) {
   return useQuery({
     queryKey: ['access_profiles', companyId],
     queryFn: async () => {
-      let query = supabase
-        .from('access_profile')
-        .select('*')
-        .order('is_system', { ascending: false })
-        .order('name');
+      let query = supabase.from('access_profile').select('*, active:is_active').order('name');
 
-      // Se tem company_id, busca perfis do sistema + da empresa
+      // Filtra por empresa
       if (companyId) {
-        query = query.or(`company_id.is.null,company_id.eq.${companyId}`);
+        query = query.eq('company_id', companyId);
       }
 
       const { data, error } = await query;
@@ -147,7 +142,7 @@ export function useAccessProfile(id: string | undefined) {
       // Buscar perfil
       const { data: profile, error: profileError } = await supabase
         .from('access_profile')
-        .select('*')
+        .select('*, active:is_active')
         .eq('id', id)
         .single();
 
@@ -197,7 +192,6 @@ export function useCreateAccessProfile() {
         .from('access_profile')
         .insert({
           ...profileData,
-          is_system: false,
         })
         .select()
         .single();
@@ -237,12 +231,17 @@ export function useUpdateAccessProfile() {
   return useMutation({
     mutationFn: async (input: UpdateAccessProfileInput) => {
       const { id, permission_ids, ...updates } = input;
+      const payload: Record<string, any> = { ...updates };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       // Atualizar o perfil
-      if (Object.keys(updates).length > 0) {
+      if (Object.keys(payload).length > 0) {
         const { error: profileError } = await supabase
           .from('access_profile')
-          .update(updates)
+          .update(payload)
           .eq('id', id);
 
         if (profileError) throw profileError;
@@ -276,7 +275,7 @@ export function useUpdateAccessProfile() {
       // Buscar perfil atualizado
       const { data, error } = await supabase
         .from('access_profile')
-        .select('*')
+        .select('*, active:is_active')
         .eq('id', id)
         .single();
 
@@ -296,11 +295,7 @@ export function useDeleteAccessProfile() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('access_profile')
-        .delete()
-        .eq('id', id)
-        .eq('is_system', false); // Proteção extra
+      const { error } = await supabase.from('access_profile').delete().eq('id', id);
 
       if (error) throw error;
     },

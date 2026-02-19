@@ -1,6 +1,15 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Stethoscope, Pencil, Trash2, UserPlus, UserMinus, Search, FunnelX } from 'lucide-react';
+import {
+  Stethoscope,
+  Pencil,
+  Trash2,
+  UserPlus,
+  UserMinus,
+  Search,
+  FunnelX,
+  Plus,
+} from 'lucide-react';
 import {
   Card,
   Button,
@@ -299,7 +308,12 @@ export default function EquipmentPage() {
             Equipamentos
           </h1>
         </div>
-        <Button onClick={openAddModal} variant="solid" label="Novo Equipamento" />
+        <Button
+          onClick={openAddModal}
+          variant="solid"
+          icon={<Plus className="h-4 w-4" />}
+          label="Novo Equipamento"
+        />
       </div>
       <Card padding="none">
         <div className="space-y-4 p-6">
@@ -377,11 +391,7 @@ export default function EquipmentPage() {
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input
-              label="Código Externo"
-              placeholder="Código do sistema externo"
-              {...register('code')}
-            />
+            <Input label="Código" placeholder="Código do sistema externo" {...register('code')} />
             <Input
               label="Nome do Equipamento"
               placeholder="Ex: Concentrador de O2, CPAP, BiPAP..."

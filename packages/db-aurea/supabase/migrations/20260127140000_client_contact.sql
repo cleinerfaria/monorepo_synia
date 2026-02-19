@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.client_contact (
 
   is_primary boolean NOT NULL DEFAULT false,
   can_receive_updates boolean NOT NULL DEFAULT true,
-  active boolean NOT NULL DEFAULT true,
+  is_active boolean NOT NULL DEFAULT true,
 
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -35,24 +35,18 @@ CREATE TABLE IF NOT EXISTS public.client_contact (
 );
 
 -- Índices para performance
-CREATE INDEX IF NOT EXISTS idx_client_contact_company
-ON public.client_contact (company_id);
 
-CREATE INDEX IF NOT EXISTS idx_client_contact_client
-ON public.client_contact (client_id);
 
-CREATE INDEX IF NOT EXISTS idx_client_contact_client_type
-ON public.client_contact (client_id, type);
 
 -- Evita duplicar o mesmo contato (por cliente, tipo, valor) enquanto ativo
 CREATE UNIQUE INDEX IF NOT EXISTS idx_client_contact_unique_active
 ON public.client_contact (client_id, type, value)
-WHERE active IS TRUE;
+WHERE is_active IS TRUE;
 
 -- No máximo 1 contato primário ativo por cliente
 CREATE UNIQUE INDEX IF NOT EXISTS idx_client_contact_primary_unique
 ON public.client_contact (client_id)
-WHERE is_primary IS TRUE AND active IS TRUE;
+WHERE is_primary IS TRUE AND is_active IS TRUE;
 
 -- Trigger para atualizar updated_at
 CREATE TRIGGER update_client_contact_updated_at

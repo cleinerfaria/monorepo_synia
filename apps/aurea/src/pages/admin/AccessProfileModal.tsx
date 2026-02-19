@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Modal, Input, Button, Badge } from '@/components/ui';
+import { useState, useEffect, useMemo } from 'react';
+import { Modal, Input, Button } from '@/components/ui';
 import {
   AccessProfile,
-  ModulePermission,
   useModulePermissions,
   useCreateAccessProfile,
   useUpdateAccessProfile,
   groupPermissionsByModule,
 } from '@/hooks/useAccessProfiles';
 import toast from 'react-hot-toast';
-import { Check } from 'lucide-react';
+
 interface AccessProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,15 +17,25 @@ interface AccessProfileModalProps {
   existingPermissionIds?: string[];
 }
 
+const EMPTY_PERMISSION_IDS: string[] = [];
+const SHIFT_MODULE_CODE = 'my_shifts';
+const SHIFT_PERMISSION_CODE = 'view';
+
+function formatPermissionCodeLabel(code: string) {
+  return code
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 export default function AccessProfileModal({
   isOpen,
   onClose,
   profile,
   companyId,
-  existingPermissionIds = [],
+  existingPermissionIds = EMPTY_PERMISSION_IDS,
 }: AccessProfileModalProps) {
   const isEditing = !!profile;
-  const isSystemProfile = profile?.is_system ?? false;
 
   const [formData, setFormData] = useState({
     code: '',
@@ -45,6 +54,11 @@ export default function AccessProfileModal({
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
+  const normalizedPermissionIds = useMemo(
+    () => [...existingPermissionIds],
+    [existingPermissionIds]
+  );
+
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -53,7 +67,7 @@ export default function AccessProfileModal({
         description: profile.description || '',
         is_admin: profile.is_admin,
       });
-      setSelectedPermissions(new Set(existingPermissionIds));
+      setSelectedPermissions(new Set(normalizedPermissionIds));
     } else {
       setFormData({
         code: '',
@@ -64,7 +78,7 @@ export default function AccessProfileModal({
       setSelectedPermissions(new Set());
     }
     setErrors({});
-  }, [profile, isOpen, existingPermissionIds]);
+  }, [profile, isOpen, normalizedPermissionIds]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -119,8 +133,6 @@ export default function AccessProfileModal({
   };
 
   const togglePermission = (permissionId: string) => {
-    if (isSystemProfile) return;
-
     const newSelected = new Set(selectedPermissions);
     if (newSelected.has(permissionId)) {
       newSelected.delete(permissionId);
@@ -130,33 +142,104 @@ export default function AccessProfileModal({
     setSelectedPermissions(newSelected);
   };
 
-  const toggleModule = (modulePermissions: ModulePermission[]) => {
-    if (isSystemProfile) return;
+  const toggleModulePermissions = (modulePermissionIds: string[]) => {
+    if (modulePermissionIds.length === 0) return;
 
-    const modulePermissionIds = modulePermissions.map((p) => p.id);
-    const allSelected = modulePermissionIds.every((id) => selectedPermissions.has(id));
+    const areAllSelected = modulePermissionIds.every((permissionId) =>
+      selectedPermissions.has(permissionId)
+    );
 
     const newSelected = new Set(selectedPermissions);
-    if (allSelected) {
-      modulePermissionIds.forEach((id) => newSelected.delete(id));
+    if (areAllSelected) {
+      modulePermissionIds.forEach((permissionId) => newSelected.delete(permissionId));
     } else {
-      modulePermissionIds.forEach((id) => newSelected.add(id));
+      modulePermissionIds.forEach((permissionId) => newSelected.add(permissionId));
     }
+
     setSelectedPermissions(newSelected);
   };
 
   const selectAll = () => {
-    if (isSystemProfile) return;
     setSelectedPermissions(new Set(allPermissions.map((p) => p.id)));
   };
 
   const deselectAll = () => {
-    if (isSystemProfile) return;
     setSelectedPermissions(new Set());
   };
 
-  // Agrupar permissões por módulo
-  const groupedPermissions = groupPermissionsByModule(allPermissions);
+  const shiftPagePermission = useMemo(
+    () =>
+      allPermissions.find(
+        (permission) =>
+          permission.module?.code === SHIFT_MODULE_CODE && permission.code === SHIFT_PERMISSION_CODE
+      ),
+    [allPermissions]
+  );
+
+  const groupedPermissions = useMemo(() => {
+    const permissionsForGrid = allPermissions.filter(
+      (permission) =>
+        !(
+          permission.module?.code === SHIFT_MODULE_CODE && permission.code === SHIFT_PERMISSION_CODE
+        )
+    );
+    return groupPermissionsByModule(permissionsForGrid);
+  }, [allPermissions]);
+
+  const basePermissionColumns = useMemo(
+    () => [
+      { code: 'view', label: 'Visualizar' },
+      { code: 'create', label: 'Criar' },
+      { code: 'edit', label: 'Editar' },
+      { code: 'delete', label: 'Excluir' },
+    ],
+    []
+  );
+
+  const permissionColumns = useMemo(() => {
+    const baseCodes = new Set(basePermissionColumns.map((column) => column.code));
+    const extraColumnsMap = new Map<string, string>();
+
+    allPermissions.forEach((permission) => {
+      if (
+        permission.module?.code === SHIFT_MODULE_CODE &&
+        permission.code === SHIFT_PERMISSION_CODE
+      ) {
+        return;
+      }
+
+      if (!baseCodes.has(permission.code) && !extraColumnsMap.has(permission.code)) {
+        extraColumnsMap.set(
+          permission.code,
+          permission.name || formatPermissionCodeLabel(permission.code)
+        );
+      }
+    });
+
+    const extraColumns = Array.from(extraColumnsMap.entries())
+      .sort(([codeA], [codeB]) => codeA.localeCompare(codeB))
+      .map(([code, label]) => ({
+        code,
+        label,
+      }));
+
+    return [...basePermissionColumns, ...extraColumns];
+  }, [allPermissions, basePermissionColumns]);
+
+  const hasShiftPageAccess =
+    !!shiftPagePermission && selectedPermissions.has(shiftPagePermission.id);
+
+  const toggleShiftPageAccess = (enabled: boolean) => {
+    if (!shiftPagePermission) return;
+
+    const newSelectedPermissions = new Set(selectedPermissions);
+    if (enabled) {
+      newSelectedPermissions.add(shiftPagePermission.id);
+    } else {
+      newSelectedPermissions.delete(shiftPagePermission.id);
+    }
+    setSelectedPermissions(newSelectedPermissions);
+  };
 
   return (
     <Modal
@@ -169,12 +252,6 @@ export default function AccessProfileModal({
         {errors.submit && (
           <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
             {errors.submit}
-          </div>
-        )}
-
-        {isSystemProfile && (
-          <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-            ℹ️ Este é um perfil do sistema e não pode ser modificado.
           </div>
         )}
 
@@ -191,9 +268,6 @@ export default function AccessProfileModal({
               error={errors.code}
               disabled={isEditing}
             />
-            {isEditing && (
-              <p className="mt-1 text-xs text-gray-500">O código não pode ser alterado</p>
-            )}
           </div>
 
           <div>
@@ -206,7 +280,6 @@ export default function AccessProfileModal({
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ex: Operador de Estoque"
               error={errors.name}
-              disabled={isSystemProfile}
             />
           </div>
         </div>
@@ -220,114 +293,142 @@ export default function AccessProfileModal({
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Breve descrição do perfil"
-            disabled={isSystemProfile}
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="is_admin"
-            checked={formData.is_admin}
-            onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
-            disabled={isSystemProfile}
-            className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
-          />
-          <label htmlFor="is_admin" className="text-sm text-gray-700 dark:text-gray-300">
-            Administrador (acesso total a todas as funcionalidades)
-          </label>
-        </div>
+        {!formData.is_admin && !!shiftPagePermission ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+              <input
+                type="checkbox"
+                id="is_admin"
+                checked={formData.is_admin}
+                onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
+                className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+              />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Administrador (acesso total)
+              </span>
+            </label>
+
+            <label
+              htmlFor="has_shift_page_access"
+              className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+            >
+              <input
+                type="checkbox"
+                id="has_shift_page_access"
+                checked={hasShiftPageAccess}
+                onChange={(e) => toggleShiftPageAccess(e.target.checked)}
+                className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Acesso à página Meu Plantão
+                </span>
+              </div>
+            </label>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="is_admin"
+              checked={formData.is_admin}
+              onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
+              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+            />
+            <label htmlFor="is_admin" className="text-sm text-gray-700 dark:text-gray-300">
+              Administrador (acesso total)
+            </label>
+          </div>
+        )}
 
         {/* Permissões */}
         {!formData.is_admin && (
-          <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+          <div>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-medium text-gray-900 dark:text-white">Permissões</h3>
-              {!isSystemProfile && (
-                <div className="flex gap-2">
-                  <Button type="button" variant="ghost" size="sm" onClick={selectAll}>
-                    Selecionar Tudo
-                  </Button>
-                  <Button type="button" variant="ghost" size="sm" onClick={deselectAll}>
-                    Limpar
-                  </Button>
-                </div>
-              )}
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={selectAll}>
+                  Selecionar Tudo
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={deselectAll}>
+                  Limpar
+                </Button>
+              </div>
             </div>
 
             {isLoadingPermissions ? (
               <p className="text-sm text-gray-500">Carregando permissões...</p>
             ) : (
-              <div className="max-h-96 space-y-4 overflow-y-auto pr-2">
-                {groupedPermissions.map(({ module, permissions }) => {
-                  const modulePermissionIds = permissions.map((p) => p.id);
-                  const selectedCount = modulePermissionIds.filter((id) =>
-                    selectedPermissions.has(id)
-                  ).length;
-                  const allSelected = selectedCount === permissions.length;
-                  const someSelected = selectedCount > 0 && selectedCount < permissions.length;
+              <div className="max-h-96 overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
+                        Módulo
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
+                        Tudo
+                      </th>
+                      {permissionColumns.map((column) => (
+                        <th
+                          key={column.code}
+                          className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"
+                        >
+                          {column.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
+                    {groupedPermissions.map(({ module, permissions }) => {
+                      const modulePermissionIds = permissions.map((permission) => permission.id);
+                      const allModulePermissionsSelected =
+                        modulePermissionIds.length > 0 &&
+                        modulePermissionIds.every((permissionId) =>
+                          selectedPermissions.has(permissionId)
+                        );
 
-                  return (
-                    <div
-                      key={module.code}
-                      className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
-                    >
-                      {/* Module Header */}
-                      <div
-                        className={`flex cursor-pointer items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-800 ${
-                          isSystemProfile ? 'cursor-not-allowed opacity-75' : ''
-                        }`}
-                        onClick={() => !isSystemProfile && toggleModule(permissions)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`flex h-5 w-5 items-center justify-center rounded border ${
-                              allSelected
-                                ? 'border-primary-500 bg-primary-500'
-                                : someSelected
-                                  ? 'border-primary-500 bg-primary-200'
-                                  : 'border-gray-300 dark:border-gray-600'
-                            }`}
-                          >
-                            {allSelected && <Check className="h-3 w-3 text-white" />}
-                            {someSelected && <div className="bg-primary-500 h-2 w-2 rounded-sm" />}
-                          </div>
-                          <span className="font-medium text-gray-900 dark:text-white">
+                      return (
+                        <tr key={module.code}>
+                          <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
                             {module.name}
-                          </span>
-                        </div>
-                        <Badge variant="neutral">
-                          {selectedCount}/{permissions.length}
-                        </Badge>
-                      </div>
-
-                      {/* Permissions */}
-                      <div className="grid grid-cols-2 gap-2 px-4 py-2">
-                        {permissions.map((permission) => (
-                          <label
-                            key={permission.id}
-                            className={`flex items-center gap-2 text-sm ${
-                              isSystemProfile
-                                ? 'cursor-not-allowed opacity-75'
-                                : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800'
-                            } rounded p-1`}
-                          >
+                          </td>
+                          <td className="px-4 py-3 text-center">
                             <input
                               type="checkbox"
-                              checked={selectedPermissions.has(permission.id)}
-                              onChange={() => togglePermission(permission.id)}
-                              disabled={isSystemProfile}
+                              checked={allModulePermissionsSelected}
+                              onChange={() => toggleModulePermissions(modulePermissionIds)}
                               className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                             />
-                            <span className="text-gray-700 dark:text-gray-300">
-                              {permission.name}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+                          </td>
+                          {permissionColumns.map((column) => {
+                            const permission = permissions.find(
+                              (item) => item.code === column.code
+                            );
+
+                            return (
+                              <td key={column.code} className="px-4 py-3 text-center">
+                                {permission ? (
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedPermissions.has(permission.id)}
+                                    onChange={() => togglePermission(permission.id)}
+                                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                                  />
+                                ) : (
+                                  <span className="text-sm text-gray-400">-</span>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -337,18 +438,16 @@ export default function AccessProfileModal({
         <div className="flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
           <Button
             type="button"
-            variant="secondary"
+            variant="neutral"
             onClick={onClose}
             disabled={isLoading}
             showIcon={false}
           >
             Cancelar
           </Button>
-          {!isSystemProfile && (
-            <Button type="submit" disabled={isLoading} showIcon={false}>
-              {isLoading ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar Perfil'}
-            </Button>
-          )}
+          <Button type="submit" disabled={isLoading} showIcon={false}>
+            {isLoading ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar Perfil'}
+          </Button>
         </div>
       </form>
     </Modal>

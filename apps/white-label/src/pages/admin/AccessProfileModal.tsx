@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Input, Button, Badge } from '@synia/ui';
 import {
   AccessProfile,
@@ -38,7 +38,7 @@ export default function AccessProfileModal({
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Buscar todas as permissÃµes
+  // Buscar todas as permissões
   const { data: allPermissions = [], isLoading: isLoadingPermissions } = useModulePermissions();
 
   const createMutation = useCreateAccessProfile();
@@ -175,7 +175,7 @@ export default function AccessProfileModal({
 
         {isSystemProfile && (
           <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-            â„¹ï¸ Este Ã© um perfil do sistema e não pode ser modificado.
+            â„¹ï¸ Este é um perfil do sistema e não pode ser modificado.
           </div>
         )}
 
@@ -192,9 +192,6 @@ export default function AccessProfileModal({
               error={errors.code}
               disabled={isEditing}
             />
-            {isEditing && (
-              <p className="mt-1 text-xs text-gray-500">O código não pode ser alterado</p>
-            )}
           </div>
 
           <div>
@@ -235,7 +232,7 @@ export default function AccessProfileModal({
             className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
           />
           <label htmlFor="is_admin" className="text-sm text-gray-700 dark:text-gray-300">
-            Administrador (acesso total a todas as funcionalidades)
+            Administrador (acesso total)
           </label>
         </div>
 
@@ -336,7 +333,7 @@ export default function AccessProfileModal({
 
         {/* Actions */}
         <div className="flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+          <Button type="button" variant="neutral" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
           {!isSystemProfile && (

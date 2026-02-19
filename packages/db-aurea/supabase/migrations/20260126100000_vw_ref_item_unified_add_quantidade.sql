@@ -2,7 +2,17 @@
 -- This updates the view to include quantity from Brasíndice source
 -- Need to DROP and recreate because PostgreSQL doesn't allow changing column order with CREATE OR REPLACE
 
-DROP VIEW IF EXISTS public.vw_ref_item_unified;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_views
+    WHERE schemaname = 'public'
+      AND viewname = 'vw_ref_item_unified'
+  ) THEN
+    EXECUTE 'DROP VIEW public.vw_ref_item_unified';
+  END IF;
+END $$;
 
 CREATE VIEW public.vw_ref_item_unified AS
 WITH src AS (

@@ -13,7 +13,11 @@ import {
 import type { PrescriptionItem } from '@/types/database';
 import type { PrescriptionPrintAction } from '@/components/prescription/PrescriptionPrintModal';
 import type { PrescriptionPrintHistoryItem } from '@/types/prescriptionPrint';
-import { calculateInclusiveDays, parseDateOnly } from './prescriptionDetailFrequency';
+import {
+  calculateInclusiveDays,
+  parseDateOnly,
+  convertTimeToShiftCode,
+} from './prescriptionDetailFrequency';
 
 type PrintRowAction = { id: string; action: PrescriptionPrintAction } | null;
 
@@ -315,21 +319,40 @@ export function buildItemColumns({
               ? timeChecks.split(',').map((time) => time.trim())
               : timeChecks;
 
+          const isShiftMode = item.frequency_mode === 'shift';
+
           const getTimeVariant = (time: string): BadgeVariant => {
+            if (isShiftMode) {
+              // For shift mode, use different colors based on shift code
+              const shiftCode = convertTimeToShiftCode(time);
+              if (shiftCode === 'M') return 'info';
+              if (shiftCode === 'T') return 'warning';
+              if (shiftCode === 'N') return 'danger';
+            }
+
             const parts = time.split(':');
             const hour = parseInt(parts[0], 10);
             return hour >= 7 && hour < 19 ? 'info' : 'danger';
           };
 
           const formattedTimes = times.map((time) => {
-            let displayTime = time;
-            if (time.endsWith(':00')) {
-              const withoutSeconds = time.slice(0, -3);
-              displayTime = withoutSeconds.startsWith('0')
-                ? withoutSeconds.slice(1)
-                : withoutSeconds;
-            } else if (time.startsWith('0')) {
-              displayTime = time.slice(1);
+            let displayTime: string;
+
+            if (isShiftMode) {
+              // Convert time to shift code for display
+              const shiftCode = convertTimeToShiftCode(time);
+              displayTime = shiftCode || time;
+            } else {
+              // Format as time
+              displayTime = time;
+              if (time.endsWith(':00')) {
+                const withoutSeconds = time.slice(0, -3);
+                displayTime = withoutSeconds.startsWith('0')
+                  ? withoutSeconds.slice(1)
+                  : withoutSeconds;
+              } else if (time.startsWith('0')) {
+                displayTime = time.slice(1);
+              }
             }
 
             const variant = getTimeVariant(time);

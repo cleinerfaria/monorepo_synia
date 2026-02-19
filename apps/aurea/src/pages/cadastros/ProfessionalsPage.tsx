@@ -1,7 +1,7 @@
 ﻿import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Trash2, Search, UserIcon, FunnelX } from 'lucide-react';
+import { Pencil, Trash2, Search, ShieldUser, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -13,7 +13,11 @@ import {
   EmptyState,
   IconButton,
 } from '@/components/ui';
-import { useProfessionals, useDeleteProfessional } from '@/hooks/useProfessionals';
+import {
+  useProfessionals,
+  useDeleteProfessional,
+  ProfessionalWithRelations,
+} from '@/hooks/useProfessionals';
 import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import type { Professional } from '@/types/database';
@@ -32,12 +36,12 @@ const formatPhoneDisplay = (value?: string | null): string => {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
-const filteredProfessionals = (professionals: Professional[], search: string) => {
+const filteredProfessionals = (professionals: ProfessionalWithRelations[], search: string) => {
   if (!search.trim()) return professionals;
   const query = search.toLowerCase();
   return professionals.filter((professional) => {
     const name = professional.name?.toLowerCase() || '';
-    const role = professional.role?.toLowerCase() || '';
+    const professionName = professional.profession?.name?.toLowerCase() || '';
     const council = [
       professional.council_type,
       professional.council_number,
@@ -46,7 +50,7 @@ const filteredProfessionals = (professionals: Professional[], search: string) =>
       .filter(Boolean)
       .join(' ')
       .toLowerCase();
-    return name.includes(query) || role.includes(query) || council.includes(query);
+    return name.includes(query) || professionName.includes(query) || council.includes(query);
   });
 };
 
@@ -109,7 +113,7 @@ export default function ProfessionalsPage() {
     }
   };
 
-  const columns: ColumnDef<Professional>[] = useMemo(
+  const columns: ColumnDef<ProfessionalWithRelations>[] = useMemo(
     () => [
       {
         accessorKey: 'name',
@@ -117,15 +121,24 @@ export default function ProfessionalsPage() {
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-              <UserIcon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <ShieldUser className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="min-w-0">
               <p className="truncate font-medium text-gray-900 dark:text-white">
                 {row.original.name}
               </p>
-              <p className="truncate text-sm text-gray-500">{row.original.role || '-'}</p>
             </div>
           </div>
+        ),
+      },
+      {
+        id: 'profession',
+        header: 'Profissão',
+        accessorFn: (row) => row.profession?.name || '-',
+        cell: ({ row }) => (
+          <span className="text-gray-700 dark:text-gray-300">
+            {row.original.profession?.name || '-'}
+          </span>
         ),
       },
       {
@@ -204,6 +217,7 @@ export default function ProfessionalsPage() {
         <Button
           onClick={() => navigate('/profissionais/novo')}
           variant="solid"
+          icon={<Plus className="h-4 w-4" />}
           label="Novo Profissional"
         />
       </div>

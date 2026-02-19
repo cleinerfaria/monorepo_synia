@@ -86,20 +86,20 @@ export default function PatientPayerForm({
     if (!client?.type) return 'Não definido';
 
     const typeLabels: Record<string, string> = {
-      pessoa_fisica: 'Pessoa FÃ­sica',
-      pessoa_juridica: 'Pessoa JurÃ­dica',
+      pessoa_fisica: 'Pessoa Física',
+      pessoa_juridica: 'Pessoa Jurídica',
       empresa: 'Empresa',
       operadora: 'Operadora',
-      plano_saude: 'Plano de SaÃºde',
+      plano_saude: 'Plano de Saúde',
       seguradora: 'Seguradora',
       insurer: 'Operadora',
-      pf: 'Pessoa FÃ­sica',
-      pj: 'Pessoa JurÃ­dica',
-      individual: 'Pessoa FÃ­sica',
+      pf: 'Pessoa Física',
+      pj: 'Pessoa Jurídica',
+      individual: 'Pessoa Física',
       corporate: 'Empresa',
       insurance: 'Operadora',
-      health_plan: 'Plano de SaÃºde',
-      government: 'Ã“rgão PÃºblico',
+      health_plan: 'Plano de Saúde',
+      government: 'Ã“rgão Público',
     };
 
     return typeLabels[client.type.toLowerCase()] || client.type;
@@ -189,8 +189,8 @@ export default function PatientPayerForm({
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     {payer.start_date
-                      ? `InÃ­cio: ${formatDateOnly(payer.start_date)}`
-                      : 'Sem data de inÃ­cio'}
+                      ? `Início: ${formatDateOnly(payer.start_date)}`
+                      : 'Sem data de início'}
                   </p>
                 </div>
               </div>
@@ -242,7 +242,7 @@ export default function PatientPayerForm({
                   }
                 />
                 <DatePicker
-                  label="Data de InÃ­cio"
+                  label="Data de Início"
                   value={payer.start_date || ''}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleUpdatePayer(index, 'start_date', e.target.value)
@@ -258,8 +258,8 @@ export default function PatientPayerForm({
               </div>
 
               <Textarea
-                label="ObservaçÃµes"
-                placeholder="InformaçÃµes adicionais sobre esta fonte pagadora"
+                label="Observações"
+                placeholder="Informações adicionais sobre esta fonte pagadora"
                 value={payer.notes || ''}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   handleUpdatePayer(index, 'notes', e.target.value)

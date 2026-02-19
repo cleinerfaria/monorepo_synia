@@ -25,6 +25,10 @@ DECLARE
   v_admin_profile_id UUID;
   v_manager_profile_id UUID;
   v_viewer_profile_id UUID;
+  v_medico_id UUID;
+  v_enfermeiro_id UUID;
+  v_tec_enfermagem_id UUID;
+  v_fisioterapeuta_id UUID;
 BEGIN
   -- Buscar a empresa criada na migration inicial
   SELECT id INTO v_company_id FROM public.company 
@@ -34,15 +38,15 @@ BEGIN
     RAISE EXCEPTION 'Empresa inicial não encontrada. Verifique se as migrations foram executadas.';
   END IF;
 
-  -- Buscar access profiles do sistema
+  -- Buscar access profiles da empresa
   SELECT id INTO v_admin_profile_id FROM public.access_profile 
-  WHERE code = 'admin' AND is_system = true LIMIT 1;
+  WHERE code = 'admin' AND company_id = v_company_id LIMIT 1;
   
   SELECT id INTO v_manager_profile_id FROM public.access_profile 
-  WHERE code = 'manager' AND is_system = true LIMIT 1;
+  WHERE code = 'manager' AND company_id = v_company_id LIMIT 1;
   
   SELECT id INTO v_viewer_profile_id FROM public.access_profile 
-  WHERE code = 'viewer' AND is_system = true LIMIT 1;
+  WHERE code = 'viewer' AND company_id = v_company_id LIMIT 1;
 
   -- Buscar auth users já criados (criados pelo lib.cjs)
   SELECT id INTO v_system_admin_auth_id FROM auth.users 
@@ -58,21 +62,54 @@ BEGIN
   WHERE email = 'user@aurea.com' LIMIT 1;
 
   -- =====================================================
-  -- 1) PROFISSIONAIS (3 profissionais)
+  -- 0) PROFISSÕES (Novas)
+  -- =====================================================
+  INSERT INTO public.profession (company_id, name, is_active)
+  VALUES 
+    (v_company_id, 'Médico', TRUE),
+    (v_company_id, 'Enfermeiro', TRUE),
+    (v_company_id, 'Técnico de Enfermagem', TRUE),
+    (v_company_id, 'Fisioterapeuta', TRUE),
+    (v_company_id, 'Nutricionista', TRUE),
+    (v_company_id, 'Farmacêutico', TRUE),
+    (v_company_id, 'Psicólogo', TRUE),
+    (v_company_id, 'Fonoaudiólogo', TRUE),
+    (v_company_id, 'Assistente Social', TRUE),
+    (v_company_id, 'Cuidador', TRUE),
+    (v_company_id, 'Outro', TRUE)
+  ON CONFLICT (company_id, name) DO UPDATE SET is_active = TRUE;
+
+  -- Recuperar IDs das profissões para uso posterior
+  SELECT id INTO v_medico_id FROM public.profession WHERE company_id = v_company_id AND name = 'Médico';
+  SELECT id INTO v_enfermeiro_id FROM public.profession WHERE company_id = v_company_id AND name = 'Enfermeiro';
+  SELECT id INTO v_tec_enfermagem_id FROM public.profession WHERE company_id = v_company_id AND name = 'Técnico de Enfermagem';
+  SELECT id INTO v_fisioterapeuta_id FROM public.profession WHERE company_id = v_company_id AND name = 'Fisioterapeuta';
+
+  -- =====================================================
+  -- 1) PROFISSIONAIS
   -- =====================================================
   INSERT INTO public.professional 
-    (company_id, code, name, role, council_type, council_number, council_uf, phone, email, active)
+    (company_id, code, name, profession_id, council_type, council_number, council_uf, phone, email, is_active)
   VALUES 
-    (v_company_id, 'E2E-PRO-001', 'Dra. Ana Silva', 'Médico', 'CRM', '123456', 'SP', '(11) 99999-0001', 'ana.silva@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-002', 'Enf. Carlos Santos', 'Enfermeiro', 'COREN', '654321', 'SP', '(11) 99999-0002', 'carlos.santos@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-003', 'Fisio. Maria Oliveira', 'Fisioterapeuta', 'CREFITO', '987654', 'SP', '(11) 99999-0003', 'maria.oliveira@e2e.local', TRUE)
+    (v_company_id, 'E2E-PRO-001', 'Ana Maria Silva', v_medico_id, 'CRM', '123456', 'RN', '(84) 99999-0001', 'ana.silva@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-002', 'Carlos Alexandre Santos', v_enfermeiro_id, 'COREN', '654321', 'RN', '(84) 99999-0002', 'carlos.santos@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-003', 'Maria Silva Oliveira', v_fisioterapeuta_id, 'CREFITO', '987654', 'RN', '(84) 99999-0003', 'maria.oliveira@e2e.local', TRUE),
+    -- Técnicos de Enfermagem
+    (v_company_id, 'E2E-PRO-004', 'Juliana Melo Lima', v_tec_enfermagem_id, 'COREN', '111111', 'RN', '(84) 99999-0004', 'juliana.lima@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-005', 'Roberto Carlos de Souza', v_tec_enfermagem_id, 'COREN', '222222', 'RN', '(84) 99999-0005', 'roberto.souza@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-006', 'Fernanda Silva da Costa', v_tec_enfermagem_id, 'COREN', '333333', 'RN', '(84) 99999-0006', 'fernanda.costa@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-007', 'Ricardo Emanuel Alves', v_tec_enfermagem_id, 'COREN', '444444', 'RN', '(84) 99999-0007', 'ricardo.alves@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-008', 'Maria de Fátima Costa e Silva', v_tec_enfermagem_id, 'COREN', '555555', 'RN', '(84) 99999-0008', 'maria.costa@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-009', 'Pedro Emanuel Lobo Alves', v_tec_enfermagem_id, 'COREN', '666666', 'RN', '(84) 99999-0009', 'pedro.alves@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-010', 'Rafaela Faria', v_tec_enfermagem_id, 'COREN', '777777', 'RN', '(84) 99999-0010', 'rafaela.faria@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-011', 'Helena Santos', v_tec_enfermagem_id, 'COREN', '888888', 'RN', '(84) 99999-0011', 'helena.santos@e2e.local', TRUE)
   ON CONFLICT (company_id, code) WHERE code IS NOT NULL DO NOTHING;
 
   -- =====================================================
   -- 2) PACIENTES (3 pacientes)
   -- =====================================================
   INSERT INTO public.patient 
-    (company_id, code, name, cpf, birth_date, gender, phone, email, active)
+    (company_id, code, name, cpf, birth_date, gender, phone, email, is_active)
   VALUES 
     (v_company_id, 'E2E-PAT-001', 'João da Silva', '12345678900', '1960-05-15', 'male', '(11) 98888-0001', 'joao.silva@e2e.local', TRUE),
     (v_company_id, 'E2E-PAT-002', 'Maria dos Santos', '23456789011', '1965-08-22', 'female', '(11) 98888-0002', 'maria.santos@e2e.local', TRUE),
@@ -83,7 +120,7 @@ BEGIN
   -- 3) MEDICAÇÕES (10 produtos de tipo medication)
   -- =====================================================
   INSERT INTO public.product 
-    (company_id, item_type, code, name, description, concentration, antibiotic, psychotropic, active)
+    (company_id, item_type, code, name, description, concentration, antibiotic, psychotropic, is_active)
   VALUES 
     (v_company_id, 'medication', 'E2E-MED-001', 'Dipirona 500mg', 'Analgésico e antitérmico', '500mg', FALSE, FALSE, TRUE),
     (v_company_id, 'medication', 'E2E-MED-002', 'Amoxicilina 500mg', 'Antibiótico betalactâmico', '500mg', TRUE, FALSE, TRUE),
@@ -116,39 +153,39 @@ BEGIN
   -- =====================================================
   IF v_system_admin_auth_id IS NOT NULL THEN
     INSERT INTO public.app_user 
-      (company_id, auth_user_id, name, email, role, active, access_profile_id)
+      (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
-      (v_company_id, v_system_admin_auth_id, 'Super Admin', 'superadmin@aurea.com', 'admin', true, v_admin_profile_id)
+      (v_company_id, v_system_admin_auth_id, 'Super Admin', 'superadmin@aurea.com', true, v_admin_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 
   IF v_admin_auth_id IS NOT NULL THEN
     INSERT INTO public.app_user 
-      (company_id, auth_user_id, name, email, role, active, access_profile_id)
+      (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
-      (v_company_id, v_admin_auth_id, 'Admin', 'admin@aurea.com', 'admin', true, v_admin_profile_id)
+      (v_company_id, v_admin_auth_id, 'Admin', 'admin@aurea.com', true, v_admin_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 
   IF v_manager_auth_id IS NOT NULL THEN
     INSERT INTO public.app_user 
-      (company_id, auth_user_id, name, email, role, active, access_profile_id)
+      (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
-      (v_company_id, v_manager_auth_id, 'Manager', 'manager@aurea.com', 'manager', true, v_manager_profile_id)
+      (v_company_id, v_manager_auth_id, 'Manager', 'manager@aurea.com', true, v_manager_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 
   IF v_user_auth_id IS NOT NULL THEN
     INSERT INTO public.app_user 
-      (company_id, auth_user_id, name, email, role, active, access_profile_id)
+      (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
-      (v_company_id, v_user_auth_id, 'User', 'user@aurea.com', 'viewer', true, v_viewer_profile_id)
+      (v_company_id, v_user_auth_id, 'User', 'user@aurea.com', true, v_viewer_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 
-  RAISE NOTICE 'Dev seed data applied successfully!';
-  RAISE NOTICE 'Company ID: %', v_company_id;
-  RAISE NOTICE 'Inserted: 3 professionals, 3 patients, 10 medications, 1 system user + 3 app users';
+  RAISE NOTICE 'Aplicado seed para ambiente de desenvolvimento com sucesso!';
+  RAISE NOTICE 'Criado Company ID: %', v_company_id;
+  RAISE NOTICE 'Inserido: 11 profissionais, 3 pacientes, 10 medicamentos, 1 system user + 3 app users';
 
 EXCEPTION WHEN OTHERS THEN
   RAISE WARNING 'SEED FALHOU: % (SQLSTATE: %)', SQLERRM, SQLSTATE;

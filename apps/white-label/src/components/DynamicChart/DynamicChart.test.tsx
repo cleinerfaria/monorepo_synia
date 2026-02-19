@@ -44,6 +44,9 @@ const mockChart = {
 describe('DynamicChart', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Suprimir logs de console durante testes
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   it('deve mostrar loading inicialmente', () => {

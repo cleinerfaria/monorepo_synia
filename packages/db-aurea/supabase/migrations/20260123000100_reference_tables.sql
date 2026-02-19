@@ -82,11 +82,6 @@ CREATE TABLE IF NOT EXISTS ref_import_batch (
 );
 
 -- Índices
-CREATE INDEX IF NOT EXISTS idx_ref_import_batch_source ON ref_import_batch(source_id);
-CREATE INDEX IF NOT EXISTS idx_ref_import_batch_company ON ref_import_batch(company_id);
-CREATE INDEX IF NOT EXISTS idx_ref_import_batch_status ON ref_import_batch(status);
-CREATE INDEX IF NOT EXISTS idx_ref_import_batch_file_hash ON ref_import_batch(file_hash);
-CREATE INDEX IF NOT EXISTS idx_ref_import_batch_created ON ref_import_batch(created_at DESC);
 
 -- =============================================
 -- Tabela: ref_import_error
@@ -104,7 +99,6 @@ CREATE TABLE IF NOT EXISTS ref_import_error (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_ref_import_error_batch ON ref_import_error(batch_id);
 
 -- =============================================
 -- Tabela: ref_item
@@ -164,15 +158,6 @@ CREATE TABLE IF NOT EXISTS ref_item (
 
 -- Índices
 CREATE INDEX IF NOT EXISTS idx_ref_item_source ON ref_item(source_id);
-CREATE INDEX IF NOT EXISTS idx_ref_item_company ON ref_item(company_id);
-CREATE INDEX IF NOT EXISTS idx_ref_item_external_code ON ref_item(external_code);
-CREATE INDEX IF NOT EXISTS idx_ref_item_ean ON ref_item(ean) WHERE ean IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_ref_item_product_name ON ref_item USING gin(to_tsvector('portuguese', product_name));
-CREATE INDEX IF NOT EXISTS idx_ref_item_tiss ON ref_item(tiss) WHERE tiss IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_ref_item_tuss ON ref_item(tuss) WHERE tuss IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_ref_item_manufacturer_code ON ref_item(manufacturer_code) WHERE manufacturer_code IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_ref_item_category ON ref_item(category);
-CREATE INDEX IF NOT EXISTS idx_ref_item_active ON ref_item(is_active);
 
 -- =============================================
 -- Tabela: ref_price_history
@@ -204,12 +189,7 @@ CREATE TABLE IF NOT EXISTS ref_price_history (
 );
 
 -- Índices para performance
-CREATE INDEX IF NOT EXISTS idx_ref_price_history_item ON ref_price_history(item_id);
 CREATE INDEX IF NOT EXISTS idx_ref_price_history_batch ON ref_price_history(import_batch_id);
-CREATE INDEX IF NOT EXISTS idx_ref_price_history_type ON ref_price_history(price_type);
-CREATE INDEX IF NOT EXISTS idx_ref_price_history_valid ON ref_price_history(valid_from DESC);
-CREATE INDEX IF NOT EXISTS idx_ref_price_history_item_type_date ON ref_price_history(item_id, price_type, valid_from DESC);
-CREATE INDEX IF NOT EXISTS idx_ref_price_history_import_batch ON ref_price_history(import_batch_id);
 
 -- =============================================
 -- Tabela: product_ref_link
@@ -237,10 +217,6 @@ CREATE TABLE IF NOT EXISTS product_ref_link (
 );
 
 -- Índices
-CREATE INDEX IF NOT EXISTS idx_product_ref_link_company ON product_ref_link(company_id);
-CREATE INDEX IF NOT EXISTS idx_product_ref_link_product ON product_ref_link(product_id);
-CREATE INDEX IF NOT EXISTS idx_product_ref_link_ref_item ON product_ref_link(ref_item_id);
-CREATE INDEX IF NOT EXISTS idx_product_ref_link_source ON product_ref_link(source_id);
 
 -- Trigger para updated_at
 CREATE TRIGGER update_product_ref_link_updated_at

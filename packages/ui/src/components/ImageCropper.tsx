@@ -1,16 +1,16 @@
-import { useState, useCallback } from 'react'
-import Cropper from 'react-easy-crop'
-import { Point, Area } from 'react-easy-crop'
-import { Button } from './Button'
-import { Modal, ModalFooter } from './Modal'
+import { useState, useCallback } from 'react';
+import Cropper from 'react-easy-crop';
+import { Point, Area } from 'react-easy-crop';
+import { Button } from './Button';
+import { Modal, ModalFooter } from './Modal';
 
 interface ImageCropperProps {
-  isOpen: boolean
-  onClose: () => void
-  imageSrc: string
-  onCropComplete: (croppedImage: Blob) => void
-  aspect?: number
-  title?: string
+  isOpen: boolean;
+  onClose: () => void;
+  imageSrc: string;
+  onCropComplete: (croppedImage: Blob) => void;
+  aspect?: number;
+  title?: string;
 }
 
 export function ImageCropper({
@@ -21,40 +21,40 @@ export function ImageCropper({
   aspect = 1,
   title = 'Recortar Imagem',
 }: ImageCropperProps) {
-  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
-  const [zoom, setZoom] = useState(1)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const onCropChange = (location: Point) => {
-    setCrop(location)
-  }
+    setCrop(location);
+  };
 
   const onCropCompleteHandler = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels)
-  }, [])
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
 
   const createCroppedImage = async () => {
-    if (!croppedAreaPixels) return
+    if (!croppedAreaPixels) return;
 
-    setIsProcessing(true)
+    setIsProcessing(true);
     try {
-      const image = new Image()
-      image.src = imageSrc
+      const image = new Image();
+      image.src = imageSrc;
 
       await new Promise((resolve) => {
-        image.onload = resolve
-      })
+        image.onload = resolve;
+      });
 
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
 
       if (!ctx) {
-        throw new Error('Failed to get canvas context')
+        throw new Error('Failed to get canvas context');
       }
 
-      canvas.width = croppedAreaPixels.width
-      canvas.height = croppedAreaPixels.height
+      canvas.width = croppedAreaPixels.width;
+      canvas.height = croppedAreaPixels.height;
 
       ctx.drawImage(
         image,
@@ -66,36 +66,36 @@ export function ImageCropper({
         0,
         croppedAreaPixels.width,
         croppedAreaPixels.height
-      )
+      );
 
       return new Promise<Blob>((resolve, reject) => {
         canvas.toBlob((blob) => {
           if (blob) {
-            resolve(blob)
+            resolve(blob);
           } else {
-            reject(new Error('Failed to create blob'))
+            reject(new Error('Failed to create blob'));
           }
-        }, 'image/png')
-      })
+        }, 'image/png');
+      });
     } catch (error) {
-      console.error('Error cropping image:', error)
-      throw error
+      console.error('Error cropping image:', error);
+      throw error;
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   const handleSave = async () => {
     try {
-      const croppedImage = await createCroppedImage()
+      const croppedImage = await createCroppedImage();
       if (croppedImage) {
-        onCropComplete(croppedImage)
-        onClose()
+        onCropComplete(croppedImage);
+        onClose();
       }
     } catch (error) {
-      console.error('Error saving cropped image:', error)
+      console.error('Error saving cropped image:', error);
     }
-  }
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
@@ -123,7 +123,7 @@ export function ImageCropper({
             step={0.1}
             value={zoom}
             onChange={(e) => setZoom(Number(e.target.value))}
-            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-primary-600 dark:bg-gray-700"
+            className="accent-primary-600 h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
           />
         </div>
 
@@ -139,7 +139,7 @@ export function ImageCropper({
       </div>
 
       <ModalFooter>
-        <Button type="button" variant="secondary" onClick={onClose}>
+        <Button type="button" variant="neutral" onClick={onClose}>
           Cancelar
         </Button>
         <Button
@@ -152,5 +152,5 @@ export function ImageCropper({
         </Button>
       </ModalFooter>
     </Modal>
-  )
+  );
 }

@@ -828,10 +828,13 @@ export default function NfeImportDetailPage() {
       document: data.document ? data.document.replace(/\D/g, '') : null,
       email: data.email || null,
       phone: data.phone || null,
-      address: data.address || null,
+      street: data.address || null,
+      number: null,
+      complement: null,
+      district: null,
       city: data.city || null,
       state: data.state || null,
-      zip_code: data.zip_code || null,
+      zip: data.zip_code || null,
       active: true,
     });
 
@@ -2011,7 +2014,7 @@ export default function NfeImportDetailPage() {
               <div className="flex items-center gap-2">
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="neutral"
                   onClick={() => setIsMappingModalOpen(false)}
                   showIcon={false}
                 >
@@ -2059,7 +2062,7 @@ export default function NfeImportDetailPage() {
           <ModalFooter>
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={() => setIsProcessModalOpen(false)}
               showIcon={false}
             >
@@ -2299,7 +2302,7 @@ export default function NfeImportDetailPage() {
             <ModalFooter>
               <Button
                 type="button"
-                variant="secondary"
+                variant="neutral"
                 onClick={() => {
                   setIsNewPresentationModalOpen(false);
                   setProductForNewPresentation(null);
@@ -2359,7 +2362,7 @@ export default function NfeImportDetailPage() {
           <ModalFooter>
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={() => setIsNewManufacturerModalOpen(false)}
             >
               Cancelar
@@ -2464,7 +2467,7 @@ export default function NfeImportDetailPage() {
           <ModalFooter>
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={() => setIsNewSupplierModalOpen(false)}
             >
               Cancelar
@@ -2508,7 +2511,7 @@ export default function NfeImportDetailPage() {
           <ModalFooter>
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={() => setIsLinkSupplierModalOpen(false)}
             >
               Cancelar
@@ -2562,12 +2565,12 @@ export default function NfeImportDetailPage() {
           <ModalFooter>
             <Button
               type="button"
-              variant="secondary"
+              variant="neutral"
               onClick={() => setIsProductExistsModalOpen(false)}
             >
               Cancelar
             </Button>
-            <Button type="button" variant="secondary" onClick={handleProductDoesNotExist}>
+            <Button type="button" variant="neutral" onClick={handleProductDoesNotExist}>
               <Plus className="h-5 w-5" />
               Não, cadastrar
             </Button>
@@ -2773,7 +2776,7 @@ export default function NfeImportDetailPage() {
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant="secondary"
+                variant="neutral"
                 onClick={() => {
                   setIsSelectProductForPresentationModalOpen(false);
                   setSelectedProductId('');

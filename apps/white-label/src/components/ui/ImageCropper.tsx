@@ -138,7 +138,7 @@ export function ImageCropper({
       </div>
 
       <ModalFooter>
-        <Button type="button" variant="secondary" onClick={onClose}>
+        <Button type="button" variant="neutral" onClick={onClose}>
           Cancelar
         </Button>
         <Button

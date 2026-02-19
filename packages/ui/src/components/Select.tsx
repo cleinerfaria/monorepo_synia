@@ -1,46 +1,46 @@
-import { useState, useRef, useEffect, forwardRef, ChangeEvent, FocusEvent, Ref } from 'react'
-import { createPortal } from 'react-dom'
-import { clsx } from 'clsx'
-import { Check, ChevronsUpDown, X } from 'lucide-react'
+import { useState, useRef, useEffect, forwardRef, ChangeEvent, FocusEvent, Ref } from 'react';
+import { createPortal } from 'react-dom';
+import { clsx } from 'clsx';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
 // ChangeHandler type from react-hook-form
-type ChangeHandler = (event: { target: { value: string; name?: string }; type?: string }) => void
+type ChangeHandler = (event: { target: { value: string; name?: string }; type?: string }) => void;
 
 export interface SelectOption {
-  value: string
-  label: string
-  description?: string
-  icon?: React.ComponentType<{ className?: string }>
+  value: string;
+  label: string;
+  description?: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 export interface SelectProps {
-  label?: string
-  error?: string
-  options: SelectOption[]
-  placeholder?: string
-  searchPlaceholder?: string
-  value?: string
-  defaultValue?: string
+  label?: string;
+  error?: string;
+  options: SelectOption[];
+  placeholder?: string;
+  searchPlaceholder?: string;
+  value?: string;
+  defaultValue?: string;
   onChange?:
     | ((value: string) => void)
     | ((event: ChangeEvent<HTMLInputElement>) => void)
-    | ChangeHandler
-  onBlur?: (() => void) | ((event: FocusEvent<HTMLInputElement>) => void) | ChangeHandler
-  onSearch?: (searchTerm: string) => void
-  name?: string
-  required?: boolean
-  disabled?: boolean
-  className?: string
-  emptyMessage?: string
+    | ChangeHandler;
+  onBlur?: (() => void) | ((event: FocusEvent<HTMLInputElement>) => void) | ChangeHandler;
+  onSearch?: (searchTerm: string) => void;
+  name?: string;
+  required?: boolean;
+  disabled?: boolean;
+  className?: string;
+  emptyMessage?: string;
   /** Valor externo para definir a busca programaticamente */
-  searchValue?: string
+  searchValue?: string;
   /** Callback para criar novo item quando não encontrado */
-  onCreateNew?: () => void
+  onCreateNew?: () => void;
   /** Label do botão de criar novo (padrão: "Cadastrar novo") */
-  createNewLabel?: string
+  createNewLabel?: string;
   /** Estado de carregamento */
-  isLoading?: boolean
+  isLoading?: boolean;
   /** Ref opcional para o input visível (campo de busca) */
-  searchInputRef?: Ref<HTMLInputElement>
+  searchInputRef?: Ref<HTMLInputElement>;
 }
 
 export const Select = forwardRef<HTMLInputElement, SelectProps>(
@@ -69,135 +69,135 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
     },
     ref
   ) => {
-    const [internalValue, setInternalValue] = useState<string>(value || defaultValue || '')
-    const [isOpen, setIsOpen] = useState(false)
-    const [searchQuery, setSearchQuery] = useState('')
-    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
-    const [focusedIndex, setFocusedIndex] = useState<number | null>(null)
+    const [internalValue, setInternalValue] = useState<string>(value || defaultValue || '');
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
-    const containerRef = useRef<HTMLDivElement>(null)
-    const searchInputRef = useRef<HTMLInputElement>(null)
-    const hiddenInputRef = useRef<HTMLInputElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const hiddenInputRef = useRef<HTMLInputElement>(null);
 
     // Sync with external value
     useEffect(() => {
       if (value !== undefined) {
-        setInternalValue(value)
+        setInternalValue(value);
         // Clear search query when external value changes to show the selected item clearly
         if (value) {
-          setSearchQuery('')
+          setSearchQuery('');
         }
       }
-    }, [value])
+    }, [value]);
 
     // Sync with external search value
     useEffect(() => {
       if (searchValue !== undefined && searchValue !== searchQuery) {
-        setSearchQuery(searchValue)
+        setSearchQuery(searchValue);
         // Abrir o dropdown quando uma busca externa é definida
         if (searchValue && !isOpen) {
-          setIsOpen(true)
+          setIsOpen(true);
         }
         // Chamar onSearch se definido
         if (onSearch) {
-          onSearch(searchValue)
+          onSearch(searchValue);
         }
       }
-    }, [searchValue, searchQuery, isOpen, onSearch])
+    }, [searchValue, searchQuery, isOpen, onSearch]);
 
     // Update dropdown position when opening
     useEffect(() => {
       if (isOpen && containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect()
+        const rect = containerRef.current.getBoundingClientRect();
         // Encontra o input dentro do container
         const input = containerRef.current.querySelector(
           'input:not([type="hidden"])'
-        ) as HTMLInputElement
-        const inputRect = input?.getBoundingClientRect()
+        ) as HTMLInputElement;
+        const inputRect = input?.getBoundingClientRect();
 
         setDropdownPosition({
           top: (inputRect?.bottom || rect.bottom) + 4,
           left: rect.left,
           width: rect.width,
-        })
+        });
 
         // Focus search input when opening
         setTimeout(() => {
-          searchInputRef.current?.focus()
-        }, 10)
+          searchInputRef.current?.focus();
+        }, 10);
       }
-    }, [isOpen])
+    }, [isOpen]);
 
     // Close on outside click
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
           // Check if click is in portal
-          const portalElement = document.getElementById('searchable-select-portal')
+          const portalElement = document.getElementById('searchable-select-portal');
           if (portalElement && portalElement.contains(event.target as Node)) {
-            return
+            return;
           }
-          setIsOpen(false)
-          setSearchQuery('')
+          setIsOpen(false);
+          setSearchQuery('');
         }
-      }
+      };
 
       if (isOpen) {
-        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener('mousedown', handleClickOutside);
       }
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [isOpen])
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen]);
 
     // Handle keyboard events (escape, tab, arrows)
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
-          setIsOpen(false)
-          setSearchQuery('')
-          setFocusedIndex(null)
-          searchInputRef.current?.focus()
+          setIsOpen(false);
+          setSearchQuery('');
+          setFocusedIndex(null);
+          searchInputRef.current?.focus();
         }
-      }
+      };
 
       if (isOpen) {
-        document.addEventListener('keydown', handleKeyDown)
+        document.addEventListener('keydown', handleKeyDown);
       }
-      return () => document.removeEventListener('keydown', handleKeyDown)
-    }, [isOpen])
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen]);
 
-    const selectedOption = options.find((opt) => opt.value === internalValue)
+    const selectedOption = options.find((opt) => opt.value === internalValue);
 
     // Filter options based on search
     // When onSearch is provided, the backend already filters, so skip local filtering
     const filteredOptions = onSearch
       ? options
       : options.filter((option) => {
-          const query = searchQuery.toLowerCase()
+          const query = searchQuery.toLowerCase();
           return (
             option.label.toLowerCase().includes(query) ||
             option.description?.toLowerCase().includes(query) ||
             option.value.toLowerCase().includes(query)
-          )
-        })
+          );
+        });
 
     const handleSelect = (option: SelectOption) => {
-      const newValue = option.value
-      setInternalValue(newValue)
-      setIsOpen(false)
-      setSearchQuery('')
-      setFocusedIndex(null)
-      searchInputRef.current?.focus()
+      const newValue = option.value;
+      setInternalValue(newValue);
+      setIsOpen(false);
+      setSearchQuery('');
+      setFocusedIndex(null);
+      searchInputRef.current?.focus();
 
       // Trigger change on hidden input for react-hook-form
       if (hiddenInputRef.current) {
         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
           window.HTMLInputElement.prototype,
           'value'
-        )?.set
-        nativeInputValueSetter?.call(hiddenInputRef.current, newValue)
+        )?.set;
+        nativeInputValueSetter?.call(hiddenInputRef.current, newValue);
 
-        const event = new Event('change', { bubbles: true })
-        hiddenInputRef.current.dispatchEvent(event)
+        const event = new Event('change', { bubbles: true });
+        hiddenInputRef.current.dispatchEvent(event);
       }
 
       // Call onChange immediately with the new value
@@ -206,39 +206,39 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
           target: { value: newValue, name: name || '' },
           currentTarget: { value: newValue, name: name || '' },
           type: 'change',
-        } as ChangeEvent<HTMLInputElement>
-        ;(onChange as (event: ChangeEvent<HTMLInputElement>) => void)(syntheticEvent)
+        } as ChangeEvent<HTMLInputElement>;
+        (onChange as (event: ChangeEvent<HTMLInputElement>) => void)(syntheticEvent);
       }
-    }
+    };
 
     const handleClear = (e: React.MouseEvent) => {
-      e.stopPropagation()
-      handleSelect({ value: '', label: '' })
-    }
+      e.stopPropagation();
+      handleSelect({ value: '', label: '' });
+    };
 
     const assignRef = (
       targetRef: Ref<HTMLInputElement> | undefined,
       el: HTMLInputElement | null
     ) => {
-      if (!targetRef) return
+      if (!targetRef) return;
       if (typeof targetRef === 'function') {
-        targetRef(el)
-        return
+        targetRef(el);
+        return;
       }
-      ;(targetRef as React.MutableRefObject<HTMLInputElement | null>).current = el
-    }
+      (targetRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+    };
 
     // Merge refs
     const setRefs = (el: HTMLInputElement | null) => {
-      ;(hiddenInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el
-      assignRef(ref, el)
-    }
+      (hiddenInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+      assignRef(ref, el);
+    };
 
     // Merge refs for search input (visible input)
     const setSearchInputRefs = (el: HTMLInputElement | null) => {
-      ;(searchInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el
-      assignRef(externalSearchInputRef, el)
-    }
+      (searchInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+      assignRef(externalSearchInputRef, el);
+    };
 
     const dropdownContent = (
       <div
@@ -257,7 +257,7 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
               <li className="px-4 py-8 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <svg
-                    className="h-4 w-4 animate-spin text-primary-500"
+                    className="text-primary-500 h-4 w-4 animate-spin"
                     fill="none"
                     viewBox="0 0 24 24"
                   >
@@ -285,11 +285,11 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
                   <button
                     type="button"
                     onClick={() => {
-                      setIsOpen(false)
-                      setSearchQuery('')
-                      onCreateNew()
+                      setIsOpen(false);
+                      setSearchQuery('');
+                      onCreateNew();
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600/10 px-3 py-1.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:hover:bg-primary-400/20"
+                    className="bg-primary-600/10 text-primary-600 hover:bg-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:hover:bg-primary-400/20 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -305,7 +305,7 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
               </li>
             ) : (
               filteredOptions.map((option, index) => {
-                const isSelected = option.value === internalValue
+                const isSelected = option.value === internalValue;
                 return (
                   <li
                     key={option.value}
@@ -320,53 +320,53 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
                     onFocus={() => setFocusedIndex(index)}
                     onBlur={(e) => {
                       // Só limpar o focusedIndex se não estiver indo para outra opção ou input
-                      const relatedTarget = e.relatedTarget as HTMLElement
-                      const isMovingToInput = relatedTarget === searchInputRef.current
+                      const relatedTarget = e.relatedTarget as HTMLElement;
+                      const isMovingToInput = relatedTarget === searchInputRef.current;
                       const isMovingToOption =
-                        relatedTarget?.getAttribute('data-option-index') !== null
+                        relatedTarget?.getAttribute('data-option-index') !== null;
 
                       if (!isMovingToInput && !isMovingToOption) {
-                        setFocusedIndex(null)
+                        setFocusedIndex(null);
                       }
                     }}
                     onKeyDown={(e) => {
                       // Evitar propagação para não interferir com o modal
-                      e.stopPropagation()
+                      e.stopPropagation();
 
                       if (e.key === 'ArrowDown') {
-                        e.preventDefault()
+                        e.preventDefault();
                         if (index < filteredOptions.length - 1) {
-                          const nextIndex = index + 1
-                          setFocusedIndex(nextIndex)
+                          const nextIndex = index + 1;
+                          setFocusedIndex(nextIndex);
                           const nextOption = document.querySelector(
                             `[data-option-index="${nextIndex}"]`
-                          ) as HTMLLIElement
-                          setTimeout(() => nextOption?.focus(), 0)
+                          ) as HTMLLIElement;
+                          setTimeout(() => nextOption?.focus(), 0);
                         }
                       }
                       if (e.key === 'ArrowUp') {
-                        e.preventDefault()
+                        e.preventDefault();
                         if (index > 0) {
-                          const prevIndex = index - 1
-                          setFocusedIndex(prevIndex)
+                          const prevIndex = index - 1;
+                          setFocusedIndex(prevIndex);
                           const prevOption = document.querySelector(
                             `[data-option-index="${prevIndex}"]`
-                          ) as HTMLLIElement
-                          setTimeout(() => prevOption?.focus(), 0)
+                          ) as HTMLLIElement;
+                          setTimeout(() => prevOption?.focus(), 0);
                         } else {
                           // Voltar para input de busca
-                          setFocusedIndex(null)
-                          searchInputRef.current?.focus()
+                          setFocusedIndex(null);
+                          searchInputRef.current?.focus();
                         }
                       }
                       if (e.key === 'Tab') {
-                        e.preventDefault()
+                        e.preventDefault();
                         // Selecionar item atual com Tab
-                        handleSelect(option)
+                        handleSelect(option);
                       }
                       if (e.key === 'Enter') {
-                        e.preventDefault()
-                        handleSelect(option)
+                        e.preventDefault();
+                        handleSelect(option);
                       }
                     }}
                   >
@@ -389,17 +389,17 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
                     </div>
                     {isSelected && (
                       <span className="absolute inset-y-0 left-0 flex items-center pl-2">
-                        <Check className="h-4 w-4 text-primary-500" />
+                        <Check className="text-primary-500 h-4 w-4" />
                       </span>
                     )}
                   </li>
-                )
+                );
               })
             )}
           </ul>
         </div>
       </div>
-    )
+    );
 
     return (
       <div ref={containerRef} className={clsx('relative', className)}>
@@ -414,8 +414,8 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
               const syntheticEvent = {
                 target: { value: internalValue, name: name || '' },
                 type: 'blur',
-              }
-              ;(onBlur as ChangeHandler)(syntheticEvent)
+              };
+              (onBlur as ChangeHandler)(syntheticEvent);
             }
           }}
         />
@@ -435,86 +435,86 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
             placeholder={isOpen ? searchPlaceholder : selectedOption ? '' : placeholder}
             value={isOpen ? searchQuery : selectedOption?.label || ''}
             onChange={(e) => {
-              const newValue = e.target.value
-              setSearchQuery(newValue)
+              const newValue = e.target.value;
+              setSearchQuery(newValue);
               // Abrir dropdown automaticamente ao digitar
               if (newValue && !isOpen) {
-                setIsOpen(true)
+                setIsOpen(true);
               }
               if (onSearch) {
-                onSearch(newValue)
+                onSearch(newValue);
               }
             }}
             onFocus={() => {
               if (!disabled && !isOpen) {
-                setIsOpen(true)
+                setIsOpen(true);
               }
             }}
             onBlur={(e) => {
               // Só fechar se o foco não for para uma opção do dropdown
-              const relatedTarget = e.relatedTarget as HTMLElement
-              const isMovingToDropdown = relatedTarget?.getAttribute('data-option-index') !== null
+              const relatedTarget = e.relatedTarget as HTMLElement;
+              const isMovingToDropdown = relatedTarget?.getAttribute('data-option-index') !== null;
 
               if (!isMovingToDropdown) {
                 // Fechar dropdown ao perder foco (mas não quando vai para o dropdown)
                 setTimeout(() => {
                   // Verificar novamente se o foco não está no dropdown
-                  const activeElement = document.activeElement as HTMLElement
-                  const isInDropdown = activeElement?.getAttribute('data-option-index') !== null
+                  const activeElement = document.activeElement as HTMLElement;
+                  const isInDropdown = activeElement?.getAttribute('data-option-index') !== null;
 
                   if (!isInDropdown) {
-                    setIsOpen(false)
-                    setSearchQuery('')
+                    setIsOpen(false);
+                    setSearchQuery('');
                   }
-                }, 150)
+                }, 150);
               }
             }}
             onKeyDown={(e) => {
               if (e.key === 'ArrowDown' && isOpen && filteredOptions.length > 0) {
-                e.preventDefault()
-                e.stopPropagation() // Evita que o evento se propague para o modal
+                e.preventDefault();
+                e.stopPropagation(); // Evita que o evento se propague para o modal
                 // Focar na primeira opção
                 if (focusedIndex === null) {
-                  setFocusedIndex(0)
+                  setFocusedIndex(0);
                   const firstOption = document.querySelector(
                     '[data-option-index="0"]'
-                  ) as HTMLLIElement
-                  setTimeout(() => firstOption?.focus(), 0)
+                  ) as HTMLLIElement;
+                  setTimeout(() => firstOption?.focus(), 0);
                 }
               }
               if (e.key === 'ArrowUp' && isOpen) {
-                e.preventDefault()
-                e.stopPropagation() // Evita que o evento se propague para o modal
+                e.preventDefault();
+                e.stopPropagation(); // Evita que o evento se propague para o modal
               }
               if (e.key === 'Escape') {
-                e.stopPropagation() // Deixa o próprio componente lidar com o escape
+                e.stopPropagation(); // Deixa o próprio componente lidar com o escape
               }
               if (e.key === 'Enter' && isOpen) {
-                e.stopPropagation() // Evita que o modal seja fechado ao selecionar
+                e.stopPropagation(); // Evita que o modal seja fechado ao selecionar
                 // Se há filteredOptions, selecionar o primeiro
                 if (filteredOptions.length > 0) {
-                  e.preventDefault()
-                  handleSelect(filteredOptions[0])
+                  e.preventDefault();
+                  handleSelect(filteredOptions[0]);
                 }
               }
               if (e.key === 'Tab' && isOpen && filteredOptions.length > 0) {
-                e.preventDefault()
-                e.stopPropagation() // Evita que o modal seja fechado
+                e.preventDefault();
+                e.stopPropagation(); // Evita que o modal seja fechado
                 // Selecionar primeiro item da lista com Tab
-                handleSelect(filteredOptions[0])
+                handleSelect(filteredOptions[0]);
               }
             }}
             className={clsx(
               'relative w-full px-3 py-1.5 pl-4 pr-10 text-sm',
               'bg-surface-elevated',
-              'border border-gray-200 hover:border-gray-300 focus:border-primary-500 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:border-primary-500',
+              'focus:border-primary-500 dark:focus:border-primary-500 border border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500',
               'shadow-sm hover:shadow-lg',
               'rounded-xl',
               error
                 ? 'border-red-500 dark:border-red-500'
-                : 'border-gray-200 hover:border-gray-300 focus:border-primary-500 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:border-primary-500',
+                : 'focus:border-primary-500 dark:focus:border-primary-500 border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500',
               !disabled && 'hover:border-gray-300 dark:hover:border-gray-600',
-              'focus:outline-none focus:ring-4 focus:ring-primary-500/10',
+              'focus:ring-primary-500/10 focus:outline-none focus:ring-2',
               'text-gray-900 dark:text-white',
               'placeholder:text-gray-400',
               disabled && 'cursor-not-allowed opacity-50'
@@ -524,27 +524,26 @@ export const Select = forwardRef<HTMLInputElement, SelectProps>(
           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center gap-1 pr-3">
             <ChevronsUpDown className="h-5 w-5 text-gray-400" />
           </span>
-        </div>
 
-        {internalValue && !disabled && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="absolute right-8 top-1/2 z-10 translate-y-[-10%] rounded-full p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
-            tabIndex={-1}
-          >
-            <X className="h-4 w-4 text-gray-400" />
-          </button>
-        )}
+          {internalValue && !disabled && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="absolute inset-y-0 right-8 z-10 flex items-center rounded-full p-0"
+              tabIndex={-1}
+            >
+              <X className="h-4 w-4 text-gray-400" />
+            </button>
+          )}
+        </div>
 
         {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
 
         {/* Dropdown via Portal */}
         {isOpen && createPortal(dropdownContent, document.body)}
       </div>
-    )
+    );
   }
-)
+);
 
-Select.displayName = 'Select'
-
+Select.displayName = 'Select';

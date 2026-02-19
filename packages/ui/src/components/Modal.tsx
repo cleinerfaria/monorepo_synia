@@ -1,18 +1,19 @@
-import { Fragment, ReactNode } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import { clsx } from 'clsx'
-import { X } from 'lucide-react'
+import { Fragment, ReactNode } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { clsx } from 'clsx';
+import { X } from 'lucide-react';
 interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title?: string
-  description?: string
-  children: ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full' | 'screen'
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  description?: string;
+  children: ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full' | 'screen';
+  panelClassName?: string;
   /** Se true, não fecha ao clicar no backdrop ou pressionar ESC */
-  static?: boolean
+  static?: boolean;
   /** Se true, usa z-index maior para modais aninhados */
-  nested?: boolean
+  nested?: boolean;
 }
 
 export function Modal({
@@ -22,6 +23,7 @@ export function Modal({
   description,
   children,
   size = 'md',
+  panelClassName,
   static: isStatic = false,
   nested = false,
 }: ModalProps) {
@@ -33,7 +35,7 @@ export function Modal({
     '2xl': 'max-w-5xl',
     full: 'max-w-[90vw]',
     screen: 'w-[80vw] h-[80vh]',
-  }
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -52,7 +54,7 @@ export function Modal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-overlay/50 backdrop-blur-sm" />
+          <div className="bg-overlay/50 fixed inset-0 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -73,30 +75,31 @@ export function Modal({
                   'p-6 shadow-2xl transition-all',
                   size !== 'screen' && 'w-full',
                   size === 'screen' && 'flex flex-col',
-                  sizes[size]
+                  sizes[size],
+                  panelClassName
                 )}
               >
                 {(title || description) && (
-                  <div className={size === 'screen' ? 'mb-4 flex-shrink-0' : 'mb-6'}>
+                  <div className={size === 'screen' ? 'mb-2 flex-shrink-0' : 'mb-2'}>
                     <div className="flex items-start justify-between">
                       {title && (
                         <Dialog.Title
                           as="h3"
-                          className="font-display text-xl font-semibold text-content-primary"
+                          className="font-display text-content-primary text-xl font-semibold"
                         >
                           {title}
                         </Dialog.Title>
                       )}
                       <button
                         type="button"
-                        className="rounded-lg p-1 text-content-muted transition-colors hover:bg-surface-hover hover:text-content-secondary"
+                        className="text-content-muted hover:bg-surface-hover hover:text-content-secondary rounded-lg p-1 transition-colors"
                         onClick={onClose}
                       >
                         <X className="h-5 w-5" />
                       </button>
                     </div>
                     {description && (
-                      <Dialog.Description className="mt-2 text-sm text-content-muted">
+                      <Dialog.Description className="text-content-muted mt-2 text-sm">
                         {description}
                       </Dialog.Description>
                     )}
@@ -114,16 +117,17 @@ export function Modal({
         </div>
       </Dialog>
     </Transition>
-  )
+  );
 }
 
 interface ModalFooterProps {
-  children: ReactNode
-  className?: string
+  children: ReactNode;
+  className?: string;
 }
 
 export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
     <div className={clsx('mt-6 flex items-center justify-end gap-3', className)}>{children}</div>
-  )
+  );
 }
+

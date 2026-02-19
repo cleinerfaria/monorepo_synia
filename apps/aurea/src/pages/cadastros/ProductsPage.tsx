@@ -1,7 +1,7 @@
 ﻿import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
-import { Archive, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX } from 'lucide-react';
+import { Archive, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -407,7 +407,12 @@ export default function ProductsPage() {
             Produtos
           </h1>
         </div>
-        <Button onClick={() => navigate(newProductUrl)} variant="solid" label="Novo Produto" />
+        <Button
+          onClick={() => navigate(newProductUrl)}
+          variant="solid"
+          icon={<Plus className="h-4 w-4" />}
+          label="Novo Produto"
+        />
       </div>
 
       {/* Table */}
@@ -440,7 +445,7 @@ export default function ProductsPage() {
                 variant="filter"
                 active={Boolean(showFilters || hasActiveFilters)}
                 onClick={() => setShowFilters(!showFilters)}
-                icon={<Funnel className="mr-1 h-4 w-4" />}
+                icon={<Funnel className="h-4 w-4" />}
                 count={
                   [
                     searchTerm,
@@ -451,7 +456,6 @@ export default function ProductsPage() {
                     statusFilter,
                   ].filter(Boolean).length
                 }
-                className="min-w-24 justify-center"
               />
               {hasActiveFilters && (
                 <Button
@@ -599,6 +603,7 @@ export default function ProductsPage() {
                   action={
                     <Button
                       onClick={() => navigate(newProductUrl)}
+                      icon={<Plus className="h-4 w-4" />}
                       variant="solid"
                       label="Novo Produto"
                     />

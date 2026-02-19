@@ -341,7 +341,7 @@ export default function ReferenceImportModal({
                         onChange={handleFileChange}
                         className="hidden"
                       />
-                      <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
+                      <Button variant="neutral" onClick={() => fileInputRef.current?.click()}>
                         Selecionar Arquivo
                       </Button>
                       <p className="mt-4 text-xs text-gray-500">
@@ -647,7 +647,7 @@ export default function ReferenceImportModal({
                         {/* Abort Button */}
                         <div className="mt-6 flex justify-center">
                           <Button
-                            variant="secondary"
+                            variant="neutral"
                             onClick={() => {
                               processImport.abortImport();
                               setStep('preview');
@@ -718,7 +718,7 @@ export default function ReferenceImportModal({
                 {/* Footer */}
                 <div className="flex items-center justify-end gap-3 border-t border-gray-200 p-6 dark:border-gray-700">
                   {step === 'upload' && (
-                    <Button variant="secondary" onClick={handleClose} showIcon={false}>
+                    <Button variant="neutral" onClick={handleClose} showIcon={false}>
                       Cancelar
                     </Button>
                   )}
@@ -726,7 +726,7 @@ export default function ReferenceImportModal({
                   {step === 'preview' && (
                     <>
                       <Button
-                        variant="secondary"
+                        variant="neutral"
                         onClick={() => {
                           setFile(null);
                           setStep('upload');

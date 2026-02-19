@@ -8,9 +8,9 @@
 -- Verificar se há movimentações com quantidade negativa e corrigi-las
 -- (Isso pode ocorrer se a conversão resultou em número negativo)
 UPDATE stock_movement
-SET qty = ABS(qty),
+SET quantity = ABS(quantity),
     unit_cost = ABS(unit_cost)
-WHERE movement_type = 'IN' AND qty < 0;
+WHERE movement_type = 'in' AND quantity < 0;
 
 -- Atualizar o stock_balance para refletir as correções
 -- Este procedimento recalcula o saldo baseado em todas as movimentações
@@ -32,9 +32,9 @@ BEGIN
         -- Calcular quantidade total
         SELECT COALESCE(SUM(
             CASE 
-                WHEN movement_type = 'IN' THEN qty
-                WHEN movement_type = 'OUT' THEN -qty
-                WHEN movement_type = 'ADJUST' THEN qty
+                WHEN movement_type = 'in' THEN quantity
+                WHEN movement_type = 'out' THEN -quantity
+                WHEN movement_type = 'adjust' THEN quantity
             END
         ), 0)
         INTO v_total_qty
@@ -52,7 +52,7 @@ BEGIN
             WHERE company_id = v_company_id
               AND location_id = v_location_id
               AND product_id = v_product_id
-              AND movement_type = 'IN'
+              AND movement_type = 'in'
             ORDER BY created_at DESC
             LIMIT 100
         ) t;
@@ -85,8 +85,8 @@ DECLARE
     new_avg_cost DECIMAL(15, 4);
 BEGIN
     -- Garantir que a quantidade nunca seja negativa para movimentos IN
-    IF NEW.movement_type = 'IN' AND NEW.qty < 0 THEN
-        NEW.qty := ABS(NEW.qty);
+    IF NEW.movement_type = 'in' AND NEW.quantity < 0 THEN
+        NEW.quantity := ABS(NEW.quantity);
     END IF;
 
     -- Get current balance
@@ -97,22 +97,22 @@ BEGIN
       AND product_id = NEW.product_id;
 
     -- Calculate new quantity based on movement type
-    IF NEW.movement_type = 'IN' THEN
-        new_qty := COALESCE(current_balance.qty_on_hand, 0) + NEW.qty;
+    IF NEW.movement_type = 'in' THEN
+        new_qty := COALESCE(current_balance.qty_on_hand, 0) + NEW.quantity;
         -- Calculate weighted average cost
-        IF COALESCE(current_balance.qty_on_hand, 0) + NEW.qty > 0 THEN
+        IF COALESCE(current_balance.qty_on_hand, 0) + NEW.quantity > 0 THEN
             new_avg_cost := (
                 (COALESCE(current_balance.qty_on_hand, 0) * COALESCE(current_balance.avg_cost, 0)) +
-                (NEW.qty * COALESCE(NEW.unit_cost, 0))
-            ) / (COALESCE(current_balance.qty_on_hand, 0) + NEW.qty);
+                (NEW.quantity * COALESCE(NEW.unit_cost, 0))
+            ) / (COALESCE(current_balance.qty_on_hand, 0) + NEW.quantity);
         ELSE
             new_avg_cost := COALESCE(NEW.unit_cost, 0);
         END IF;
-    ELSIF NEW.movement_type = 'OUT' THEN
-        new_qty := COALESCE(current_balance.qty_on_hand, 0) - NEW.qty;
+    ELSIF NEW.movement_type = 'out' THEN
+        new_qty := COALESCE(current_balance.qty_on_hand, 0) - NEW.quantity;
         new_avg_cost := COALESCE(current_balance.avg_cost, 0);
     ELSE -- ADJUST
-        new_qty := NEW.qty;
+        new_qty := NEW.quantity;
         new_avg_cost := COALESCE(NEW.unit_cost, current_balance.avg_cost, 0);
     END IF;
 
@@ -139,21 +139,21 @@ BEGIN
         ALTER TABLE stock_movement
         ADD CONSTRAINT check_in_movement_positive_qty
         CHECK (
-            (movement_type != 'IN') OR (qty > 0)
+            (movement_type != 'in') OR (quantity > 0)
         );
     EXCEPTION WHEN duplicate_object THEN
         NULL;
     END;
 END $$;
 
--- Garantir que movimentos OUT sempre têm quantidade positiva
+-- Garantir que movimentos out sempre têm quantidade positiva
 DO $$
 BEGIN
     BEGIN
         ALTER TABLE stock_movement
         ADD CONSTRAINT check_out_movement_positive_qty
         CHECK (
-            (movement_type != 'OUT') OR (qty > 0)
+            (movement_type != 'out') OR (quantity > 0)
         );
     EXCEPTION WHEN duplicate_object THEN
         NULL;

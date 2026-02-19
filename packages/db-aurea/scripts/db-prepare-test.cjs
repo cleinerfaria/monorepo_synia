@@ -1,10 +1,9 @@
-﻿const { dbReset, dbMigrate, seedAureaDev, ensureDevEnv } = require('./lib.cjs')
+const { dbReset, dbMigrate, ensureDevEnv } = require('./lib.cjs')
 
 async function run() {
   ensureDevEnv()
-  dbReset()
-  dbMigrate()
-  await seedAureaDev()
+  await dbReset()
+  await dbMigrate()
   process.stdout.write('Aurea db:prepare:test complete.\n')
 }
 

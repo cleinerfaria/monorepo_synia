@@ -12,7 +12,18 @@ CREATE TABLE IF NOT EXISTS public.prescription_print_counter (
   CONSTRAINT prescription_print_counter_pkey PRIMARY KEY (company_id, counter_year)
 );
 
-DROP TRIGGER IF EXISTS update_prescription_print_counter_updated_at ON public.prescription_print_counter;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_trigger t
+    WHERE t.tgname = 'update_prescription_print_counter_updated_at'
+      AND t.tgrelid = 'public.prescription_print_counter'::regclass
+      AND NOT t.tgisinternal
+  ) THEN
+    EXECUTE 'DROP TRIGGER update_prescription_print_counter_updated_at ON public.prescription_print_counter';
+  END IF;
+END $$;
 CREATE TRIGGER update_prescription_print_counter_updated_at
 BEFORE UPDATE ON public.prescription_print_counter
 FOR EACH ROW
@@ -41,10 +52,6 @@ CREATE TABLE IF NOT EXISTS public.prescription_print (
   CONSTRAINT prescription_print_company_number_unique UNIQUE (company_id, print_number)
 );
 
-CREATE INDEX IF NOT EXISTS idx_prescription_print_company_created
-  ON public.prescription_print (company_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_prescription_print_company_prescription_created
-  ON public.prescription_print (company_id, prescription_id, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS public.prescription_print_item (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -60,16 +67,25 @@ CREATE TABLE IF NOT EXISTS public.prescription_print_item (
   CONSTRAINT prescription_print_item_order_unique UNIQUE (prescription_print_id, order_index)
 );
 
-CREATE INDEX IF NOT EXISTS idx_prescription_print_item_company_print
-  ON public.prescription_print_item (company_id, prescription_print_id);
 
 ALTER TABLE public.prescription_print ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prescription_print_item ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can view prescription prints in their company" ON public.prescription_print;
-DROP POLICY IF EXISTS "Users can insert prescription prints in their company" ON public.prescription_print;
-DROP POLICY IF EXISTS "Users can update prescription prints in their company" ON public.prescription_print;
-DROP POLICY IF EXISTS "Users can delete prescription prints in their company" ON public.prescription_print;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print' AND policyname = 'Users can view prescription prints in their company') THEN
+    EXECUTE 'DROP POLICY "Users can view prescription prints in their company" ON public.prescription_print';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print' AND policyname = 'Users can insert prescription prints in their company') THEN
+    EXECUTE 'DROP POLICY "Users can insert prescription prints in their company" ON public.prescription_print';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print' AND policyname = 'Users can update prescription prints in their company') THEN
+    EXECUTE 'DROP POLICY "Users can update prescription prints in their company" ON public.prescription_print';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print' AND policyname = 'Users can delete prescription prints in their company') THEN
+    EXECUTE 'DROP POLICY "Users can delete prescription prints in their company" ON public.prescription_print';
+  END IF;
+END $$;
 
 CREATE POLICY "Users can view prescription prints in their company"
   ON public.prescription_print
@@ -92,10 +108,21 @@ CREATE POLICY "Users can delete prescription prints in their company"
   FOR DELETE
   USING (company_id = public.get_user_company_id());
 
-DROP POLICY IF EXISTS "Users can view prescription print items in their company" ON public.prescription_print_item;
-DROP POLICY IF EXISTS "Users can insert prescription print items in their company" ON public.prescription_print_item;
-DROP POLICY IF EXISTS "Users can update prescription print items in their company" ON public.prescription_print_item;
-DROP POLICY IF EXISTS "Users can delete prescription print items in their company" ON public.prescription_print_item;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item' AND policyname = 'Users can view prescription print items in their company') THEN
+    EXECUTE 'DROP POLICY "Users can view prescription print items in their company" ON public.prescription_print_item';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item' AND policyname = 'Users can insert prescription print items in their company') THEN
+    EXECUTE 'DROP POLICY "Users can insert prescription print items in their company" ON public.prescription_print_item';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item' AND policyname = 'Users can update prescription print items in their company') THEN
+    EXECUTE 'DROP POLICY "Users can update prescription print items in their company" ON public.prescription_print_item';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'prescription_print_item' AND policyname = 'Users can delete prescription print items in their company') THEN
+    EXECUTE 'DROP POLICY "Users can delete prescription print items in their company" ON public.prescription_print_item';
+  END IF;
+END $$;
 
 CREATE POLICY "Users can view prescription print items in their company"
   ON public.prescription_print_item
@@ -133,7 +160,7 @@ SELECT ap.id, mp.id
 FROM public.access_profile ap
 JOIN public.system_module sm ON sm.code = 'prescriptions'
 JOIN public.module_permission mp ON mp.module_id = sm.id AND mp.code = 'print'
-WHERE ap.is_system = TRUE
+WHERE ap.company_id IS NOT NULL
   AND ap.code IN ('manager', 'clinician')
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
 
@@ -215,7 +242,7 @@ BEGIN
     INTO v_company_id
   FROM public.app_user au
   WHERE au.auth_user_id = v_user_id
-    AND au.active = TRUE
+    AND au.is_active = TRUE
   LIMIT 1;
 
   IF v_company_id IS NULL THEN
@@ -377,7 +404,7 @@ BEGIN
     INTO v_company_id
   FROM public.app_user au
   WHERE au.auth_user_id = v_user_id
-    AND au.active = TRUE
+    AND au.is_active = TRUE
   LIMIT 1;
 
   IF v_company_id IS NULL THEN
@@ -477,7 +504,7 @@ BEGIN
     INTO v_company_id
   FROM public.app_user au
   WHERE au.auth_user_id = v_user_id
-    AND au.active = TRUE
+    AND au.is_active = TRUE
   LIMIT 1;
 
   IF v_company_id IS NULL THEN

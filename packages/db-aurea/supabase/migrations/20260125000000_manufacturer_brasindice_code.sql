@@ -4,7 +4,7 @@
 
 -- Add brasindice_code column
 ALTER TABLE manufacturer 
-ADD COLUMN IF NOT EXISTS brasindice_code VARCHAR(20);
+ADD COLUMN IF NOT EXISTS brasindice_code text;
 
 -- Create unique index for brasindice_code per company
 CREATE UNIQUE INDEX IF NOT EXISTS idx_manufacturer_brasindice_code_unique 

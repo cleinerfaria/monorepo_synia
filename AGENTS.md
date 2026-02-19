@@ -66,21 +66,13 @@ O agente **NUNCA** deve:
 
 Antes de alterar código, o agente deve:
 
+- Nunca altere a acentuação para mojibake, mantenha sempre o padrão UTF-8
 - Explicar **o que será alterado**
 - Explicar **por que é necessário**
 - Indicar **impactos técnicos e de negócio**
 - Propor a mudança em **passos incrementais**
 
 ---
-
-## 🔍 Verificação Obrigatória
-
-**Ao final de cada processo que altere código:**
-
-- Pergunte se é para aplicar o `npm run precommit:check`
-- ✅ Caso seja um ajuste muito grande, execute sem solicitar permissão
-- Relatar resultados (lint, tests, type-check)
-- Se houver falhas, corrigir antes de finalizar
 
 ## 🧪 Regras de Segurança
 

@@ -9,36 +9,19 @@
 
 CREATE TABLE access_profile (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id UUID REFERENCES company(id) ON DELETE CASCADE, -- NULL = perfil do sistema (default)
-    code VARCHAR(50) NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    is_system BOOLEAN DEFAULT FALSE, -- Perfis padrão do sistema (não podem ser excluídos)
+    company_id UUID NOT NULL REFERENCES company(id) ON DELETE CASCADE,
+    code text NOT NULL,
+    name text NOT NULL,
+    description text,
     is_admin BOOLEAN DEFAULT FALSE, -- Se true, tem acesso total
-    active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(company_id, code),
-    -- Consistência: is_system só pode ser TRUE quando company_id IS NULL
-    CONSTRAINT chk_access_profile_scope CHECK (
-        (is_system = TRUE AND company_id IS NULL)
-        OR
-        (is_system = FALSE AND company_id IS NOT NULL)
-    ),
-    -- Consistência: is_admin só pode ser TRUE em perfis do sistema
-    CONSTRAINT chk_access_profile_admin_scope CHECK (
-        (is_admin = FALSE)
-        OR
-        (is_admin = TRUE AND is_system = TRUE)
-    )
+    UNIQUE(company_id, code)
 );
 
 -- Índice composto para buscas por empresa e código
 CREATE INDEX idx_access_profile_company_code ON access_profile(company_id, code);
-
--- Índice único para garantir que só exista um perfil de cada código no sistema
--- (NULL não colide com NULL em unique normal, então precisamos de partial index)
-CREATE UNIQUE INDEX ux_access_profile_system_code ON access_profile(code) WHERE company_id IS NULL;
 
 -- =====================================================
 -- 2) TABELA DE MÓDULOS DO SISTEMA
@@ -46,12 +29,12 @@ CREATE UNIQUE INDEX ux_access_profile_system_code ON access_profile(code) WHERE 
 
 CREATE TABLE system_module (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code VARCHAR(50) NOT NULL UNIQUE,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    icon VARCHAR(50),
+    code text NOT NULL UNIQUE,
+    name text NOT NULL,
+    description text,
+    icon text,
     display_order INTEGER DEFAULT 0,
-    active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 -- =====================================================
@@ -61,9 +44,9 @@ CREATE TABLE system_module (
 CREATE TABLE module_permission (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     module_id UUID NOT NULL REFERENCES system_module(id) ON DELETE CASCADE,
-    code VARCHAR(50) NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
+    code text NOT NULL,
+    name text NOT NULL,
+    description text,
     UNIQUE(module_id, code)
 );
 
@@ -81,8 +64,6 @@ CREATE TABLE access_profile_permission (
     UNIQUE(profile_id, permission_id)
 );
 
-CREATE INDEX idx_access_profile_permission_profile ON access_profile_permission(profile_id);
-CREATE INDEX idx_access_profile_permission_permission ON access_profile_permission(permission_id);
 
 -- =====================================================
 -- 5) ALTERAR APP_USER PARA USAR PROFILE
@@ -314,17 +295,25 @@ WHERE sm.code = 'admin'
 ON CONFLICT (module_id, code) DO NOTHING;
 
 -- =====================================================
--- 8) INSERIR PERFIS PADRÃO DO SISTEMA (idempotente)
+-- 8) INSERIR PERFIS PADRÃO POR EMPRESA (idempotente)
 -- =====================================================
 
--- Usar partial unique index para garantir código único em perfis do sistema
-INSERT INTO access_profile (company_id, code, name, description, is_system, is_admin) VALUES
-    (NULL, 'admin', 'Administrador', 'Acesso total ao sistema', TRUE, TRUE),
-    (NULL, 'manager', 'Gerente', 'Gerencia operações e relatórios', TRUE, FALSE),
-    (NULL, 'clinician', 'Clínico', 'Acesso a prescrições e pacientes', TRUE, FALSE),
-    (NULL, 'stock', 'Estoque', 'Gerencia estoque e produtos', TRUE, FALSE),
-    (NULL, 'finance', 'Financeiro', 'Acesso a financeiro e relatórios', TRUE, FALSE),
-    (NULL, 'viewer', 'Visualizador', 'Apenas visualização', TRUE, FALSE)
+INSERT INTO access_profile (company_id, code, name, description, is_admin)
+SELECT
+    c.id,
+    p.code,
+    p.name,
+    p.description,
+    p.is_admin
+FROM company c
+CROSS JOIN (VALUES
+    ('admin', 'Administrador', 'Acesso total ao sistema', TRUE),
+    ('manager', 'Gerente', 'Gerencia operações e relatórios', FALSE),
+    ('clinician', 'Clínico', 'Acesso a prescrições e pacientes', FALSE),
+    ('stock', 'Estoque', 'Gerencia estoque e produtos', FALSE),
+    ('finance', 'Financeiro', 'Acesso a financeiro e relatórios', FALSE),
+    ('viewer', 'Visualizador', 'Apenas visualização', FALSE)
+) AS p(code, name, description, is_admin)
 ON CONFLICT (company_id, code) DO NOTHING;
 
 -- =====================================================
@@ -339,7 +328,7 @@ SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
 JOIN system_module sm ON mp.module_id = sm.id
-WHERE ap.code = 'manager' AND ap.is_system = TRUE
+WHERE ap.code = 'manager' AND ap.company_id IS NOT NULL
 AND sm.code NOT IN ('admin')
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
 
@@ -349,7 +338,7 @@ SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
 JOIN system_module sm ON mp.module_id = sm.id
-WHERE ap.code = 'clinician' AND ap.is_system = TRUE
+WHERE ap.code = 'clinician' AND ap.company_id IS NOT NULL
 AND (
     sm.code = 'dashboard'
     OR sm.code = 'patients'
@@ -365,7 +354,7 @@ SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
 JOIN system_module sm ON mp.module_id = sm.id
-WHERE ap.code = 'stock' AND ap.is_system = TRUE
+WHERE ap.code = 'stock' AND ap.company_id IS NOT NULL
 AND (
     sm.code = 'dashboard'
     OR sm.code = 'stock'
@@ -381,7 +370,7 @@ SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
 JOIN system_module sm ON mp.module_id = sm.id
-WHERE ap.code = 'finance' AND ap.is_system = TRUE
+WHERE ap.code = 'finance' AND ap.company_id IS NOT NULL
 AND (
     sm.code = 'dashboard'
     OR sm.code = 'reports'
@@ -396,7 +385,7 @@ SELECT ap.id, mp.id
 FROM access_profile ap
 CROSS JOIN module_permission mp
 JOIN system_module sm ON mp.module_id = sm.id
-WHERE ap.code = 'viewer' AND ap.is_system = TRUE
+WHERE ap.code = 'viewer' AND ap.company_id IS NOT NULL
 AND mp.code = 'view'
 AND sm.code NOT IN ('admin')
 ON CONFLICT (profile_id, permission_id) DO NOTHING;
@@ -408,8 +397,8 @@ ON CONFLICT (profile_id, permission_id) DO NOTHING;
 UPDATE app_user 
 SET access_profile_id = (
     SELECT ap.id FROM access_profile ap 
-    WHERE ap.code = app_user.role 
-    AND ap.is_system = TRUE
+    WHERE ap.company_id = app_user.company_id
+    AND ap.code = 'viewer'
     LIMIT 1
 )
 WHERE access_profile_id IS NULL;
@@ -420,8 +409,8 @@ WHERE access_profile_id IS NULL;
 
 CREATE OR REPLACE FUNCTION has_permission(
     p_auth_user_id UUID,
-    p_module_code VARCHAR(50),
-    p_permission_code VARCHAR(50)
+    p_module_code text,
+    p_permission_code text
 ) RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -441,7 +430,7 @@ BEGIN
     FROM app_user au
     JOIN access_profile ap ON au.access_profile_id = ap.id
     WHERE au.auth_user_id = auth.uid()
-    AND au.active = TRUE;
+    AND au.is_active = TRUE;
 
     IF v_is_admin THEN
         RETURN TRUE;
@@ -456,8 +445,8 @@ BEGIN
         JOIN module_permission mp ON app.permission_id = mp.id
         JOIN system_module sm ON mp.module_id = sm.id
         WHERE au.auth_user_id = auth.uid()
-        AND au.active = TRUE
-        AND ap.active = TRUE
+        AND au.is_active = TRUE
+        AND ap.is_active = TRUE
         AND sm.code = p_module_code
         AND mp.code = p_permission_code
     ) INTO v_has_permission;
@@ -472,10 +461,10 @@ $$;
 
 CREATE OR REPLACE FUNCTION get_user_permissions(p_auth_user_id UUID)
 RETURNS TABLE (
-    module_code VARCHAR(50),
-    module_name VARCHAR(100),
-    permission_code VARCHAR(50),
-    permission_name VARCHAR(100)
+    module_code text,
+    module_name text,
+    permission_code text,
+    permission_name text
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -494,37 +483,37 @@ BEGIN
     FROM app_user au
     JOIN access_profile ap ON au.access_profile_id = ap.id
     WHERE au.auth_user_id = auth.uid()
-    AND au.active = TRUE;
+    AND au.is_active = TRUE;
 
     IF v_is_admin THEN
         -- Admin tem todas as permissões
         RETURN QUERY
         SELECT 
-            sm.code::VARCHAR(50) as module_code,
-            sm.name::VARCHAR(100) as module_name,
-            mp.code::VARCHAR(50) as permission_code,
-            mp.name::VARCHAR(100) as permission_name
+            sm.code::text as module_code,
+            sm.name::text as module_name,
+            mp.code::text as permission_code,
+            mp.name::text as permission_name
         FROM module_permission mp
         JOIN system_module sm ON mp.module_id = sm.id
-        WHERE sm.active = TRUE
+        WHERE sm.is_active = TRUE
         ORDER BY sm.display_order, mp.code;
     ELSE
         -- Retorna permissões do perfil
         RETURN QUERY
         SELECT 
-            sm.code::VARCHAR(50) as module_code,
-            sm.name::VARCHAR(100) as module_name,
-            mp.code::VARCHAR(50) as permission_code,
-            mp.name::VARCHAR(100) as permission_name
+            sm.code::text as module_code,
+            sm.name::text as module_name,
+            mp.code::text as permission_code,
+            mp.name::text as permission_name
         FROM app_user au
         JOIN access_profile ap ON au.access_profile_id = ap.id
         JOIN access_profile_permission app ON app.profile_id = ap.id
         JOIN module_permission mp ON app.permission_id = mp.id
         JOIN system_module sm ON mp.module_id = sm.id
         WHERE au.auth_user_id = auth.uid()
-        AND au.active = TRUE
-        AND ap.active = TRUE
-        AND sm.active = TRUE
+        AND au.is_active = TRUE
+        AND ap.is_active = TRUE
+        AND sm.is_active = TRUE
         ORDER BY sm.display_order, mp.code;
     END IF;
 END;
@@ -551,10 +540,6 @@ CREATE POLICY "module_permission_select_policy" ON module_permission
 -- Políticas para access_profile (usando EXISTS para melhor performance)
 CREATE POLICY "access_profile_select_policy" ON access_profile
     FOR SELECT USING (
-        -- Perfis do sistema (company_id IS NULL)
-        company_id IS NULL
-        OR
-        -- Perfis da empresa do usuário
         EXISTS (
             SELECT 1 FROM app_user au
             WHERE au.auth_user_id = auth.uid()
@@ -576,7 +561,6 @@ CREATE POLICY "access_profile_insert_policy" ON access_profile
 CREATE POLICY "access_profile_update_policy" ON access_profile
     FOR UPDATE USING (
         auth.role() = 'authenticated'
-        AND is_system = FALSE
         AND EXISTS (
             SELECT 1 FROM app_user au
             WHERE au.auth_user_id = auth.uid()
@@ -587,7 +571,6 @@ CREATE POLICY "access_profile_update_policy" ON access_profile
 CREATE POLICY "access_profile_delete_policy" ON access_profile
     FOR DELETE USING (
         auth.role() = 'authenticated'
-        AND is_system = FALSE
         AND EXISTS (
             SELECT 1 FROM app_user au
             WHERE au.auth_user_id = auth.uid()
@@ -601,13 +584,10 @@ CREATE POLICY "access_profile_permission_select_policy" ON access_profile_permis
         EXISTS (
             SELECT 1 FROM access_profile ap
             WHERE ap.id = access_profile_permission.profile_id
-            AND (
-                ap.company_id IS NULL
-                OR EXISTS (
-                    SELECT 1 FROM app_user au
-                    WHERE au.auth_user_id = auth.uid()
-                    AND au.company_id = ap.company_id
-                )
+            AND EXISTS (
+                SELECT 1 FROM app_user au
+                WHERE au.auth_user_id = auth.uid()
+                AND au.company_id = ap.company_id
             )
         )
     );
@@ -619,7 +599,6 @@ CREATE POLICY "access_profile_permission_insert_policy" ON access_profile_permis
             SELECT 1 FROM access_profile ap
             WHERE ap.id = access_profile_permission.profile_id
             AND ap.company_id IS NOT NULL
-            AND ap.is_system = FALSE
             AND EXISTS (
                 SELECT 1 FROM app_user au
                 WHERE au.auth_user_id = auth.uid()
@@ -635,7 +614,6 @@ CREATE POLICY "access_profile_permission_delete_policy" ON access_profile_permis
             SELECT 1 FROM access_profile ap
             WHERE ap.id = access_profile_permission.profile_id
             AND ap.company_id IS NOT NULL
-            AND ap.is_system = FALSE
             AND EXISTS (
                 SELECT 1 FROM app_user au
                 WHERE au.auth_user_id = auth.uid()
@@ -648,5 +626,5 @@ CREATE POLICY "access_profile_permission_delete_policy" ON access_profile_permis
 -- 14) GRANT PERMISSIONS
 -- =====================================================
 
-GRANT EXECUTE ON FUNCTION has_permission(UUID, VARCHAR, VARCHAR) TO authenticated;
+GRANT EXECUTE ON FUNCTION has_permission(UUID, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_user_permissions(UUID) TO authenticated;

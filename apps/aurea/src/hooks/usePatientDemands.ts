@@ -1,46 +1,54 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
-import type { PatientAttendanceShift } from '@/hooks/useMyShifts';
+import type { PadShift } from '@/hooks/useMyShifts';
 import toast from 'react-hot-toast';
 
-const QUERY_KEY = 'patient_demands';
+const QUERY_KEY = 'pad';
 
-export interface PatientAttendanceDemand {
+export interface Pad {
   id: string;
   company_id: string;
   patient_id: string;
+  patient_payer_id: string | null;
+  company_unit_id: string | null;
+  professional_id: string | null;
+  pad_service_id: string | null;
   start_date: string;
   end_date: string | null;
-  hours_per_day: number;
   start_time: string;
-  is_split: boolean;
+  start_at: string | null;
+  end_at: string | null;
   is_active: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export type DemandWithPatient = PatientAttendanceDemand & {
+export type PadWithPatient = Pad & {
   patient: { id: string; name: string };
 };
 
-export type ShiftWithProfessional = PatientAttendanceShift & {
+export type ShiftWithProfessional = PadShift & {
   professional: { id: string; name: string } | null;
 };
 
-export interface CreateDemandData {
+export interface CreatePadData {
   patient_id: string;
+  patient_payer_id: string;
+  company_unit_id: string | null;
+  professional_id: string;
+  pad_service_id: string;
   start_date: string;
   end_date?: string | null;
-  hours_per_day: number;
   start_time: string;
-  is_split: boolean;
+  start_at: string;
+  end_at: string | null;
   is_active?: boolean;
   notes?: string | null;
 }
 
-export interface UpdateDemandData extends Partial<CreateDemandData> {
+export interface UpdatePadData extends Partial<CreatePadData> {
   id: string;
 }
 
@@ -57,7 +65,7 @@ export function usePatientDemands(patientId?: string) {
       if (!company?.id) return [];
 
       let query = supabase
-        .from('patient_attendance_demand')
+        .from('pad')
         .select(
           `
           *,
@@ -73,7 +81,7 @@ export function usePatientDemands(patientId?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as DemandWithPatient[];
+      return data as PadWithPatient[];
     },
     enabled: !!company?.id,
   });
@@ -88,7 +96,7 @@ export function usePatientDemand(demandId: string | undefined) {
       if (!demandId || !company?.id) return null;
 
       const { data, error } = await supabase
-        .from('patient_attendance_demand')
+        .from('pad')
         .select(
           `
           *,
@@ -100,7 +108,7 @@ export function usePatientDemand(demandId: string | undefined) {
         .single();
 
       if (error) throw error;
-      return data as DemandWithPatient;
+      return data as PadWithPatient;
     },
     enabled: !!demandId && !!company?.id,
   });
@@ -114,8 +122,21 @@ export function useDemandShifts(demandId: string | undefined, from: string, to: 
     queryFn: async () => {
       if (!demandId || !company?.id || !from || !to) return [];
 
+      // Buscar pad_items do PAD para filtrar shifts
+      const { data: padItems, error: itemsError } = await supabase
+        .from('pad_items')
+        .select('id')
+        .eq('company_id', company.id)
+        .eq('pad_id', demandId)
+        .eq('type', 'shift');
+
+      if (itemsError) throw itemsError;
+      if (!padItems || padItems.length === 0) return [];
+
+      const padItemIds = padItems.map((item) => item.id);
+
       const { data, error } = await supabase
-        .from('patient_attendance_shift')
+        .from('pad_shift')
         .select(
           `
           *,
@@ -123,7 +144,7 @@ export function useDemandShifts(demandId: string | undefined, from: string, to: 
         `
         )
         .eq('company_id', company.id)
-        .eq('patient_attendance_demand_id', demandId)
+        .in('pad_item_id', padItemIds)
         .gte('start_at', `${from}T00:00:00`)
         .lte('start_at', `${to}T23:59:59`)
         .order('start_at');
@@ -144,11 +165,11 @@ export function useCreateDemand() {
   const { company } = useAuthStore();
 
   return useMutation({
-    mutationFn: async (data: CreateDemandData) => {
+    mutationFn: async (data: CreatePadData) => {
       if (!company?.id) throw new Error('No company');
 
-      const { data: demand, error } = await supabase
-        .from('patient_attendance_demand')
+      const { data: pad, error } = await supabase
+        .from('pad')
         .insert({ ...data, company_id: company.id } as any)
         .select(
           `
@@ -159,15 +180,15 @@ export function useCreateDemand() {
         .single();
 
       if (error) throw error;
-      return demand as DemandWithPatient;
+      return pad as PadWithPatient;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
-      toast.success('Escala criada com sucesso!');
+      toast.success('PAD criado com sucesso!');
     },
     onError: (error) => {
-      console.error('Error creating demand:', error);
-      toast.error('Erro ao criar escala');
+      console.error('Error creating PAD:', error);
+      toast.error('Erro ao criar PAD');
     },
   });
 }
@@ -177,11 +198,11 @@ export function useUpdateDemand() {
   const { company } = useAuthStore();
 
   return useMutation({
-    mutationFn: async ({ id, ...data }: UpdateDemandData) => {
+    mutationFn: async ({ id, ...data }: UpdatePadData) => {
       if (!company?.id) throw new Error('No company');
 
-      const { data: demand, error } = await supabase
-        .from('patient_attendance_demand')
+      const { data: pad, error } = await supabase
+        .from('pad')
         .update(data as any)
         .eq('company_id', company.id)
         .filter('id', 'eq', id)
@@ -194,15 +215,15 @@ export function useUpdateDemand() {
         .single();
 
       if (error) throw error;
-      return demand as DemandWithPatient;
+      return pad as PadWithPatient;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
-      toast.success('Escala atualizada com sucesso!');
+      toast.success('PAD atualizado com sucesso!');
     },
     onError: (error) => {
-      console.error('Error updating demand:', error);
-      toast.error('Erro ao atualizar escala');
+      console.error('Error updating PAD:', error);
+      toast.error('Erro ao atualizar PAD');
     },
   });
 }
@@ -216,7 +237,7 @@ export function useDeleteDemand() {
       if (!company?.id) throw new Error('No company');
 
       const { error } = await supabase
-        .from('patient_attendance_demand')
+        .from('pad')
         .delete()
         .eq('company_id', company.id)
         .filter('id', 'eq', id);
@@ -225,11 +246,11 @@ export function useDeleteDemand() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
-      toast.success('Escala excluída com sucesso!');
+      toast.success('PAD excluído com sucesso!');
     },
     onError: (error) => {
-      console.error('Error deleting demand:', error);
-      toast.error('Erro ao excluir escala');
+      console.error('Error deleting PAD:', error);
+      toast.error('Erro ao excluir PAD');
     },
   });
 }
@@ -238,9 +259,17 @@ export function useGenerateShifts() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ padId, from, to }: { padId: string; from: string; to: string }) => {
-      const { error } = await supabase.rpc('generate_patient_attendance_shifts', {
-        p_pad_id: padId,
+    mutationFn: async ({
+      padItemId,
+      from,
+      to,
+    }: {
+      padItemId: string;
+      from: string;
+      to: string;
+    }) => {
+      const { error } = await supabase.rpc('generate_pad_shifts', {
+        p_pad_item_id: padItemId,
         p_date_from: from,
         p_date_to: to,
       });

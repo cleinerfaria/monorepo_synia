@@ -3,7 +3,19 @@
 -- =============================================
 
 -- Dropar tabela se existir (caso tenha sido criada parcialmente)
-DROP TABLE IF EXISTS administration_routes CASCADE;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'administration_routes'
+      AND c.relkind IN ('r', 'p')
+  ) THEN
+    EXECUTE 'DROP TABLE public.administration_routes CASCADE';
+  END IF;
+END $$;
 
 CREATE TABLE administration_routes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -11,7 +23,7 @@ CREATE TABLE administration_routes (
   name TEXT NOT NULL,
   abbreviation TEXT,
   description TEXT,
-  active BOOLEAN DEFAULT true,
+  is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   
@@ -19,8 +31,6 @@ CREATE TABLE administration_routes (
 );
 
 -- Índices
-CREATE INDEX idx_administration_routes_company ON administration_routes(company_id);
-CREATE INDEX idx_administration_routes_active ON administration_routes(active);
 
 -- RLS
 ALTER TABLE administration_routes ENABLE ROW LEVEL SECURITY;
@@ -40,7 +50,7 @@ CREATE POLICY "Admin/managers can manage administration routes"
     company_id IN (
       SELECT company_id FROM app_user 
       WHERE auth_user_id = auth.uid() 
-      AND role IN ('admin', 'manager')
+      AND is_user_admin()
     )
   );
 

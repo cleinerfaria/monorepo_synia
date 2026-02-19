@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Beaker, Download, Search, FunnelX } from 'lucide-react';
+import { Pencil, Beaker, Download, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -209,7 +209,12 @@ export default function ActiveIngredientsPage() {
           >
             Importar do CMED
           </Button>
-          <Button onClick={openCreateModal} variant="solid" label="Novo Princípio Ativo" />
+          <Button
+            onClick={openCreateModal}
+            variant="solid"
+            icon={<Plus className="h-4 w-4" />}
+            label="Novo Princípio Ativo"
+          />
         </div>
       </div>
 
@@ -292,7 +297,7 @@ export default function ActiveIngredientsPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Input
-              label="Código Externo"
+              label="Código"
               placeholder="Código do sistema externo (DCB, etc.)"
               {...register('code')}
             />

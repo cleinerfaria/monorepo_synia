@@ -564,7 +564,7 @@ export default function AdminPage() {
               <ThemeSelector />
               <div className="flex items-center gap-2">
                 {company && (
-                  <Button variant="secondary" size="sm" onClick={handleGoToDashboard}>
+                  <Button variant="neutral" size="sm" onClick={handleGoToDashboard}>
                     <Home className="mr-1 h-4 w-4" />
                     Dashboard
                   </Button>

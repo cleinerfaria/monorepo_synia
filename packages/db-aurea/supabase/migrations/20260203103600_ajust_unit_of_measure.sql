@@ -37,8 +37,18 @@ END $$;
 -- =====================================================
 
 -- 2.1) Adicionar coluna symbol se faltar
-ALTER TABLE public.unit_of_measure
-  ADD COLUMN IF NOT EXISTS symbol TEXT;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'symbol'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure ADD COLUMN symbol TEXT';
+  END IF;
+END $$;
 
 -- Preencher symbol se estiver NULL (fallback: upper(code))
 UPDATE public.unit_of_measure
@@ -60,19 +70,56 @@ DROP POLICY IF EXISTS unit_of_measure_delete_policy ON public.unit_of_measure;
 DROP POLICY IF EXISTS unit_of_measure_insert_policy ON public.unit_of_measure;
 DROP POLICY IF EXISTS unit_of_measure_select_policy ON public.unit_of_measure;
 
-ALTER TABLE public.unit_of_measure
-  DROP COLUMN IF EXISTS is_system;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'is_system'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure DROP COLUMN is_system';
+  END IF;
+END $$;
 
 -- 2.4) Remover colunas antigas de domínio/contexto (se existirem)
-ALTER TABLE public.unit_of_measure
-  DROP COLUMN IF EXISTS allowed_domains;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'allowed_domains'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure DROP COLUMN allowed_domains';
+  END IF;
 
-ALTER TABLE public.unit_of_measure
-  DROP COLUMN IF EXISTS allowed_contexts;
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'allowed_contexts'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure DROP COLUMN allowed_contexts';
+  END IF;
+END $$;
 
 -- 2.5) Adicionar allowed_scopes (se faltar)
-ALTER TABLE public.unit_of_measure
-  ADD COLUMN IF NOT EXISTS allowed_scopes public.enum_unit_scope[];
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'unit_of_measure'
+      AND column_name = 'allowed_scopes'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.unit_of_measure ADD COLUMN allowed_scopes public.enum_unit_scope[]';
+  END IF;
+END $$;
 
 -- Se estiver NULL, inicia como array vazio (para evitar NULLs)
 UPDATE public.unit_of_measure
@@ -113,18 +160,52 @@ BEGIN
 END $$;
 
 -- Índices
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company
-ON public.unit_of_measure(company_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_unit_of_measure_company'
+  ) THEN
+    EXECUTE 'CREATE INDEX idx_unit_of_measure_company ON public.unit_of_measure(company_id)';
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_code
-ON public.unit_of_measure(company_id, code);
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_unit_of_measure_company_code'
+  ) THEN
+    EXECUTE 'CREATE INDEX idx_unit_of_measure_company_code ON public.unit_of_measure(company_id, code)';
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_active
-ON public.unit_of_measure(company_id, active);
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_unit_of_measure_company_active'
+  ) THEN
+    EXECUTE 'CREATE INDEX idx_unit_of_measure_company_active ON public.unit_of_measure(company_id, is_active)';
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_allowed_scopes_gin
-ON public.unit_of_measure
-USING GIN (allowed_scopes);
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'i'
+      AND n.nspname = 'public'
+      AND c.relname = 'idx_unit_of_measure_allowed_scopes_gin'
+  ) THEN
+    EXECUTE 'CREATE INDEX idx_unit_of_measure_allowed_scopes_gin ON public.unit_of_measure USING GIN (allowed_scopes)';
+  END IF;
+END $$;
 
 -- =====================================================
 -- 4) RLS (recriar sem is_system)
@@ -211,7 +292,7 @@ END $$;
 WITH c AS (
   SELECT id AS company_id
   FROM public.company
-  WHERE document = '04.947.934/0001-96'
+  WHERE document = '00.000.000/0001-00'
   LIMIT 1
 ),
 seed AS (
@@ -227,36 +308,43 @@ seed AS (
     ('bl',     'Blister',        'BL',   'Blister/cartela de doses'),
     ('tb',     'Tubo',           'TB',   'Tubo de pomada/gel'),
     ('bisn',   'Bisnaga',        'BISN', 'Bisnaga de produto'),
-
     ('pct',    'Pacote',         'PCT',  'Pacote contendo múltiplas unidades'),
     ('rl',     'Rolo',           'RL',   'Rolo de material'),
-    ('kit',    'Kit',            'KIT',  'Kit com múltiplos itens'),
+    ('kit',    'Kit',            'KIT',  'Kit com múltiplos itens'), 
     ('par',    'Par',            'PAR',  'Par de itens (ex.: luvas)'),
-
     ('sess',   'Sessão',         'SESS', 'Sessão/atendimento (procedimento)'),
     ('visit',  'Visita',         'VIS',  'Visita (procedimento)'),
     ('dia',    'Dia',            'DIA',  'Diária (equipamento/serviço)'),
-
-    ('ml',     'Mililitro',      'mL',   'Volume em mililitros'),
-    ('l',      'Litro',          'L',    'Volume em litros'),
-    ('mg',     'Miligrama',      'mg',   'Massa em miligramas'),
-    ('g',      'Grama',          'g',    'Massa em gramas'),
-    ('gota',   'Gota',           'gota', 'Gota (dose)'),
-    ('dose',   'Dose',           'dose', 'Dose unitária'),
-
-    ('minuto', 'Minuto',         'min',  'Unidade de tempo (minuto)'),
-    ('hora',   'Hora',           'h',    'Unidade de tempo (hora)'),
-    ('semana', 'Semana',         'sem',  'Unidade de tempo (semana)'),
-    ('mes',    'Mês',            'mês',  'Unidade de tempo (mês)'),
-    ('plantao','Plantão',        'pl',   'Plantão (turno/escala)')
+    ('lata',   'Lata',           'LATA', 'Lata de medicamento ou material'),
+    ('ml',     'Mililitro',      'ML',   'Volume em mililitros'),
+    ('cm',     'Centímetro',     'CM',   'Comprimento em centímetros'),
+    ('mt',      'Metro',         'MT',    'Comprimento em metros'),
+    ('lt',     'Litro',          'LT',   'Volume em litros'),
+    ('kg',     'Quilograma',     'KG',   'Massa em quilogramas'),
+    ('mg',     'Miligrama',      'MG',   'Massa em miligramas'),
+    ('ser',    'Seringa',        'SER',  'Seringa para injetáveis'),
+    ('g',      'Grama',          'G',    'Massa em gramas'),
+    ('gota',   'Gota',           'GOTA', 'Gota (dose)'),
+    ('dose',   'Dose',           'DOSE', 'Dose unitária'),
+    ('sache',  'Sachê',          'SACH', 'Gel/líquido monodose'),
+    ('drg',    'Drágea',         'DRG',  'Drágea (comprimido revestido)'),
+    ('env',    'Envelope',       'ENV',  'Envelope pó/granulado para diluição'),
+    ('flac',   'Flaconete',      'FLAC', 'Flaconete para líquidos'),
+    ('bolsa',  'Bolsa',          'BOLS', 'Bolsa para líquidos'),
+    ('ades',   'Adesivo',        'ADES', 'Unidade de medida para medicamentos por adesivo'),
+    ('minuto', 'Minuto',         'MIN',  'Unidade de tempo (minuto)'),
+    ('hora',   'Hora',           'H',    'Unidade de tempo (hora)'),
+    ('semana', 'Semana',         'SEM',  'Unidade de tempo (semana)'),
+    ('mes',    'Mês',            'MÊS',  'Unidade de tempo (mês)'),
+    ('plantao','Plantão',        'PL',   'Plantão (turno/escala)')
   ) AS t(code, name, symbol, description)
 ),
 scoped AS (
   SELECT
     s.*,
     ARRAY_REMOVE(ARRAY[
-      -- medicamento base: tudo menos ml, mg, gota, dose
-      CASE WHEN s.code NOT IN ('ml','mg','gota','dose') THEN 'medication_base'::public.enum_unit_scope END,
+      -- medicamento base: tudo menos ml, mg, gota, dose, cm, mt
+      CASE WHEN s.code NOT IN ('ml','mg','gota','dose','cm','mt') THEN 'medication_base'::public.enum_unit_scope END,
 
       -- medicamento prescrição: tudo menos blister e tubo
       CASE WHEN s.code NOT IN ('bl','tb') THEN 'medication_prescription'::public.enum_unit_scope END,
@@ -268,10 +356,10 @@ scoped AS (
       CASE WHEN s.code NOT IN ('cp','drg','fa','amp') THEN 'material_prescription'::public.enum_unit_scope END,
 
       -- dieta base: tudo menos ml, mg, gota, blister e dose
-      CASE WHEN s.code NOT IN ('ml','mg','gota','bl','dose') THEN 'diet_base'::public.enum_unit_scope END,
+      CASE WHEN s.code NOT IN ('ml','mg','gota','bl','dose','cm','mt') THEN 'diet_base'::public.enum_unit_scope END,
 
       -- dieta prescrição: tudo menos blister e tubo
-      CASE WHEN s.code NOT IN ('bl','tb') THEN 'diet_prescription'::public.enum_unit_scope END,
+      CASE WHEN s.code NOT IN ('bl','tb','cm','mt') THEN 'diet_prescription'::public.enum_unit_scope END,
 
       -- procedimento: apenas sessão, visita, hora, plantão
       CASE WHEN s.code IN ('sess','visit','hora','plantao') THEN 'procedure'::public.enum_unit_scope END,
@@ -291,7 +379,7 @@ INSERT INTO public.unit_of_measure (
   symbol,
   description,
   allowed_scopes,
-  active
+  is_active
 )
 SELECT
   c.company_id,
@@ -310,6 +398,6 @@ SET
   symbol = EXCLUDED.symbol,
   description = EXCLUDED.description,
   allowed_scopes = EXCLUDED.allowed_scopes,
-  active = EXCLUDED.active;
+  is_active = EXCLUDED.is_active;
 
 COMMIT;

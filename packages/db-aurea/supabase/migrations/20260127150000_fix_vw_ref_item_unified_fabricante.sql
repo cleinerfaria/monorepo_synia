@@ -2,7 +2,17 @@
 -- Problem: The view only fetched manufacturer from Brasíndice, excluding products 
 -- that only exist in SIMPRO (like VITAMINA D 500UI SOL.ORAL 10ML - EAN: 7891317021702)
 
-drop VIEW IF EXISTS public.vw_ref_item_unified;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_views
+    WHERE schemaname = 'public'
+      AND viewname = 'vw_ref_item_unified'
+  ) THEN
+    EXECUTE 'DROP VIEW public.vw_ref_item_unified';
+  END IF;
+END $$;
 
 CREATE OR REPLACE VIEW public.vw_ref_item_unified AS
 WITH src AS (

@@ -139,7 +139,7 @@ export default function SessionDetailModal({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={handleSave}>
+          <Button variant="neutral" onClick={handleSave}>
             Salvar corte
           </Button>
           <div className="flex-1">
@@ -188,7 +188,7 @@ export default function SessionDetailModal({
         </div>
 
         <div className="flex justify-end">
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="neutral" onClick={onClose}>
             Fechar
           </Button>
         </div>

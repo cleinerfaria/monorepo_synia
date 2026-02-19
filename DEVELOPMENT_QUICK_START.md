@@ -79,28 +79,28 @@ npm run dev:aurea
 
 ### Aurea
 
-| Comando                      | O que faz                                             |
-| ---------------------------- | ----------------------------------------------------- |
-| `npm run dev:aurea`          | Inicia desenvolvimento                                |
-| `npm run db:migrate:aurea`   | Aplica migrations no banco remoto (safe)              |
-| `npm run db:reset:aurea`     | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
-| `npm run db:seed:dev:aurea`  | Popula dados de teste                                 |
+| Comando                     | O que faz                                             |
+| --------------------------- | ----------------------------------------------------- |
+| `npm run dev:aurea`         | Inicia desenvolvimento                                |
+| `npm run db:migrate:aurea`  | Aplica migrations no banco remoto (safe)              |
+| `npm run db:reset:aurea`    | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
+| `npm run db:seed:dev:aurea` | Popula dados de teste                                 |
 
 ### White Label
 
-| Comando                            | O que faz                                             |
-| ---------------------------------- | ----------------------------------------------------- |
-| `npm run dev:wl`                   | Inicia desenvolvimento                                |
-| `npm run db:migrate:white-label`   | Aplica migrations no banco remoto (safe)              |
-| `npm run db:reset:white-label`     | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
-| `npm run db:seed:dev:white-label`  | Popula dados de teste                                 |
+| Comando                           | O que faz                                             |
+| --------------------------------- | ----------------------------------------------------- |
+| `npm run dev:wl`                  | Inicia desenvolvimento                                |
+| `npm run db:migrate:white-label`  | Aplica migrations no banco remoto (safe)              |
+| `npm run db:reset:white-label`    | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
+| `npm run db:seed:dev:white-label` | Popula dados de teste                                 |
 
 ### Geral
 
-| Comando                    | O que faz                      |
-| -------------------------- | ------------------------------ |
-| `supabase projects list`   | Lista projetos configurados    |
-| `npm run precommit:check`  | Testa antes de commit          |
+| Comando                   | O que faz                   |
+| ------------------------- | --------------------------- |
+| `supabase projects list`  | Lista projetos configurados |
+| `npm run precommit:check` | Testa antes de commit       |
 
 > ⚠️ **Nunca rode comandos `supabase db` diretamente da raiz do projeto.**
 > Use sempre os scripts npm acima — eles garantem que cada migration

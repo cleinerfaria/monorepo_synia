@@ -21,5 +21,3 @@ SET item_number = r.rn
 FROM ranked r
 WHERE i.id = r.id;
 
-CREATE INDEX IF NOT EXISTS idx_nfe_import_item_nfe_item_number
-  ON nfe_import_item(nfe_import_id, item_number);

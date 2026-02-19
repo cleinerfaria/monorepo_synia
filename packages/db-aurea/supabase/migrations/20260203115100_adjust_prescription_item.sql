@@ -3,8 +3,6 @@
 -- PROCEDURE: Add RLS policies
 -- =====================================================
 
-BEGIN;
-
 -- =====================================================
 -- 1) PRESCRIPTION_ITEM ADJUSTMENTS
 -- =====================================================
@@ -32,45 +30,7 @@ BEGIN
 END$$;
 
 -- 1.4) Create index on route_id
-CREATE INDEX IF NOT EXISTS idx_prescription_item_route_id
-ON public.prescription_item(route_id);
 
 -- 1.5) Add comment
 COMMENT ON COLUMN public.prescription_item.route_id IS
   'Via de administração para o item de prescrição (ex: via oral, intravenosa, etc)';
-
--- =====================================================
--- 2) PROCEDURE: ADD RLS POLICIES
--- =====================================================
-
--- 2.1) Enable RLS on procedure table if not already enabled
-ALTER TABLE public.procedure ENABLE ROW LEVEL SECURITY;
-
--- 2.2) Drop existing policies if they exist
-DROP POLICY IF EXISTS "Users can view procedures in their company" ON public.procedure;
-DROP POLICY IF EXISTS "Users can insert procedures in their company" ON public.procedure;
-DROP POLICY IF EXISTS "Users can update procedures in their company" ON public.procedure;
-DROP POLICY IF EXISTS "Users can delete procedures in their company" ON public.procedure;
-
--- 2.3) Create SELECT policy
-CREATE POLICY "Users can view procedures in their company"
-    ON public.procedure FOR SELECT
-    USING (company_id = get_user_company_id());
-
--- 2.4) Create INSERT policy
-CREATE POLICY "Users can insert procedures in their company"
-    ON public.procedure FOR INSERT
-    WITH CHECK (company_id = get_user_company_id());
-
--- 2.5) Create UPDATE policy
-CREATE POLICY "Users can update procedures in their company"
-    ON public.procedure FOR UPDATE
-    USING (company_id = get_user_company_id())
-    WITH CHECK (company_id = get_user_company_id());
-
--- 2.6) Create DELETE policy
-CREATE POLICY "Users can delete procedures in their company"
-    ON public.procedure FOR DELETE
-    USING (company_id = get_user_company_id());
-
-COMMIT;

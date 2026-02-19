@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Trash2, Truck, Search, FunnelX } from 'lucide-react';
+import { Pencil, Trash2, Truck, Search, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -26,6 +26,7 @@ import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import { useForm } from 'react-hook-form';
 import type { Supplier } from '@/types/database';
+import { UF_OPTIONS, fetchAddressFromZip, formatZipInput } from '@/lib/addressZip';
 
 interface SupplierFormData {
   code: string;
@@ -37,10 +38,13 @@ interface SupplierFormData {
   phone: string;
   email: string;
   website: string;
-  address: string;
+  zip: string;
+  street: string;
+  number: string;
+  complement: string;
+  district: string;
   city: string;
   state: string;
-  zip_code: string;
   contact_name: string;
   contact_phone: string;
   payment_terms: string;
@@ -112,42 +116,6 @@ const formatPhoneInput = (value: string): string => {
   return `(${area}) ${prefix}${suffix ? `-${suffix}` : ''}`;
 };
 
-const formatCepInput = (value: string): string => {
-  const digits = value.replace(/\D/g, '').slice(0, 8);
-  if (digits.length <= 5) return digits;
-  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
-};
-
-const UF_OPTIONS = [
-  { value: 'AC', label: 'AC' },
-  { value: 'AL', label: 'AL' },
-  { value: 'AP', label: 'AP' },
-  { value: 'AM', label: 'AM' },
-  { value: 'BA', label: 'BA' },
-  { value: 'CE', label: 'CE' },
-  { value: 'DF', label: 'DF' },
-  { value: 'ES', label: 'ES' },
-  { value: 'GO', label: 'GO' },
-  { value: 'MA', label: 'MA' },
-  { value: 'MT', label: 'MT' },
-  { value: 'MS', label: 'MS' },
-  { value: 'MG', label: 'MG' },
-  { value: 'PA', label: 'PA' },
-  { value: 'PB', label: 'PB' },
-  { value: 'PR', label: 'PR' },
-  { value: 'PE', label: 'PE' },
-  { value: 'PI', label: 'PI' },
-  { value: 'RJ', label: 'RJ' },
-  { value: 'RN', label: 'RN' },
-  { value: 'RS', label: 'RS' },
-  { value: 'RO', label: 'RO' },
-  { value: 'RR', label: 'RR' },
-  { value: 'SC', label: 'SC' },
-  { value: 'SP', label: 'SP' },
-  { value: 'SE', label: 'SE' },
-  { value: 'TO', label: 'TO' },
-];
-
 export default function SuppliersPage() {
   const { data: suppliers = [], isLoading } = useSuppliers();
   const [currentPage, setCurrentPage] = useListPageState();
@@ -175,7 +143,8 @@ export default function SuppliersPage() {
   const [documentValue, setDocumentValue] = useState('');
   const [phoneValue, setPhoneValue] = useState('');
   const [contactPhoneValue, setContactPhoneValue] = useState('');
-  const [zipCodeValue, setZipCodeValue] = useState('');
+  const [zipValue, setZipValue] = useState('');
+  const [isZipLookupLoading, setIsZipLookupLoading] = useState(false);
 
   const openCreateModal = () => {
     setSelectedSupplier(null);
@@ -189,10 +158,13 @@ export default function SuppliersPage() {
       phone: '',
       email: '',
       website: '',
-      address: '',
+      zip: '',
+      street: '',
+      number: '',
+      complement: '',
+      district: '',
       city: '',
       state: '',
-      zip_code: '',
       contact_name: '',
       contact_phone: '',
       payment_terms: '',
@@ -202,7 +174,8 @@ export default function SuppliersPage() {
     setDocumentValue('');
     setPhoneValue('');
     setContactPhoneValue('');
-    setZipCodeValue('');
+    setZipValue('');
+    setIsZipLookupLoading(false);
     setIsModalOpen(true);
   };
 
@@ -210,7 +183,7 @@ export default function SuppliersPage() {
     const formattedDocument = formatCnpjCpfInput(supplier.document || '');
     const formattedPhone = formatPhoneInput(supplier.phone || '');
     const formattedContactPhone = formatPhoneInput(supplier.contact_phone || '');
-    const formattedZip = formatCepInput(supplier.zip_code || '');
+    const formattedZip = formatZipInput(supplier.zip || '');
 
     setSelectedSupplier(supplier);
     reset({
@@ -223,10 +196,13 @@ export default function SuppliersPage() {
       phone: formattedPhone,
       email: supplier.email || '',
       website: supplier.website || '',
-      address: supplier.address || '',
+      zip: formattedZip,
+      street: supplier.street || '',
+      number: supplier.number || '',
+      complement: supplier.complement || '',
+      district: supplier.district || '',
       city: supplier.city || '',
       state: supplier.state || '',
-      zip_code: formattedZip,
       contact_name: supplier.contact_name || '',
       contact_phone: formattedContactPhone,
       payment_terms: supplier.payment_terms || '',
@@ -236,7 +212,8 @@ export default function SuppliersPage() {
     setDocumentValue(formattedDocument);
     setPhoneValue(formattedPhone);
     setContactPhoneValue(formattedContactPhone);
-    setZipCodeValue(formattedZip);
+    setZipValue(formattedZip);
+    setIsZipLookupLoading(false);
     setIsModalOpen(true);
   };
 
@@ -245,25 +222,65 @@ export default function SuppliersPage() {
     setIsDeleteModalOpen(true);
   };
 
+  const handleZipChange = async (value: string) => {
+    const formattedZip = formatZipInput(value);
+    setZipValue(formattedZip);
+    setValue('zip', formattedZip, { shouldDirty: true });
+
+    const digits = formattedZip.replace(/\D/g, '');
+    if (digits.length !== 8) {
+      setIsZipLookupLoading(false);
+      return;
+    }
+
+    setIsZipLookupLoading(true);
+    const zipData = await fetchAddressFromZip(formattedZip);
+    setIsZipLookupLoading(false);
+
+    if (watch('zip') !== formattedZip) return;
+    if (!zipData) return;
+
+    const mappedFields: Array<[keyof SupplierFormData, string | undefined]> = [
+      ['street', zipData.logradouro],
+      ['district', zipData.bairro],
+      ['city', zipData.localidade],
+      ['state', zipData.uf],
+      ['complement', zipData.complemento],
+    ];
+
+    mappedFields.forEach(([field, fieldValue]) => {
+      if (!fieldValue) return;
+      setValue(field, fieldValue, { shouldDirty: true });
+    });
+  };
+
   const onSubmit = async (data: SupplierFormData) => {
+    const toNullable = (value: string): string | null => {
+      const trimmed = value?.trim();
+      return trimmed ? trimmed : null;
+    };
+
     const payload = {
       ...data,
-      code: data.code || null,
-      trade_name: data.trade_name || null,
+      code: toNullable(data.code),
+      trade_name: toNullable(data.trade_name),
       document: data.document ? data.document.replace(/\D/g, '') : null,
-      state_registration: data.state_registration || null,
-      municipal_registration: data.municipal_registration || null,
-      phone: data.phone || null,
-      email: data.email || null,
-      website: data.website || null,
-      address: data.address || null,
-      city: data.city || null,
-      state: data.state || null,
-      zip_code: data.zip_code || null,
-      contact_name: data.contact_name || null,
-      contact_phone: data.contact_phone || null,
-      payment_terms: data.payment_terms || null,
-      notes: data.notes || null,
+      state_registration: toNullable(data.state_registration),
+      municipal_registration: toNullable(data.municipal_registration),
+      phone: toNullable(data.phone),
+      email: toNullable(data.email),
+      website: toNullable(data.website),
+      zip: toNullable(data.zip),
+      street: toNullable(data.street),
+      number: toNullable(data.number),
+      complement: toNullable(data.complement),
+      district: toNullable(data.district),
+      city: toNullable(data.city),
+      state: toNullable(data.state),
+      contact_name: toNullable(data.contact_name),
+      contact_phone: toNullable(data.contact_phone),
+      payment_terms: toNullable(data.payment_terms),
+      notes: toNullable(data.notes),
     };
 
     if (selectedSupplier) {
@@ -417,7 +434,12 @@ export default function SuppliersPage() {
             Fornecedores
           </h1>
         </div>
-        <Button onClick={openCreateModal} variant="solid" label="Novo Fornecedor" />
+        <Button
+          onClick={openCreateModal}
+          variant="solid"
+          icon={<Plus className="h-4 w-4" />}
+          label="Novo Fornecedor"
+        />
       </div>
 
       {/* Table */}
@@ -501,7 +523,7 @@ export default function SuppliersPage() {
                 <Input
                   label="Razão Social"
                   placeholder="Nome oficial da empresa"
-                  {...register('name', { required: 'Razão social Ã© obrigatória' })}
+                  {...register('name', { required: 'Razão social é obrigatória' })}
                   error={errors.name?.message}
                   required
                 />
@@ -530,12 +552,12 @@ export default function SuppliersPage() {
               />
               <Input
                 label="Inscrição Estadual"
-                placeholder="NÃºmero IE"
+                placeholder="Número IE"
                 {...register('state_registration')}
               />
               <Input
                 label="Inscrição Municipal"
-                placeholder="NÃºmero IM"
+                placeholder="Número IM"
                 {...register('municipal_registration')}
               />
             </div>
@@ -544,33 +566,72 @@ export default function SuppliersPage() {
           {/* Endereço */}
           <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Endereço</h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
-              <div className="md:col-span-10">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+              <div className="relative md:col-span-3">
                 <Input
-                  label="Endereço"
-                  placeholder="Rua, nÃºmero, complemento"
-                  {...register('address')}
+                  label="CEP"
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                  {...register('zip')}
+                  value={zipValue}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    void handleZipChange(e.target.value);
+                  }}
                 />
+                {isZipLookupLoading && (
+                  <div className="absolute right-3 top-9 flex items-center gap-2">
+                    <svg
+                      className="text-primary-500 h-4 w-4 animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Buscando...</span>
+                  </div>
+                )}
+              </div>
+              <div className="md:col-span-7">
+                <Input
+                  label="Logradouro"
+                  placeholder="Rua, Avenida, etc."
+                  {...register('street')}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Input label="Número" placeholder="123" {...register('number')} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
+              <div className="md:col-span-8">
+                <Input
+                  label="Complemento"
+                  placeholder="Apto, bloco, sala..."
+                  {...register('complement')}
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input label="Bairro" placeholder="Bairro" {...register('district')} />
               </div>
               <div className="md:col-span-6">
                 <Input label="Cidade" placeholder="Cidade" {...register('city')} />
               </div>
               <div className="md:col-span-4">
                 <Select label="UF" options={UF_OPTIONS} value={stateValue} {...register('state')} />
-              </div>
-              <div className="md:col-span-4">
-                <Input
-                  label="CEP"
-                  placeholder="00000-000"
-                  inputMode="numeric"
-                  {...register('zip_code')}
-                  value={zipCodeValue}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const formatted = formatCepInput(e.target.value);
-                    setZipCodeValue(formatted);
-                    setValue('zip_code', formatted, { shouldDirty: true });
-                  }}
-                />
               </div>
             </div>
           </div>
@@ -631,15 +692,15 @@ export default function SuppliersPage() {
             </div>
           </div>
 
-          {/* ObservaçÃµes */}
+          {/* Observações */}
           <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              InformaçÃµes Adicionais
+              Informações Adicionais
             </h3>
             <div className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4">
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="CondiçÃµes de Pagamento"
+                  label="Condições de Pagamento"
                   placeholder="Ex: 30/60/90 dias, boleto bancário"
                   rows={2}
                   {...register('payment_terms')}
@@ -647,8 +708,8 @@ export default function SuppliersPage() {
               </div>
               <div className="col-span-full md:col-span-12">
                 <Textarea
-                  label="ObservaçÃµes"
-                  placeholder="ObservaçÃµes adicionais..."
+                  label="Observações"
+                  placeholder="Observações adicionais..."
                   rows={2}
                   {...register('notes')}
                 />
@@ -656,33 +717,32 @@ export default function SuppliersPage() {
             </div>
           </div>
 
-          <SwitchNew
-            label="Status"
-            showStatus
-            name={activeName}
-            ref={activeRef}
-            onBlur={activeOnBlur}
-            checked={!!activeValue}
-            onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true });
-            }}
-          />
-
-          <ModalFooter>
-            <Button
-              type="button"
-              variant="outline"
-              showIcon={false}
-              onClick={() => setIsModalOpen(false)}
-              label="Cancelar"
+          <ModalFooter className="mt-4 !justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
+            <SwitchNew
+              label="Status"
+              showStatus
+              name={activeName}
+              ref={activeRef}
+              onBlur={activeOnBlur}
+              checked={!!activeValue}
+              onChange={(e) => {
+                setValue('active', e.target.checked, { shouldDirty: true });
+              }}
             />
-            <Button
-              type="submit"
-              variant="solid"
-              showIcon={false}
-              disabled={createSupplier.isPending || updateSupplier.isPending}
-              label={selectedSupplier ? 'Salvar AlteraçÃµes' : 'Cadastrar'}
-            />
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="neutral"
+                onClick={() => setIsModalOpen(false)}
+                label="Cancelar"
+              />
+              <Button
+                type="submit"
+                variant="solid"
+                disabled={createSupplier.isPending || updateSupplier.isPending}
+                label={selectedSupplier ? 'Salvar Alterações' : 'Cadastrar'}
+              />
+            </div>
           </ModalFooter>
         </form>
       </Modal>

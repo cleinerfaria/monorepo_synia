@@ -203,7 +203,7 @@ export default function PatientContactForm({
                   }
                 />
                 <Input
-                  label={contact.type === 'email' ? 'E-mail' : 'NÃºmero/Contato'}
+                  label={contact.type === 'email' ? 'E-mail' : 'Número/Contato'}
                   placeholder={contact.type === 'email' ? 'email@exemplo.com' : '(00) 00000-0000'}
                   type={contact.type === 'email' ? 'email' : 'text'}
                   value={contact.value}
@@ -231,8 +231,8 @@ export default function PatientContactForm({
               </div>
 
               <Textarea
-                label="ObservaçÃµes"
-                placeholder="InformaçÃµes adicionais sobre este contato"
+                label="Observações"
+                placeholder="Informações adicionais sobre este contato"
                 value={contact.notes || ''}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   handleUpdateContact(index, 'notes', e.target.value)
@@ -249,7 +249,7 @@ export default function PatientContactForm({
                   }
                 />
                 <Switch
-                  label="Pode Receber AtualizaçÃµes"
+                  label="Pode Receber Atualizações"
                   checked={contact.can_receive_updates}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleUpdateContact(index, 'can_receive_updates', e.target.checked)

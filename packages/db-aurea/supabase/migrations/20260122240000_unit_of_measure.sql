@@ -1,26 +1,21 @@
 -- =============================================
 -- UNIT OF MEASURE + RLS + SEED (escopo granular)
 -- =============================================
-
+-- 1) ENUMs (prefixo enum_)
 BEGIN;
 
--- 1) ENUMs (prefixo enum_)
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_unit_scope') THEN
-    CREATE TYPE public.enum_unit_scope AS ENUM (
-      'medication_base',
-      'medication_prescription',
-      'material_base',
-      'material_prescription',
-      'diet_base',
-      'diet_prescription',
-      'procedure',
-      'equipment',
-      'scale'
-    );
-  END IF;
-END $$;
+
+CREATE TYPE public.enum_unit_scope AS ENUM (
+  'medication_base',
+  'medication_prescription',
+  'material_base',
+  'material_prescription',
+  'diet_base',
+  'diet_prescription',
+  'procedure',
+  'equipment',
+  'scale'
+);
 
 -- 2) Tabela
 CREATE TABLE IF NOT EXISTS public.unit_of_measure (
@@ -33,7 +28,7 @@ CREATE TABLE IF NOT EXISTS public.unit_of_measure (
   description TEXT NULL,
 
   allowed_scopes public.enum_unit_scope[] NOT NULL,
-  active BOOLEAN NOT NULL DEFAULT TRUE,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -45,26 +40,57 @@ CREATE TABLE IF NOT EXISTS public.unit_of_measure (
 );
 
 -- 3) Índices
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company
-ON public.unit_of_measure(company_id);
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_code
-ON public.unit_of_measure(company_id, code);
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_active
-ON public.unit_of_measure(company_id, active);
+CREATE INDEX IF NOT EXISTS idx_unit_of_measure_company_is_active
+ON public.unit_of_measure(company_id, is_active);
 
-CREATE INDEX IF NOT EXISTS idx_unit_of_measure_allowed_scopes_gin
-ON public.unit_of_measure
-USING GIN (allowed_scopes);
 
 -- 4) RLS
 ALTER TABLE public.unit_of_measure ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS unit_of_measure_select_policy ON public.unit_of_measure;
-DROP POLICY IF EXISTS unit_of_measure_insert_policy ON public.unit_of_measure;
-DROP POLICY IF EXISTS unit_of_measure_update_policy ON public.unit_of_measure;
-DROP POLICY IF EXISTS unit_of_measure_delete_policy ON public.unit_of_measure;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'unit_of_measure'
+      AND policyname = 'unit_of_measure_select_policy'
+  ) THEN
+    EXECUTE 'DROP POLICY unit_of_measure_select_policy ON public.unit_of_measure';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'unit_of_measure'
+      AND policyname = 'unit_of_measure_insert_policy'
+  ) THEN
+    EXECUTE 'DROP POLICY unit_of_measure_insert_policy ON public.unit_of_measure';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'unit_of_measure'
+      AND policyname = 'unit_of_measure_update_policy'
+  ) THEN
+    EXECUTE 'DROP POLICY unit_of_measure_update_policy ON public.unit_of_measure';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'unit_of_measure'
+      AND policyname = 'unit_of_measure_delete_policy'
+  ) THEN
+    EXECUTE 'DROP POLICY unit_of_measure_delete_policy ON public.unit_of_measure';
+  END IF;
+END $$;
 
 CREATE POLICY unit_of_measure_select_policy
 ON public.unit_of_measure
@@ -154,41 +180,45 @@ seed AS (
     -- =========================
     -- LISTA BASE (sua lista)
     -- =========================
-    ('un',   'Unidade',        'UN',   'Unidade individual'),
-    ('cx',   'Caixa',          'CX',   'Caixa contendo múltiplas unidades'),
-    ('fr',   'Frasco',         'FR',   'Frasco (líquido/sólido)'),
-    ('amp',  'Ampola',         'AMP',  'Ampola para injetáveis'),
-    ('fa',   'Frasco-Ampola',  'FA',   'Frasco-ampola para injetáveis'),
-    ('cp',   'Comprimido',     'CP',   'Comprimido individual'),
-    ('cap',  'Cápsula',        'CAP',  'Cápsula individual'),
-    ('bl',   'Blister',        'BL',   'Blister/cartela de doses'),
-    ('tb',   'Tubo',           'TB',   'Tubo de pomada/gel'),
-    ('bisn', 'Bisnaga',        'BISN', 'Bisnaga de produto'),
-
-    ('pct',  'Pacote',         'PCT',  'Pacote contendo múltiplas unidades'),
-    ('rl',   'Rolo',           'RL',   'Rolo de material'),
-    ('kit',  'Kit',            'KIT',  'Kit com múltiplos itens'),
-    ('par',  'Par',            'PAR',  'Par de itens (ex.: luvas)'),
-
-    ('sess', 'Sessão',         'SESS', 'Sessão/atendimento (procedimento)'),
-    ('visit','Visita',         'VIS',  'Visita (procedimento)'),
-    ('dia',  'Dia',            'DIA',  'Diária (equipamento/serviço)'),
-
-    ('ml',   'Mililitro',      'ML',   'Volume em mililitros'),
-    ('l',    'Litro',          'L',    'Volume em litros'),
-    ('mg',   'Miligrama',      'MG',   'Massa em miligramas'),
-    ('g',    'Grama',          'G',    'Massa em gramas'),
-    -- kg removido conforme decisão anterior
-    ('gota', 'Gota',           'GOTA', 'Gota (dose)'),
-    ('dose', 'Dose',           'DOSE', 'Dose unitária'),
-    -- =========================
-    -- TEMPO / ESCALA (pedido agora)
-    -- =========================
-    ('minuto',  'Minuto',  'MIN', 'Unidade de tempo (minuto)'),
-    ('hora',    'Hora',    'H',   'Unidade de tempo (hora)'),
-    ('semana',  'Semana',  'SEM', 'Unidade de tempo (semana)'),
-    ('mes',     'Mês',     'MÊS', 'Unidade de tempo (mês)'),
-    ('plantao', 'Plantão', 'PLANT',  'Plantão (turno/escala)')
+    ('un',     'Unidade',        'UN',   'Unidade individual'),
+    ('cx',     'Caixa',          'CX',   'Caixa contendo múltiplas unidades'),
+    ('fr',     'Frasco',         'FR',   'Frasco (líquido/sólido)'),
+    ('amp',    'Ampola',         'AMP',  'Ampola para injetáveis'),
+    ('fa',     'Frasco-Ampola',  'FA',   'Frasco-ampola para injetáveis'),
+    ('cp',     'Comprimido',     'CP',   'Comprimido individual'),
+    ('cap',    'Cápsula',        'CAP',  'Cápsula individual'),
+    ('bl',     'Blister',        'BL',   'Blister/cartela de doses'),
+    ('tb',     'Tubo',           'TB',   'Tubo de pomada/gel'),
+    ('bisn',   'Bisnaga',        'BISN', 'Bisnaga de produto'),
+    ('pct',    'Pacote',         'PCT',  'Pacote contendo múltiplas unidades'),
+    ('rl',     'Rolo',           'RL',   'Rolo de material'),
+    ('kit',    'Kit',            'KIT',  'Kit com múltiplos itens'), 
+    ('par',    'Par',            'PAR',  'Par de itens (ex.: luvas)'),
+    ('sess',   'Sessão',         'SESS', 'Sessão/atendimento (procedimento)'),
+    ('visit',  'Visita',         'VIS',  'Visita (procedimento)'),
+    ('dia',    'Dia',            'DIA',  'Diária (equipamento/serviço)'),
+    ('lata',   'Lata',           'LATA', 'Lata de medicamento ou material'),
+    ('ml',     'Mililitro',      'ML',   'Volume em mililitros'),
+    ('cm',     'Centímetro',     'CM',   'Comprimento em centímetros'),
+    ('mt',      'Metro',         'MT',    'Comprimento em metros'),
+    ('lt',     'Litro',          'LT',   'Volume em litros'),
+    ('kg',     'Quilograma',     'KG',   'Massa em quilogramas'),
+    ('mg',     'Miligrama',      'MG',   'Massa em miligramas'),
+    ('ser',    'Seringa',        'SER',  'Seringa para injetáveis'),
+    ('g',      'Grama',          'G',    'Massa em gramas'),
+    ('gota',   'Gota',           'GOTA', 'Gota (dose)'),
+    ('dose',   'Dose',           'DOSE', 'Dose unitária'),
+    ('sache',  'Sachê',          'SACH', 'Gel/líquido monodose'),
+    ('drg',    'Drágea',         'DRG',  'Drágea (comprimido revestido)'),
+    ('env',    'Envelope',       'ENV',  'Envelope pó/granulado para diluição'),
+    ('flac',   'Flaconete',      'FLAC', 'Flaconete para líquidos'),
+    ('bolsa',  'Bolsa',          'BOLS', 'Bolsa para líquidos'),
+    ('ades',   'Adesivo',        'ADES', 'Unidade de medida para medicamentos por adesivo'),
+    ('minuto', 'Minuto',         'MIN',  'Unidade de tempo (minuto)'),
+    ('hora',   'Hora',           'H',    'Unidade de tempo (hora)'),
+    ('semana', 'Semana',         'SEM',  'Unidade de tempo (semana)'),
+    ('mes',    'Mês',            'MÊS',  'Unidade de tempo (mês)'),
+    ('plantao','Plantão',        'PL',   'Plantão (turno/escala)')
   ) AS t(code, name, symbol, description)
 ),
 scoped AS (
@@ -234,7 +264,7 @@ INSERT INTO public.unit_of_measure (
   symbol,
   description,
   allowed_scopes,
-  active
+  is_active
 )
 SELECT
   c.company_id,
@@ -253,6 +283,6 @@ SET
   symbol = EXCLUDED.symbol,
   description = EXCLUDED.description,
   allowed_scopes = EXCLUDED.allowed_scopes,
-  active = EXCLUDED.active;
+  is_active = EXCLUDED.is_active;
 
 COMMIT;

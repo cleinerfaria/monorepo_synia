@@ -16,7 +16,12 @@ BEGIN;
 -- - Cancela ocorrências futuras inválidas após alteração de prescrição
 -- =====================================================
 
-DROP FUNCTION IF EXISTS public.generate_prescription_occurrences(uuid, date, date);
+DO $$
+BEGIN
+  IF to_regprocedure('public.generate_prescription_occurrences(uuid, date, date)') IS NOT NULL THEN
+    EXECUTE 'DROP FUNCTION public.generate_prescription_occurrences(uuid, date, date)';
+  END IF;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.generate_prescription_occurrences(
   p_prescription_id uuid,

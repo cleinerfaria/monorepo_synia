@@ -325,7 +325,7 @@ export default function PrescriptionsPage() {
       },
       {
         accessorKey: 'period',
-        header: 'PerÃ­odo',
+        header: 'Período',
         cell: ({ row }) => {
           const start = row.original.start_date;
           const end = row.original.end_date;
@@ -334,7 +334,7 @@ export default function PrescriptionsPage() {
             <span className="text-gray-700 dark:text-gray-300">
               {start ? format(parseDateOnly(start), 'dd/MM/yyyy') : '...'}
               {' - '}
-              {end ? format(parseDateOnly(end), 'dd/MM/yyyy') : 'Indeterminado'}
+              {end ? format(parseDateOnly(end), 'dd/MM/yyyy') : '-'}
             </span>
           );
         },
@@ -401,9 +401,9 @@ export default function PrescriptionsPage() {
   const prescriptionTypeOptions = [
     {
       value: 'medical',
-      label: 'MÃ©dica',
+      label: 'Médica',
       icon: ClipboardList,
-      description: 'Prescrição mÃ©dica tradicional',
+      description: 'Prescrição médica tradicional',
     },
     {
       value: 'nursing',
@@ -425,7 +425,7 @@ export default function PrescriptionsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            PrescriçÃµes
+            Prescrições
           </h1>
         </div>
         <Button onClick={openCreateModal} variant="solid" label="Nova Prescrição" />
@@ -467,7 +467,7 @@ export default function PrescriptionsPage() {
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por paciente, profissional ou observaçÃµes..."
+                placeholder="Buscar por paciente, profissional ou observações..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
@@ -525,7 +525,7 @@ export default function PrescriptionsPage() {
                   label="Tipo"
                   options={[
                     { value: '', label: 'Todos' },
-                    { value: 'medical', label: 'MÃ©dica' },
+                    { value: 'medical', label: 'Médica' },
                     { value: 'nursing', label: 'Enfermagem' },
                     { value: 'nutrition', label: 'Nutrição' },
                   ]}
@@ -560,7 +560,7 @@ export default function PrescriptionsPage() {
                 />
 
                 <DatePicker
-                  label="PerÃ­odo (de)"
+                  label="Período (de)"
                   value={periodStartFilter}
                   onChange={(value: any) => {
                     const nextValue =
@@ -570,7 +570,7 @@ export default function PrescriptionsPage() {
                 />
 
                 <DatePicker
-                  label="PerÃ­odo (atÃ©)"
+                  label="Período (até)"
                   value={periodEndFilter}
                   onChange={(value: any) => {
                     const nextValue =
@@ -644,7 +644,7 @@ export default function PrescriptionsPage() {
             placeholder="Selecione o paciente..."
             searchPlaceholder="Buscar paciente..."
             value={watchPatientId || ''}
-            {...register('patient_id', { required: 'Paciente Ã© obrigatório' })}
+            {...register('patient_id', { required: 'Paciente é obrigatório' })}
             error={errors.patient_id?.message}
             required
           />
@@ -655,21 +655,21 @@ export default function PrescriptionsPage() {
             placeholder="Selecione o profissional..."
             searchPlaceholder="Buscar profissional..."
             value={watchProfessionalId || ''}
-            {...register('professional_id', { required: 'Profissional Ã© obrigatório' })}
+            {...register('professional_id', { required: 'Profissional é obrigatório' })}
             error={errors.professional_id?.message}
             required
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <DatePicker label="Data de InÃ­cio" {...startDateField} ref={startDateRef} />
-            <DatePicker label="Data de TÃ©rmino" {...endDateField} ref={endDateRef} />
+            <DatePicker label="Data de Início" {...startDateField} ref={startDateRef} />
+            <DatePicker label="Data de Término" {...endDateField} ref={endDateRef} />
           </div>
 
           <Select label="Status" options={statusOptions} {...register('status')} />
 
           <Textarea
-            label="ObservaçÃµes"
-            placeholder="ObservaçÃµes gerais sobre a prescrição..."
+            label="Observações"
+            placeholder="Observações gerais sobre a prescrição..."
             {...register('notes')}
           />
 
@@ -686,7 +686,7 @@ export default function PrescriptionsPage() {
               variant="solid"
               showIcon={false}
               disabled={createPrescription.isPending || updatePrescription.isPending}
-              label={editingPrescription ? 'Salvar AlteraçÃµes' : 'Criar e Adicionar Itens'}
+              label={editingPrescription ? 'Salvar Alterações' : 'Criar e Adicionar Itens'}
             />
           </ModalFooter>
         </form>
@@ -700,7 +700,7 @@ export default function PrescriptionsPage() {
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja excluir esta prescrição? Todos os itens tambÃ©m serão removidos.
+          Tem certeza que deseja excluir esta prescrição? Todos os itens também serão removidos.
           Esta ação não pode ser desfeita.
         </p>
 

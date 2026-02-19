@@ -57,8 +57,6 @@ BEGIN
 END;
 $$;
 
-CREATE INDEX IF NOT EXISTS idx_prescription_print_company_prescription_period
-  ON public.prescription_print (company_id, prescription_id, period_start, period_end);
 
 -- =====================================================
 -- Incremental period range expansion (1..14 days)
@@ -185,7 +183,7 @@ BEGIN
     INTO v_company_id
   FROM public.app_user au
   WHERE au.auth_user_id = v_user_id
-    AND au.active = TRUE
+    AND au.is_active = TRUE
   LIMIT 1;
 
   IF v_company_id IS NULL THEN
@@ -492,7 +490,7 @@ BEGIN
     INTO v_company_id
   FROM public.app_user au
   WHERE au.auth_user_id = v_user_id
-    AND au.active = TRUE
+    AND au.is_active = TRUE
   LIMIT 1;
 
   IF v_company_id IS NULL THEN

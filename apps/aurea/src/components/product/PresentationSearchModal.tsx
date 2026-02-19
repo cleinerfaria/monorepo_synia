@@ -6,7 +6,7 @@ import type { RefItemUnified, ProductPresentation } from '@/types/database';
 import toast from 'react-hot-toast';
 import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
-import { Search, Link, X, Filter, Check } from 'lucide-react';
+import { Search, Link, Filter, Check, FunnelX } from 'lucide-react';
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
 interface SearchFilters {
@@ -222,18 +222,21 @@ export default function PresentationSearchModal({
             </div>
             <Button
               type="button"
-              size="sm"
+              icon={<Filter className="h-4 w-4" />}
+              size="md"
               variant={showAdvancedFilters ? 'primary' : 'secondary'}
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             >
-              <Filter className="h-4 w-4" />
               Filtros
             </Button>
             {hasActiveFilters && (
-              <Button type="button" size="sm" variant="secondary" onClick={clearFilters}>
-                <X className="h-4 w-4" />
-                Limpar
-              </Button>
+              <Button
+                type="button"
+                icon={<FunnelX className="h-4 w-4" />}
+                size="md"
+                variant="neutral"
+                onClick={clearFilters}
+              ></Button>
             )}
           </div>
 
@@ -490,7 +493,7 @@ export default function PresentationSearchModal({
           onPreviousPage={() => setCurrentPage((page) => page - 1)}
           onNextPage={() => setCurrentPage((page) => page + 1)}
           trailingContent={
-            <Button type="button" variant="secondary" onClick={onClose}>
+            <Button type="button" variant="neutral" onClick={onClose}>
               Fechar
             </Button>
           }

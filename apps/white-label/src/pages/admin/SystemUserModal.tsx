@@ -176,9 +176,6 @@ export default function SystemUserModal({ isOpen, onClose, user }: SystemUserMod
             error={errors.email}
           />
           {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
-          {isEditing && (
-            <p className="mt-1 text-xs text-gray-500">O e-mail não pode ser alterado</p>
-          )}
         </div>
 
         {/* Senha (apenas para novos usuários) */}
@@ -307,7 +304,7 @@ export default function SystemUserModal({ isOpen, onClose, user }: SystemUserMod
                   </Button>
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="neutral"
                     size="sm"
                     onClick={() => setShowDeleteConfirm(false)}
                   >
@@ -335,7 +332,7 @@ export default function SystemUserModal({ isOpen, onClose, user }: SystemUserMod
             <div />
           )}
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+            <Button type="button" variant="neutral" onClick={onClose} disabled={isLoading}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>

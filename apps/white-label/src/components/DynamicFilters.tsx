@@ -426,7 +426,7 @@ export default function DynamicFilters({
               Aplicar Filtros
             </Button>
             <Button
-              variant="secondary"
+              variant="neutral"
               onClick={() => {
                 // Clear filters
                 sortedFilters.forEach((filter) => {

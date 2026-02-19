@@ -133,13 +133,13 @@ export default function PatientAddressForm({
     if (field === 'latitude' || field === 'longitude') {
       setManuallyEditedCoordinates((prev) => new Set(prev).add(`${index}`));
 
-      // Arredondar para 6 dÃ­gitos decimais se for nÃºmero
+      // Arredondar para 6 dígitos decimais se for número
       if (typeof value === 'number') {
         value = Math.round(value * 1000000) / 1000000;
       }
     }
 
-    console.warn('Valores especÃ­ficos antes da atualização:');
+    console.warn('Valores específicos antes da atualização:');
     console.warn('  latitude:', newAddresses[index].latitude);
     console.warn('  longitude:', newAddresses[index].longitude);
 
@@ -158,7 +158,7 @@ export default function PatientAddressForm({
       updated_at: new Date().toISOString(),
     };
 
-    console.warn('Valores especÃ­ficos depois da atualização:');
+    console.warn('Valores específicos depois da atualização:');
     console.warn('  latitude:', newAddresses[index].latitude);
     console.warn('  longitude:', newAddresses[index].longitude);
     console.warn('Campo atualizado:', field, '=', value);
@@ -212,11 +212,11 @@ export default function PatientAddressForm({
       // Marcar como editado manualmente
       setManuallyEditedCoordinates((prev) => new Set(prev).add(`${mapModalAddressIndex}`));
 
-      // Arredondar coordenadas para 6 dÃ­gitos decimais
+      // Arredondar coordenadas para 6 dígitos decimais
       const roundedLatitude = Math.round(latitude * 1000000) / 1000000;
       const roundedLongitude = Math.round(longitude * 1000000) / 1000000;
 
-      // Fazer uma Ãºnica atualização com ambos os valores
+      // Fazer uma única atualização com ambos os valores
       const newAddresses = [...addresses];
       newAddresses[mapModalAddressIndex] = {
         ...newAddresses[mapModalAddressIndex],
@@ -365,7 +365,7 @@ export default function PatientAddressForm({
                 </div>
               </div>
 
-              {/* Linha 2: CEP (4) + Logradouro (18) + NÃºmero (2) */}
+              {/* Linha 2: CEP (4) + Logradouro (18) + Número (2) */}
               <div className="grid grid-cols-12 gap-4">
                 <div className="relative col-span-4">
                   <Input
@@ -414,7 +414,7 @@ export default function PatientAddressForm({
                 </div>
                 <div className="col-span-2">
                   <Input
-                    label="NÃºmero"
+                    label="Número"
                     placeholder="123"
                     value={address.number || ''}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -472,12 +472,12 @@ export default function PatientAddressForm({
                 </div>
               </div>
 
-              {/* Linha 4: ReferÃªncia (12) + Latitude (6) + Longitude (6) */}
+              {/* Linha 4: Referência (12) + Latitude (6) + Longitude (6) */}
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-6">
                   <Input
-                    label="ReferÃªncia"
-                    placeholder="Ponto de referÃªncia"
+                    label="Referência"
+                    placeholder="Ponto de referência"
                     value={address.reference || ''}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       handleUpdateAddress(index, 'reference', e.target.value)

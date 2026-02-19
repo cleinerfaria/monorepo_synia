@@ -68,6 +68,10 @@ describe('DynamicFilters', () => {
       ],
       hasMore: false,
     });
+    // Suprimir logs de console durante testes
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   it('deve renderizar inputs de texto', () => {

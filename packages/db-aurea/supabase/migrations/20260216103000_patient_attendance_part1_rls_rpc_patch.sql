@@ -3,7 +3,12 @@ BEGIN;
 -- =====================================================
 -- Helpers (agora usando professional_user)
 -- =====================================================
-DROP FUNCTION IF EXISTS public.current_professional_id();
+DO $$
+BEGIN
+  IF to_regprocedure('public.current_professional_id()') IS NOT NULL THEN
+    EXECUTE 'DROP FUNCTION public.current_professional_id()';
+  END IF;
+END $$;
 CREATE OR REPLACE FUNCTION public.current_professional_id()
 RETURNS uuid
 LANGUAGE sql
@@ -18,7 +23,12 @@ AS $$
   LIMIT 1
 $$;
 
-DROP FUNCTION IF EXISTS public.current_company_id();
+DO $$
+BEGIN
+  IF to_regprocedure('public.current_company_id()') IS NOT NULL THEN
+    EXECUTE 'DROP FUNCTION public.current_company_id()';
+  END IF;
+END $$;
 CREATE OR REPLACE FUNCTION public.current_company_id()
 RETURNS uuid
 LANGUAGE sql
@@ -39,7 +49,12 @@ GRANT EXECUTE ON FUNCTION public.current_company_id() TO authenticated;
 -- =====================================================
 -- Recriar RPCs do plantão (dependem dos helpers)
 -- =====================================================
-DROP FUNCTION IF EXISTS public.list_my_shifts(timestamptz, timestamptz);
+DO $$
+BEGIN
+  IF to_regprocedure('public.list_my_shifts(timestamptz, timestamptz)') IS NOT NULL THEN
+    EXECUTE 'DROP FUNCTION public.list_my_shifts(timestamptz, timestamptz)';
+  END IF;
+END $$;
 CREATE OR REPLACE FUNCTION public.list_my_shifts(
   p_from timestamptz,
   p_to timestamptz
@@ -67,7 +82,12 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.list_my_shifts(timestamptz, timestamptz) TO authenticated;
 
-DROP FUNCTION IF EXISTS public.get_my_active_shift();
+DO $$
+BEGIN
+  IF to_regprocedure('public.get_my_active_shift()') IS NOT NULL THEN
+    EXECUTE 'DROP FUNCTION public.get_my_active_shift()';
+  END IF;
+END $$;
 CREATE OR REPLACE FUNCTION public.get_my_active_shift()
 RETURNS public.patient_attendance_shift
 LANGUAGE sql
@@ -86,7 +106,12 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_my_active_shift() TO authenticated;
 
-DROP FUNCTION IF EXISTS public.shift_check_in(uuid, numeric, numeric);
+DO $$
+BEGIN
+  IF to_regprocedure('public.shift_check_in(uuid, numeric, numeric)') IS NOT NULL THEN
+    EXECUTE 'DROP FUNCTION public.shift_check_in(uuid, numeric, numeric)';
+  END IF;
+END $$;
 CREATE OR REPLACE FUNCTION public.shift_check_in(
   p_shift_id uuid,
   p_lat numeric DEFAULT NULL,
@@ -157,7 +182,12 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.shift_check_in(uuid, numeric, numeric) TO authenticated;
 
-DROP FUNCTION IF EXISTS public.shift_check_out(uuid, numeric, numeric);
+DO $$
+BEGIN
+  IF to_regprocedure('public.shift_check_out(uuid, numeric, numeric)') IS NOT NULL THEN
+    EXECUTE 'DROP FUNCTION public.shift_check_out(uuid, numeric, numeric)';
+  END IF;
+END $$;
 CREATE OR REPLACE FUNCTION public.shift_check_out(
   p_shift_id uuid,
   p_lat numeric DEFAULT NULL,

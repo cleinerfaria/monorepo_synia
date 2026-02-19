@@ -1,16 +1,9 @@
-import { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  Button,
-  Input,
-  Loading,
-  EmptyState,
-  Badge,
-  Modal,
-} from '@/components/ui';
+import { useState, useMemo, useCallback } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Card, Button, DataTable, EmptyState, Modal, IconButton } from '@/components/ui';
 import {
   useAccessProfiles,
+  useAccessProfile,
   useDeleteAccessProfile,
   AccessProfile,
 } from '@/hooks/useAccessProfiles';
@@ -20,8 +13,9 @@ import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import AccessProfileModal from '@/pages/admin/AccessProfileModal';
 import { ShieldCheck, Plus, Pencil, Trash2, Search } from 'lucide-react';
+
 export default function AccessProfilesPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<AccessProfile | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -31,32 +25,106 @@ export default function AccessProfilesPage() {
   const { data: accessProfiles = [], isLoading: isLoadingProfiles } = useAccessProfiles(
     company?.id
   );
+  const { data: selectedProfileWithPermissions } = useAccessProfile(selectedProfile?.id);
   const deleteProfile = useDeleteAccessProfile();
 
-  const filteredProfiles = accessProfiles.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.code.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProfiles = useMemo(() => {
+    if (!searchInput.trim()) return accessProfiles;
+    const query = searchInput.toLowerCase();
 
-  const handleEditProfile = (profile: AccessProfile) => {
+    return accessProfiles.filter(
+      (profile) =>
+        profile.name.toLowerCase().includes(query) || profile.code.toLowerCase().includes(query)
+    );
+  }, [accessProfiles, searchInput]);
+
+  const handleEditProfile = useCallback((profile: AccessProfile) => {
     setSelectedProfile(profile);
     setIsProfileModalOpen(true);
-  };
+  }, []);
 
-  const handleNewProfile = () => {
+  const handleNewProfile = useCallback(() => {
     setSelectedProfile(null);
     setIsProfileModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteClick = (profile: AccessProfile) => {
-    if (profile.is_system) {
-      toast.error('Não é possível excluir um perfil do sistema');
-      return;
-    }
+  const handleDeleteClick = useCallback((profile: AccessProfile) => {
     setProfileToDelete(profile);
     setIsDeleteModalOpen(true);
-  };
+  }, []);
+
+  const columns: ColumnDef<AccessProfile>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Perfil',
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+              <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate font-medium text-gray-900 dark:text-white">
+                {row.original.name}
+              </p>
+              <p className="truncate text-sm text-gray-500">{row.original.code}</p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'description',
+        header: 'Descrição',
+        cell: ({ row }) =>
+          row.original.description ? (
+            <p className="max-w-md truncate text-sm text-gray-600 dark:text-gray-400">
+              {row.original.description}
+            </p>
+          ) : (
+            <span className="text-sm text-gray-400">-</span>
+          ),
+      },
+      {
+        accessorKey: 'created_at',
+        header: 'Criado em',
+        cell: ({ row }) => (
+          <span className="text-sm text-gray-600 dark:text-gray-300">
+            {format(new Date(row.original.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+          </span>
+        ),
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-2">
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditProfile(row.original);
+              }}
+              title="Editar perfil"
+            >
+              <Pencil className="h-4 w-4" />
+            </IconButton>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick(row.original);
+              }}
+              className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
+              title="Excluir perfil"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [handleDeleteClick, handleEditProfile]
+  );
 
   const handleConfirmDelete = async () => {
     if (!profileToDelete) return;
@@ -81,105 +149,54 @@ export default function AccessProfilesPage() {
             Configure os perfis e permissões do sistema
           </p>
         </div>
-        <Button onClick={handleNewProfile}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={handleNewProfile} icon={<Plus className="mr-2 h-4 w-4" />}>
           Novo Perfil
         </Button>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="py-4">
-          <div className="relative">
+      {/* Table */}
+      <Card padding="none">
+        <div className="space-y-4 p-6">
+          <div className="relative w-full sm:w-[30%]">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-            <Input
+            <input
               type="text"
               placeholder="Buscar por nome ou código..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             />
           </div>
-        </CardContent>
+
+          <DataTable
+            data={filteredProfiles}
+            columns={columns}
+            isLoading={isLoadingProfiles}
+            onRowClick={handleEditProfile}
+            emptyState={
+              searchInput.trim() ? (
+                <EmptyState
+                  icon={<ShieldCheck className="h-12 w-12 text-gray-400" />}
+                  title="Nenhum perfil encontrado"
+                  description="Tente ajustar sua busca"
+                />
+              ) : (
+                <EmptyState
+                  icon={<ShieldCheck className="h-12 w-12 text-gray-400" />}
+                  title="Nenhum perfil cadastrado"
+                  description="Comece criando seu primeiro perfil de acesso"
+                  action={
+                    <Button onClick={handleNewProfile} size="sm">
+                      <Plus className="h-4 w-4" />
+                      Novo Perfil
+                    </Button>
+                  }
+                />
+              )
+            }
+          />
+        </div>
       </Card>
-
-      {/* Profiles Grid */}
-      <div>
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-          <ShieldCheck className="h-5 w-5" />
-          Perfis ({filteredProfiles.length})
-        </h2>
-
-        {isLoadingProfiles ? (
-          <div className="flex justify-center py-8">
-            <Loading size="lg" />
-          </div>
-        ) : filteredProfiles.length === 0 ? (
-          <Card>
-            <CardContent className="py-8">
-              <EmptyState
-                icon={<ShieldCheck className="h-16 w-16" />}
-                title="Nenhum perfil encontrado"
-                description={
-                  searchTerm ? 'Tente ajustar sua busca' : "Clique em 'Novo Perfil' para criar um"
-                }
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredProfiles.map((profile) => (
-              <Card key={profile.id} className="transition-shadow hover:shadow-md">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {profile.name}
-                        </h3>
-                        {profile.is_system && (
-                          <Badge variant="neutral" className="text-xs">
-                            Sistema
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="mb-2 text-sm text-gray-500">Código: {profile.code}</p>
-                      {profile.description && (
-                        <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-                          {profile.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-4 text-xs text-gray-400">
-                        <span>
-                          Criado em{' '}
-                          {format(new Date(profile.created_at), 'dd/MM/yyyy', {
-                            locale: ptBR,
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditProfile(profile)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      {!profile.is_system && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(profile)}
-                          className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* Profile Modal */}
       {company?.id && (
@@ -191,6 +208,9 @@ export default function AccessProfilesPage() {
           }}
           profile={selectedProfile}
           companyId={company.id}
+          existingPermissionIds={
+            selectedProfileWithPermissions?.permissions?.map((permission) => permission.id) || []
+          }
         />
       )}
 
@@ -214,7 +234,7 @@ export default function AccessProfilesPage() {
           </p>
           <div className="flex justify-end gap-3 pt-4">
             <Button
-              variant="secondary"
+              variant="neutral"
               onClick={() => {
                 setIsDeleteModalOpen(false);
                 setProfileToDelete(null);

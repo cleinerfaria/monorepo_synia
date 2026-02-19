@@ -1,5 +1,6 @@
 ﻿// UI Components - Barrel export
 export { Input } from './Input';
+export { Checkbox } from './Checkbox';
 export { Select } from './Select';
 export { Select as ListboxSelect } from './Select';
 export { Select as SearchableSelect } from './Select';
@@ -7,8 +8,9 @@ export { Select as NativeSelect } from './Select';
 export { MultiSelect } from './MultiSelect';
 export { DatePicker } from './DatePicker';
 export { TimePicker } from './TimePicker';
+export { ColorPicker } from './ColorPicker';
 export { Textarea } from './Textarea';
-export { Button } from './Button';
+export { Button, PlusIcon } from './Button';
 export { createButton } from './Button';
 export { IconButton } from './IconButton';
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
@@ -33,6 +35,7 @@ export { ActionButton } from './ActionButton';
 
 // Re-export types
 export type { InputProps } from './Input';
+export type { CheckboxProps } from './Checkbox';
 export type { SelectProps, SelectOption } from './Select';
 export type {
   SelectProps as ListboxSelectProps,
@@ -47,6 +50,7 @@ export type {
   SelectOption as NativeSelectOption,
 } from './Select';
 export type { MultiSelectProps, MultiSelectOption } from './MultiSelect';
+export type { ColorPickerProps } from './ColorPicker';
 export type { TextareaProps } from './Textarea';
 export type {
   ButtonDropdownItem,

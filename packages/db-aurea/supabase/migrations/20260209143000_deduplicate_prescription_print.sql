@@ -2,7 +2,12 @@
 -- Implementação da camada de conteúdo deduplicado para impressões e reforço da regra de unicidade de prescrições por período.
 -- Mantemos colunas legadas para permitir dual-read durante rollout; o drop será feito em migration posterior após validação.
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto') THEN
+    CREATE EXTENSION pgcrypto;
+  END IF;
+END $$;
 
 BEGIN;
 
@@ -35,13 +40,23 @@ REVOKE ALL ON public.print_payload_content FROM PUBLIC;
 GRANT SELECT, INSERT ON public.print_payload_content TO authenticated;
 -- Append-only: RPC security definer com privilégios de UPDATE/DELETE fará atualizações pontuais, evitando alterações diretas pelos usuários.
 
-DROP POLICY IF EXISTS "Users can view print payload content" ON public.print_payload_content;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'print_payload_content' AND policyname = 'Users can view print payload content') THEN
+    EXECUTE 'DROP POLICY "Users can view print payload content" ON public.print_payload_content';
+  END IF;
+END $$;
 CREATE POLICY "Users can view print payload content"
   ON public.print_payload_content
   FOR SELECT
   USING (company_id = public.get_user_company_id());
 
-DROP POLICY IF EXISTS "Users can insert print payload content" ON public.print_payload_content;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'print_payload_content' AND policyname = 'Users can insert print payload content') THEN
+    EXECUTE 'DROP POLICY "Users can insert print payload content" ON public.print_payload_content';
+  END IF;
+END $$;
 CREATE POLICY "Users can insert print payload content"
   ON public.print_payload_content
   FOR INSERT
@@ -76,13 +91,23 @@ REVOKE ALL ON public.print_item_content FROM PUBLIC;
 GRANT SELECT, INSERT ON public.print_item_content TO authenticated;
 -- Acesso append-only; updates/deletes ficam restritos a funções com segurança elevada.
 
-DROP POLICY IF EXISTS "Users can view print item content" ON public.print_item_content;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'print_item_content' AND policyname = 'Users can view print item content') THEN
+    EXECUTE 'DROP POLICY "Users can view print item content" ON public.print_item_content';
+  END IF;
+END $$;
 CREATE POLICY "Users can view print item content"
   ON public.print_item_content
   FOR SELECT
   USING (company_id = public.get_user_company_id());
 
-DROP POLICY IF EXISTS "Users can insert print item content" ON public.print_item_content;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'print_item_content' AND policyname = 'Users can insert print item content') THEN
+    EXECUTE 'DROP POLICY "Users can insert print item content" ON public.print_item_content';
+  END IF;
+END $$;
 CREATE POLICY "Users can insert print item content"
   ON public.print_item_content
   FOR INSERT

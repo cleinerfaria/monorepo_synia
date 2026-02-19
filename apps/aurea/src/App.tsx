@@ -4,9 +4,11 @@ import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { NavigationGuardProvider } from '@/contexts/NavigationGuardContext';
 import { useAuthStore } from '@/stores/authStore';
+import { useCurrentUserPermissions } from '@/hooks/useAccessProfiles';
 import { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { AppUser, Company } from '@/types/database';
+import type { Company } from '@/types/database';
+import type { AppUserWithProfile } from '@/types/auth';
 
 // Layouts
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -35,11 +37,14 @@ const ManufacturersPage = lazy(() => import('@/pages/cadastros/ManufacturersPage
 const SuppliersPage = lazy(() => import('@/pages/cadastros/SuppliersPage'));
 const AdministrationRoutesPage = lazy(() => import('@/pages/cadastros/AdministrationRoutesPage'));
 const PresentationsPage = lazy(() => import('@/pages/cadastros/PresentationsPage'));
+const ProfessionsPage = lazy(() => import('@/pages/cadastros/ProfessionsPage'));
 const CensoPage = lazy(() => import('@/pages/prontuario/CensoPage'));
 const ProntuarioRelatoriosPage = lazy(() => import('@/pages/prontuario/RelatoriosPage'));
 const PadPage = lazy(() => import('@/pages/prontuario/PadPage'));
 const PadFormPage = lazy(() => import('@/pages/prontuario/PadFormPage'));
 const PadPreviewPage = lazy(() => import('@/pages/prontuario/PadPreviewPage'));
+const PatientMonthSchedulePage = lazy(() => import('@/pages/prontuario/PatientMonthSchedulePage'));
+const SchedulesListPage = lazy(() => import('@/pages/prontuario/SchedulesListPage'));
 const PrescriptionsPage = lazy(() => import('@/pages/prescriptions/PrescriptionsPage'));
 const PrescriptionDetailPage = lazy(() => import('@/pages/prescriptions/PrescriptionDetailPage'));
 const StockPage = lazy(() => import('@/pages/stock/StockPage'));
@@ -78,6 +83,7 @@ function RouteLoader() {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, isLoading, company, appUser, systemUser, hasAnySystemUser } = useAuthStore();
+  const { isLoading: isLoadingPermissions } = useCurrentUserPermissions();
 
   if (isLoading) {
     return (
@@ -89,6 +95,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!session) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (isLoadingPermissions) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Loading size="lg" />
+      </div>
+    );
   }
 
   // Usuário sem empresa
@@ -105,8 +119,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/sem-acesso" replace />;
   }
 
-  // Usuário shift_only deve usar o layout dedicado
-  if (appUser?.role === 'shift_only') {
+  // Redirecionamento automático para Meu Plantão apenas para perfil técnico
+  if (appUser?.access_profile?.code === 'tecnico') {
     return <Navigate to="/meu-plantao" replace />;
   }
 
@@ -115,7 +129,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Rota exclusiva para usuários shift_only
 function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, company, systemUser, hasAnySystemUser } = useAuthStore();
+  const { session, isLoading, company, appUser, systemUser, hasAnySystemUser } = useAuthStore();
+  const { data: userPermissions = [], isLoading: isLoadingPermissions } =
+    useCurrentUserPermissions();
+  const hasShiftPageAccess = userPermissions.some(
+    (permission) => permission.module_code === 'my_shifts' && permission.permission_code === 'view'
+  );
 
   if (isLoading) {
     return (
@@ -129,6 +148,14 @@ function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
+  if (isLoadingPermissions) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Loading size="lg" />
+      </div>
+    );
+  }
+
   if (!company) {
     if (systemUser) return <Navigate to="/admin" replace />;
     if (!hasAnySystemUser) return <Navigate to="/admin" replace />;
@@ -136,6 +163,10 @@ function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
   }
 
   // Qualquer role pode acessar (admins testando, etc), mas shift_only é o principal
+  if (!hasShiftPageAccess && appUser?.access_profile?.code !== 'shift_only') {
+    return <Navigate to="/sem-acesso" replace />;
+  }
+
   return <>{children}</>;
 }
 
@@ -206,11 +237,15 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUserData = async (userId: string): Promise<boolean> => {
     try {
       // Fetch system_user data
-      const { data: systemUserData } = await supabase
+      const { data: systemUserData, error: systemUserError } = await supabase
         .from('system_user')
         .select('*')
         .eq('auth_user_id', userId)
-        .single();
+        .maybeSingle();
+
+      if (systemUserError) {
+        throw systemUserError;
+      }
 
       const { data: countResult } = await supabase.rpc('count_system_users');
       const hasAny = (countResult ?? 0) > 0;
@@ -221,9 +256,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       // Fetch app_user
       const { data: userData, error: userError } = await supabase
         .from('app_user')
-        .select('*')
+        .select('*, access_profile(id, code, name, is_admin)')
         .eq('auth_user_id', userId)
-        .single();
+        .maybeSingle();
 
       // Se não tem app_user, permite continuar (system_user ou bootstrap)
       if (userError || !userData) {
@@ -232,13 +267,13 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         return true;
       }
 
-      setAppUser(userData as AppUser);
+      setAppUser(userData as AppUserWithProfile);
 
       // Fetch company
       const { data: companyData, error: companyError } = await supabase
         .from('company')
         .select('*')
-        .eq('id', (userData as AppUser).company_id)
+        .eq('id', (userData as AppUserWithProfile).company_id)
         .single();
 
       if (companyError || !companyData) {
@@ -365,7 +400,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AuthProvider>
             <Routes>
               {/* Public Routes */}
@@ -515,6 +550,14 @@ function App() {
                   }
                 />
                 <Route
+                  path="profissoes"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <ProfessionsPage />
+                    </Suspense>
+                  }
+                />
+                <Route
                   path="produto-apresentacao"
                   element={
                     <Suspense fallback={<RouteLoader />}>
@@ -587,6 +630,22 @@ function App() {
                   element={
                     <Suspense fallback={<RouteLoader />}>
                       <PadPreviewPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="prontuario/escala/:patientId"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <PatientMonthSchedulePage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="prontuario/escalas"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <SchedulesListPage />
                     </Suspense>
                   }
                 />

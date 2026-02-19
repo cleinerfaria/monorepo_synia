@@ -106,7 +106,7 @@ function applyPrimaryColor(color: string) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const { company } = useAuthStore();
+  const { company, appUser, updateAppUserTheme } = useAuthStore();
 
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
@@ -121,16 +121,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
 
-  // Update theme settings when company settings change
+  // Update theme settings when user or company settings change
   useEffect(() => {
-    if (company) {
-      if (company.theme_preference) {
-        setThemeState(company.theme_preference as Theme);
-      }
+    if (appUser?.theme_preference) {
+      setThemeState(appUser.theme_preference as Theme);
+    } else if (company?.theme_preference) {
+      setThemeState(company.theme_preference as Theme);
     }
 
     setPrimaryColorState(company?.primary_color || DEFAULT_PRIMARY_COLOR);
-  }, [company]);
+  }, [appUser, company]);
 
   // Apply theme
   useEffect(() => {
@@ -164,6 +164,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
+    updateAppUserTheme(newTheme);
   };
 
   const setPrimaryColor = (color: string) => {
