@@ -497,6 +497,7 @@ vi.mock('@/components/ui', () => {
     showIcon?: boolean;
     icon?: React.ReactNode;
     variant?: string;
+    active?: boolean;
   }) => (
     <button type={type} disabled={disabled || isLoading} {...props}>
       {label ?? children ?? 'Botao'}

@@ -6,7 +6,7 @@
  * O parser detecta automaticamente a linha de cabeçalho buscando "SUBSTÂNCIA"
  */
 
-import XLSX from 'xlsx';
+import * as XLSX from 'xlsx';
 
 // Mapeamento das colunas do CSV CMED para nosso modelo
 export const CMED_COLUMN_MAPPING = {

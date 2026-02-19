@@ -7,7 +7,14 @@ import { useListPageState } from '@/hooks/useListPageState';
 
 function createWrapper(initialEntry = '/cadastros/unidades-medida?page=1') {
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <MemoryRouter initialEntries={[initialEntry]}>{children}</MemoryRouter>;
+    return (
+      <MemoryRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        initialEntries={[initialEntry]}
+      >
+        {children}
+      </MemoryRouter>
+    );
   };
 }
 
@@ -32,7 +39,6 @@ function usePaginatedSearchHarness() {
 
 describe('useListPageState', () => {
   it('keeps page 2 when only pagination changes and search input does not change', async () => {
-
     const { result } = renderHook(() => usePaginatedSearchHarness(), {
       wrapper: createWrapper(),
     });

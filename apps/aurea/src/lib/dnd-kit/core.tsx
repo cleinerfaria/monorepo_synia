@@ -61,16 +61,19 @@ export function DragOverlay({ children }: DragOverlayProps) {
   return <>{children}</>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSensor<TSensor, TOptions>(sensor: TSensor, options?: TOptions) {
   return { sensor, options };
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSensors(...sensors: unknown[]) {
   return sensors;
 }
 
 export class PointerSensor {}
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDraggable(_options: DraggableOptions): {
   attributes: Record<string, never>;
   listeners: Record<string, never>;
@@ -87,6 +90,7 @@ export function useDraggable(_options: DraggableOptions): {
   };
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDroppable(_options: DroppableOptions): {
   setNodeRef: (element: HTMLElement | null) => void;
   isOver: boolean;

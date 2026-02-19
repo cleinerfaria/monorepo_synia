@@ -24,7 +24,8 @@
       "Bash(npm run precommit:check:aurea:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(npm run test)"
+      "Bash(npm run test)",
+      "Bash(npm run test:run:*)"
     ]
   }
 }

@@ -11,6 +11,7 @@ export default mergeConfig(
       pool: 'threads',
       setupFiles: ['./src/test/setup.ts'],
       include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+      reporters: ['dot'],
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],

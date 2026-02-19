@@ -1,7 +1,10 @@
 ﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { createWrapper, mockAuthStore } from '@/test-utils';
-import { useAdministrationRoutes, useCreateAdministrationRoute } from '@/hooks/useAdministrationRoutes';
+import {
+  useAdministrationRoutes,
+  useCreateAdministrationRoute,
+} from '@/hooks/useAdministrationRoutes';
 
 const { mockFrom, mockGetUser, mockUseAuthStore } = vi.hoisted(() => ({
   mockFrom: vi.fn(),

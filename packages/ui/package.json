@@ -9,7 +9,7 @@
   "scripts": {
     "build": "echo \"@synia/ui: no build step configured\"",
     "lint": "echo \"@synia/ui: no lint step configured\"",
-    "test:run": "echo \"@synia/ui: no tests configured\""
+    "test:run": "true"
   },
   "peerDependencies": {
     "react": "^18.2.0",

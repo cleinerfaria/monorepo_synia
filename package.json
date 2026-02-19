@@ -41,7 +41,7 @@
     "prepare": "npm run hooks:install",
     "test:migrations": "node scripts/test-migrations.cjs",
     "build": "npm run build --workspaces",
-    "test": "npm run test:run --workspaces",
+    "test": "node scripts/test-select.cjs",
     "lint": "npm run lint --workspaces"
   },
   "devDependencies": {

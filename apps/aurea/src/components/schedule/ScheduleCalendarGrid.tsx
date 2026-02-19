@@ -385,7 +385,6 @@ function ScheduleCalendarGridInner({
       regime,
       startTime,
       profMap,
-      moveAssignmentToSlot,
       swapAssignments,
     ]
   );
