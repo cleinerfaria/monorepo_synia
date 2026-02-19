@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { LIST_PAGE_PARAM, clampListPage, parseListPage } from '@/constants/pagination';
 
@@ -24,6 +24,10 @@ export function useListPageState(options: string | UseListPageStateOptions = LIS
   const [sessionPage, setSessionPage] = useState(() =>
     storageKey ? readSessionPage(storageKey) : 1
   );
+  const searchParamsRef = useRef(searchParams);
+  const setSearchParamsRef = useRef(setSearchParams);
+  searchParamsRef.current = searchParams;
+  setSearchParamsRef.current = setSearchParams;
 
   const currentPage = useMemo(() => {
     if (storageKey) return sessionPage;
@@ -32,19 +36,25 @@ export function useListPageState(options: string | UseListPageStateOptions = LIS
 
   const setCurrentPage = useCallback(
     (nextPage: PageSetter) => {
-      const computedNextPage =
-        typeof nextPage === 'function'
-          ? (nextPage as (currentPage: number) => number)(currentPage)
-          : nextPage;
-
-      const page = clampListPage(computedNextPage);
-
       if (storageKey) {
-        setSessionPage(page);
+        setSessionPage((previousPage) => {
+          const resolvedPage =
+            typeof nextPage === 'function'
+              ? (nextPage as (currentPage: number) => number)(previousPage)
+              : nextPage;
+          return clampListPage(resolvedPage);
+        });
         return;
       }
 
-      const params = new URLSearchParams(searchParams);
+      const currentUrlPage = parseListPage(searchParamsRef.current.get(pageParam));
+      const resolvedPage =
+        typeof nextPage === 'function'
+          ? (nextPage as (currentPage: number) => number)(currentUrlPage)
+          : nextPage;
+      const page = clampListPage(resolvedPage);
+
+      const params = new URLSearchParams(searchParamsRef.current);
 
       if (page === 1) {
         params.delete(pageParam);
@@ -52,9 +62,9 @@ export function useListPageState(options: string | UseListPageStateOptions = LIS
         params.set(pageParam, String(page));
       }
 
-      setSearchParams(params, { replace: true });
+      setSearchParamsRef.current(params, { replace: true });
     },
-    [currentPage, pageParam, searchParams, setSearchParams, storageKey]
+    [pageParam, storageKey]
   );
 
   useEffect(() => {

@@ -732,7 +732,7 @@ export const modalPages: ModalPageCase[] = [
     },
     openEdit: async (user) => {
       const row = screen.getByTestId('row-equipment-1');
-      const editButton = within(row).getAllByRole('button', { name: 'ação' })[0];
+      const editButton = within(row).getAllByRole('button', { name: 'acao' })[0];
       await user.click(editButton);
     },
   },
@@ -981,7 +981,3 @@ export const getCadastrosPageMocks = () => mocks;
 export const resetCadastrosPageMocks = () => {
   vi.clearAllMocks();
 };
-
-
-
-
