@@ -46,7 +46,6 @@
     "@tanstack/react-table": "^8.11.2",
     "clsx": "^2.1.0",
     "date-fns": "^3.6.0",
-    "exceljs": "^4.1.1",
     "fast-xml-parser": "^5.3.4",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.563.0",
@@ -58,6 +57,7 @@
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.21.1",
     "recharts": "^2.10.3",
+    "xlsx": "^0.18.5",
     "zustand": "^4.4.7"
   },
   "devDependencies": {

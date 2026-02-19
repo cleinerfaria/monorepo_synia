@@ -6,7 +6,7 @@
  * O parser detecta automaticamente a linha de cabeçalho buscando "SUBSTÂNCIA"
  */
 
-import ExcelJS from 'exceljs';
+import XLSX from 'xlsx';
 
 // Mapeamento das colunas do CSV CMED para nosso modelo
 export const CMED_COLUMN_MAPPING = {
@@ -420,9 +420,10 @@ function findHeaderRowIndex(rows: string[][]): number {
  */
 export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResult> {
   try {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
-    const worksheet = workbook.worksheets[0];
+    // Read XLSX file
+    const uint8Array = new Uint8Array(buffer);
+    const workbook = XLSX.read(uint8Array, { type: 'array', cellFormula: false });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
     if (!worksheet) {
       return {
@@ -434,19 +435,11 @@ export async function parseCmedXlsx(buffer: ArrayBuffer): Promise<CmedParseResul
       };
     }
 
-    // Convert to array of arrays
-    const rows: string[][] = [];
-    worksheet.eachRow({ includeEmpty: false }, (row) => {
-      const rowValues: string[] = [];
-      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-        // Pad array if there are gaps
-        while (rowValues.length < colNumber - 1) {
-          rowValues.push('');
-        }
-        rowValues.push(cell.text ?? '');
-      });
-      rows.push(rowValues);
-    });
+    // Convert worksheet to array of arrays
+    const rows: string[][] = XLSX.utils.sheet_to_json<string[]>(worksheet, {
+      header: 1,
+      defval: '',
+    }) as string[][];
 
     if (rows.length < 2) {
       return {
