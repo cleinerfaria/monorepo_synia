@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
+import { useDraggable } from '@/lib/dnd-kit/core';
+import { CSS } from '@/lib/dnd-kit/utilities';
 import type { ScheduleProfessional } from '@/types/schedule';
 import { useTheme } from '@/contexts/ThemeContext';
 

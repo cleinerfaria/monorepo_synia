@@ -48,7 +48,7 @@ export function useProceduresPaginated(
       // Build query for data
       let dataQuery = supabase
         .from('procedure')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .order('name');
 
@@ -100,7 +100,7 @@ export function useProcedures() {
 
       const { data, error } = await supabase
         .from('procedure')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .order('name');
 
@@ -121,9 +121,9 @@ export function useSearchProcedures(searchTerm: string = '') {
 
       let query = supabase
         .from('procedure')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('name');
 
       if (searchTerm?.trim()) {
@@ -151,7 +151,7 @@ export function useProcedure(id: string | undefined) {
 
       const { data, error } = await supabase
         .from('procedure')
-        .select('*')
+        .select('*, active:is_active')
         .eq('id', id)
         .eq('company_id', company.id)
         .single();
@@ -170,11 +170,16 @@ export function useCreateProcedure() {
   return useMutation({
     mutationFn: async (data: ProcedureInsert) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: procedure, error } = await supabase
         .from('procedure')
-        .insert({ ...data, company_id: company.id } as any)
-        .select('*')
+        .insert({ ...payload, company_id: company.id } as any)
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -202,13 +207,18 @@ export function useUpdateProcedure() {
   return useMutation({
     mutationFn: async ({ id, ...data }: ProcedureUpdate & { id: string }) => {
       if (!company?.id) throw new Error('No company');
+      const payload: Record<string, any> = { ...data };
+      if (payload.active !== undefined) {
+        payload.is_active = payload.active;
+        delete payload.active;
+      }
 
       const { data: procedure, error } = await supabase
         .from('procedure')
-        .update(data as any)
+        .update(payload as any)
         .eq('id', id)
         .eq('company_id', company.id)
-        .select('*')
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -239,10 +249,10 @@ export function useToggleProcedureStatus() {
 
       const { data: procedure, error } = await supabase
         .from('procedure')
-        .update({ active })
+        .update({ is_active: active })
         .eq('id', id)
         .eq('company_id', company.id)
-        .select('*')
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;

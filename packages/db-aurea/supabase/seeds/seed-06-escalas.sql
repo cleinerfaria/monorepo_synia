@@ -116,7 +116,6 @@ BEGIN
 
   END LOOP;
 
-  RAISE NOTICE 'Seed 06 applied: 40 turnos (20 dias x 2 turnos) com 4 profissionais alternando';
 END $$;
 
 COMMIT;

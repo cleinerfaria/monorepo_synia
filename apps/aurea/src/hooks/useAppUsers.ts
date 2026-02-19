@@ -60,6 +60,16 @@ const APP_USER_LOG_EXCLUDE_FIELDS = [
   'updated_at',
 ];
 
+function normalizeAppUser<T extends { active?: boolean | null; is_active?: boolean | null }>(
+  user: T
+): T & { active: boolean } {
+  const activeValue = user.is_active ?? user.active ?? false;
+  return {
+    ...user,
+    active: activeValue,
+  };
+}
+
 // Buscar todos os usuários (com empresa e perfil)
 export function useAppUsers(companyId?: string) {
   return useQuery({
@@ -83,7 +93,7 @@ export function useAppUsers(companyId?: string) {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as AppUser[];
+      return (data || []).map((item) => normalizeAppUser(item)) as AppUser[];
     },
   });
 }
@@ -108,7 +118,7 @@ export function useAppUser(id: string | undefined) {
         .single();
 
       if (error) throw error;
-      return data as AppUser;
+      return normalizeAppUser(data) as AppUser;
     },
     enabled: !!id,
   });
@@ -155,7 +165,7 @@ export function useCreateAppUser() {
         throw new Error(result.details || result.error || 'Erro ao criar usuário');
       }
 
-      return { user: result.user as AppUser, input };
+      return { user: normalizeAppUser(result.user) as AppUser, input };
     },
     onSuccess: ({ user }) => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });
@@ -192,7 +202,7 @@ export function useUpdateAppUser() {
       // Buscar dados antigos para o log
       const { data: oldUser } = await supabase
         .from('app_user')
-        .select('name, email, access_profile_id, active')
+        .select('name, email, access_profile_id, active:is_active')
         .eq('id', input.id)
         .single();
 
@@ -220,7 +230,10 @@ export function useUpdateAppUser() {
         throw new Error(result.error || 'Erro ao atualizar usuário');
       }
 
-      return { user: result.user as AppUser, oldUser };
+      return {
+        user: normalizeAppUser(result.user) as AppUser,
+        oldUser: oldUser ? (oldUser as Partial<AppUser>) : oldUser,
+      };
     },
     onSuccess: ({ user, oldUser }) => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });
@@ -279,7 +292,7 @@ export function useDeactivateAppUser() {
         throw new Error(result.error || 'Erro ao desativar usuário');
       }
 
-      return result.user;
+      return normalizeAppUser(result.user);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });
@@ -323,7 +336,7 @@ export function useReactivateAppUser() {
         throw new Error(result.error || 'Erro ao reativar usuário');
       }
 
-      return result.user;
+      return normalizeAppUser(result.user);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });
@@ -470,14 +483,14 @@ export function useLinkCurrentUser() {
             company_id: input.company_id,
             name: input.name,
             access_profile_id: input.access_profile_id,
-            active: true,
+            is_active: true,
           })
           .eq('auth_user_id', user.id)
           .select()
           .single();
 
         if (error) throw error;
-        return data as AppUser;
+        return normalizeAppUser(data) as AppUser;
       }
 
       // Cria novo registro em app_user
@@ -489,13 +502,13 @@ export function useLinkCurrentUser() {
           name: input.name,
           email: user.email!,
           access_profile_id: input.access_profile_id,
-          active: true,
+          is_active: true,
         })
         .select()
         .single();
 
       if (error) throw error;
-      return data as AppUser;
+      return normalizeAppUser(data) as AppUser;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['app_users'] });

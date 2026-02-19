@@ -1,4 +1,4 @@
-INSERT INTO public.system_module (code, name, description, icon, display_order, active)
+INSERT INTO public.system_module (code, name, description, icon, display_order, is_active)
 VALUES (
   'my_shifts',
   'Meu Plantão',
@@ -12,7 +12,7 @@ SET
   name = EXCLUDED.name,
   description = EXCLUDED.description,
   icon = EXCLUDED.icon,
-  active = TRUE;
+  is_active = TRUE;
 
 INSERT INTO public.module_permission (module_id, code, name, description)
 SELECT
@@ -34,5 +34,5 @@ SELECT
 FROM public.access_profile ap
 JOIN public.system_module sm ON sm.code = 'my_shifts'
 JOIN public.module_permission mp ON mp.module_id = sm.id AND mp.code = 'view'
-WHERE ap.code = 'shift_only' AND ap.active = TRUE
+WHERE ap.code = 'shift_only' AND ap.is_active = TRUE
 ON CONFLICT (profile_id, permission_id) DO NOTHING;

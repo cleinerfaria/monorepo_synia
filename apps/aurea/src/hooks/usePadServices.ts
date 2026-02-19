@@ -44,13 +44,13 @@ export function usePadServices(includeInactive = false) {
 
       let query = supabase
         .from('pad_service')
-        .select('*')
+        .select('*, active:is_active')
         .eq('company_id', company.id)
         .order('sort_order', { ascending: true })
         .order('name', { ascending: true });
 
       if (!includeInactive) {
-        query = query.eq('active', true);
+        query = query.eq('is_active', true);
       }
 
       const { data, error } = await query;
@@ -78,9 +78,9 @@ export function useCreatePadService() {
           name: input.name.trim(),
           description: toNullable(input.description),
           sort_order: Number.isFinite(input.sort_order) ? input.sort_order : 0,
-          active: input.active ?? true,
+          is_active: input.active ?? true,
         })
-        .select('*')
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -115,14 +115,14 @@ export function useUpdatePadService() {
       if (updates.name !== undefined) payload.name = updates.name.trim();
       if (updates.description !== undefined) payload.description = toNullable(updates.description);
       if (updates.sort_order !== undefined) payload.sort_order = updates.sort_order;
-      if (updates.active !== undefined) payload.active = updates.active;
+      if (updates.active !== undefined) payload.is_active = updates.active;
 
       const { data, error } = await supabase
         .from('pad_service')
         .update(payload)
         .eq('id', id)
         .eq('company_id', company.id)
-        .select('*')
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;
@@ -153,10 +153,10 @@ export function useTogglePadServiceStatus() {
 
       const { data, error } = await supabase
         .from('pad_service')
-        .update({ active })
+        .update({ is_active: active })
         .eq('id', id)
         .eq('company_id', company.id)
-        .select('*')
+        .select('*, active:is_active')
         .single();
 
       if (error) throw error;

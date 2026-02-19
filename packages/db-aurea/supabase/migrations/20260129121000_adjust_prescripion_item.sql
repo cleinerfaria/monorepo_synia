@@ -8,10 +8,9 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_prescription_item_type') THEN
     CREATE TYPE public.enum_prescription_item_type AS ENUM (
       'medication',
-      'material',
       'diet',
-      'procedure',
-      'equipment'
+      'equipment',
+      'procedure'
     );
   END IF;
 
@@ -53,6 +52,22 @@ BEGIN
   END IF;
 END$$;
 
+-- 1.2) Normalize legacy value "material" -> "procedure"
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'prescription_item'
+      AND column_name = 'item_type'
+  ) THEN
+    UPDATE public.prescription_item
+    SET item_type = 'procedure'
+    WHERE item_type::text = 'material';
+  END IF;
+END$$;
+
 -- =====================================================
 -- 2) PRESCRIPTION_ITEM: ALTER TABLE
 -- =====================================================
@@ -71,34 +86,6 @@ BEGIN
     ALTER TABLE public.prescription_item
     ADD CONSTRAINT prescription_item_procedure_id_fkey
     FOREIGN KEY (procedure_id) REFERENCES public.procedure(id) ON DELETE SET NULL;
-  END IF;
-END$$;
-
--- 2.2) item_type -> enum_prescription_item_type
-ALTER TABLE public.prescription_item
-DROP CONSTRAINT IF EXISTS prescription_item_item_type_check;
-
-ALTER TABLE public.prescription_item
-ALTER COLUMN item_type TYPE public.enum_prescription_item_type
-USING (item_type::text::public.enum_prescription_item_type);
-
--- 2.3) qty -> quantity (canonical)
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM information_schema.columns
-    WHERE table_schema = 'public'
-      AND table_name = 'prescription_item'
-      AND column_name = 'qty'
-  ) AND NOT EXISTS (
-    SELECT 1
-    FROM information_schema.columns
-    WHERE table_schema = 'public'
-      AND table_name = 'prescription_item'
-      AND column_name = 'quantity'
-  ) THEN
-    ALTER TABLE public.prescription_item RENAME COLUMN qty TO quantity;
   END IF;
 END$$;
 
@@ -147,7 +134,7 @@ END $$;
 ALTER TABLE public.prescription_item
 ADD CONSTRAINT chk_prescription_item_target_by_type CHECK (
   (
-    item_type IN ('medication','material','diet')
+    item_type IN ('medication','diet')
     AND product_id IS NOT NULL
     AND equipment_id IS NULL
     AND procedure_id IS NULL
@@ -243,8 +230,6 @@ ADD CONSTRAINT chk_prescription_item_time_checks_len CHECK (
 -- =====================================================
 -- 4) INDEXES
 -- =====================================================
-CREATE INDEX IF NOT EXISTS idx_prescription_item_company_type
-  ON public.prescription_item USING btree (company_id, item_type) TABLESPACE pg_default;
 
 CREATE INDEX IF NOT EXISTS idx_prescription_item_company_frequency
   ON public.prescription_item USING btree (company_id, frequency_mode) TABLESPACE pg_default;

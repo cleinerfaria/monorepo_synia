@@ -125,7 +125,7 @@ SELECT public._drop_index_if_exists_quiet('idx_client_contact_company_id');
 -- =====================================================
 -- TABLE: company - Remover parent_id (usar quando necessário)
 -- =====================================================
-SELECT public._drop_index_if_exists_quiet('idx_company_parent_id');
+SELECT public._drop_index_if_exists_quiet('idx_company_unit_id');
 -- =====================================================
 -- TABLE: equipment - Remover
 -- =====================================================

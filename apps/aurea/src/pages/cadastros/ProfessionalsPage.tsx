@@ -1,7 +1,7 @@
 ﻿import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Trash2, Search, UserIcon, FunnelX, Plus } from 'lucide-react';
+import { Pencil, Trash2, Search, ShieldUser, FunnelX, Plus } from 'lucide-react';
 import {
   Card,
   Button,
@@ -121,7 +121,7 @@ export default function ProfessionalsPage() {
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-              <UserIcon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <ShieldUser className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="min-w-0">
               <p className="truncate font-medium text-gray-900 dark:text-white">

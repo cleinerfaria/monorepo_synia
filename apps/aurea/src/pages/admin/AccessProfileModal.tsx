@@ -21,6 +21,13 @@ const EMPTY_PERMISSION_IDS: string[] = [];
 const SHIFT_MODULE_CODE = 'my_shifts';
 const SHIFT_PERMISSION_CODE = 'view';
 
+function formatPermissionCodeLabel(code: string) {
+  return code
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 export default function AccessProfileModal({
   isOpen,
   onClose,
@@ -179,7 +186,7 @@ export default function AccessProfileModal({
     return groupPermissionsByModule(permissionsForGrid);
   }, [allPermissions]);
 
-  const crudColumns = useMemo(
+  const basePermissionColumns = useMemo(
     () => [
       { code: 'view', label: 'Visualizar' },
       { code: 'create', label: 'Criar' },
@@ -188,6 +195,36 @@ export default function AccessProfileModal({
     ],
     []
   );
+
+  const permissionColumns = useMemo(() => {
+    const baseCodes = new Set(basePermissionColumns.map((column) => column.code));
+    const extraColumnsMap = new Map<string, string>();
+
+    allPermissions.forEach((permission) => {
+      if (
+        permission.module?.code === SHIFT_MODULE_CODE &&
+        permission.code === SHIFT_PERMISSION_CODE
+      ) {
+        return;
+      }
+
+      if (!baseCodes.has(permission.code) && !extraColumnsMap.has(permission.code)) {
+        extraColumnsMap.set(
+          permission.code,
+          permission.name || formatPermissionCodeLabel(permission.code)
+        );
+      }
+    });
+
+    const extraColumns = Array.from(extraColumnsMap.entries())
+      .sort(([codeA], [codeB]) => codeA.localeCompare(codeB))
+      .map(([code, label]) => ({
+        code,
+        label,
+      }));
+
+    return [...basePermissionColumns, ...extraColumns];
+  }, [allPermissions, basePermissionColumns]);
 
   const hasShiftPageAccess =
     !!shiftPagePermission && selectedPermissions.has(shiftPagePermission.id);
@@ -335,7 +372,7 @@ export default function AccessProfileModal({
                       <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
                         Tudo
                       </th>
-                      {crudColumns.map((column) => (
+                      {permissionColumns.map((column) => (
                         <th
                           key={column.code}
                           className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"
@@ -367,7 +404,7 @@ export default function AccessProfileModal({
                               className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                             />
                           </td>
-                          {crudColumns.map((column) => {
+                          {permissionColumns.map((column) => {
                             const permission = permissions.find(
                               (item) => item.code === column.code
                             );

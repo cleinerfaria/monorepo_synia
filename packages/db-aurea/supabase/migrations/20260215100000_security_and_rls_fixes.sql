@@ -260,11 +260,7 @@ WHERE pp.barcode IS NOT NULL
   AND LENGTH(pp.barcode) >= 8;
 
 -- Recriar índices
-CREATE INDEX idx_mv_known_products_ref_company_ean
-  ON mv_known_products_ref(company_id, ean);
 
-CREATE INDEX idx_mv_known_products_ref_last_refresh
-  ON mv_known_products_ref(last_refresh);
 
 -- Recriar função de refresh (CREATE OR REPLACE — idempotente)
 CREATE OR REPLACE FUNCTION refresh_known_products_ref_view()

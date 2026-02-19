@@ -4,6 +4,7 @@ export { ListboxSelect as Select } from '@synia/ui';
 export { SearchableSelect } from '@synia/ui';
 export { DatePicker } from '@synia/ui';
 export { TimePicker } from '@synia/ui';
+export { ColorPicker } from '@synia/ui';
 export { Textarea } from '@synia/ui';
 export { Button } from '@synia/ui';
 export { IconButton } from '@synia/ui';
@@ -32,6 +33,7 @@ export type {
   ListboxSelectOption as SelectOption,
 } from '@synia/ui';
 export type { SearchableSelectProps, SearchableSelectOption } from '@synia/ui';
+export type { ColorPickerProps } from '@synia/ui';
 export type { TextareaProps } from '@synia/ui';
 export type { ButtonProps, ButtonDropdownItem } from '@synia/ui';
 export type { IconButtonProps } from '@synia/ui';

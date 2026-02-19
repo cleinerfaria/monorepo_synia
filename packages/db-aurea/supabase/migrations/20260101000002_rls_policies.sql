@@ -343,3 +343,19 @@ CREATE POLICY "Users can update NFe import items in their company"
 CREATE POLICY "Users can delete NFe import items in their company"
     ON nfe_import_item FOR DELETE
     USING (company_id = get_user_company_id());
+
+
+-- RLS for company_unit
+ALTER TABLE company_unit ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "company_unit_select_policy" ON company_unit
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "company_unit_insert_policy" ON company_unit
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "company_unit_update_policy" ON company_unit
+    FOR UPDATE USING (auth.role() = 'authenticated');
+
+CREATE POLICY "company_unit_delete_policy" ON company_unit
+    FOR DELETE USING (auth.role() = 'authenticated');

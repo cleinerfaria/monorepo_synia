@@ -8,7 +8,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
   type DragOverEvent,
-} from '@dnd-kit/core';
+} from '@/lib/dnd-kit/core';
 import { useScheduleStore } from '@/stores/scheduleStore';
 import { SLOTS_BY_REGIME, getSlotTimes } from '@/types/schedule';
 import type {

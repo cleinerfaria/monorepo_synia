@@ -60,7 +60,7 @@ export function useProfessionalUser(professionalId: string | undefined) {
       // Em seguida, busca o app_user pelo auth_user_id (que é o user_id do link)
       const { data: appUser, error: userError } = await supabase
         .from('app_user')
-        .select('id, name, email, active, access_profile(name)')
+        .select('id, name, email, active:is_active, access_profile(name)')
         .eq('auth_user_id', linkData.user_id)
         .maybeSingle();
 
@@ -100,9 +100,9 @@ export function useAvailableAppUsers() {
       // Buscar app_users ativos que não estão vinculados
       let query = supabase
         .from('app_user')
-        .select('id, auth_user_id, name, email, active, access_profile(name)')
+        .select('id, auth_user_id, name, email, active:is_active, access_profile(name)')
         .eq('company_id', company.id)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('name');
 
       if (linkedUserIds.length > 0) {

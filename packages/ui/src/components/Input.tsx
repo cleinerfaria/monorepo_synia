@@ -1,11 +1,11 @@
-import { forwardRef, InputHTMLAttributes } from 'react'
-import { clsx } from 'clsx'
+import { forwardRef, InputHTMLAttributes } from 'react';
+import { clsx } from 'clsx';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
-  hint?: string
-  inputSize?: 'sm' | 'md'
+  label?: string;
+  error?: string;
+  hint?: string;
+  inputSize?: 'sm' | 'md';
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -15,7 +15,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label className={clsx('label', inputSize === 'sm' && 'mb-0.5 text-xs')}>
             {label}
-            {props.required && <span className="ml-1 text-feedback-danger-fg">*</span>}
+            {props.required && <span className="text-feedback-danger-fg ml-1">*</span>}
           </label>
         )}
         <input
@@ -30,11 +30,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           {...props}
         />
-        {hint && !error && <p className="mt-1.5 text-sm text-content-muted">{hint}</p>}
-        {error && <p className="mt-1.5 text-sm text-feedback-danger-fg">{error}</p>}
+        {hint && !error && <p className="text-content-muted ml-1 mt-1 text-xs">{hint}</p>}
+        {error && <p className="text-feedback-danger-fg mt-1.5 text-sm">{error}</p>}
       </div>
-    )
+    );
   }
-)
+);
 
-Input.displayName = 'Input'
+Input.displayName = 'Input';

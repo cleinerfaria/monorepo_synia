@@ -1,17 +1,7 @@
 BEGIN;
 
 -- =====================================================
--- PARTE 1: Adicionar role 'shift_only' ao app_user
--- =====================================================
-ALTER TABLE public.app_user
-  DROP CONSTRAINT IF EXISTS app_user_role_check;
-
-ALTER TABLE public.app_user
-  ADD CONSTRAINT app_user_role_check
-  CHECK (role IN ('admin', 'manager', 'clinician', 'stock', 'finance', 'viewer', 'shift_only'));
-
--- =====================================================
--- PARTE 2: RLS para professional_user
+-- PARTE 1: RLS para professional_user
 -- =====================================================
 ALTER TABLE public.professional_user ENABLE ROW LEVEL SECURITY;
 
@@ -44,7 +34,7 @@ CREATE POLICY "professional_user_delete_policy"
   );
 
 -- =====================================================
--- PARTE 3: RLS para patient_attendance_demand
+-- PARTE 2: RLS para patient_attendance_demand
 -- =====================================================
 ALTER TABLE public.patient_attendance_demand ENABLE ROW LEVEL SECURITY;
 
@@ -77,7 +67,7 @@ CREATE POLICY "patient_attendance_demand_delete_policy"
   );
 
 -- =====================================================
--- PARTE 4: RLS para patient_attendance_shift
+-- PARTE 3: RLS para patient_attendance_shift
 -- =====================================================
 ALTER TABLE public.patient_attendance_shift ENABLE ROW LEVEL SECURITY;
 
@@ -110,7 +100,7 @@ CREATE POLICY "patient_attendance_shift_delete_policy"
   );
 
 -- =====================================================
--- PARTE 5: RLS para patient_attendance_event
+-- PARTE 4: RLS para patient_attendance_event
 -- =====================================================
 ALTER TABLE public.patient_attendance_event ENABLE ROW LEVEL SECURITY;
 

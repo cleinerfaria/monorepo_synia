@@ -137,7 +137,6 @@ BEGIN
     VALUES (v_company_id, v_prescription_id, 'medication', v_product_ids[10], 1, NULL, NULL, 'every', 1200, '08:00:00', 2, 'hour', NULL, FALSE, TRUE, 'Administrar conforme horários ou conforme necessário.', 'Dispensar conforme protocolo. Item #10.', NULL, 'company', TRUE, 10, v_route_vo);
   END IF;
 
-  RAISE NOTICE 'Seed 07 aplicado: até 10 itens de prescrição inseridos.';
 END $$;
 
 COMMIT;

@@ -77,29 +77,6 @@ COMMENT ON COLUMN public.prescription_item_occurrence.check_id IS
 'Referência ao registro detalhado da checagem (patient_med_admin)';
 
 -- =====================================================
--- ÍNDICES (performance da tela do técnico)
--- =====================================================
-
--- Lista do dia do paciente
-CREATE INDEX IF NOT EXISTS idx_occurrence_company_patient_time
-ON public.prescription_item_occurrence (company_id, patient_id, scheduled_at);
-
-COMMENT ON INDEX idx_occurrence_company_patient_time IS
-'Otimiza carregamento da tela diária do paciente';
-
--- Busca por item
-CREATE INDEX IF NOT EXISTS idx_occurrence_prescription_item
-ON public.prescription_item_occurrence (prescription_item_id);
-
--- Ocorrências pendentes (fila de trabalho)
-CREATE INDEX IF NOT EXISTS idx_occurrence_pending
-ON public.prescription_item_occurrence (scheduled_at)
-WHERE status = 'pending';
-
-COMMENT ON INDEX idx_occurrence_pending IS
-'Usado para localizar rapidamente tarefas pendentes';
-
--- =====================================================
 -- Trigger updated_at padrão
 -- =====================================================
 CREATE TRIGGER update_prescription_item_occurrence_updated_at

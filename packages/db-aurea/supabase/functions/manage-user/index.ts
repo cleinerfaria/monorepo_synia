@@ -94,7 +94,7 @@ serve(async (req) => {
       `
       )
       .eq('auth_user_id', requestingUser.id)
-      .eq('active', true)
+      .eq('is_active', true)
       .single();
 
     if (appUserError || !requestingAppUser) {
@@ -207,7 +207,7 @@ serve(async (req) => {
             name,
             email,
             access_profile_id,
-            active: true,
+            is_active: true,
           })
           .select()
           .single();
@@ -274,7 +274,7 @@ serve(async (req) => {
         const updates: Record<string, any> = {};
         if (name !== undefined) updates.name = name;
         if (access_profile_id !== undefined) updates.access_profile_id = access_profile_id;
-        if (active !== undefined) updates.active = active;
+        if (active !== undefined) updates.is_active = active;
 
         const { data: updatedUser, error: updateError } = await supabaseAdmin
           .from('app_user')

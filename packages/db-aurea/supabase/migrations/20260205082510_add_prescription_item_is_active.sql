@@ -14,8 +14,6 @@ SET is_active = true
 WHERE is_active IS NULL;
 
 -- Cria índice para consultas por status ativo/inativo dentro da empresa
-CREATE INDEX IF NOT EXISTS idx_prescription_item_company_is_active 
-ON public.prescription_item (company_id, is_active);
 
 -- Comentário explicativo
 COMMENT ON COLUMN public.prescription_item.is_active IS 

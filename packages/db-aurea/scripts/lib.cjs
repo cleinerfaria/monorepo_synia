@@ -9,6 +9,8 @@ const PROJECT = 'aurea';
 const DB_URL_ENV = 'DB_URL';
 const SUPABASE_URL_ENV = 'VITE_SUPABASE_URL';
 const SERVICE_ROLE_ENV = 'SUPABASE_SERVICE_ROLE_KEY';
+const SUPABASE_ACCESS_TOKEN_ENV = 'SUPABASE_ACCESS_TOKEN';
+const PROJECT_REF_ENV = 'AUREA_SUPABASE_PROJECT_REF';
 const APP_DIR = path.resolve(__dirname, '..');
 const FUNCTIONS_DIR = path.resolve(APP_DIR, 'supabase/functions');
 
@@ -101,6 +103,60 @@ function getSupabaseConfig() {
   };
 }
 
+function extractProjectRefFromSupabaseUrl(supabaseUrl) {
+  try {
+    const hostname = new URL(supabaseUrl).hostname.toLowerCase();
+    const match = hostname.match(/^([a-z0-9]{20})\.supabase\.co$/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractProjectRefFromDbUrl(dbUrl) {
+  try {
+    const parsed = new URL(dbUrl);
+    const username = decodeURIComponent(parsed.username || '').toLowerCase();
+    const usernameMatch = username.match(/^postgres\.([a-z0-9]{20})$/);
+    if (usernameMatch) {
+      return usernameMatch[1];
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+    const hostMatch = hostname.match(/^db\.([a-z0-9]{20})\.supabase\.co$/);
+    return hostMatch ? hostMatch[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveProjectRef() {
+  const explicitProjectRef = (process.env[PROJECT_REF_ENV] || '').trim().toLowerCase();
+  if (explicitProjectRef) {
+    return explicitProjectRef;
+  }
+
+  const dbUrl = process.env[DB_URL_ENV];
+  const fromDbUrl = dbUrl ? extractProjectRefFromDbUrl(dbUrl) : null;
+  if (fromDbUrl) {
+    return fromDbUrl;
+  }
+
+  const supabaseUrl = process.env[SUPABASE_URL_ENV];
+  const fromSupabaseUrl = supabaseUrl ? extractProjectRefFromSupabaseUrl(supabaseUrl) : null;
+  if (fromSupabaseUrl) {
+    return fromSupabaseUrl;
+  }
+
+  throw new Error(
+    `Missing project ref for functions deploy. Set ${PROJECT_REF_ENV} or provide ${DB_URL_ENV}/${SUPABASE_URL_ENV} with a valid Supabase project ref.`
+  );
+}
+
+function hasSupabaseAccessToken() {
+  return Boolean((process.env[SUPABASE_ACCESS_TOKEN_ENV] || '').trim());
+}
+
 async function runSqlSeed() {
   const dbUrl = getDbUrl();
   await run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-seed', '--workdir', APP_DIR, '--yes'], {
@@ -121,15 +177,23 @@ function listFunctions() {
 }
 
 async function deployAureaFunctions() {
+  if (!hasSupabaseAccessToken()) {
+    process.stdout.write(
+      `\n⚠️  Skipping Aurea edge functions deploy: missing ${SUPABASE_ACCESS_TOKEN_ENV}. Add it to apps/aurea/.env.local to enable deploy.\n`
+    );
+    return;
+  }
+
   const functions = listFunctions();
   if (!functions.length) {
     process.stdout.write('\n⚠️  No Aurea edge functions found to deploy.\n');
     return;
   }
 
+  const projectRef = resolveProjectRef();
   process.stdout.write(`\n🚀 Deploying Aurea edge functions (${functions.join(', ')})...\n`);
   for (const fnName of functions) {
-    const args = ['functions', 'deploy', fnName, '--workdir', APP_DIR];
+    const args = ['functions', 'deploy', fnName, '--project-ref', projectRef, '--workdir', APP_DIR];
 
     // manage-user validates JWT manually and must keep gateway verification disabled
     if (fnName === 'manage-user') {
@@ -364,7 +428,7 @@ async function seedAureaDev() {
         auth_user_id: systemAdminId,
         name: 'System Admin',
         email: systemAdminEmail,
-        active: true,
+        is_active: true,
         access_profile_id: adminProfile.id,
       },
       {
@@ -372,7 +436,7 @@ async function seedAureaDev() {
         auth_user_id: adminId,
         name: 'Admin',
         email: adminEmail,
-        active: true,
+        is_active: true,
         access_profile_id: adminProfile.id,
       },
       {
@@ -380,7 +444,7 @@ async function seedAureaDev() {
         auth_user_id: managerId,
         name: 'Manager',
         email: managerEmail,
-        active: true,
+        is_active: true,
         access_profile_id: managerProfile.id,
       },
       {
@@ -388,7 +452,7 @@ async function seedAureaDev() {
         auth_user_id: userId,
         name: 'User',
         email: userEmail,
-        active: true,
+        is_active: true,
         access_profile_id: viewerProfile.id,
       },
     ],

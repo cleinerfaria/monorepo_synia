@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, ClipboardList, Search, FunnelX, Plus } from 'lucide-react';
+import { Pencil, Workflow, Search, FunnelX, Plus, Check, X } from 'lucide-react';
 import {
   Card,
   Button,
@@ -172,7 +172,7 @@ export default function ProceduresPage() {
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-              <ClipboardList className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <Workflow className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <p className="font-medium text-gray-900 dark:text-white">{row.original.name}</p>
@@ -374,32 +374,33 @@ export default function ProceduresPage() {
             {...register('description')}
           />
 
-          <SwitchNew
-            label="Status"
-            showStatus
-            name={activeName}
-            ref={activeRef}
-            onBlur={activeOnBlur}
-            checked={!!activeValue}
-            onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true });
-            }}
-          />
-
-          <ModalFooter>
-            <Button
-              type="button"
-              variant="outline"
-              showIcon={false}
-              onClick={() => setIsModalOpen(false)}
-              label="Cancelar"
+          <ModalFooter className="mt-4 !justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
+            <SwitchNew
+              label="Status"
+              showStatus
+              name={activeName}
+              ref={activeRef}
+              onBlur={activeOnBlur}
+              checked={!!activeValue}
+              onChange={(e) => {
+                setValue('active', e.target.checked, { shouldDirty: true });
+              }}
             />
-            <Button
-              type="submit"
-              variant="solid"
-              showIcon={false}
-              label={selectedProcedure ? 'Salvar Alterações' : 'Cadastrar'}
-            />
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="neutral"
+                icon={<X className="h-4 w-4" />}
+                onClick={() => setIsModalOpen(false)}
+                label="Cancelar"
+              />
+              <Button
+                type="submit"
+                variant="solid"
+                icon={<Check className="h-4 w-4" />}
+                label={selectedProcedure ? 'Salvar Alterações' : 'Cadastrar'}
+              />
+            </div>
           </ModalFooter>
         </form>
       </Modal>

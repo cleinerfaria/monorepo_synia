@@ -73,6 +73,7 @@ ALTER PROCEDURE public.recalculate_stock_balances()
 -- Mover extensão unaccent do schema public para extensions.
 -- =====================================================
 
+CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA extensions;
 ALTER EXTENSION unaccent SET SCHEMA extensions;
 
 -- Wrapper para retrocompatibilidade com referências a public.unaccent()
@@ -121,21 +122,21 @@ DROP POLICY IF EXISTS "company_delete_policy" ON public.company;
 CREATE POLICY "company_delete_policy" ON public.company
     FOR DELETE USING ((SELECT auth.role()) = 'authenticated');
 
--- 2) COMPANY_PARENT TABLE - Fix auth.role() evaluation
-DROP POLICY IF EXISTS "company_parent_select_policy" ON public.company_parent;
-CREATE POLICY "company_parent_select_policy" ON public.company_parent
+-- 2) company_unit TABLE - Fix auth.role() evaluation
+DROP POLICY IF EXISTS "company_unit_select_policy" ON public.company_unit;
+CREATE POLICY "company_unit_select_policy" ON public.company_unit
     FOR SELECT USING ((SELECT auth.role()) = 'authenticated');
 
-DROP POLICY IF EXISTS "company_parent_insert_policy" ON public.company_parent;
-CREATE POLICY "company_parent_insert_policy" ON public.company_parent
+DROP POLICY IF EXISTS "company_unit_insert_policy" ON public.company_unit;
+CREATE POLICY "company_unit_insert_policy" ON public.company_unit
     FOR INSERT WITH CHECK ((SELECT auth.role()) = 'authenticated');
 
-DROP POLICY IF EXISTS "company_parent_update_policy" ON public.company_parent;
-CREATE POLICY "company_parent_update_policy" ON public.company_parent
+DROP POLICY IF EXISTS "company_unit_update_policy" ON public.company_unit;
+CREATE POLICY "company_unit_update_policy" ON public.company_unit
     FOR UPDATE USING ((SELECT auth.role()) = 'authenticated');
 
-DROP POLICY IF EXISTS "company_parent_delete_policy" ON public.company_parent;
-CREATE POLICY "company_parent_delete_policy" ON public.company_parent
+DROP POLICY IF EXISTS "company_unit_delete_policy" ON public.company_unit;
+CREATE POLICY "company_unit_delete_policy" ON public.company_unit
     FOR DELETE USING ((SELECT auth.role()) = 'authenticated');
 
 -- 3) APP_USER TABLE - Fix auth.uid() and auth.role() evaluation
@@ -184,9 +185,11 @@ CREATE POLICY "Admin/managers can insert administration routes"
   ON public.administration_routes FOR INSERT
   WITH CHECK (
     company_id IN (
-      SELECT company_id FROM app_user
-      WHERE auth_user_id = (SELECT auth.uid())
-      AND role IN ('admin', 'manager')
+      SELECT au.company_id
+      FROM app_user au
+      JOIN access_profile ap ON ap.id = au.access_profile_id
+      WHERE au.auth_user_id = (SELECT auth.uid())
+      AND ap.is_admin = TRUE
     )
   );
 
@@ -194,9 +197,11 @@ CREATE POLICY "Admin/managers can update administration routes"
   ON public.administration_routes FOR UPDATE
   USING (
     company_id IN (
-      SELECT company_id FROM app_user
-      WHERE auth_user_id = (SELECT auth.uid())
-      AND role IN ('admin', 'manager')
+      SELECT au.company_id
+      FROM app_user au
+      JOIN access_profile ap ON ap.id = au.access_profile_id
+      WHERE au.auth_user_id = (SELECT auth.uid())
+      AND ap.is_admin = TRUE
     )
   );
 
@@ -204,9 +209,11 @@ CREATE POLICY "Admin/managers can delete administration routes"
   ON public.administration_routes FOR DELETE
   USING (
     company_id IN (
-      SELECT company_id FROM app_user
-      WHERE auth_user_id = (SELECT auth.uid())
-      AND role IN ('admin', 'manager')
+      SELECT au.company_id
+      FROM app_user au
+      JOIN access_profile ap ON ap.id = au.access_profile_id
+      WHERE au.auth_user_id = (SELECT auth.uid())
+      AND ap.is_admin = TRUE
     )
   );
 
@@ -326,9 +333,10 @@ CREATE POLICY "Only admins can delete logs"
   USING (
     EXISTS (
       SELECT 1 FROM app_user au
+      JOIN access_profile ap ON ap.id = au.access_profile_id
       WHERE au.auth_user_id = (SELECT auth.uid())
       AND au.company_id = user_action_logs.company_id
-      AND au.role = 'admin'
+      AND ap.is_admin = TRUE
     )
   );
 
@@ -336,8 +344,6 @@ CREATE POLICY "Only admins can delete logs"
 DROP POLICY IF EXISTS "access_profile_select_policy" ON public.access_profile;
 CREATE POLICY "access_profile_select_policy" ON public.access_profile
     FOR SELECT USING (
-        company_id IS NULL
-        OR
         EXISTS (
             SELECT 1 FROM app_user au
             WHERE au.auth_user_id = (SELECT auth.uid())
@@ -349,7 +355,6 @@ DROP POLICY IF EXISTS "access_profile_insert_policy" ON public.access_profile;
 CREATE POLICY "access_profile_insert_policy" ON public.access_profile
     FOR INSERT WITH CHECK (
         (SELECT auth.role()) = 'authenticated'
-        AND company_id IS NOT NULL
         AND EXISTS (
             SELECT 1 FROM app_user au
             WHERE au.auth_user_id = (SELECT auth.uid())
@@ -361,7 +366,6 @@ DROP POLICY IF EXISTS "access_profile_update_policy" ON public.access_profile;
 CREATE POLICY "access_profile_update_policy" ON public.access_profile
     FOR UPDATE USING (
         (SELECT auth.role()) = 'authenticated'
-        AND is_system = FALSE
         AND EXISTS (
             SELECT 1 FROM app_user au
             WHERE au.auth_user_id = (SELECT auth.uid())
@@ -373,7 +377,6 @@ DROP POLICY IF EXISTS "access_profile_delete_policy" ON public.access_profile;
 CREATE POLICY "access_profile_delete_policy" ON public.access_profile
     FOR DELETE USING (
         (SELECT auth.role()) = 'authenticated'
-        AND is_system = FALSE
         AND EXISTS (
             SELECT 1 FROM app_user au
             WHERE au.auth_user_id = (SELECT auth.uid())
@@ -388,14 +391,10 @@ CREATE POLICY "access_profile_permission_select_policy" ON public.access_profile
         EXISTS (
             SELECT 1 FROM access_profile ap
             WHERE ap.id = access_profile_permission.profile_id
-            AND (
-                ap.company_id IS NULL
-                OR
-                EXISTS (
-                    SELECT 1 FROM app_user au
-                    WHERE au.auth_user_id = (SELECT auth.uid())
-                    AND au.company_id = ap.company_id
-                )
+            AND EXISTS (
+                SELECT 1 FROM app_user au
+                WHERE au.auth_user_id = (SELECT auth.uid())
+                AND au.company_id = ap.company_id
             )
         )
     );
@@ -407,7 +406,6 @@ CREATE POLICY "access_profile_permission_insert_policy" ON public.access_profile
         AND EXISTS (
             SELECT 1 FROM access_profile ap
             WHERE ap.id = access_profile_permission.profile_id
-            AND ap.is_system = FALSE
             AND EXISTS (
                 SELECT 1 FROM app_user au
                 WHERE au.auth_user_id = (SELECT auth.uid())
@@ -423,7 +421,6 @@ CREATE POLICY "access_profile_permission_delete_policy" ON public.access_profile
         AND EXISTS (
             SELECT 1 FROM access_profile ap
             WHERE ap.id = access_profile_permission.profile_id
-            AND ap.is_system = FALSE
             AND EXISTS (
                 SELECT 1 FROM app_user au
                 WHERE au.auth_user_id = (SELECT auth.uid())

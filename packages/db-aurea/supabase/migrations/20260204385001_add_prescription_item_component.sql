@@ -52,8 +52,6 @@ ADD COLUMN IF NOT EXISTS supplier public.enum_prescription_item_supplier;
 COMMENT ON COLUMN public.prescription_item.supplier IS
 'Fornecedor/origem do item: company (empresa), family (família), government (governo), other (outros).';
 
-CREATE INDEX IF NOT EXISTS idx_prescription_item_company_supplier
-ON public.prescription_item (company_id, supplier);
 
 -- ============================================================
 -- 3) TABELA: prescription_item_component (itens associados ao item)
@@ -91,14 +89,8 @@ COMMENT ON TABLE public.prescription_item_component IS
 COMMENT ON COLUMN public.prescription_item_component.prescription_item_id IS
 'Item principal da prescrição ao qual este componente pertence.';
 
-CREATE INDEX IF NOT EXISTS idx_prescription_item_component_company
-ON public.prescription_item_component (company_id);
 
-CREATE INDEX IF NOT EXISTS idx_prescription_item_component_item
-ON public.prescription_item_component (prescription_item_id);
 
-CREATE INDEX IF NOT EXISTS idx_prescription_item_component_product
-ON public.prescription_item_component (product_id);
 
 CREATE TRIGGER update_prescription_item_component_updated_at
 BEFORE UPDATE ON public.prescription_item_component
