@@ -234,33 +234,20 @@ export default function BusinessPartnersPage() {
   const columns: ColumnDef<BusinessPartner>[] = useMemo(
     () => [
       {
-        accessorKey: 'name',
+        accessorKey: 'legal_name',
         header: 'Parceiro de Negócio',
         cell: ({ row }) => {
-          const name = row.original.name || '';
-          const truncatedName = name.length > 80 ? name.substring(0, 80) + '...' : name;
+          const legalName = row.original.legal_name || '';
+          const truncatedName = legalName.length > 80 ? legalName.substring(0, 80) + '...' : legalName;
 
           return (
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
                 <HeartHandshake className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <div className="min-w-0">
-                {row.original.legal_name ? (
-                  <>
-                    <p className="font-semibold text-gray-900 dark:text-white">
-                      {row.original.legal_name}
-                    </p>
-                    <p className="truncate text-sm text-gray-500" title={name}>
-                      {truncatedName}
-                    </p>
-                  </>
-                ) : (
-                  <p className="truncate font-medium text-gray-900 dark:text-white" title={name}>
-                    {truncatedName}
-                  </p>
-                )}
-              </div>
+              <p className="truncate font-medium text-gray-900 dark:text-white" title={legalName}>
+                {truncatedName}
+              </p>
             </div>
           );
         },
@@ -417,16 +404,16 @@ export default function BusinessPartnersPage() {
                   <Input
                     label="Razão Social"
                     placeholder="Nome oficial da empresa"
-                    {...register('name', { required: 'Razão social é obrigatória' })}
-                    error={errors.name?.message}
-                    required
+                    {...register('name')}
                   />
                 </div>
                 <div className="md:col-span-5">
                   <Input
                     label="Nome Fantasia"
                     placeholder="Nome comercial"
-                    {...register('legal_name')}
+                    {...register('legal_name', { required: 'Nome fantasia é obrigatório' })}
+                    error={errors.legal_name?.message}
+                    required
                   />
                 </div>
               </div>
