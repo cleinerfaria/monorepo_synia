@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   setSearchParams: vi.fn(),
   setListPage: vi.fn(),
+  searchParams: new URLSearchParams(),
 
   createActiveIngredient: vi.fn().mockResolvedValue({ id: 'active-created' }),
   updateActiveIngredient: vi.fn().mockResolvedValue({}),
@@ -259,7 +260,7 @@ vi.mock('react-router-dom', async () => {
   return {
     ...actual,
     useNavigate: () => mocks.navigate,
-    useSearchParams: () => [new URLSearchParams(), mocks.setSearchParams],
+    useSearchParams: () => [mocks.searchParams, mocks.setSearchParams],
   };
 });
 
@@ -285,12 +286,22 @@ vi.mock('@/components/client/ClientContactForm', () => ({
 
 vi.mock('@/hooks/useActiveIngredients', () => ({
   useActiveIngredientsPaginated: () => ({
-    data: { data: mocks.activeIngredients, totalCount: mocks.activeIngredients.length, totalPages: 1 },
+    data: {
+      data: mocks.activeIngredients,
+      totalCount: mocks.activeIngredients.length,
+      totalPages: 1,
+    },
     isLoading: false,
   }),
   useActiveIngredients: () => ({ data: mocks.activeIngredients, isLoading: false }),
-  useCreateActiveIngredient: () => ({ mutateAsync: mocks.createActiveIngredient, isPending: false }),
-  useUpdateActiveIngredient: () => ({ mutateAsync: mocks.updateActiveIngredient, isPending: false }),
+  useCreateActiveIngredient: () => ({
+    mutateAsync: mocks.createActiveIngredient,
+    isPending: false,
+  }),
+  useUpdateActiveIngredient: () => ({
+    mutateAsync: mocks.updateActiveIngredient,
+    isPending: false,
+  }),
 }));
 
 vi.mock('@/hooks/useAdministrationRoutes', () => ({
@@ -411,44 +422,39 @@ vi.mock('@/hooks/useProductGroups', () => ({
 }));
 
 vi.mock('@/components/ui', () => {
-  const Input = ({
-    label,
-    error: _error,
-    required: _required,
-    ...props
-  }: React.InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string }) => (
+  const Input = React.forwardRef<
+    HTMLInputElement,
+    React.InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string }
+  >(({ label, error: _error, required: _required, ...props }, ref) => (
     <label>
       {label}
-      <input aria-label={label} {...props} />
+      <input ref={ref} aria-label={label} {...props} />
     </label>
-  );
+  ));
+  Input.displayName = 'MockInput';
 
-  const Textarea = ({
-    label,
-    error: _error,
-    required: _required,
-    ...props
-  }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; error?: string }) => (
+  const Textarea = React.forwardRef<
+    HTMLTextAreaElement,
+    React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; error?: string }
+  >(({ label, error: _error, required: _required, ...props }, ref) => (
     <label>
       {label}
-      <textarea aria-label={label} {...props} />
+      <textarea ref={ref} aria-label={label} {...props} />
     </label>
-  );
+  ));
+  Textarea.displayName = 'MockTextarea';
 
-  const Select = ({
-    label,
-    options = [],
-    error: _error,
-    required: _required,
-    ...props
-  }: React.SelectHTMLAttributes<HTMLSelectElement> & {
-    label?: string;
-    options?: Array<{ value: string; label: string }>;
-    error?: string;
-  }) => (
+  const Select = React.forwardRef<
+    HTMLSelectElement,
+    React.SelectHTMLAttributes<HTMLSelectElement> & {
+      label?: string;
+      options?: Array<{ value: string; label: string }>;
+      error?: string;
+    }
+  >(({ label, options = [], error: _error, required: _required, ...props }, ref) => (
     <label>
       {label}
-      <select aria-label={label} {...props}>
+      <select ref={ref} aria-label={label} {...props}>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -456,7 +462,8 @@ vi.mock('@/components/ui', () => {
         ))}
       </select>
     </label>
-  );
+  ));
+  Select.displayName = 'MockSelect';
 
   const SearchableSelect = ({
     label,
@@ -479,43 +486,59 @@ vi.mock('@/components/ui', () => {
     type = 'button',
     isLoading = false,
     disabled = false,
+    icon: _icon,
+    showIcon: _showIcon,
+    variant: _variant,
+    active: _active,
     ...props
   }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
     label?: string;
     isLoading?: boolean;
+    showIcon?: boolean;
+    icon?: React.ReactNode;
+    variant?: string;
   }) => (
     <button type={type} disabled={disabled || isLoading} {...props}>
-      {label ?? children ?? 'Botão'}
+      {label ?? children ?? 'Botao'}
     </button>
   );
 
   const IconButton = ({
     title,
     children,
+    variant: _variant,
     ...props
-  }: React.ButtonHTMLAttributes<HTMLButtonElement> & { title?: string }) => (
-    <button aria-label={title || 'ação'} title={title} type="button" {...props}>
-      {children ?? '•'}
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & { title?: string; variant?: string }) => (
+    <button aria-label={title || 'acao'} title={title} type="button" {...props}>
+      {children ?? 'o'}
     </button>
   );
 
-  const SwitchNew = ({
-    label,
-    checked,
-    onChange,
-    name,
-    ...props
-  }: {
-    label?: string;
-    checked?: boolean;
-    name?: string;
-    onChange?: React.ChangeEventHandler<HTMLInputElement>;
-  }) => (
+  const SwitchNew = React.forwardRef<
+    HTMLInputElement,
+    {
+      label?: string;
+      checked?: boolean;
+      name?: string;
+      onBlur?: React.FocusEventHandler<HTMLInputElement>;
+      onChange?: React.ChangeEventHandler<HTMLInputElement>;
+      showStatus?: boolean;
+    }
+  >(({ label, checked, onChange, name, onBlur, showStatus: _showStatus }, ref) => (
     <label>
       {label}
-      <input type="checkbox" aria-label={label} checked={!!checked} onChange={onChange} name={name} {...props} />
+      <input
+        ref={ref}
+        type="checkbox"
+        aria-label={label}
+        checked={!!checked}
+        onChange={onChange}
+        onBlur={onBlur}
+        name={name}
+      />
     </label>
-  );
+  ));
+  SwitchNew.displayName = 'MockSwitchNew';
 
   const Modal = ({
     isOpen,
@@ -596,7 +619,15 @@ vi.mock('@/components/ui', () => {
     Input,
     Textarea,
     Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
-    EmptyState: ({ title, description, action }: { title?: string; description?: string; action?: React.ReactNode }) => (
+    EmptyState: ({
+      title,
+      description,
+      action,
+    }: {
+      title?: string;
+      description?: string;
+      action?: React.ReactNode;
+    }) => (
       <div>
         <p>{title}</p>
         <p>{description}</p>
@@ -608,12 +639,24 @@ vi.mock('@/components/ui', () => {
     StatusBadge: ({ status }: { status: string }) => <span>{status}</span>,
     SearchableSelect,
     Select,
-    TabButton: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+    TabButton: ({
+      children,
+      active: _active,
+      ...props
+    }: React.ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) => (
       <button type="button" {...props}>
         {children}
       </button>
     ),
-    ColorPicker: ({ label, value, onChange }: { label?: string; value?: string; onChange?: React.ChangeEventHandler<HTMLInputElement> }) => (
+    ColorPicker: ({
+      label,
+      value,
+      onChange,
+    }: {
+      label?: string;
+      value?: string;
+      onChange?: React.ChangeEventHandler<HTMLInputElement>;
+    }) => (
       <label>
         {label}
         <input aria-label={label} value={value ?? ''} onChange={onChange} />
