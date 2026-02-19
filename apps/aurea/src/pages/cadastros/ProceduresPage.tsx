@@ -1,6 +1,7 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Workflow, Search, FunnelX, Plus, Check, X } from 'lucide-react';
+import { Pencil, Search, FunnelX, Plus, Check, X } from 'lucide-react';
+import { SupportedWalkIcon } from '@/components/icons/SupportedWalkIcon';
 import {
   Card,
   Button,
@@ -24,7 +25,7 @@ import {
 import { useUnitsOfMeasure } from '@/hooks/useUnitsOfMeasure';
 import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import type { Procedure } from '@/types/database';
 
 interface ProcedureFormData {
@@ -35,6 +36,8 @@ interface ProcedureFormData {
   description: string;
   active: boolean;
 }
+
+type SelectValueOrEvent = string | { target: { value: string } };
 
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
@@ -114,8 +117,18 @@ export default function ProceduresPage() {
     reset,
     setValue,
     watch,
+    control,
     formState: { errors },
-  } = useForm<ProcedureFormData>();
+  } = useForm<ProcedureFormData>({
+    defaultValues: {
+      code: '',
+      name: '',
+      category: 'visit',
+      unit_id: '',
+      description: '',
+      active: true,
+    },
+  });
 
   const { name: activeName, ref: activeRef, onBlur: activeOnBlur } = register('active');
   const activeValue = watch('active');
@@ -126,6 +139,7 @@ export default function ProceduresPage() {
       code: '',
       name: '',
       category: 'visit',
+      unit_id: '',
       description: '',
       active: true,
     });
@@ -138,7 +152,7 @@ export default function ProceduresPage() {
       code: procedure.code || '',
       name: procedure.name,
       category: procedure.category,
-      unit_id: procedure.unit_id || undefined,
+      unit_id: procedure.unit_id || '',
       description: procedure.description || '',
       active: procedure.active ?? true,
     });
@@ -172,13 +186,10 @@ export default function ProceduresPage() {
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-              <Workflow className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <SupportedWalkIcon className="h-7 w-7 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <p className="font-medium text-gray-900 dark:text-white">{row.original.name}</p>
-              {row.original.code && (
-                <p className="text-sm text-gray-500">Código: {row.original.code}</p>
-              )}
             </div>
           </div>
         ),
@@ -332,38 +343,73 @@ export default function ProceduresPage() {
         size="lg"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input label="Código" placeholder="Código do procedimento" {...register('code')} />
-            <Input
-              label="Nome"
-              placeholder="Ex: Consulta Médica, Curativo, Fisioterapia"
-              {...register('name', { required: 'Nome é obrigatório' })}
-              error={errors.name?.message}
-              required
-            />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div className="md:col-span-1">
+              <Input label="Código" placeholder="Código do procedimento" {...register('code')} />
+            </div>
+            <div className="md:col-span-3">
+              <Input
+                label="Nome"
+                placeholder="Ex: Consulta Médica, Curativo, Fisioterapia"
+                {...register('name', { required: 'Nome é obrigatório' })}
+                error={errors.name?.message}
+                required
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Select
-              label="Categoria"
-              placeholder="Selecione a categoria"
-              options={PROCEDURE_CATEGORIES.map((cat) => ({ value: cat.value, label: cat.label }))}
-              {...register('category', { required: 'Categoria é obrigatória' })}
-              error={errors.category?.message}
-              required
+            <Controller
+              name="category"
+              control={control}
+              rules={{ required: 'Categoria é obrigatória' }}
+              render={({ field }) => (
+                <Select
+                  label="Categoria"
+                  placeholder="Selecione a categoria"
+                  options={PROCEDURE_CATEGORIES.map((cat) => ({
+                    value: cat.value,
+                    label: cat.label,
+                  }))}
+                  name={field.name}
+                  value={field.value}
+                  onBlur={field.onBlur}
+                  onChange={(valueOrEvent: SelectValueOrEvent) => {
+                    const nextValue =
+                      typeof valueOrEvent === 'string' ? valueOrEvent : valueOrEvent.target.value;
+                    field.onChange(nextValue);
+                  }}
+                  error={errors.category?.message}
+                  required
+                />
+              )}
             />
-            <Select
-              label="Unidade de Medida"
-              placeholder="Selecione a unidade"
-              options={
-                unitsOfMeasure?.map((unit) => ({
-                  value: unit.id,
-                  label: `${unit.name} (${unit.symbol})`,
-                })) || []
-              }
-              {...register('unit_id', { required: 'Unidade de medida é obrigatória' })}
-              error={errors.unit_id?.message}
-              required
+            <Controller
+              name="unit_id"
+              control={control}
+              rules={{ required: 'Unidade de medida é obrigatória' }}
+              render={({ field }) => (
+                <Select
+                  label="Unidade de Medida"
+                  placeholder="Selecione a unidade"
+                  options={
+                    unitsOfMeasure?.map((unit) => ({
+                      value: unit.id,
+                      label: `${unit.name} (${unit.symbol})`,
+                    })) || []
+                  }
+                  name={field.name}
+                  value={field.value}
+                  onBlur={field.onBlur}
+                  onChange={(valueOrEvent: SelectValueOrEvent) => {
+                    const nextValue =
+                      typeof valueOrEvent === 'string' ? valueOrEvent : valueOrEvent.target.value;
+                    field.onChange(nextValue);
+                  }}
+                  error={errors.unit_id?.message}
+                  required
+                />
+              )}
             />
           </div>
 
