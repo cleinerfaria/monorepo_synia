@@ -11,7 +11,19 @@
       "Bash(npx tsc:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm ls:*)",
+      "Bash(dir:*)",
+      "Bash(npm install:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm update:*)",
+      "Bash(npm view:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm --version:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run precommit:check:aurea:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
