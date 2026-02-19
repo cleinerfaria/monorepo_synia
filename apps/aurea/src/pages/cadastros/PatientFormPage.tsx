@@ -611,7 +611,7 @@ export default function PatientFormPage() {
                   {patientAge !== null && (
                     <div className="flex flex-col justify-end">
                       <div className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-center dark:border-blue-800 dark:bg-blue-900/20">
-                        <span className="text-xs font-semibold text-blue-700 dark:text-blue-400">
+                        <span className="min-w-[200px] text-xs font-medium text-blue-700 dark:text-blue-400">
                           {formatAge(patientAge)}
                         </span>
                       </div>

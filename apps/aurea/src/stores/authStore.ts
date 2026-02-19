@@ -250,7 +250,7 @@ export const useAuthStore = create<AuthState>()(
 
         const { data, error } = await supabase
           .from('app_user')
-          .update({ theme } as any)
+          .update({ theme_preference: theme } as any)
           .eq('id', appUser.id)
           .select('*, access_profile(id, code, name, is_admin)')
           .single();

@@ -123,8 +123,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Update theme settings when user or company settings change
   useEffect(() => {
-    if (appUser?.theme) {
-      setThemeState(appUser.theme as Theme);
+    if (appUser?.theme_preference) {
+      setThemeState(appUser.theme_preference as Theme);
     } else if (company?.theme_preference) {
       setThemeState(company.theme_preference as Theme);
     }

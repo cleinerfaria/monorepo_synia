@@ -438,152 +438,183 @@ export default function ManufacturersPage() {
         onClose={() => setIsModalOpen(false)}
         title={selectedManufacturer ? 'Editar Fabricante' : 'Novo Fabricante'}
         size="lg"
+        panelClassName="max-w-[calc(42rem+100px)]"
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-1">
-            <Input label="Código" placeholder="Código do sistema externo" {...register('code')} />
-          </div>
+        <div className="flex min-h-[515px] flex-col">
+          <div className="flex-1 overflow-y-auto pt-4">
+            <form className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                <div className="md:col-span-2">
+                  <Input
+                    label="Código"
+                    placeholder="Código do sistema externo"
+                    {...register('code')}
+                  />
+                </div>
+                <div className="md:col-span-5">
+                  <Input
+                    label="Razão Social"
+                    placeholder="Nome oficial da empresa"
+                    {...register('name', { required: 'Razão social é obrigatória' })}
+                    error={errors.name?.message}
+                    required
+                  />
+                </div>
+                <div className="md:col-span-5">
+                  <Input
+                    label="Nome Fantasia"
+                    placeholder="Nome comercial"
+                    {...register('trade_name')}
+                  />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 gap-4">
-            <Input
-              label="Razão Social"
-              placeholder="Nome oficial da empresa"
-              {...register('name', { required: 'Razão social é obrigatória' })}
-              error={errors.name?.message}
-              required
-            />
-            <Input label="Nome Fantasia" placeholder="Nome comercial" {...register('trade_name')} />
-          </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                <div className="md:col-span-4">
+                  <Input label="CNPJ" placeholder="00.000.000/0000-00" {...register('document')} />
+                </div>
+                <div className="md:col-span-3">
+                  <Input label="Telefone" placeholder="(00) 0000-0000" {...register('phone')} />
+                </div>
+                <div className="md:col-span-5">
+                  <Input
+                    label="E-mail"
+                    type="email"
+                    placeholder="contato@fabricante.com"
+                    {...register('email')}
+                  />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input label="CNPJ" placeholder="00.000.000/0000-00" {...register('document')} />
-          </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                <div className="md:col-span-12">
+                  <Input
+                    label="Website"
+                    placeholder="https://www.fabricante.com.br"
+                    {...register('website')}
+                  />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input label="Telefone" placeholder="(00) 0000-0000" {...register('phone')} />
-            <Input
-              label="E-mail"
-              type="email"
-              placeholder="contato@fabricante.com"
-              {...register('email')}
-            />
-          </div>
-
-          <Input
-            label="Website"
-            placeholder="https://www.fabricante.com.br"
-            {...register('website')}
-          />
-
-          <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Endereço</h3>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
-              <div className="relative md:col-span-6">
-                <Input
-                  label="CEP"
-                  placeholder="00000-000"
-                  inputMode="numeric"
-                  {...register('zip')}
-                  value={zipValue}
-                  onChange={(e) => {
-                    void handleZipChange(e.target.value);
-                  }}
-                  hint="Digite o CEP para buscar o endereço automaticamente"
-                />
-                {isZipLookupLoading && (
-                  <div className="absolute right-3 top-9 flex items-center gap-2">
-                    <svg
-                      className="text-primary-500 h-4 w-4 animate-spin"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Buscando...</span>
+              <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                  <div className="relative md:col-span-3">
+                    <Input
+                      label="CEP"
+                      placeholder="00000-000"
+                      inputMode="numeric"
+                      {...register('zip')}
+                      value={zipValue}
+                      onChange={(e) => {
+                        void handleZipChange(e.target.value);
+                      }}
+                    />
+                    {isZipLookupLoading && (
+                      <div className="absolute right-3 top-9 flex items-center gap-2">
+                        <svg
+                          className="text-primary-500 h-4 w-4 animate-spin"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Buscando...
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="md:col-span-14">
-                <Input
-                  label="Logradouro"
-                  placeholder="Rua, Avenida, etc."
-                  {...register('street')}
-                />
-              </div>
-              <div className="md:col-span-4">
-                <Input label="Número" placeholder="123" {...register('number')} />
-              </div>
-            </div>
+                  <div className="md:col-span-7">
+                    <Input
+                      label="Logradouro"
+                      placeholder="Rua, Avenida, etc."
+                      {...register('street')}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Input label="Número" placeholder="123" {...register('number')} />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
-              <div className="md:col-span-8">
-                <Input
-                  label="Complemento"
-                  placeholder="Apto, bloco, sala..."
-                  {...register('complement')}
-                />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
+                  <div className="md:col-span-8">
+                    <Input
+                      label="Complemento"
+                      placeholder="Apto, bloco, sala..."
+                      {...register('complement')}
+                    />
+                  </div>
+                  <div className="md:col-span-6">
+                    <Input label="Bairro" placeholder="Bairro" {...register('district')} />
+                  </div>
+                  <div className="md:col-span-6">
+                    <Input label="Cidade" placeholder="Cidade" {...register('city')} />
+                  </div>
+                  <div className="md:col-span-4">
+                    <Select
+                      label="UF"
+                      options={UF_OPTIONS}
+                      value={watchState}
+                      {...register('state')}
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="md:col-span-6">
-                <Input label="Bairro" placeholder="Bairro" {...register('district')} />
-              </div>
-              <div className="md:col-span-6">
-                <Input label="Cidade" placeholder="Cidade" {...register('city')} />
-              </div>
-              <div className="md:col-span-4">
-                <Select label="UF" options={UF_OPTIONS} value={watchState} {...register('state')} />
-              </div>
-            </div>
+
+              <Textarea
+                label="Observações"
+                placeholder="Observações adicionais..."
+                rows={2}
+                {...register('notes')}
+              />
+            </form>
           </div>
 
-          <Textarea
-            label="Observações"
-            placeholder="Observações adicionais..."
-            rows={2}
-            {...register('notes')}
-          />
-
-          <SwitchNew
-            label="Status"
-            showStatus
-            name={activeName}
-            ref={activeRef}
-            onBlur={activeOnBlur}
-            checked={!!activeValue}
-            onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true });
-            }}
-          />
-
-          <ModalFooter>
-            <Button
-              type="button"
-              variant="outline"
-              showIcon={false}
-              onClick={() => setIsModalOpen(false)}
-              label="Cancelar"
+          <ModalFooter className="mt-4 !justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
+            <SwitchNew
+              label="Status"
+              showStatus
+              name={activeName}
+              ref={activeRef}
+              onBlur={activeOnBlur}
+              checked={!!activeValue}
+              onChange={(e) => {
+                setValue('active', e.target.checked, { shouldDirty: true });
+              }}
             />
-            <Button
-              type="submit"
-              variant="solid"
-              showIcon={false}
-              label={selectedManufacturer ? 'Salvar Alterações' : 'Cadastrar'}
-            />
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="neutral"
+                showIcon={false}
+                onClick={() => setIsModalOpen(false)}
+                label="Cancelar"
+              />
+              <Button
+                type="button"
+                variant="solid"
+                size="md"
+                showIcon={false}
+                onClick={handleSubmit(onSubmit)}
+                disabled={createManufacturer.isPending || updateManufacturer.isPending}
+                label={selectedManufacturer ? 'Salvar Alterações' : 'Cadastrar'}
+              />
+            </div>
           </ModalFooter>
-        </form>
+        </div>
       </Modal>
 
       {/* Delete Confirmation Modal */}

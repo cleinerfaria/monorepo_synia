@@ -828,10 +828,13 @@ export default function NfeImportDetailPage() {
       document: data.document ? data.document.replace(/\D/g, '') : null,
       email: data.email || null,
       phone: data.phone || null,
-      address: data.address || null,
+      street: data.address || null,
+      number: null,
+      complement: null,
+      district: null,
       city: data.city || null,
       state: data.state || null,
-      zip_code: data.zip_code || null,
+      zip: data.zip_code || null,
       active: true,
     });
 

@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Pencil, SlidersHorizontal, Search, FunnelX, Plus } from 'lucide-react';
+import { Pencil, SlidersHorizontal, Search, FunnelX, Plus, Check, X } from 'lucide-react';
 import {
   Card,
   Button,
@@ -445,33 +445,34 @@ export default function UnitsOfMeasurePage() {
             </div>
           </div>
 
-          <SwitchNew
-            label="Status"
-            showStatus
-            name={activeName}
-            ref={activeRef}
-            onBlur={activeOnBlur}
-            checked={!!activeValue}
-            onChange={(e) => {
-              setValue('active', e.target.checked, { shouldDirty: true });
-            }}
-          />
-
-          <ModalFooter>
-            <Button
-              type="button"
-              variant="outline"
-              showIcon={false}
-              onClick={() => setIsModalOpen(false)}
-              label="Cancelar"
+          <ModalFooter className="mt-4 !justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
+            <SwitchNew
+              label="Status"
+              showStatus
+              name={activeName}
+              ref={activeRef}
+              onBlur={activeOnBlur}
+              checked={!!activeValue}
+              onChange={(e) => {
+                setValue('active', e.target.checked, { shouldDirty: true });
+              }}
             />
-            <Button
-              type="submit"
-              variant="solid"
-              showIcon={false}
-              disabled={createUnit.isPending || updateUnit.isPending}
-              label={selectedUnit ? 'Salvar Alterações' : 'Cadastrar'}
-            />
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="neutral"
+                icon={<X className="h-4 w-4" />}
+                onClick={() => setIsModalOpen(false)}
+                label="Cancelar"
+              />
+              <Button
+                type="submit"
+                variant="solid"
+                icon={<Check className="h-4 w-4" />}
+                disabled={createUnit.isPending || updateUnit.isPending}
+                label={selectedUnit ? 'Salvar Alterações' : 'Cadastrar'}
+              />
+            </div>
           </ModalFooter>
         </form>
       </Modal>

@@ -260,7 +260,7 @@ export type Database = {
           id: string;
           name: string;
           role: string;
-          theme: 'light' | 'dark' | 'system';
+          theme_preference: 'light' | 'dark' | 'system';
           updated_at: string | null;
         };
         Insert: {
@@ -273,7 +273,7 @@ export type Database = {
           id?: string;
           name: string;
           role?: string;
-          theme?: 'light' | 'dark' | 'system' | null;
+          theme_preference?: 'light' | 'dark' | 'system' | null;
           updated_at?: string | null;
         };
         Update: {
@@ -286,7 +286,7 @@ export type Database = {
           id?: string;
           name?: string;
           role?: string;
-          theme?: 'light' | 'dark' | 'system' | null;
+          theme_preference?: 'light' | 'dark' | 'system' | null;
           updated_at?: string | null;
         };
         Relationships: [
@@ -3054,75 +3054,84 @@ export type Database = {
       supplier: {
         Row: {
           active: boolean | null;
-          address: string | null;
           city: string | null;
           code: string | null;
           company_id: string;
+          complement: string | null;
           contact_name: string | null;
           contact_phone: string | null;
           created_at: string | null;
+          district: string | null;
           document: string | null;
           email: string | null;
           id: string;
           municipal_registration: string | null;
           name: string;
           notes: string | null;
+          number: string | null;
           payment_terms: string | null;
           phone: string | null;
           state: string | null;
           state_registration: string | null;
+          street: string | null;
           trade_name: string | null;
           updated_at: string | null;
           website: string | null;
-          zip_code: string | null;
+          zip: string | null;
         };
         Insert: {
           active?: boolean | null;
-          address?: string | null;
           city?: string | null;
           code?: string | null;
           company_id: string;
+          complement?: string | null;
           contact_name?: string | null;
           contact_phone?: string | null;
           created_at?: string | null;
+          district?: string | null;
           document?: string | null;
           email?: string | null;
           id?: string;
           municipal_registration?: string | null;
           name: string;
           notes?: string | null;
+          number?: string | null;
           payment_terms?: string | null;
           phone?: string | null;
           state?: string | null;
           state_registration?: string | null;
+          street?: string | null;
           trade_name?: string | null;
           updated_at?: string | null;
           website?: string | null;
-          zip_code?: string | null;
+          zip?: string | null;
         };
         Update: {
           active?: boolean | null;
-          address?: string | null;
           city?: string | null;
           code?: string | null;
           company_id?: string;
+          complement?: string | null;
           contact_name?: string | null;
           contact_phone?: string | null;
           created_at?: string | null;
+          district?: string | null;
           document?: string | null;
           email?: string | null;
           id?: string;
           municipal_registration?: string | null;
           name?: string;
           notes?: string | null;
+          number?: string | null;
           payment_terms?: string | null;
           phone?: string | null;
           state?: string | null;
           state_registration?: string | null;
+          street?: string | null;
           trade_name?: string | null;
           updated_at?: string | null;
           website?: string | null;
-          zip_code?: string | null;
+          zip?: string | null;
         };
         Relationships: [
           {

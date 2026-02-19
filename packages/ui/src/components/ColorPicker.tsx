@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 import { clsx } from 'clsx';
-import { Palette } from 'lucide-react';
+import { CircleHelp, Palette } from 'lucide-react';
 import { Button } from './Button';
 import { Modal, ModalFooter } from './Modal';
 
@@ -59,28 +59,35 @@ const normalizeHexColor = (value?: string | null): string | null => {
 
   if (!/^[\da-fA-F]{3}$|^[\da-fA-F]{6}$/.test(sanitized)) return null;
 
-  const expanded =
-    sanitized.length === 3
-      ? sanitized
-          .split('')
-          .map((char) => `${char}${char}`)
-          .join('')
-      : sanitized;
+  return `#${sanitized.toUpperCase()}`;
+};
 
-  return `#${expanded.toUpperCase()}`;
+const expandHexColor = (hexColor: string): string | null => {
+  const normalized = normalizeHexColor(hexColor);
+  if (!normalized) return null;
+
+  const compact = normalized.slice(1);
+  if (compact.length === 6) return normalized;
+
+  const expanded = compact
+    .split('')
+    .map((char) => `${char}${char}`)
+    .join('');
+
+  return `#${expanded}`;
 };
 
 const componentToHex = (value: number): string =>
   clamp(value, 0, 255).toString(16).padStart(2, '0');
 
 const hexToRgb = (hexColor: string): RgbColor | null => {
-  const normalized = normalizeHexColor(hexColor);
-  if (!normalized) return null;
+  const expanded = expandHexColor(hexColor);
+  if (!expanded) return null;
 
   return {
-    r: Number.parseInt(normalized.slice(1, 3), 16),
-    g: Number.parseInt(normalized.slice(3, 5), 16),
-    b: Number.parseInt(normalized.slice(5, 7), 16),
+    r: Number.parseInt(expanded.slice(1, 3), 16),
+    g: Number.parseInt(expanded.slice(3, 5), 16),
+    b: Number.parseInt(expanded.slice(5, 7), 16),
   };
 };
 
@@ -194,6 +201,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
 
     const [draftColor, setDraftColor] = useState<string>(normalizedPlaceholder);
     const [hexValue, setHexValue] = useState<string>(normalizedPlaceholder);
+    const hintId = `${name || 'color-picker'}-hint`;
 
     const initialRgb = hexToRgb(normalizedPlaceholder) ?? { r: 26, g: 162, b: 255 };
     const [hsvValue, setHsvValue] = useState<HsvColor>(() => rgbToHsv(initialRgb));
@@ -329,10 +337,32 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
         <input type="hidden" ref={setRefs} name={name} value={selectedColor} onChange={() => {}} />
 
         {label && (
-          <label className="label">
-            {label}
-            {required && <span className="text-feedback-danger-fg ml-1">*</span>}
-          </label>
+          <div className="mb-0 flex items-center gap-1">
+            <label className="label mb-0">
+              {label}
+              {required && <span className="text-feedback-danger-fg ml-1">*</span>}
+            </label>
+            {hint && !error && (
+              <span className="group relative inline-flex items-center">
+                <button
+                  type="button"
+                  tabIndex={0}
+                  aria-label="Ajuda sobre o campo"
+                  aria-describedby={hintId}
+                  className="text-content-muted hover:text-content-primary focus:text-content-primary inline-flex h-3 w-3 items-center justify-center transition-colors focus:outline-none"
+                >
+                  <CircleHelp className="mb-1 h-3 w-3 p-0" />
+                </button>
+                <span
+                  id={hintId}
+                  role="tooltip"
+                  className="border-border bg-surface-card text-content-secondary pointer-events-none absolute left-1/2 top-full z-20 mt-1 w-52 -translate-x-1/2 rounded-md border px-2 py-1 text-[11px] leading-tight opacity-0 shadow-md transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+                >
+                  {hint}
+                </span>
+              </span>
+            )}
+          </div>
         )}
 
         <div className="space-y-2">
@@ -348,7 +378,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
           >
             <div className="flex min-w-0 items-center gap-3">
               <span
-                className="border-border block h-6 w-6 rounded-md border"
+                className="border-border block h-4 w-4 rounded-md border"
                 style={{ backgroundColor: previewColor }}
                 aria-hidden="true"
               />
@@ -362,7 +392,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
           </button>
         </div>
 
-        {hint && !error && <p className="text-content-muted ml-1 mt-1 text-xs">{hint}</p>}
+        {!label && hint && !error && <p className="text-content-muted ml-1 mt-1 text-xs">{hint}</p>}
         {error && <p className="text-feedback-danger-fg mt-1.5 text-sm">{error}</p>}
 
         <Modal
@@ -411,6 +441,10 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
               <input
                 type="text"
                 value={hexValue}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
                 onChange={(event) => {
                   const nextValue = event.target.value.toUpperCase();
                   setHexValue(nextValue);
