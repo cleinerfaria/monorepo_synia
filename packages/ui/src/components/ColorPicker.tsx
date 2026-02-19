@@ -1,11 +1,20 @@
-import { ChangeEvent, FocusEvent, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  FocusEvent,
+  MutableRefObject,
+  PointerEvent,
+  Ref,
+  forwardRef,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { clsx } from 'clsx';
 import { Palette } from 'lucide-react';
 import { Button } from './Button';
 import { Modal, ModalFooter } from './Modal';
 
 type ChangeHandler = (event: { target: { value: string; name?: string }; type?: string }) => void;
-type PickerMode = 'hex' | 'rgb' | 'hsl';
 
 interface RgbColor {
   r: number;
@@ -13,10 +22,10 @@ interface RgbColor {
   b: number;
 }
 
-interface HslColor {
+interface HsvColor {
   h: number;
   s: number;
-  l: number;
+  v: number;
 }
 
 export interface ColorPickerProps {
@@ -41,7 +50,8 @@ export interface ColorPickerProps {
 
 const FALLBACK_COLOR = '#1AA2FF';
 
-const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, value));
 
 const normalizeHexColor = (value?: string | null): string | null => {
   if (!value) return null;
@@ -60,7 +70,8 @@ const normalizeHexColor = (value?: string | null): string | null => {
   return `#${expanded.toUpperCase()}`;
 };
 
-const componentToHex = (value: number): string => clamp(value, 0, 255).toString(16).padStart(2, '0');
+const componentToHex = (value: number): string =>
+  clamp(value, 0, 255).toString(16).padStart(2, '0');
 
 const hexToRgb = (hexColor: string): RgbColor | null => {
   const normalized = normalizeHexColor(hexColor);
@@ -76,7 +87,7 @@ const hexToRgb = (hexColor: string): RgbColor | null => {
 const rgbToHex = ({ r, g, b }: RgbColor): string =>
   `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`.toUpperCase();
 
-const rgbToHsl = ({ r, g, b }: RgbColor): HslColor => {
+const rgbToHsv = ({ r, g, b }: RgbColor): HsvColor => {
   const normalizedR = r / 255;
   const normalizedG = g / 255;
   const normalizedB = b / 255;
@@ -86,8 +97,6 @@ const rgbToHsl = ({ r, g, b }: RgbColor): HslColor => {
   const delta = max - min;
 
   let h = 0;
-  const l = (max + min) / 2;
-  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
 
   if (delta !== 0) {
     if (max === normalizedR) {
@@ -97,24 +106,29 @@ const rgbToHsl = ({ r, g, b }: RgbColor): HslColor => {
     } else {
       h = (normalizedR - normalizedG) / delta + 4;
     }
-    h = Math.round(h * 60);
+    h *= 60;
     if (h < 0) h += 360;
   }
 
+  const s = max === 0 ? 0 : delta / max;
+  const v = max;
+
   return {
-    h,
+    h: Math.round(h),
     s: Math.round(s * 100),
-    l: Math.round(l * 100),
+    v: Math.round(v * 100),
   };
 };
 
-const hslToRgb = ({ h, s, l }: HslColor): RgbColor => {
+const hsvToRgb = ({ h, s, v }: HsvColor): RgbColor => {
   const normalizedH = ((h % 360) + 360) % 360;
   const normalizedS = clamp(s, 0, 100) / 100;
-  const normalizedL = clamp(l, 0, 100) / 100;
-  const chroma = (1 - Math.abs(2 * normalizedL - 1)) * normalizedS;
+  const normalizedV = clamp(v, 0, 100) / 100;
+
+  const chroma = normalizedV * normalizedS;
   const hueSection = normalizedH / 60;
   const x = chroma * (1 - Math.abs((hueSection % 2) - 1));
+  const m = normalizedV - chroma;
 
   let rPrime = 0;
   let gPrime = 0;
@@ -140,14 +154,15 @@ const hslToRgb = ({ h, s, l }: HslColor): RgbColor => {
     bPrime = x;
   }
 
-  const matchLightness = normalizedL - chroma / 2;
-
   return {
-    r: Math.round((rPrime + matchLightness) * 255),
-    g: Math.round((gPrime + matchLightness) * 255),
-    b: Math.round((bPrime + matchLightness) * 255),
+    r: Math.round((rPrime + m) * 255),
+    g: Math.round((gPrime + m) * 255),
+    b: Math.round((bPrime + m) * 255),
   };
 };
+
+const HUE_BACKGROUND =
+  'linear-gradient(90deg, hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%), hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%))';
 
 export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
   (
@@ -176,12 +191,12 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
       normalizeHexColor(value ?? defaultValue) ?? ''
     );
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [mode, setMode] = useState<PickerMode>('hex');
 
     const [draftColor, setDraftColor] = useState<string>(normalizedPlaceholder);
     const [hexValue, setHexValue] = useState<string>(normalizedPlaceholder);
-    const [rgbValue, setRgbValue] = useState<RgbColor>(() => hexToRgb(normalizedPlaceholder)!);
-    const [hslValue, setHslValue] = useState<HslColor>(() => rgbToHsl(hexToRgb(normalizedPlaceholder)!));
+
+    const initialRgb = hexToRgb(normalizedPlaceholder) ?? { r: 26, g: 162, b: 255 };
+    const [hsvValue, setHsvValue] = useState<HsvColor>(() => rgbToHsv(initialRgb));
 
     useEffect(() => {
       if (value === undefined) return;
@@ -189,7 +204,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
     }, [value]);
 
     const assignRef = (
-      targetRef: React.Ref<HTMLInputElement> | undefined,
+      targetRef: Ref<HTMLInputElement> | undefined,
       node: HTMLInputElement | null
     ) => {
       if (!targetRef) return;
@@ -197,7 +212,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
         targetRef(node);
         return;
       }
-      (targetRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
+      (targetRef as MutableRefObject<HTMLInputElement | null>).current = node;
     };
 
     const setRefs = (node: HTMLInputElement | null) => {
@@ -244,13 +259,26 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
 
       setDraftColor(normalized);
       setHexValue(normalized);
-      setRgbValue(nextRgb);
-      setHslValue(rgbToHsl(nextRgb));
+      setHsvValue(rgbToHsv(nextRgb));
+    };
+
+    const syncDraftFromHsv = (nextHsv: HsvColor) => {
+      const sanitizedHsv = {
+        h: ((nextHsv.h % 360) + 360) % 360,
+        s: clamp(nextHsv.s, 0, 100),
+        v: clamp(nextHsv.v, 0, 100),
+      };
+
+      const nextRgb = hsvToRgb(sanitizedHsv);
+      const nextHex = rgbToHex(nextRgb);
+
+      setDraftColor(nextHex);
+      setHexValue(nextHex);
+      setHsvValue(sanitizedHsv);
     };
 
     const openModal = () => {
       if (disabled) return;
-      setMode('hex');
       syncDraftFromHex(selectedColor || normalizedPlaceholder);
       setIsModalOpen(true);
     };
@@ -265,11 +293,36 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
       triggerOnBlur();
     };
 
+    const handleColorPanelPointer = (event: PointerEvent<HTMLDivElement>) => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      const x = clamp(event.clientX - rect.left, 0, rect.width);
+      const y = clamp(event.clientY - rect.top, 0, rect.height);
+
+      const nextS = Math.round((x / rect.width) * 100);
+      const nextV = Math.round(100 - (y / rect.height) * 100);
+
+      syncDraftFromHsv({ ...hsvValue, s: nextS, v: nextV });
+    };
+
+    const handleColorPanelPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+      event.currentTarget.setPointerCapture(event.pointerId);
+      handleColorPanelPointer(event);
+    };
+
+    const handleColorPanelPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+      if (event.buttons === 0 && event.pressure === 0) return;
+      handleColorPanelPointer(event);
+    };
+
+    const handleColorPanelPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    };
+
     const previewColor = selectedColor || normalizedPlaceholder;
-    const previewGradient = useMemo(() => {
-      const rgb = hexToRgb(draftColor) ?? hexToRgb(normalizedPlaceholder)!;
-      return `linear-gradient(140deg, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.98), rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.72))`;
-    }, [draftColor, normalizedPlaceholder]);
 
     return (
       <div className={clsx('w-full', className)}>
@@ -289,7 +342,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
             onBlur={triggerOnBlur}
             disabled={disabled}
             className={clsx(
-              'input-field flex min-h-11 items-center justify-between gap-3 text-left',
+              'input-field flex items-center justify-between gap-2 text-left',
               disabled && 'cursor-not-allowed opacity-60'
             )}
           >
@@ -305,21 +358,8 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
             </div>
             <span className="text-content-muted inline-flex items-center gap-1 text-xs font-medium">
               <Palette className="h-4 w-4" />
-              Escolher
             </span>
           </button>
-
-          {clearable && selectedColor && (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handleClear}
-                className="text-content-muted hover:text-content-primary text-xs font-medium transition-colors"
-              >
-                Limpar cor
-              </button>
-            </div>
-          )}
         </div>
 
         {hint && !error && <p className="text-content-muted ml-1 mt-1 text-xs">{hint}</p>}
@@ -332,141 +372,66 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
           onClose={() => setIsModalOpen(false)}
           title={modalTitle}
         >
-          <div className="space-y-5">
-            <div className="border-border bg-surface-elevated/60 space-y-3 rounded-2xl border p-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-3">
               <div
-                className="border-border h-24 w-full rounded-xl border shadow-sm"
-                style={{ background: previewGradient }}
-              />
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-content-secondary text-xs uppercase tracking-wide">Cor atual</p>
-                <code className="bg-surface-card text-content-primary rounded-md px-2 py-1 text-xs font-semibold">
-                  {draftColor}
-                </code>
-              </div>
-            </div>
-
-            <div className="border-border inline-flex rounded-xl border p-1">
-              {(['hex', 'rgb', 'hsl'] as PickerMode[]).map((currentMode) => (
-                <button
-                  key={currentMode}
-                  type="button"
-                  onClick={() => setMode(currentMode)}
-                  className={clsx(
-                    'rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors',
-                    mode === currentMode
-                      ? 'bg-primary-500/15 text-primary-700 dark:text-primary-300'
-                      : 'text-content-muted hover:text-content-primary'
-                  )}
-                >
-                  {currentMode}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label className="label">Seletor visual</label>
-                <input
-                  type="color"
-                  value={draftColor}
-                  onChange={(event) => syncDraftFromHex(event.target.value)}
-                  className="input-field h-12 w-full cursor-pointer p-1.5"
+                role="presentation"
+                onPointerDown={handleColorPanelPointerDown}
+                onPointerMove={handleColorPanelPointerMove}
+                onPointerUp={handleColorPanelPointerUp}
+                className="border-border relative h-36 w-full cursor-crosshair touch-none select-none overflow-hidden rounded-xl border shadow-sm"
+                style={{ backgroundColor: `hsl(${hsvValue.h} 100% 50%)` }}
+              >
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+                <span
+                  className="pointer-events-none absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
+                  style={{ left: `${hsvValue.s}%`, top: `${100 - hsvValue.v}%` }}
                 />
               </div>
 
-              {mode === 'hex' && (
-                <div className="space-y-2">
-                  <label className="label">HEX</label>
-                  <input
-                    type="text"
-                    value={hexValue}
-                    onChange={(event) => {
-                      const nextValue = event.target.value.toUpperCase();
-                      setHexValue(nextValue);
-                      const normalized = normalizeHexColor(nextValue);
-                      if (normalized) syncDraftFromHex(normalized);
-                    }}
-                    onBlur={() => {
-                      const normalized = normalizeHexColor(hexValue);
-                      if (normalized) {
-                        syncDraftFromHex(normalized);
-                        return;
-                      }
-                      setHexValue(draftColor);
-                    }}
-                    placeholder={normalizedPlaceholder}
-                    className="input-field font-mono uppercase"
-                  />
-                </div>
-              )}
+              <div className="space-y-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={360}
+                  value={hsvValue.h}
+                  onChange={(event) => {
+                    const nextHue = Number.parseInt(event.target.value, 10);
+                    if (Number.isNaN(nextHue)) return;
+                    syncDraftFromHsv({ ...hsvValue, h: clamp(nextHue, 0, 360) });
+                  }}
+                  className="h-2 w-full cursor-pointer appearance-none rounded-full"
+                  style={{ background: HUE_BACKGROUND }}
+                />
+              </div>
+            </div>
 
-              {mode === 'rgb' && (
-                <div className="grid grid-cols-3 gap-2 sm:col-span-1">
-                  {(['r', 'g', 'b'] as Array<keyof RgbColor>).map((channel) => (
-                    <div key={channel} className="space-y-2">
-                      <label className="label uppercase">{channel}</label>
-                      <input
-                        type="number"
-                        min={0}
-                        max={255}
-                        value={rgbValue[channel]}
-                        onChange={(event) => {
-                          const rawValue = Number.parseInt(event.target.value, 10);
-                          if (Number.isNaN(rawValue)) return;
-                          const nextRgb = {
-                            ...rgbValue,
-                            [channel]: clamp(rawValue, 0, 255),
-                          };
-                          const nextHex = rgbToHex(nextRgb);
-                          setRgbValue(nextRgb);
-                          setHslValue(rgbToHsl(nextRgb));
-                          setHexValue(nextHex);
-                          setDraftColor(nextHex);
-                        }}
-                        className="input-field"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {mode === 'hsl' && (
-                <div className="grid grid-cols-3 gap-2 sm:col-span-1">
-                  {(
-                    [
-                      { key: 'h', max: 360 },
-                      { key: 's', max: 100 },
-                      { key: 'l', max: 100 },
-                    ] as Array<{ key: keyof HslColor; max: number }>
-                  ).map(({ key, max }) => (
-                    <div key={key} className="space-y-2">
-                      <label className="label uppercase">{key}</label>
-                      <input
-                        type="number"
-                        min={0}
-                        max={max}
-                        value={hslValue[key]}
-                        onChange={(event) => {
-                          const rawValue = Number.parseInt(event.target.value, 10);
-                          if (Number.isNaN(rawValue)) return;
-                          const nextHsl = {
-                            ...hslValue,
-                            [key]: clamp(rawValue, 0, max),
-                          };
-                          const nextRgb = hslToRgb(nextHsl);
-                          const nextHex = rgbToHex(nextRgb);
-                          setHslValue(nextHsl);
-                          setRgbValue(nextRgb);
-                          setHexValue(nextHex);
-                          setDraftColor(nextHex);
-                        }}
-                        className="input-field"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={hexValue}
+                onChange={(event) => {
+                  const nextValue = event.target.value.toUpperCase();
+                  setHexValue(nextValue);
+                  const normalized = normalizeHexColor(nextValue);
+                  if (normalized) syncDraftFromHex(normalized);
+                }}
+                onBlur={() => {
+                  const normalized = normalizeHexColor(hexValue);
+                  if (normalized) {
+                    syncDraftFromHex(normalized);
+                    return;
+                  }
+                  setHexValue(draftColor);
+                }}
+                placeholder={normalizedPlaceholder}
+                className="input-field font-mono uppercase"
+              />
+              <div
+                className="border-border bg-surface-elevated relative h-[101px] w-full rounded-xl border shadow-sm"
+                style={{ backgroundColor: draftColor }}
+              ></div>
             </div>
           </div>
 
@@ -478,7 +443,13 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
               label="Cancelar"
               onClick={() => setIsModalOpen(false)}
             />
-            <Button type="button" variant="solid" showIcon={false} label="Aplicar cor" onClick={handleApply} />
+            <Button
+              type="button"
+              variant="solid"
+              showIcon={false}
+              label="Aplicar cor"
+              onClick={handleApply}
+            />
           </ModalFooter>
         </Modal>
       </div>

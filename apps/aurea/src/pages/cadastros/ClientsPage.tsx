@@ -15,6 +15,7 @@ import {
   Modal,
   ModalFooter,
   Input,
+  ColorPicker,
   Select,
 } from '@/components/ui';
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients';
@@ -708,12 +709,10 @@ export default function ClientsPage() {
                       />
                       <Input label="Código TISS" placeholder="Ex: 12345678" {...register('tiss')} />
                       <div className="flex flex-col gap-2">
-                        <Input
+                        <ColorPicker
                           label="Cor da Operadora"
-                          type="color"
                           placeholder="#1aa2ff"
                           {...register('color')}
-                          className="h-12 cursor-pointer"
                           hint="Cor para identificar a operadora no sistema"
                         />
                       </div>
