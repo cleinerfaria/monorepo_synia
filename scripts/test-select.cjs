@@ -45,8 +45,12 @@ if (projectArg) {
     stderrAndExit(`Projeto invalido: ${projectArg}`);
   }
   runTest(selectedByArg, forwardedArgs);
-} else {
+} else if (process.stdin.isTTY) {
+  // Se houver terminal interativo, pergunta
   askProject(forwardedArgs);
+} else {
+  // Se não houver terminal (CI), roda ambos por padrão
+  runTest(PROJECTS[2], forwardedArgs); // Index 2 = Ambos
 }
 
 function askProject(forwardedArgs) {
