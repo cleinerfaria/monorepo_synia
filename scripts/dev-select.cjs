@@ -24,6 +24,8 @@ const PROJECTS = [
 const SCRIPT_FALLBACKS = {
   "test:e2e:ui": { aurea: "test:e2e:headed" },
 };
+const COMMANDS_WITH_ALL_PROJECTS = new Set(["precommit:check"]);
+const ALL_PROJECT_ALIASES = new Set(["3", "all", "todos"]);
 
 const rawArgs = argv.slice(2);
 const loweredArgs = rawArgs.map((arg) => arg.toLowerCase());
@@ -62,7 +64,13 @@ const projectArg = parsed.projectArg;
 const forwardedArgs = parsed.forwardedArgs;
 
 if (projectArg) {
-  const selectedByArg = PROJECTS.find((project) => project.aliases.includes(projectArg.toLowerCase()));
+  const normalizedProjectArg = projectArg.toLowerCase();
+  if (supportsAllProjects(command) && ALL_PROJECT_ALIASES.has(normalizedProjectArg)) {
+    runScriptForAllProjects(command, forwardedArgs);
+    return;
+  }
+
+  const selectedByArg = PROJECTS.find((project) => project.aliases.includes(normalizedProjectArg));
   if (!selectedByArg) {
     stderrAndExit(`Projeto invalido: ${projectArg}`);
   }
@@ -73,18 +81,30 @@ if (projectArg) {
 }
 
 function askProject(command, forwardedArgs) {
+  const allowAllProjects = supportsAllProjects(command);
   stdout.write(`Selecione o projeto para rodar ${command}:\n`);
   PROJECTS.forEach((project, index) => {
     stdout.write(`${index + 1}) ${project.label}\n`);
   });
+  if (allowAllProjects) {
+    stdout.write(`${PROJECTS.length + 1}) Todos os projetos\n`);
+  }
 
   const rl = createInterface({ input: stdin, output: stdout });
-  rl.question(`Digite o numero (1-${PROJECTS.length}): `, (answer) => {
+  rl.question(`Digite o numero (1-${PROJECTS.length + (allowAllProjects ? 1 : 0)}): `, (answer) => {
     const normalized = answer.trim().toLowerCase();
-    const selected = PROJECTS.find((project) => project.aliases.includes(normalized));
     rl.close();
 
+    if (allowAllProjects && ALL_PROJECT_ALIASES.has(normalized)) {
+      runScriptForAllProjects(command, forwardedArgs);
+      return;
+    }
+
+    const selected = PROJECTS.find((project) => project.aliases.includes(normalized));
     if (!selected) {
+      if (allowAllProjects) {
+        stderrAndExit("Opcao invalida. Use 1 para Aurea, 2 para White Label ou 3 para todos.");
+      }
       stderrAndExit("Opcao invalida. Use 1 para Aurea ou 2 para White Label.");
     }
     const workspaceScript = resolveWorkspaceScript(command, selected);
@@ -92,7 +112,7 @@ function askProject(command, forwardedArgs) {
   });
 }
 
-function runScript(script, workspace, forwardedArgs) {
+function runScript(script, workspace, forwardedArgs, onExit) {
   const npmExecPath = env.npm_execpath;
   if (!npmExecPath) {
     stderrAndExit("Nao foi possivel localizar o executavel do npm. Execute via 'npm run ...'.");
@@ -106,12 +126,49 @@ function runScript(script, workspace, forwardedArgs) {
   const child = spawn(execPath, [npmExecPath, ...spawnArgs], { stdio: "inherit" });
 
   child.on("exit", (code, signal) => {
+    if (onExit) {
+      onExit(code, signal);
+      return;
+    }
     if (signal) {
       process.kill(process.pid, signal);
       return;
     }
     process.exit(code ?? 1);
   });
+}
+
+function runScriptForAllProjects(command, forwardedArgs) {
+  const queue = PROJECTS.map((project) => ({
+    project,
+    script: resolveWorkspaceScript(command, project),
+  }));
+
+  runQueueIndex(0);
+
+  function runQueueIndex(index) {
+    if (index >= queue.length) {
+      stdout.write("Todos os projetos finalizaram com sucesso.\n");
+      process.exit(0);
+      return;
+    }
+
+    const current = queue[index];
+    stdout.write(`[${index + 1}/${queue.length}] Rodando ${command} em ${current.project.label}...\n`);
+    runScript(current.script, current.project.workspace, forwardedArgs, (code, signal) => {
+      if (signal) {
+        process.kill(process.pid, signal);
+        return;
+      }
+
+      if ((code ?? 1) !== 0) {
+        process.exit(code ?? 1);
+        return;
+      }
+
+      runQueueIndex(index + 1);
+    });
+  }
 }
 
 function stderrAndExit(message) {
@@ -152,6 +209,10 @@ function resolveWorkspaceScript(command, project) {
   return selectedScript;
 }
 
+function supportsAllProjects(command) {
+  return COMMANDS_WITH_ALL_PROJECTS.has(command.toLowerCase());
+}
+
 function getPackageJson(packageJsonPath) {
   try {
     return JSON.parse(readFileSync(packageJsonPath, "utf8"));
@@ -163,8 +224,8 @@ function getPackageJson(packageJsonPath) {
 function showHelp() {
   stdout.write("Uso:\n");
   stdout.write("- npm run dev [-- <projeto>]\n");
-  stdout.write("- npm run precommit:check [-- <projeto>]\n");
+  stdout.write("- npm run precommit:check [-- <projeto|all>]\n");
   stdout.write("- npm run test:e2e [-- <projeto>] [-- <args-do-script>]\n");
   stdout.write("- npm run run:project -- <script> [<projeto>] [-- <args-do-script>]\n");
-  stdout.write("Projetos: aurea | white-label\n");
+  stdout.write("Projetos: aurea | white-label | all (somente precommit:check)\n");
 }
