@@ -2,25 +2,25 @@ import { expect, test } from '@playwright/test';
 
 const credentials = {
   system_admin: {
-    email: process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@aurea.com',
+    email: process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@vidasystem.com',
     password: process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Aurea123',
     roleLabel: 'admin', // Superadmin often sees 'admin' or specific label
     modules: ['/', '/admin'],
   },
   admin: {
-    email: process.env.E2E_ADMIN_EMAIL || 'admin@aurea.com',
+    email: process.env.E2E_ADMIN_EMAIL || 'admin@vidasystem.com',
     password: process.env.E2E_ADMIN_PASSWORD || 'Aurea123',
     roleLabel: 'admin',
     modules: ['/', '/clientes', '/prontuario/censo', '/estoque', '/configuracoes'],
   },
   manager: {
-    email: process.env.E2E_MANAGER_EMAIL || 'manager@aurea.com',
+    email: process.env.E2E_MANAGER_EMAIL || 'manager@vidasystem.com',
     password: process.env.E2E_MANAGER_PASSWORD || 'Aurea123',
     roleLabel: 'manager',
     modules: ['/', '/clientes', '/prontuario/censo', '/estoque', '/configuracoes'],
   },
   user: {
-    email: process.env.E2E_USER_EMAIL || 'user@aurea.com',
+    email: process.env.E2E_USER_EMAIL || 'user@vidasystem.com',
     password: process.env.E2E_USER_PASSWORD || 'Aurea123',
     roleLabel: 'viewer',
     modules: ['/', '/clientes'],

@@ -41,20 +41,20 @@ supabase link --project-ref SEU_PROJECT_ID
 npm install
 
 # 2. Resetar banco de dados remoto para estado inicial
-npm run db:reset:aurea
+npm run db:reset:vidasystem
 
 # 3. Copiar config
-cp apps/aurea/.env.example apps/aurea/.env.local
+cp apps/vidasystem/.env.example apps/vidasystem/.env.local
 
 # 4. Pronto! Desenvolver
-npm run dev:aurea
+npm run dev:vidasystem
 ```
 
 **URLs:**
 
 - App: `http://localhost:5173`
 - Banco Web: Apontado em `.env.local`
-- Login: `e2e.admin@aurea.local` / `AureaE2E!123`
+- Login: `e2e.admin@vidasystem.local` / `AureaE2E!123`
 
 ---
 
@@ -62,29 +62,29 @@ npm run dev:aurea
 
 ```bash
 # Apenas isso
-npm run dev:aurea
+npm run dev:vidasystem
 ```
 
 Banco continua remoto. Se você ou seu colega precisar resetar:
 
 ```bash
 # ⚠️ Avise seus colegas primeiro!
-npm run db:reset:aurea
-npm run dev:aurea
+npm run db:reset:vidasystem
+npm run dev:vidasystem
 ```
 
 ---
 
 ## 🔧 Comandos Úteis
 
-### Aurea
+### VidaSystem
 
-| Comando                     | O que faz                                             |
-| --------------------------- | ----------------------------------------------------- |
-| `npm run dev:aurea`         | Inicia desenvolvimento                                |
-| `npm run db:migrate:aurea`  | Aplica migrations no banco remoto (safe)              |
-| `npm run db:reset:aurea`    | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
-| `npm run db:seed:dev:aurea` | Popula dados de teste                                 |
+| Comando                          | O que faz                                             |
+| -------------------------------- | ----------------------------------------------------- |
+| `npm run dev:vidasystem`         | Inicia desenvolvimento                                |
+| `npm run db:migrate:vidasystem`  | Aplica migrations no banco remoto (safe)              |
+| `npm run db:reset:vidasystem`    | Apaga tudo, recria ⚠️ destrutivo, avise seus colegas! |
+| `npm run db:seed:dev:vidasystem` | Popula dados de teste                                 |
 
 ### White Label
 
@@ -104,7 +104,7 @@ npm run dev:aurea
 
 > ⚠️ **Nunca rode comandos `supabase db` diretamente da raiz do projeto.**
 > Use sempre os scripts npm acima — eles garantem que cada migration
-> vai para o banco correto (Aurea ou White Label).
+> vai para o banco correto (VidaSystem ou White Label).
 
 ---
 
@@ -132,7 +132,7 @@ supabase link --project-ref SEU_PROJECT_ID
 ```bash
 # Isso é esperado com banco compartilhado
 # Ressincronize:
-npm run db:reset:aurea
+npm run db:reset:vidasystem
 
 # Combine com seu colega antes de fazer reset!
 ```
@@ -141,7 +141,7 @@ npm run db:reset:aurea
 
 ```bash
 # Verificar se migrations estão válidas
-npm run db:migrate:aurea
+npm run db:migrate:vidasystem
 
 # Se falhar, checar logs:
 supabase status
@@ -159,7 +159,7 @@ supabase status
 ## 🚀 Pronto?
 
 ```bash
-npm run setup:dev:aurea && npm run dev:aurea
+npm run setup:dev:vidasystem && npm run dev:vidasystem
 ```
 
 ---

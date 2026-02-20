@@ -86,7 +86,7 @@ jobs:
           fi
           echo "✅ All staging secrets validated"
 
-      - name: Deploy Aurea to Staging
+      - name: Deploy VidaSystem to Staging
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           AUREA_SUPABASE_PROJECT_REF: ${{ secrets.AUREA_SUPABASE_PROJECT_REF }}
@@ -94,13 +94,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "🚀 Deploying Aurea to Staging..."
+          echo "🚀 Deploying VidaSystem to Staging..."
           echo "Project: ${AUREA_SUPABASE_PROJECT_REF}"
 
-          supabase link --project-ref "${AUREA_SUPABASE_PROJECT_REF}" --password "${AUREA_SUPABASE_DB_PASSWORD}" --workdir packages/db-aurea --debug
-          supabase db push --workdir packages/db-aurea --include-all --debug
+          supabase link --project-ref "${AUREA_SUPABASE_PROJECT_REF}" --password "${AUREA_SUPABASE_DB_PASSWORD}" --workdir packages/db-vidasystem --debug
+          supabase db push --workdir packages/db-vidasystem --include-all --debug
 
-          echo "✅ Aurea staging deployment completed"
+          echo "✅ VidaSystem staging deployment completed"
 
       - name: Deploy White Label to Staging
         env:
@@ -128,8 +128,8 @@ jobs:
           set -euo pipefail
           echo "🔍 Verifying staging deployment..."
 
-          echo "Aurea migrations status:"
-          supabase migration list --workdir packages/db-aurea
+          echo "VidaSystem migrations status:"
+          supabase migration list --workdir packages/db-vidasystem
 
           echo "White Label migrations status:"
           supabase migration list --workdir packages/db-white-label

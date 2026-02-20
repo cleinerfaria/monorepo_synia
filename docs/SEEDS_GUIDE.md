@@ -1,4 +1,4 @@
-# Seeds - Aurea Dev Data
+# Seeds - VidaSystem Dev Data
 
 ## 📋 Resumo
 
@@ -16,49 +16,50 @@ Este projeto inclui três formas equivalentes de popular dados de desenvolviment
 
 1. Abra [Supabase Dashboard](https://supabase.com/dashboard)
 2. Vá para **SQL Editor**
-3. Copie o conteúdo de `packages/db-aurea/seeds/dev-seed-data.sql`
+3. Copie o conteúdo de `packages/db-vidasystem/seeds/dev-seed-data.sql`
 4. Cole e clique em **Run**
 
 ### Via Supabase CLI
 
 ```bash
 # Executar seed SQL diretamente
-supabase db execute -f packages/db-aurea/seeds/dev-seed-data.sql --db-url $DB_URL
+supabase db execute -f packages/db-vidasystem/seeds/dev-seed-data.sql --db-url $DB_URL
 ```
 
 ### Via psql (Acesso direto)
 
 ```bash
-psql -h <host> -U postgres -d postgres -f packages/db-aurea/seeds/dev-seed-data.sql
+psql -h <host> -U postgres -d postgres -f packages/db-vidasystem/seeds/dev-seed-data.sql
 ```
 
 ---
 
 ## ⚙️ Opção 2: Usar Migrations (Automático)
 
-O arquivo `packages/db-aurea/supabase/seed.sql` é executado automaticamente durante:
+O arquivo `packages/db-vidasystem/supabase/seed.sql` é executado automaticamente durante:
 
 ```bash
 # Reset completo + seed
 supabase db push --include-all
 
 # Ou fácil com npm
-npm run db:migrate:aurea
+npm run db:migrate:vidasystem
 ```
 
 ---
 
 ## 🔧 Opção 3: Script Node.js (CI/CD)
 
-O script `packages/db-aurea/scripts/lib.cjs` faz seed via API Supabase:
+O script `packages/db-vidasystem/scripts/lib.cjs` faz seed via API Supabase:
 
 ```bash
 # Chama o seed via script Node.js
-npm run db:seed:dev:aurea
+npm run db:seed:dev:vidasystem
 ```
 
 **Vantagens**:
-- Função em `seedAureaDev()` 
+
+- Função em `seedAureaDev()`
 - Usa API REST (funciona até remotamente)
 - Perfeito para CI/CD e ambiente de produção
 - Validación de ambiente (APP_ENV=dev)
@@ -68,20 +69,23 @@ npm run db:seed:dev:aurea
 ## 📊 Dados Inseridos
 
 ### ✅ Profissionais (3)
-| Código | Nome | Role | Conselho |
-|--------|------|------|----------|
-| E2E-PRO-001 | Dra. Ana Silva | Médico | CRM 123456 |
-| E2E-PRO-002 | Enf. Carlos Santos | Enfermeiro | COREN 654321 |
+
+| Código      | Nome                  | Role           | Conselho       |
+| ----------- | --------------------- | -------------- | -------------- |
+| E2E-PRO-001 | Dra. Ana Silva        | Médico         | CRM 123456     |
+| E2E-PRO-002 | Enf. Carlos Santos    | Enfermeiro     | COREN 654321   |
 | E2E-PRO-003 | Fisio. Maria Oliveira | Fisioterapeuta | CREFITO 987654 |
 
 ### ✅ Pacientes (3)
-| Código | Nome | Gênero | Nascimento | CPF |
-|--------|------|--------|------------|-----|
-| E2E-PAT-001 | João da Silva | M | 1960-05-15 | 123.456.789-00 |
-| E2E-PAT-002 | Maria dos Santos | F | 1965-08-22 | 234.567.890-11 |
-| E2E-PAT-003 | Pedro Costa | M | 1955-12-10 | 345.678.901-22 |
+
+| Código      | Nome             | Gênero | Nascimento | CPF            |
+| ----------- | ---------------- | ------ | ---------- | -------------- |
+| E2E-PAT-001 | João da Silva    | M      | 1960-05-15 | 123.456.789-00 |
+| E2E-PAT-002 | Maria dos Santos | F      | 1965-08-22 | 234.567.890-11 |
+| E2E-PAT-003 | Pedro Costa      | M      | 1955-12-10 | 345.678.901-22 |
 
 ### ✅ Medicações (10)
+
 1. Dipirona 500mg - Analgésico e antitérmico
 2. Amoxicilina 500mg - Antibiótico betalactâmico ⚠️
 3. Omeprazol 20mg - Inibidor de bomba de prótons
@@ -96,6 +100,7 @@ npm run db:seed:dev:aurea
 > ⚠️ = Antibiótico | 🔒 = Psicotrópico
 
 ### 📝 Gerenciados por Migrations (NÃO inclusos em seeds para evitar redundância)
+
 - **Unit of Measure** (8) - Gerenciado por `unit_of_measure.sql`
 - **Administration Routes** (20) - Gerenciado por `seed_administration_routes.sql`
 
@@ -107,16 +112,16 @@ Após inserir os dados, verifique:
 
 ```sql
 -- Verificar profissionais
-SELECT COUNT(*) FROM professional 
+SELECT COUNT(*) FROM professional
 WHERE company_id = (SELECT id FROM company WHERE document = '11.111.111/0001-11');
 
 -- Verificar pacientes
-SELECT COUNT(*) FROM patient 
+SELECT COUNT(*) FROM patient
 WHERE company_id = (SELECT id FROM company WHERE document = '11.111.111/0001-11');
 
 -- Verificar medicações
-SELECT COUNT(*) FROM product 
-WHERE company_id = (SELECT id FROM company WHERE document = '11.111.111/0001-11') 
+SELECT COUNT(*) FROM product
+WHERE company_id = (SELECT id FROM company WHERE document = '11.111.111/0001-11')
 AND item_type = 'medication';
 ```
 
@@ -128,16 +133,16 @@ AND item_type = 'medication';
 
 ```bash
 # 1. Reset + Migrate + Seed (automático)
-npm run db:reset:aurea
+npm run db:reset:vidasystem
 
 # 2. (Já executa o seed da migration automaticamente)
-npm run db:migrate:aurea
+npm run db:migrate:vidasystem
 
 # 3. Se precisar fazer seed novamente sem reset
-npm run db:seed:dev:aurea
+npm run db:seed:dev:vidasystem
 
 # 4. Iniciar dev
-npm run dev:aurea
+npm run dev:vidasystem
 ```
 
 ---
@@ -149,7 +154,7 @@ npm run dev:aurea
 A empresa precisa ser criada primeiro. Execute:
 
 ```bash
-npm run db:reset:aurea  # Cria automaticamente via script Node.js
+npm run db:reset:vidasystem  # Cria automaticamente via script Node.js
 ```
 
 ### Erro: "Conflito de dados"
@@ -176,4 +181,3 @@ ON CONFLICT (company_id, code) DO NOTHING;
 - Código é único por empresa (`UNIQUE(company_id, code)`)
 - SEEDs são idempotentes (rodo quantas vezes quiser)
 - **Sem redundância**: Unit of Measure e Administration Routes não são duplicados em seeds
-

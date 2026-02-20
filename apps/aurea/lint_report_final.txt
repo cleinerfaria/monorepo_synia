@@ -1,4 +1,4 @@
 
-> aurea@1.0.1 lint
+> vidasystem@1.0.1 lint
 > eslint .
 

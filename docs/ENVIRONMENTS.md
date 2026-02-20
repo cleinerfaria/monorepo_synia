@@ -11,7 +11,7 @@
 │ • Dados de Teste (compartilhados com colega)                 │
 │ • Sem restrições de RLS (fácil debug)                        │
 │ • 2 Devs: coordenação para resets                            │
-│ Você: $ supabase link && npm run dev:aurea                   │
+│ Você: $ supabase link && npm run dev:vidasystem                   │
 └──────────────────────────────────────────────────────────────┘
                            ⬇️
         (Commit → Push → Pull Request → Merge)
@@ -51,6 +51,7 @@
 Cada ambiente usa um `.env` diferente:
 
 #### Development (Remoto Compartilhado)
+
 ```bash
 # .env.local (não commita no git)
 APP_ENV=dev
@@ -64,21 +65,23 @@ SUPABASE_SERVICE_ROLE_KEY=<remote-service-key>
 DB_URL=postgresql://postgres:<pwd>@db.seu-projeto.supabase.co:5432/postgres
 
 # E2E Tests
-E2E_ADMIN_EMAIL=e2e.admin@aurea.local
+E2E_ADMIN_EMAIL=e2e.admin@vidasystem.local
 E2E_ADMIN_PASSWORD=AureaE2E!123
-E2E_MANAGER_EMAIL=e2e.manager@aurea.local
+E2E_MANAGER_EMAIL=e2e.manager@vidasystem.local
 E2E_MANAGER_PASSWORD=AureaE2E!123
-E2E_USER_EMAIL=e2e.user@aurea.local
+E2E_USER_EMAIL=e2e.user@vidasystem.local
 E2E_USER_PASSWORD=AureaE2E!123
 ```
 
 **Características:**
+
 - Banco compartilhado entre 2 devs (coordenação necessária)
 - Variáveis genéricas, sem duplicação
 - Reset via: `supabase db reset --linked`
 - RLS desativado (desenvolvimento rápido)
 
 #### Staging
+
 ```bash
 # .env.staging (ou variáveis do GitHub Actions)
 APP_ENV=staging
@@ -89,6 +92,7 @@ AUREA_DB_URL=postgresql://postgres:<pwd>@db.staging-proj.supabase.co:5432/postgr
 ```
 
 #### Production
+
 ```bash
 # .env.production (ou variáveis do GitHub Actions)
 APP_ENV=production
@@ -125,28 +129,30 @@ INSERT INTO app_user VALUES (...);
 ```
 
 **Fluxo Típico:**
+
 ```bash
 # Dia 1: Setup (primeira vez)
 npx supabase link --project-ref SEU_PROJECT_ID
 supabase db reset --linked
-npm run dev:aurea
+npm run dev:vidasystem
 
 # Dias 2-5: Desenvolvimento
-npm run dev:aurea              # Muda arquivos
+npm run dev:vidasystem              # Muda arquivos
 # (Banco continua remoto, compartilhado)
 
 # Dia 5: Precisa resetar
 # ⚠️ AVISE SEU COLEGA PRIMEIRO!
 supabase db reset --linked     # Apaga tudo (remoto)
-npm run db:seed:dev:aurea      # Repovoaa
-npm run dev:aurea              # Continua
+npm run db:seed:dev:vidasystem      # Repovoaa
+npm run dev:vidasystem              # Continua
 
 # Dia 6: Faz commit
-git add apps/aurea/src/
+git add apps/vidasystem/src/
 git commit -m "feat: add xyz"
 ```
 
 **⚠️ Regras Importantes:**
+
 - Banco é **compartilhado** — sempre avise antes de resetar
 - Mudanças afetam seu colega **imediatamente**
 - Coordene para evitar conflitos de dados
@@ -218,21 +224,21 @@ git branch --set-upstream-to=origin/feat/new-dashboard
 
 # 2. Setup local (primeira vez)
 npx supabase link --project-ref SEU_PROJECT_ID
-npm run dev:aurea
+npm run dev:vidasystem
 
 # 3. Desenvolver durante dias
-npm run dev:aurea
+npm run dev:vidasystem
 # ... edita código, testa localmente
 # (Banco continua remoto, pode usar dados existentes)
 
 # 4. Antes de fazer commit: resetar DB ao estado limpo
 # ⚠️ COORDENE COM SEU COLEGA PRIMEIRO!
 supabase db reset --linked
-npm run db:seed:dev:aurea
+npm run db:seed:dev:vidasystem
 npm run precommit:check
 
 # 5. Fazer commit
-git add apps/aurea/
+git add apps/vidasystem/
 git commit -m "feat(dashboard): add xyz component"
 
 # 6. Push
@@ -244,6 +250,7 @@ gh pr create --title "Add new dashboard" --body "Descrição..."
 ```
 
 **✅ Checklist:**
+
 - Avisei meu colega antes de resetar? ✓
 - Precommit check passou? ✓
 - Banco está em estado inicial? ✓
@@ -293,17 +300,17 @@ Se problema:
 
 ```bash
 # 1. Local
-# Cria arquivo em packages/db-aurea/migrations/
-mkdir -p packages/db-aurea/migrations
-cat > packages/db-aurea/migrations/20260215_add_email_to_users.sql << EOF
+# Cria arquivo em packages/db-vidasystem/migrations/
+mkdir -p packages/db-vidasystem/migrations
+cat > packages/db-vidasystem/migrations/20260215_add_email_to_users.sql << EOF
 ALTER TABLE app_user ADD COLUMN secondary_email VARCHAR(255);
 EOF
 
 # 2. Test locally
-npm run db:migrate:aurea
+npm run db:migrate:vidasystem
 
 # 3. Commit
-git add packages/db-aurea/migrations/
+git add packages/db-vidasystem/migrations/
 git commit -m "chore(db): add secondary_email to app_user"
 
 # 4. PR + Deploy automático em staging
@@ -322,8 +329,8 @@ git commit -m "chore(db): add secondary_email to app_user"
 # migration_3: Cleanup
 
 # 2. Test locally
-npm run db:migrate:aurea
-npm run db:seed:dev:aurea
+npm run db:migrate:vidasystem
+npm run db:seed:dev:vidasystem
 npm run test:e2e
 
 # 3. Staging
@@ -368,12 +375,12 @@ npm run test:e2e
 
 ```bash
 # Resetar tudo
-npm run db:reset:aurea
-npm run db:seed:dev:aurea
+npm run db:reset:vidasystem
+npm run db:seed:dev:vidasystem
 
 # Se Docker está com problema
 docker compose -f ~/.local/share/supabase/docker-compose.yml down -v
-npm run setup:dev:aurea
+npm run setup:dev:vidasystem
 ```
 
 ### Staging Quebrado (Após Deploy)

@@ -4,12 +4,12 @@
  * Setup Project Selection Script
  *
  * Permite selecionar qual projeto fazer setup:
- * 1. Pergunta qual projeto (Aurea ou White Label)
+ * 1. Pergunta qual projeto (VidaSystem ou White Label)
  * 2. Executa npm run db:reset:<project>
  * 3. Executa npm run db:seed:dev:<project>
  *
  * Uso:
- *   npm run setup [-- aurea|white-label]
+ *   npm run setup [-- vidasystem|white-label]
  *   npm run setup (abre menu interativo)
  */
 
@@ -20,9 +20,9 @@ const path = require('node:path');
 
 const PROJECTS = [
   {
-    aliases: ['1', 'aurea'],
-    label: 'Aurea',
-    key: 'aurea',
+    aliases: ['1', 'vidasystem'],
+    label: 'VidaSystem',
+    key: 'vidasystem',
   },
   {
     aliases: ['2', 'white-label', 'white_label', 'wl'],
@@ -38,7 +38,7 @@ const projectArg = loweredArgs[0]?.replace(/^--/, '');
 if (projectArg) {
   const selected = PROJECTS.find((project) => project.aliases.includes(projectArg));
   if (!selected) {
-    console.error(`❌ Projeto inválido: ${projectArg}\nUse: aurea ou white-label`);
+    console.error(`❌ Projeto inválido: ${projectArg}\nUse: vidasystem ou white-label`);
     process.exit(1);
   }
   runSetup(selected);
@@ -64,7 +64,7 @@ function askProject() {
     rl.close();
 
     if (!selected) {
-      console.error('❌ Opção inválida. Use 1 para Aurea ou 2 para White Label.');
+      console.error('❌ Opção inválida. Use 1 para VidaSystem ou 2 para White Label.');
       process.exit(1);
     }
     stdout.write('\n');

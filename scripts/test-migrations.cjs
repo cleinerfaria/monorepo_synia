@@ -41,7 +41,7 @@ function testMigrations() {
   log('cyan', '🧪 Testando migrations localmente...\n');
 
   const projects = [
-    { name: 'Aurea', workdir: 'packages/db-aurea' },
+    { name: 'VidaSystem', workdir: 'packages/db-vidasystem' },
     { name: 'White Label', workdir: 'packages/db-white-label' },
   ];
 
@@ -128,7 +128,7 @@ function checkEnvironment() {
 
   if (!envOk) {
     log('red', '\n❌ Variáveis de ambiente obrigatórias não definidas');
-    log('yellow', '💡 Execute: npm run setup:dev:aurea');
+    log('yellow', '💡 Execute: npm run setup:dev:vidasystem');
     return 1;
   }
 

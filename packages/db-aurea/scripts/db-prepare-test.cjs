@@ -1,13 +1,13 @@
-const { dbReset, dbMigrate, ensureDevEnv } = require('./lib.cjs')
+const { dbReset, dbMigrate, ensureDevEnv } = require('./lib.cjs');
 
 async function run() {
-  ensureDevEnv()
-  await dbReset()
-  await dbMigrate()
-  process.stdout.write('Aurea db:prepare:test complete.\n')
+  ensureDevEnv();
+  await dbReset();
+  await dbMigrate();
+  process.stdout.write('VidaSystem db:prepare:test complete.\n');
 }
 
 run().catch((error) => {
-  process.stderr.write(`Aurea db:prepare:test failed: ${error.message}\n`)
-  process.exit(1)
-})
+  process.stderr.write(`VidaSystem db:prepare:test failed: ${error.message}\n`);
+  process.exit(1);
+});

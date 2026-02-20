@@ -1,7 +1,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "../../Dockerfile"
-buildArgs = {APP_NAME = "aurea"}
+buildArgs = {APP_NAME = "vidasystem"}
 
 [deploy]
 healthcheckPath = "/"

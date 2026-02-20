@@ -1,11 +1,11 @@
 ﻿{
-  "name": "@synia/db-aurea",
+  "name": "@synia/db-vidasystem",
   "private": true,
   "version": "0.1.0",
   "type": "commonjs",
   "scripts": {
-    "lint": "echo \"@synia/db-aurea: no lint step configured\"",
-    "build": "echo \"@synia/db-aurea: no build step configured\"",
+    "lint": "echo \"@synia/db-vidasystem: no lint step configured\"",
+    "build": "echo \"@synia/db-vidasystem: no build step configured\"",
     "test:run": "true",
     "db:reset": "node scripts/db-reset.cjs",
     "db:migrate": "node scripts/db-migrate.cjs",

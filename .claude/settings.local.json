@@ -21,7 +21,7 @@
       "Bash(npm ci:*)",
       "Bash(npm --version:*)",
       "Bash(npm run lint:*)",
-      "Bash(npm run precommit:check:aurea:*)",
+      "Bash(npm run precommit:check:vidasystem:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm run test)",

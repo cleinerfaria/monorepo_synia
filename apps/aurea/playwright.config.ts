@@ -12,9 +12,9 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') });
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173';
 
 export default defineConfig({
-  testDir: '../../e2e/aurea',
-  globalSetup: '../../e2e/aurea/global.setup.ts',
-  globalTeardown: '../../e2e/aurea/global.teardown.ts',
+  testDir: '../../e2e/vidasystem',
+  globalSetup: '../../e2e/vidasystem/global.setup.ts',
+  globalTeardown: '../../e2e/vidasystem/global.teardown.ts',
   timeout: 60_000,
   expect: {
     timeout: 10_000,

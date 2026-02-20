@@ -33,6 +33,7 @@ npx supabase link --project-ref SEU_PROJECT_ID
 ```
 
 **O que isto faz:**
+
 1. ✅ Conecta seu CLI ao banco web remoto
 2. ✅ Permite aplicar migrations
 3. ✅ Habilita reset e seed via CLI
@@ -44,7 +45,7 @@ npx supabase link --project-ref SEU_PROJECT_ID
 supabase db reset --linked
 
 # Ou, se preferir apenas aplicar migrations sem reset:
-npm run db:migrate:aurea
+npm run db:migrate:vidasystem
 ```
 
 ### 4️⃣ Configure o `.env.local`
@@ -52,8 +53,8 @@ npm run db:migrate:aurea
 Copie o arquivo de exemplo para cada app:
 
 ```bash
-# Aurea
-cp apps/aurea/.env.local.example apps/aurea/.env.local
+# VidaSystem
+cp apps/vidasystem/.env.local.example apps/vidasystem/.env.local
 
 # White Label
 cp apps/white-label/.env.local.example apps/white-label/.env.local
@@ -66,8 +67,8 @@ O arquivo `.env.local.example` já contém as URLs/chaves do banco remoto.
 ### 5️⃣ Inicie o Desenvolvimento
 
 ```bash
-# Para Aurea
-npm run dev:aurea
+# Para VidaSystem
+npm run dev:vidasystem
 
 # Ou para White Label
 npm run dev:wl
@@ -86,29 +87,30 @@ npm run dev:wl
 git pull origin main
 
 # 2. Desenvolver normalmente
-npm run dev:aurea
+npm run dev:vidasystem
 ```
 
 **⚠️ Importante:**
+
 - O banco está **remoto e compartilhado** com seu colega
 - **Não execute `db:reset`** sem avisar primeiro! Isso apaga dados de ambos
 - **Evite seed manual** durante desenvolvimento — use dados existentes ou coordene com seu colega
 
 ### Quando Fez Mudanças no Schema do Banco
 
-Se você modificou arquivos SQL em `packages/db-aurea/migrations`:
+Se você modificou arquivos SQL em `packages/db-vidasystem/migrations`:
 
 ```bash
 # 1. Aplica novas migrations (não reseta)
-npm run db:migrate:aurea
+npm run db:migrate:vidasystem
 
 # 2. Teste localmente
-npm run dev:aurea
+npm run dev:vidasystem
 
 # 3. Antes de fazer commit, volte ao estado inicial
 # ⚠️ Coordene com seu colega!
 supabase db reset --linked
-npm run db:seed:dev:aurea
+npm run db:seed:dev:vidasystem
 ```
 
 **Nota:** `supabase db reset --linked` **afeta o banco remoto compartilhado**.
@@ -121,7 +123,7 @@ Avise seu colega antes!
 
 # Volta ao estado inicial
 supabase db reset --linked
-npm run db:seed:dev:aurea
+npm run db:seed:dev:vidasystem
 ```
 
 ### Para Parar o Desenvolvimento
@@ -141,17 +143,20 @@ npx supabase stop
 Durante o setup, essas credenciais são criadas automaticamente no banco:
 
 ### Admin
-- Email: `e2e.admin@aurea.local` (customizável via `E2E_ADMIN_EMAIL`)
+
+- Email: `e2e.admin@vidasystem.local` (customizável via `E2E_ADMIN_EMAIL`)
 - Senha: `AureaE2E!123` (customizável via `E2E_ADMIN_PASSWORD`)
 - Função: Admin (acesso total)
 
 ### Manager
-- Email: `e2e.manager@aurea.local` (customizável via `E2E_MANAGER_EMAIL`)
+
+- Email: `e2e.manager@vidasystem.local` (customizável via `E2E_MANAGER_EMAIL`)
 - Senha: `AureaE2E!123` (customizável via `E2E_MANAGER_PASSWORD`)
 - Função: Manager (acesso parcial)
 
 ### Viewer/User
-- Email: `e2e.user@aurea.local` (customizável via `E2E_USER_EMAIL`)
+
+- Email: `e2e.user@vidasystem.local` (customizável via `E2E_USER_EMAIL`)
 - Senha: `AureaE2E!123` (customizável via `E2E_USER_PASSWORD`)
 - Função: Viewer (acesso somente leitura)
 
@@ -161,11 +166,11 @@ Durante o setup, essas credenciais são criadas automaticamente no banco:
 
 ## 🌐 URLs e Serviços
 
-| Serviço | URL |
-|---------|-----|
-| App Aurea | `http://localhost:5173` |
+| Serviço            | URL                                 |
+| ------------------ | ----------------------------------- |
+| App VidaSystem     | `http://localhost:5173`             |
 | Supabase Dashboard | `https://app.supabase.com/projects` |
-| Banco (Remoto) | Definido em `.env.local` |
+| Banco (Remoto)     | Definido em `.env.local`            |
 
 **Acesso ao Dashboard:**
 Abra [https://app.supabase.com/projects](https://app.supabase.com/projects) para visualizar/editar dados do banco remoto, rodar queries, etc.
@@ -202,7 +207,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 DB_URL=postgresql://postgres:pwd@db.seu-projeto.supabase.co:5432/postgres
 
 # E2E Tests (opcionais — temos defaults)
-E2E_ADMIN_EMAIL=e2e.admin@aurea.local
+E2E_ADMIN_EMAIL=e2e.admin@vidasystem.local
 E2E_ADMIN_PASSWORD=AureaE2E!123
 ```
 
@@ -210,19 +215,19 @@ E2E_ADMIN_PASSWORD=AureaE2E!123
 
 ```bash
 # Migrations (aplica novas mudanças no schema)
-npm run db:migrate:aurea
+npm run db:migrate:vidasystem
 npm run db:migrate:white-label
 
 # Reset (apaga tudo e recria - ⚠️ DESTRUTIVO)
-npm run db:reset:aurea
+npm run db:reset:vidasystem
 npm run db:reset:white-label
 
 # Seed (popula com dados de exemplo)
-npm run db:seed:dev:aurea
+npm run db:seed:dev:vidasystem
 npm run db:seed:dev:white-label
 
 # Preparar banco para testes
-npm run db:prepare:test:aurea
+npm run db:prepare:test:vidasystem
 npm run db:prepare:test:white-label
 ```
 
@@ -230,7 +235,7 @@ npm run db:prepare:test:white-label
 
 ```bash
 # Dev mode
-npm run dev:aurea           # Aurea
+npm run dev:vidasystem           # VidaSystem
 npm run dev:wl              # White Label
 npm run dev                 # Menu interativo
 
@@ -253,11 +258,13 @@ npm run precommit:check     # Menu interativo
 ### ❌ "Database link not found"
 
 **Problema**:
+
 ```
 Error: Database link not found for project
 ```
 
 **Solução**:
+
 ```bash
 # Fazer o link com seu projeto Supabase
 npx supabase link --project-ref SEU_PROJECT_ID
@@ -272,6 +279,7 @@ npx supabase link --project-ref SEU_PROJECT_ID
 ### ❌ "Não consigo conectar ao banco remoto"
 
 **Problema**:
+
 ```
 Error: Failed to connect to database
 ```
@@ -279,6 +287,7 @@ Error: Failed to connect to database
 **Possíveis Soluções**:
 
 1. **Verificar Internet:**
+
    ```bash
    # Você precisa de conexão com internet
    # O banco está remoto!
@@ -286,11 +295,12 @@ Error: Failed to connect to database
    ```
 
 2. **Verificar Credenciais:**
+
    ```bash
    npx supabase status
 
    # Verifique se .env.local tem VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
-   cat apps/aurea/.env.local
+   cat apps/vidasystem/.env.local
    ```
 
 3. **Re-fazer o Link:**
@@ -306,6 +316,7 @@ Error: Failed to connect to database
 **Esperado?** Sim! Como o banco é compartilhado:
 
 **Solução**:
+
 ```bash
 # Ressincronize com o banco remoto
 supabase db reset --linked
@@ -320,18 +331,20 @@ supabase db reset --linked
 ### ❌ "Erro ao fazer migrations"
 
 **Problema**:
+
 ```
 Error: Migration failed
 ```
 
 **Solução**:
+
 ```bash
 # Verificar status da conexão
 npx supabase status
 
 # Se erro de SQL, revisar arquivo de migration
 # Depois tentar de novo
-npm run db:migrate:aurea
+npm run db:migrate:vidasystem
 ```
 
 ---
@@ -341,6 +354,7 @@ npm run db:migrate:aurea
 **Problema**: Banco é remoto, sem acesso offline
 
 **Alternativa (não recomendada)**:
+
 ```bash
 # Se realmente precisar trabalhar offline, considere:
 # 1. Setup Supabase local com Docker (veja DOCKER_SETUP.md)
@@ -357,22 +371,22 @@ Antes de fazer commit de mudanças no banco:
 
 ```bash
 # 1. Criar a migration
-# (Editar arquivos em packages/db-aurea/migrations)
+# (Editar arquivos em packages/db-vidasystem/migrations)
 
 # 2. Testar no banco remoto
-npm run db:migrate:aurea
-npm run dev:aurea
+npm run db:migrate:vidasystem
+npm run dev:vidasystem
 
 # 3. ⚠️ ANTES DE FAZER COMMIT:
 # Avise seu colega que vai resetar o banco!
 supabase db reset --linked
-npm run db:seed:dev:aurea
+npm run db:seed:dev:vidasystem
 
 # 4. Rodar testes
 npm run precommit:check
 
 # 5. Fazer commit
-git add packages/db-aurea/
+git add packages/db-vidasystem/
 git commit -m "chore(db): add new column to users table"
 
 # 6. Push e abrir PR
@@ -381,6 +395,7 @@ gh pr create --title "Descrição..."
 ```
 
 **Checklist:**
+
 - ✅ Avisei meu colega antes de resetar
 - ✅ Migration foi testada
 - ✅ `npm run precommit:check` passou
@@ -425,11 +440,11 @@ Usa variáveis de ambiente apontando para Supabase em produção:
 - [ ] Instalou dependências: `npm install`
 - [ ] Fez link com banco remoto: `npx supabase link --project-ref SEU_PROJECT_ID`
 - [ ] Sincronizou banco: `supabase db reset --linked`
-- [ ] Copiou `.env.local`: `cp apps/aurea/.env.local.example apps/aurea/.env.local`
+- [ ] Copiou `.env.local`: `cp apps/vidasystem/.env.local.example apps/vidasystem/.env.local`
 - [ ] Verificou credenciais: `npx supabase status`
-- [ ] Iniciou dev: `npm run dev:aurea`
+- [ ] Iniciou dev: `npm run dev:vidasystem`
 - [ ] Conseguiu acessar a app em `http://localhost:5173`
-- [ ] Conseguiu fazer login com `e2e.admin@aurea.local` / `AureaE2E!123`
+- [ ] Conseguiu fazer login com `e2e.admin@vidasystem.local` / `AureaE2E!123`
 - [ ] Verificou Dashboard Supabase: https://app.supabase.com/projects
 - [ ] Coordenou com colega sobre resets futuros
 

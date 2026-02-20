@@ -3,6 +3,7 @@
 ## Por que Docker?
 
 Supabase local precisa rodar em containers Docker:
+
 - PostgreSQL (banco de dados)
 - Redis (cache)
 - Supabase API
@@ -27,6 +28,7 @@ Sem Docker, não é possível rodar ambiente local.
 ### Passo 2: Configurar WSL2 (Recomendado)
 
 Durante a instalação, selecione:
+
 - ✅ "Install required Windows components for WSL 2"
 - ✅ "Use WSL 2 instead of Hyper-V"
 
@@ -73,7 +75,7 @@ Se ver a mensagem "Hello from Docker!", está instalado corretamente.
 Agora execute:
 
 ```bash
-npm run setup:dev:aurea
+npm run setup:dev:vidasystem
 ```
 
 ---
@@ -88,7 +90,7 @@ npm run setup:dev:aurea
 # Se não estiver lá: Menu Iniciar > Docker Desktop
 
 # Depois tente novamente
-npm run setup:dev:aurea
+npm run setup:dev:vidasystem
 ```
 
 ### Erro: "Docker socket not found"
@@ -120,7 +122,7 @@ docker system prune -a
 #    - Linux: sudo systemctl restart docker
 
 # 4. Tente novamente
-npm run setup:dev:aurea
+npm run setup:dev:vidasystem
 ```
 
 ---

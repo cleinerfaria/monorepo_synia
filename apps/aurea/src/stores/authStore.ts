@@ -261,7 +261,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'aurea-auth',
+      name: 'vidasystem-auth',
       partialize: (_state) => ({
         // Don't persist session, it's managed by Supabase
       }),

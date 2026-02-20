@@ -91,7 +91,7 @@ const navigation: NavItem[] = [
   { name: 'Administração', href: '/admin', icon: ShieldCheck },
 ];
 
-const SIDEBAR_STORAGE_KEY = 'aurea-sidebar-pinned';
+const SIDEBAR_STORAGE_KEY = 'vidasystem-sidebar-pinned';
 
 function normalizeLabel(value: string) {
   return value

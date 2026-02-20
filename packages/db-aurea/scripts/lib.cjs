@@ -3,9 +3,9 @@ const { spawn } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 
-require('dotenv').config({ path: path.resolve(__dirname, '../../../apps/aurea/.env.local') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../../apps/vidasystem/.env.local') });
 
-const PROJECT = 'aurea';
+const PROJECT = 'vidasystem';
 const DB_URL_ENV = 'DB_URL';
 const SUPABASE_URL_ENV = 'VITE_SUPABASE_URL';
 const SERVICE_ROLE_ENV = 'SUPABASE_SERVICE_ROLE_KEY';
@@ -159,9 +159,13 @@ function hasSupabaseAccessToken() {
 
 async function runSqlSeed() {
   const dbUrl = getDbUrl();
-  await run('supabase', ['db', 'push', '--db-url', dbUrl, '--include-seed', '--workdir', APP_DIR, '--yes'], {
-    timeout: 180_000,
-  });
+  await run(
+    'supabase',
+    ['db', 'push', '--db-url', dbUrl, '--include-seed', '--workdir', APP_DIR, '--yes'],
+    {
+      timeout: 180_000,
+    }
+  );
 }
 
 function listFunctions() {
@@ -179,19 +183,19 @@ function listFunctions() {
 async function deployAureaFunctions() {
   if (!hasSupabaseAccessToken()) {
     process.stdout.write(
-      `\n⚠️  Skipping Aurea edge functions deploy: missing ${SUPABASE_ACCESS_TOKEN_ENV}. Add it to apps/aurea/.env.local to enable deploy.\n`
+      `\n⚠️  Skipping VidaSystem edge functions deploy: missing ${SUPABASE_ACCESS_TOKEN_ENV}. Add it to apps/vidasystem/.env.local to enable deploy.\n`
     );
     return;
   }
 
   const functions = listFunctions();
   if (!functions.length) {
-    process.stdout.write('\n⚠️  No Aurea edge functions found to deploy.\n');
+    process.stdout.write('\n⚠️  No VidaSystem edge functions found to deploy.\n');
     return;
   }
 
   const projectRef = resolveProjectRef();
-  process.stdout.write(`\n🚀 Deploying Aurea edge functions (${functions.join(', ')})...\n`);
+  process.stdout.write(`\n🚀 Deploying VidaSystem edge functions (${functions.join(', ')})...\n`);
   for (const fnName of functions) {
     const args = ['functions', 'deploy', fnName, '--project-ref', projectRef, '--workdir', APP_DIR];
 
@@ -204,15 +208,19 @@ async function deployAureaFunctions() {
       timeout: 180_000,
     });
   }
-  process.stdout.write('✅ Aurea edge functions deployed\n');
+  process.stdout.write('✅ VidaSystem edge functions deployed\n');
 }
 
 async function dbReset() {
   ensureDevEnv();
   const dbUrl = getDbUrl();
-  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR, '--yes', '--no-seed'], {
-    timeout: 180_000,
-  });
+  await run(
+    'supabase',
+    ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR, '--yes', '--no-seed'],
+    {
+      timeout: 180_000,
+    }
+  );
   await seedAureaDev();
   await runSqlSeed();
   await deployAureaFunctions();
@@ -307,13 +315,13 @@ async function seedAureaDev() {
   const companyDocument = '00.000.000/0001-00';
 
   // Ler credenciais do .env.local
-  const systemAdminEmail = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@aurea.com';
+  const systemAdminEmail = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@vidasystem.com';
   const systemAdminPassword = process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Aurea123';
-  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@aurea.com';
+  const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@vidasystem.com';
   const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'Aurea123';
-  const managerEmail = process.env.E2E_MANAGER_EMAIL || 'manager@aurea.com';
+  const managerEmail = process.env.E2E_MANAGER_EMAIL || 'manager@vidasystem.com';
   const managerPassword = process.env.E2E_MANAGER_PASSWORD || 'Aurea123';
-  const userEmail = process.env.E2E_USER_EMAIL || 'user@aurea.com';
+  const userEmail = process.env.E2E_USER_EMAIL || 'user@vidasystem.com';
   const userPassword = process.env.E2E_USER_PASSWORD || 'Aurea123';
 
   process.stdout.write('\n📝 Creating auth users...\n');
@@ -360,7 +368,7 @@ async function seedAureaDev() {
   });
 
   if (!company?.id) {
-    throw new Error('Could not resolve Aurea company for dev seed');
+    throw new Error('Could not resolve VidaSystem company for dev seed');
   }
   process.stdout.write('✅ Company found\n');
 
@@ -460,7 +468,7 @@ async function seedAureaDev() {
   });
   process.stdout.write('✅ app_users created\n');
 
-  process.stdout.write('\n✨ Aurea dev seed applied successfully!\n');
+  process.stdout.write('\n✨ VidaSystem dev seed applied successfully!\n');
   process.stdout.write(`  - System Admin: ${systemAdminEmail}\n`);
   process.stdout.write(`  - Admin: ${adminEmail}\n`);
   process.stdout.write(`  - Manager: ${managerEmail}\n`);

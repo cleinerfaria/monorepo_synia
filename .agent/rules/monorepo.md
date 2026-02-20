@@ -30,12 +30,12 @@ Se qualquer regra não puder ser cumprida, **não executar mudanças**.
 ### Migrations - Estrutura Monorepo
 
 - Cada projeto tem suas migrations isoladas:
-  - **Aurea**: `packages/db-aurea/supabase/migrations/` (fonte da verdade)
+  - **VidaSystem**: `packages/db-vidasystem/supabase/migrations/` (fonte da verdade)
   - **White Label**: `packages/db-white-label/supabase/migrations/` (fonte da verdade)
 - **Usar SEMPRE scripts npm** para aplicar migrations:
-  - `npm run db:migrate:aurea` — aplica migrations do Aurea no banco correto
+  - `npm run db:migrate:vidasystem` — aplica migrations do VidaSystem no banco correto
   - `npm run db:migrate:white-label` — aplica migrations do White Label no banco correto
-  - `npm run db:reset:aurea` — reseta banco do Aurea (destrutivo)
+  - `npm run db:reset:vidasystem` — reseta banco do VidaSystem (destrutivo)
   - `npm run db:reset:white-label` — reseta banco do White Label (destrutivo)
 - Os scripts usam `--workdir` e `--db-url` internamente, garantindo isolamento entre projetos
 

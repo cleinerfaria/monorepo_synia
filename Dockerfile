@@ -1,20 +1,20 @@
 FROM node:20-alpine AS build
-ARG APP_NAME=aurea
+ARG APP_NAME=vidasystem
 WORKDIR /workspace
 
 COPY . .
 RUN npm ci
 
-RUN if [ "$APP_NAME" = "aurea" ]; then \
-      npm run build -w aurea; \
+RUN if [ "$APP_NAME" = "vidasystem" ]; then \
+      npm run build -w vidasystem; \
     elif [ "$APP_NAME" = "white-label" ]; then \
       npm run build -w white_label; \
     else \
-      echo "APP_NAME inválido: $APP_NAME (use: aurea ou white-label)" && exit 1; \
+      echo "APP_NAME inválido: $APP_NAME (use: vidasystem ou white-label)" && exit 1; \
     fi
 
 FROM node:20-alpine AS runtime
-ARG APP_NAME=aurea
+ARG APP_NAME=vidasystem
 WORKDIR /app
 
 ENV NODE_ENV=production
