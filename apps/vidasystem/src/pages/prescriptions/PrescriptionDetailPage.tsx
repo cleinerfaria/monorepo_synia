@@ -29,6 +29,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { buildLogDiff } from '@/lib/logging';
 import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAuthStore } from '@/stores/authStore';
 import {
   usePrescription,
@@ -141,7 +142,16 @@ export default function PrescriptionDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { company } = useAuthStore();
+  const { resolvedTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const companyPrintLogoUrl = useMemo(() => {
+    if (!company) return null;
+
+    return resolvedTheme === 'dark'
+      ? company.logo_url_expanded_dark || company.logo_url_expanded_light || null
+      : company.logo_url_expanded_light || company.logo_url_expanded_dark || null;
+  }, [company, resolvedTheme]);
 
   // Contexto de navegação protegida
   const { handleLinkClick: handleBreadcrumbNavigate } = useNavigationGuard();
@@ -1366,7 +1376,7 @@ export default function PrescriptionDetailPage() {
       await openPrescriptionPrintPreview(result.snapshot, {
         mode: action,
         targetWindow: previewWindow,
-        companyLogoUrl: company?.logo_url_expanded || null,
+        companyLogoUrl: companyPrintLogoUrl,
         orientation,
       });
       setIsPrintModalOpen(false);
@@ -1393,7 +1403,7 @@ export default function PrescriptionDetailPage() {
         await openPrescriptionPrintPreview(snapshot, {
           mode: action,
           targetWindow: previewWindow,
-          companyLogoUrl: company?.logo_url_expanded || null,
+          companyLogoUrl: companyPrintLogoUrl,
         });
       } catch (error) {
         if (previewWindow && !previewWindow.closed) {
@@ -1406,7 +1416,7 @@ export default function PrescriptionDetailPage() {
         );
       }
     },
-    [company?.logo_url_expanded, fetchPrescriptionPrintSnapshot]
+    [companyPrintLogoUrl, fetchPrescriptionPrintSnapshot]
   );
 
   const handleReprintPrescription = useCallback(

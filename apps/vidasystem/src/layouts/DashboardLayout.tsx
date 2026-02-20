@@ -120,7 +120,7 @@ function hasAccessToNavEntry(
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const { appUser, company, signOut, systemUser } = useAuthStore();
-  const { theme, setTheme, resolvedTheme: _resolvedTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const { handleLinkClick } = useNavigationGuard();
   const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile
   const [isPinned, setIsPinned] = useState(() => {
@@ -246,6 +246,7 @@ export default function DashboardLayout() {
                 isExpanded={isExpanded}
                 company={company}
                 isExpanded_={true}
+                resolvedTheme={resolvedTheme}
                 onNavigate={() => setSidebarOpen(false)}
                 onLinkClick={handleLinkClick}
                 showPinButton={false}
@@ -274,6 +275,7 @@ export default function DashboardLayout() {
             isExpanded={isExpanded}
             company={company}
             isExpanded_={isDesktopExpanded}
+            resolvedTheme={resolvedTheme}
             onNavigate={() => !isPinned && setIsHovered(false)}
             onLinkClick={handleLinkClick}
             showPinButton={true}
@@ -350,6 +352,7 @@ interface SidebarContentProps {
   isExpanded: (name: string) => boolean;
   company: any;
   isExpanded_: boolean;
+  resolvedTheme: 'light' | 'dark';
   onNavigate?: () => void;
   onLinkClick?: (e: React.MouseEvent, href: string) => void;
   showPinButton?: boolean;
@@ -364,6 +367,7 @@ function SidebarContent({
   isExpanded,
   company,
   isExpanded_,
+  resolvedTheme,
   onNavigate,
   onLinkClick,
   showPinButton = false,
@@ -371,6 +375,14 @@ function SidebarContent({
   onTogglePin,
   hasSystemUser = false,
 }: SidebarContentProps) {
+  const isDarkMode = resolvedTheme === 'dark';
+  const collapsedLogoUrl = isDarkMode
+    ? company?.logo_url_collapsed_dark || company?.logo_url_collapsed_light
+    : company?.logo_url_collapsed_light || company?.logo_url_collapsed_dark;
+  const expandedLogoUrl = isDarkMode
+    ? company?.logo_url_expanded_dark || company?.logo_url_expanded_light
+    : company?.logo_url_expanded_light || company?.logo_url_expanded_dark;
+
   const versionLabel = `v${__APP_VERSION__}`;
 
   return (
@@ -384,9 +396,9 @@ function SidebarContent({
       >
         {/* Logo colapsada (visível quando menu está recolhido) */}
         {!isExpanded_ &&
-          (company?.logo_url_collapsed || company?.logo_url ? (
+          (collapsedLogoUrl ? (
             <img
-              src={company.logo_url_collapsed || company.logo_url}
+              src={collapsedLogoUrl}
               alt={company.trade_name || company.name}
               className="h-14 w-14 rounded-xl object-contain transition-all duration-300"
             />
@@ -405,9 +417,9 @@ function SidebarContent({
         {/* Logo expandida (visível quando menu está expandido) */}
         {isExpanded_ && (
           <>
-            {company?.logo_url_expanded || company?.logo_url ? (
+            {expandedLogoUrl ? (
               <img
-                src={company.logo_url_expanded || company.logo_url}
+                src={expandedLogoUrl}
                 alt={company.trade_name || company.name}
                 className="h-16 max-w-[9.5rem] object-contain transition-all duration-300"
               />

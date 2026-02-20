@@ -7,9 +7,10 @@ export interface Company {
   name: string;
   trade_name: string | null;
   document: string | null;
-  logo_url: string | null;
-  logo_url_expanded?: string | null;
-  logo_url_collapsed?: string | null;
+  logo_url_expanded_dark: string | null;
+  logo_url_collapsed_dark: string | null;
+  logo_url_expanded_light: string | null;
+  logo_url_collapsed_light: string | null;
   primary_color: string;
   theme_preference: string;
   company_unit_id: string | null;
