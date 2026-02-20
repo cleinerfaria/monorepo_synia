@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/authStore';
 
 // =====================================================
 // TIPOS
@@ -311,13 +312,12 @@ export function useDeleteAccessProfile() {
 
 // Buscar permissões do usuário atual
 export function useCurrentUserPermissions() {
-  return useQuery({
-    queryKey: ['user_permissions'],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  const { user, session, isLoading: isAuthLoading } = useAuthStore();
 
+  return useQuery({
+    queryKey: ['user_permissions', user?.id],
+    enabled: !isAuthLoading && !!session?.user?.id,
+    queryFn: async () => {
       if (!user) return [];
 
       const { data, error } = await supabase.rpc('get_user_permissions', {
@@ -325,7 +325,7 @@ export function useCurrentUserPermissions() {
       });
 
       if (error) throw error;
-      return data as UserPermission[];
+      return (data ?? []) as UserPermission[];
     },
   });
 }
