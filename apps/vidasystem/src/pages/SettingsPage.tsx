@@ -42,6 +42,7 @@ import {
 } from '@/hooks/usePadServices';
 
 type ActiveTab = 'company' | 'fiscal' | 'organization' | 'services' | 'theme';
+type LogoVariant = 'collapsed_dark' | 'collapsed_light' | 'expanded_dark' | 'expanded_light';
 
 interface CompanyFormData {
   name: string;
@@ -145,8 +146,12 @@ const formatCnpjCpfInput = (value: string): string => {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('company');
-  const [isUploadingCollapsed, setIsUploadingCollapsed] = useState(false);
-  const [isUploadingExpanded, setIsUploadingExpanded] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState<Record<LogoVariant, boolean>>({
+    collapsed_dark: false,
+    collapsed_light: false,
+    expanded_dark: false,
+    expanded_light: false,
+  });
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<CompanyUnit | null>(null);
   const [isPadServiceModalOpen, setIsPadServiceModalOpen] = useState(false);
@@ -154,14 +159,23 @@ export default function SettingsPage() {
   const [postalCodeValue, setPostalCodeValue] = useState('');
   const [documentValue, setDocumentValue] = useState('');
   const [isZipLookupLoading, setIsZipLookupLoading] = useState(false);
-  const fileInputCollapsedRef = useRef<HTMLInputElement>(null);
-  const fileInputExpandedRef = useRef<HTMLInputElement>(null);
+  const fileInputCollapsedDarkRef = useRef<HTMLInputElement>(null);
+  const fileInputCollapsedLightRef = useRef<HTMLInputElement>(null);
+  const fileInputExpandedDarkRef = useRef<HTMLInputElement>(null);
+  const fileInputExpandedLightRef = useRef<HTMLInputElement>(null);
 
   // Image crop states
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [cropAspect, setCropAspect] = useState(1);
-  const [cropType, setCropType] = useState<'collapsed' | 'expanded' | null>(null);
+  const [cropType, setCropType] = useState<LogoVariant | null>(null);
+
+  const logoInputRefs: Record<LogoVariant, React.RefObject<HTMLInputElement>> = {
+    collapsed_dark: fileInputCollapsedDarkRef,
+    collapsed_light: fileInputCollapsedLightRef,
+    expanded_dark: fileInputExpandedDarkRef,
+    expanded_light: fileInputExpandedLightRef,
+  };
 
   const { primaryColor, setPrimaryColor, theme, setTheme } = useTheme();
   const { company } = useAuthStore();
@@ -457,57 +471,36 @@ export default function SettingsPage() {
     }
   };
 
-  // Upload logo collapsed (quadrada)
-  const handleLogoCollapsedUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !company?.id) return;
+  const handleLogoUpload =
+    (variant: LogoVariant) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !company?.id) return;
 
-    // Read file and open crop modal
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImageToCrop(reader.result as string);
-      setCropAspect(1); // Quadrado
-      setCropType('collapsed');
-      setIsCropModalOpen(true);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageToCrop(reader.result as string);
+        setCropAspect(variant.startsWith('collapsed') ? 1 : 2 / 1);
+        setCropType(variant);
+        setIsCropModalOpen(true);
+      };
+      reader.readAsDataURL(file);
+
+      e.target.value = '';
     };
-    reader.readAsDataURL(file);
-
-    // Reset input
-    e.target.value = '';
-  };
-
-  // Upload logo expanded (2:1)
-  const handleLogoExpandedUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !company?.id) return;
-
-    // Read file and open crop modal
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImageToCrop(reader.result as string);
-      setCropAspect(2 / 1); // Proporção 2:1
-      setCropType('expanded');
-      setIsCropModalOpen(true);
-    };
-    reader.readAsDataURL(file);
-
-    // Reset input
-    e.target.value = '';
-  };
 
   // Handle cropped image
   const handleCroppedImage = async (croppedBlob: Blob) => {
     if (!company?.id || !cropType) return;
 
-    const isCollapsed = cropType === 'collapsed';
-    const setLoading = isCollapsed ? setIsUploadingCollapsed : setIsUploadingExpanded;
+    const updateField = `logo_url_${cropType}` as const;
 
-    setLoading(true);
+    setIsUploadingLogo((prev) => ({
+      ...prev,
+      [cropType]: true,
+    }));
     try {
       const fileExt = 'png';
-      const fileName = isCollapsed
-        ? `${company.id}_collapsed.${fileExt}`
-        : `${company.id}_expanded.${fileExt}`;
+      const fileName = `${company.id}_${cropType}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('company-logos')
@@ -521,8 +514,6 @@ export default function SettingsPage() {
 
       // Add timestamp to force browser cache refresh
       const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
-
-      const updateField = isCollapsed ? 'logo_url_collapsed' : 'logo_url_expanded';
 
       // Update database with URL including timestamp
       const { error: updateError } = await supabase
@@ -540,7 +531,10 @@ export default function SettingsPage() {
     } catch (error) {
       console.error(`Error uploading ${cropType} logo:`, error);
     } finally {
-      setLoading(false);
+      setIsUploadingLogo((prev) => ({
+        ...prev,
+        [cropType]: false,
+      }));
       setCropType(null);
     }
   };
@@ -701,81 +695,75 @@ export default function SettingsPage() {
         <div className="space-y-6">
           {/* Logos Section */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Logo Quadrada (Menu Colapsado) */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Logo Quadrada (Menu Colapsado)</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                  Formato: Quadrado (1:1) • Recomendado: 512x512px
-                </p>
-                <div className="mx-auto mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
-                  {company?.logo_url_collapsed ? (
-                    <img
-                      src={company.logo_url_collapsed}
-                      alt="Logo Quadrada"
-                      className="h-full w-full object-contain"
-                    />
-                  ) : (
-                    <Building className="h-12 w-12 text-gray-400" />
-                  )}
-                </div>
-                <input
-                  type="file"
-                  ref={fileInputCollapsedRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleLogoCollapsedUpload}
-                />
-                <Button
-                  variant="neutral"
-                  size="sm"
-                  onClick={() => fileInputCollapsedRef.current?.click()}
-                  isLoading={isUploadingCollapsed}
-                >
-                  Alterar Logo Quadrada
-                </Button>
-              </CardContent>
-            </Card>
+            {([
+              {
+                variant: 'collapsed_dark' as const,
+                title: 'Logo Quadrada - Tema Escuro',
+                description: 'Formato: Quadrado (1:1) • Recomendado: 512x512px',
+                imageUrl: company?.logo_url_collapsed_dark,
+              },
+              {
+                variant: 'collapsed_light' as const,
+                title: 'Logo Quadrada - Tema Claro',
+                description: 'Formato: Quadrado (1:1) • Recomendado: 512x512px',
+                imageUrl: company?.logo_url_collapsed_light,
+              },
+              {
+                variant: 'expanded_dark' as const,
+                title: 'Logo Expandida - Tema Escuro',
+                description: 'Formato: Retangular (2:1) • Recomendado: 600x300px',
+                imageUrl: company?.logo_url_expanded_dark,
+              },
+              {
+                variant: 'expanded_light' as const,
+                title: 'Logo Expandida - Tema Claro',
+                description: 'Formato: Retangular (2:1) • Recomendado: 600x300px',
+                imageUrl: company?.logo_url_expanded_light,
+              },
+            ] as const).map((logoConfig) => {
+              const isCollapsed = logoConfig.variant.startsWith('collapsed');
 
-            {/* Logo Expandida (Menu Expandido) */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Logo Expandida (Menu Expandido)</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                  Formato: Retangular (2:1) • Recomendado: 600x300px
-                </p>
-                <div className="mx-auto mb-4 flex h-32 w-64 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
-                  {company?.logo_url_expanded ? (
-                    <img
-                      src={company.logo_url_expanded}
-                      alt="Logo Expandida"
-                      className="h-full w-full object-contain"
+              return (
+                <Card key={logoConfig.variant}>
+                  <CardHeader>
+                    <CardTitle>{logoConfig.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                      {logoConfig.description}
+                    </p>
+                    <div
+                      className={
+                        isCollapsed
+                          ? 'mx-auto mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800'
+                          : 'mx-auto mb-4 flex h-32 w-64 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800'
+                      }
+                    >
+                      {logoConfig.imageUrl ? (
+                        <img src={logoConfig.imageUrl} alt={logoConfig.title} className="h-full w-full object-contain" />
+                      ) : (
+                        <Building className="h-12 w-12 text-gray-400" />
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      ref={logoInputRefs[logoConfig.variant]}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleLogoUpload(logoConfig.variant)}
                     />
-                  ) : (
-                    <Building className="h-12 w-12 text-gray-400" />
-                  )}
-                </div>
-                <input
-                  type="file"
-                  ref={fileInputExpandedRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleLogoExpandedUpload}
-                />
-                <Button
-                  variant="neutral"
-                  size="sm"
-                  onClick={() => fileInputExpandedRef.current?.click()}
-                  isLoading={isUploadingExpanded}
-                >
-                  Alterar Logo Expandida
-                </Button>
-              </CardContent>
-            </Card>
+                    <Button
+                      variant="neutral"
+                      size="sm"
+                      onClick={() => logoInputRefs[logoConfig.variant].current?.click()}
+                      isLoading={isUploadingLogo[logoConfig.variant]}
+                    >
+                      Alterar {isCollapsed ? 'Logo Quadrada' : 'Logo Expandida'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Company Form */}
@@ -1329,7 +1317,13 @@ export default function SettingsPage() {
           imageSrc={imageToCrop}
           onCropComplete={handleCroppedImage}
           aspect={cropAspect}
-          title={cropType === 'collapsed' ? 'Recortar Logo Quadrada' : 'Recortar Logo Expandida'}
+          title={
+            cropType
+              ? cropType.startsWith('collapsed')
+                ? 'Recortar Logo Quadrada'
+                : 'Recortar Logo Expandida'
+              : 'Recortar Logo'
+          }
         />
       )}
     </div>

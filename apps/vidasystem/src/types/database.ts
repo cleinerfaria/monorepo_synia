@@ -597,8 +597,10 @@ export type Database = {
           email: string | null;
           id: string;
           is_active: boolean | null;
-          logo_url_collapsed: string | null;
-          logo_url_expanded: string | null;
+          logo_url_collapsed_dark: string | null;
+          logo_url_collapsed_light: string | null;
+          logo_url_expanded_dark: string | null;
+          logo_url_expanded_light: string | null;
           name: string;
           primary_color: string | null;
           special_tax_regime: string | null;
@@ -620,8 +622,10 @@ export type Database = {
           email?: string | null;
           id?: string;
           is_active?: boolean | null;
-          logo_url_collapsed?: string | null;
-          logo_url_expanded?: string | null;
+          logo_url_collapsed_dark?: string | null;
+          logo_url_collapsed_light?: string | null;
+          logo_url_expanded_dark?: string | null;
+          logo_url_expanded_light?: string | null;
           name: string;
           primary_color?: string | null;
           special_tax_regime?: string | null;
@@ -643,8 +647,10 @@ export type Database = {
           email?: string | null;
           id?: string;
           is_active?: boolean | null;
-          logo_url_collapsed?: string | null;
-          logo_url_expanded?: string | null;
+          logo_url_collapsed_dark?: string | null;
+          logo_url_collapsed_light?: string | null;
+          logo_url_expanded_dark?: string | null;
+          logo_url_expanded_light?: string | null;
           name?: string;
           primary_color?: string | null;
           special_tax_regime?: string | null;
