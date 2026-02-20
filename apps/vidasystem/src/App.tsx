@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -83,6 +83,7 @@ function RouteLoader() {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, isLoading, company, appUser } = useAuthStore();
+  const location = useLocation();
   const { isLoading: isLoadingPermissions } = useCurrentUserPermissions();
 
   if (isLoading) {
@@ -107,9 +108,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   // Usuário sem empresa
   if (!company) {
-    // Se é system_user, vai para admin
-    // Caso contrário, sem acesso
-    return <Navigate to="/sem-acesso" replace />;
+    if (location.pathname !== '/') {
+      return <Navigate to="/" replace />;
+    }
+    return <>{children}</>;
   }
 
   // Redirecionamento automático para Meu Plantão apenas para perfil técnico
@@ -150,7 +152,7 @@ function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!company) {
-    return <Navigate to="/sem-acesso" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Qualquer role pode acessar (admins testando, etc), mas shift_only é o principal
@@ -162,7 +164,7 @@ function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, appUser, company } = useAuthStore();
+  const { session, isLoading } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -173,10 +175,6 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (session) {
-    // Se não tem empresa e não é system_user, sem acesso
-    if (!company && !appUser) {
-      return <Navigate to="/sem-acesso" replace />;
-    }
     return <Navigate to="/" replace />;
   }
 
@@ -286,8 +284,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       return true;
     } catch (error) {
       console.error('[AuthProvider] Failed to load user bootstrap data:', error);
-      setAuthError('Erro ao carregar dados do usuário');
-      return false;
+      setSystemUser(null);
+      useAuthStore.setState({ hasAnySystemUser: false });
+      setAppUser(null);
+      setCompany(null);
+      return true;
     }
   };
 
