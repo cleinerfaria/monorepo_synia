@@ -471,22 +471,21 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLogoUpload =
-    (variant: LogoVariant) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || !company?.id) return;
+  const handleLogoUpload = (variant: LogoVariant) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !company?.id) return;
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImageToCrop(reader.result as string);
-        setCropAspect(variant.startsWith('collapsed') ? 1 : 2 / 1);
-        setCropType(variant);
-        setIsCropModalOpen(true);
-      };
-      reader.readAsDataURL(file);
-
-      e.target.value = '';
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+      setCropAspect(variant.startsWith('collapsed') ? 1 : 2 / 1);
+      setCropType(variant);
+      setIsCropModalOpen(true);
     };
+    reader.readAsDataURL(file);
+
+    e.target.value = '';
+  };
 
   // Handle cropped image
   const handleCroppedImage = async (croppedBlob: Blob) => {
@@ -695,32 +694,34 @@ export default function SettingsPage() {
         <div className="space-y-6">
           {/* Logos Section */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {([
-              {
-                variant: 'collapsed_dark' as const,
-                title: 'Logo Quadrada - Tema Escuro',
-                description: 'Formato: Quadrado (1:1) • Recomendado: 512x512px',
-                imageUrl: company?.logo_url_collapsed_dark,
-              },
-              {
-                variant: 'collapsed_light' as const,
-                title: 'Logo Quadrada - Tema Claro',
-                description: 'Formato: Quadrado (1:1) • Recomendado: 512x512px',
-                imageUrl: company?.logo_url_collapsed_light,
-              },
-              {
-                variant: 'expanded_dark' as const,
-                title: 'Logo Expandida - Tema Escuro',
-                description: 'Formato: Retangular (2:1) • Recomendado: 600x300px',
-                imageUrl: company?.logo_url_expanded_dark,
-              },
-              {
-                variant: 'expanded_light' as const,
-                title: 'Logo Expandida - Tema Claro',
-                description: 'Formato: Retangular (2:1) • Recomendado: 600x300px',
-                imageUrl: company?.logo_url_expanded_light,
-              },
-            ] as const).map((logoConfig) => {
+            {(
+              [
+                {
+                  variant: 'collapsed_dark' as const,
+                  title: 'Logo Quadrada - Tema Escuro',
+                  description: 'Formato: Quadrado (1:1) • Recomendado: 512x512px',
+                  imageUrl: company?.logo_url_collapsed_dark,
+                },
+                {
+                  variant: 'collapsed_light' as const,
+                  title: 'Logo Quadrada - Tema Claro',
+                  description: 'Formato: Quadrado (1:1) • Recomendado: 512x512px',
+                  imageUrl: company?.logo_url_collapsed_light,
+                },
+                {
+                  variant: 'expanded_dark' as const,
+                  title: 'Logo Expandida - Tema Escuro',
+                  description: 'Formato: Retangular (2:1) • Recomendado: 600x300px',
+                  imageUrl: company?.logo_url_expanded_dark,
+                },
+                {
+                  variant: 'expanded_light' as const,
+                  title: 'Logo Expandida - Tema Claro',
+                  description: 'Formato: Retangular (2:1) • Recomendado: 600x300px',
+                  imageUrl: company?.logo_url_expanded_light,
+                },
+              ] as const
+            ).map((logoConfig) => {
               const isCollapsed = logoConfig.variant.startsWith('collapsed');
 
               return (
@@ -740,7 +741,11 @@ export default function SettingsPage() {
                       }
                     >
                       {logoConfig.imageUrl ? (
-                        <img src={logoConfig.imageUrl} alt={logoConfig.title} className="h-full w-full object-contain" />
+                        <img
+                          src={logoConfig.imageUrl}
+                          alt={logoConfig.title}
+                          className="h-full w-full object-contain"
+                        />
                       ) : (
                         <Building className="h-12 w-12 text-gray-400" />
                       )}
