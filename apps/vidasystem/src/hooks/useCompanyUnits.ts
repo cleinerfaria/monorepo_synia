@@ -8,9 +8,9 @@ export interface CompanyUnit {
   name: string;
   trade_name: string | null;
   document: string | null;
-  postal_code: string | null;
-  address: string | null;
-  neiborhood: string | null;
+  zip: string | null;
+  street: string | null;
+  district: string | null;
   number: string | null;
   city: string | null;
   state: string | null;
@@ -22,12 +22,13 @@ export interface CompanyUnit {
 }
 
 export interface CreateCompanyUnitInput {
+  company_id: string;
   name: string;
   trade_name?: string | null;
   document?: string | null;
-  postal_code?: string | null;
-  address?: string | null;
-  neiborhood?: string | null;
+  zip?: string | null;
+  street?: string | null;
+  district?: string | null;
   number?: string | null;
   city?: string | null;
   state?: string | null;
@@ -75,12 +76,13 @@ export function useCreateCompanyUnit() {
       const { data, error } = await supabase
         .from('company_unit')
         .insert({
+          company_id: input.company_id,
           name: input.name,
           trade_name: input.trade_name || null,
           document: input.document || null,
-          postal_code: input.postal_code || null,
-          address: input.address || null,
-          neiborhood: input.neiborhood || null,
+          zip: input.zip || null,
+          street: input.street || null,
+          district: input.district || null,
           number: input.number || null,
           city: input.city || null,
           state: input.state || null,

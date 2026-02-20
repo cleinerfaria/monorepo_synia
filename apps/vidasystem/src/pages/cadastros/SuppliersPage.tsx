@@ -579,7 +579,7 @@ export default function SuppliersPage() {
                   }}
                 />
                 {isZipLookupLoading && (
-                  <div className="absolute right-3 top-9 flex items-center gap-2">
+                  <div className="absolute right-3 top-7 flex items-center gap-2">
                     <svg
                       className="text-primary-500 h-4 w-4 animate-spin"
                       xmlns="http://www.w3.org/2000/svg"
@@ -600,7 +600,6 @@ export default function SuppliersPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Buscando...</span>
                   </div>
                 )}
               </div>
