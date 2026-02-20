@@ -1,5 +1,5 @@
 -- =====================================================
--- ÁUREA CARE - Tabelas Auxiliares: Princípio Ativo, Fabricante, Fornecedor
+-- VidaSystem - Tabelas Auxiliares: Princípio Ativo, Fabricante, Fornecedor
 -- =====================================================
 
 -- =====================================================

@@ -1,5 +1,5 @@
 -- =====================================================
--- ÁUREA CARE - Row Level Security (RLS) Policies
+-- VidaSystem - Row Level Security (RLS) Policies
 -- =====================================================
 
 -- Habilitar RLS em todas as tabelas

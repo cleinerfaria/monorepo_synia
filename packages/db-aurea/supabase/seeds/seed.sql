@@ -1,5 +1,5 @@
 -- =====================================================
--- Supabase Seed File - Aurea
+-- Supabase Seed File - VidaSystem
 -- =====================================================
 -- Executado automaticamente em:
 -- - supabase db reset
@@ -50,16 +50,16 @@ BEGIN
 
   -- Buscar auth users já criados (criados pelo lib.cjs)
   SELECT id INTO v_system_admin_auth_id FROM auth.users 
-  WHERE email = 'superadmin@aurea.com' LIMIT 1;
+  WHERE email = 'superadmin@vidasystem.com' LIMIT 1;
   
   SELECT id INTO v_admin_auth_id FROM auth.users 
-  WHERE email = 'admin@aurea.com' LIMIT 1;
+  WHERE email = 'admin@vidasystem.com' LIMIT 1;
   
   SELECT id INTO v_manager_auth_id FROM auth.users 
-  WHERE email = 'manager@aurea.com' LIMIT 1;
+  WHERE email = 'manager@vidasystem.com' LIMIT 1;
   
   SELECT id INTO v_user_auth_id FROM auth.users 
-  WHERE email = 'user@aurea.com' LIMIT 1;
+  WHERE email = 'user@vidasystem.com' LIMIT 1;
 
   -- =====================================================
   -- 0) PROFISSÕES (Novas)
@@ -143,7 +143,7 @@ BEGIN
       v_system_admin_auth_id,
       TRUE,
       'Super Admin',
-      'superadmin@aurea.com'
+      'superadmin@vidasystem.com'
     )
     ON CONFLICT (auth_user_id) DO NOTHING;
   END IF;
@@ -155,7 +155,7 @@ BEGIN
     INSERT INTO public.app_user 
       (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
-      (v_company_id, v_system_admin_auth_id, 'Super Admin', 'superadmin@aurea.com', true, v_admin_profile_id)
+      (v_company_id, v_system_admin_auth_id, 'Super Admin', 'superadmin@vidasystem.com', true, v_admin_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 
@@ -163,7 +163,7 @@ BEGIN
     INSERT INTO public.app_user 
       (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
-      (v_company_id, v_admin_auth_id, 'Admin', 'admin@aurea.com', true, v_admin_profile_id)
+      (v_company_id, v_admin_auth_id, 'Admin', 'admin@vidasystem.com', true, v_admin_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 
@@ -171,7 +171,7 @@ BEGIN
     INSERT INTO public.app_user 
       (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
-      (v_company_id, v_manager_auth_id, 'Manager', 'manager@aurea.com', true, v_manager_profile_id)
+      (v_company_id, v_manager_auth_id, 'Manager', 'manager@vidasystem.com', true, v_manager_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 
@@ -179,7 +179,7 @@ BEGIN
     INSERT INTO public.app_user 
       (company_id, auth_user_id, name, email, is_active, access_profile_id)
     VALUES 
-      (v_company_id, v_user_auth_id, 'User', 'user@aurea.com', true, v_viewer_profile_id)
+      (v_company_id, v_user_auth_id, 'User', 'user@vidasystem.com', true, v_viewer_profile_id)
     ON CONFLICT (auth_user_id, company_id) DO NOTHING;
   END IF;
 

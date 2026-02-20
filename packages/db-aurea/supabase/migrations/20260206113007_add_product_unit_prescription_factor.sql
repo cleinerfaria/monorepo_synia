@@ -1,5 +1,5 @@
 -- =====================================================
--- ÁUREA CARE - Fator de conversão para unidade de prescrição
+-- VidaSystem - Fator de conversão para unidade de prescrição
 -- Adiciona o fator da unidade base -> unidade de prescrição no cadastro de produtos
 -- =====================================================
 

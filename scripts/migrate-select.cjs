@@ -1,26 +1,26 @@
 #!/usr/bin/env node
 
-const { spawn } = require("node:child_process");
-const { createInterface } = require("node:readline");
-const { stdin, stdout, env, execPath } = require("node:process");
+const { spawn } = require('node:child_process');
+const { createInterface } = require('node:readline');
+const { stdin, stdout, env, execPath } = require('node:process');
 
 const PROJECTS = [
   {
-    aliases: ["1", "aurea"],
-    label: "Aurea",
-    workspace: "@synia/db-aurea",
-    script: "db:migrate:aurea",
+    aliases: ['1', 'vidasystem'],
+    label: 'VidaSystem',
+    workspace: '@synia/db-vidasystem',
+    script: 'db:migrate:vidasystem',
   },
   {
-    aliases: ["2", "white-label", "white_label", "wl"],
-    label: "White Label",
-    workspace: "@synia/db-white-label",
-    script: "db:migrate:white-label",
+    aliases: ['2', 'white-label', 'white_label', 'wl'],
+    label: 'White Label',
+    workspace: '@synia/db-white-label',
+    script: 'db:migrate:white-label',
   },
 ];
 
 function askProject() {
-  stdout.write("\nSelecione o projeto para executar a migration:\n");
+  stdout.write('\nSelecione o projeto para executar a migration:\n');
   PROJECTS.forEach((project, index) => {
     stdout.write(`${index + 1}) ${project.label}\n`);
   });
@@ -32,7 +32,7 @@ function askProject() {
     rl.close();
 
     if (!selected) {
-      process.stderr.write("Opcao invalida. Use 1 para Aurea ou 2 para White Label.\n");
+      process.stderr.write('Opcao invalida. Use 1 para VidaSystem ou 2 para White Label.\n');
       process.exit(1);
     }
 
@@ -45,13 +45,15 @@ function runMigration(project) {
 
   const npmExecPath = env.npm_execpath;
   if (!npmExecPath) {
-    process.stderr.write("Nao foi possivel localizar o executavel do npm. Execute via 'npm run ...'.\n");
+    process.stderr.write(
+      "Nao foi possivel localizar o executavel do npm. Execute via 'npm run ...'.\n"
+    );
     process.exit(1);
   }
 
-  const child = spawn(execPath, [npmExecPath, "run", project.script], { stdio: "inherit" });
+  const child = spawn(execPath, [npmExecPath, 'run', project.script], { stdio: 'inherit' });
 
-  child.on("exit", (code, signal) => {
+  child.on('exit', (code, signal) => {
     if (signal) {
       process.kill(process.pid, signal);
       return;

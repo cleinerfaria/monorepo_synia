@@ -23,32 +23,32 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Prepare Aurea DB
+      - name: Prepare VidaSystem DB
         env:
           APP_ENV: dev
-          AUREA_DB_URL: ${{ secrets.AUREA_DB_URL }}
-          AUREA_SUPABASE_URL: ${{ secrets.AUREA_SUPABASE_URL }}
-          AUREA_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.AUREA_SUPABASE_SERVICE_ROLE_KEY }}
-          AUREA_E2E_ADMIN_EMAIL: ${{ secrets.AUREA_E2E_ADMIN_EMAIL }}
-          AUREA_E2E_ADMIN_PASSWORD: ${{ secrets.AUREA_E2E_ADMIN_PASSWORD }}
-        run: npm run db:prepare:test:aurea
+          VIDASYSTEM_DB_URL: ${{ secrets.VIDASYSTEM_DB_URL }}
+          VIDASYSTEM_SUPABASE_URL: ${{ secrets.VIDASYSTEM_SUPABASE_URL }}
+          VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY }}
+          VIDASYSTEM_E2E_ADMIN_EMAIL: ${{ secrets.VIDASYSTEM_E2E_ADMIN_EMAIL }}
+          VIDASYSTEM_E2E_ADMIN_PASSWORD: ${{ secrets.VIDASYSTEM_E2E_ADMIN_PASSWORD }}
+        run: npm run db:prepare:test:vidasystem
 
-      - name: Run Aurea E2E
+      - name: Run VidaSystem E2E
         env:
           APP_ENV: dev
-          AUREA_DB_URL: ${{ secrets.AUREA_DB_URL }}
-          AUREA_SUPABASE_URL: ${{ secrets.AUREA_SUPABASE_URL }}
-          AUREA_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.AUREA_SUPABASE_SERVICE_ROLE_KEY }}
-          AUREA_E2E_ADMIN_EMAIL: ${{ secrets.AUREA_E2E_ADMIN_EMAIL }}
-          AUREA_E2E_ADMIN_PASSWORD: ${{ secrets.AUREA_E2E_ADMIN_PASSWORD }}
-        run: npm run test:e2e -w aurea
+          VIDASYSTEM_DB_URL: ${{ secrets.VIDASYSTEM_DB_URL }}
+          VIDASYSTEM_SUPABASE_URL: ${{ secrets.VIDASYSTEM_SUPABASE_URL }}
+          VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY }}
+          VIDASYSTEM_E2E_ADMIN_EMAIL: ${{ secrets.VIDASYSTEM_E2E_ADMIN_EMAIL }}
+          VIDASYSTEM_E2E_ADMIN_PASSWORD: ${{ secrets.VIDASYSTEM_E2E_ADMIN_PASSWORD }}
+        run: npm run test:e2e -w vidasystem
 
-      - name: Cleanup Aurea DB
+      - name: Cleanup VidaSystem DB
         if: always()
         env:
           APP_ENV: dev
-          AUREA_DB_URL: ${{ secrets.AUREA_DB_URL }}
-        run: npm run db:reset:aurea
+          VIDASYSTEM_DB_URL: ${{ secrets.VIDASYSTEM_DB_URL }}
+        run: npm run db:reset:vidasystem
 
       - name: Prepare White Label DB
         env:

@@ -1,36 +1,36 @@
 #!/usr/bin/env node
 
-const { spawn } = require("node:child_process");
-const { createInterface } = require("node:readline");
-const { readFileSync } = require("node:fs");
-const { join } = require("node:path");
-const { stdin, stdout, argv, env, execPath } = require("node:process");
+const { spawn } = require('node:child_process');
+const { createInterface } = require('node:readline');
+const { readFileSync } = require('node:fs');
+const { join } = require('node:path');
+const { stdin, stdout, argv, env, execPath } = require('node:process');
 
 const PROJECTS = [
   {
-    aliases: ["1", "aurea"],
-    label: "Aurea",
-    workspace: "aurea",
-    packageJsonPath: join(__dirname, "..", "apps", "aurea", "package.json"),
+    aliases: ['1', 'vidasystem'],
+    label: 'vidasystem',
+    workspace: 'vidasystem',
+    packageJsonPath: join(__dirname, '..', 'apps', 'vidasystem', 'package.json'),
   },
   {
-    aliases: ["2", "white-label", "white_label", "wl"],
-    label: "White Label",
-    workspace: "white_label",
-    packageJsonPath: join(__dirname, "..", "apps", "white-label", "package.json"),
+    aliases: ['2', 'white-label', 'white_label', 'wl'],
+    label: 'White Label',
+    workspace: 'white_label',
+    packageJsonPath: join(__dirname, '..', 'apps', 'white-label', 'package.json'),
   },
 ];
 
 const SCRIPT_FALLBACKS = {
-  "test:e2e:ui": { aurea: "test:e2e:headed" },
+  'test:e2e:ui': { vidasystem: 'test:e2e:headed' },
 };
-const COMMANDS_WITH_ALL_PROJECTS = new Set(["precommit:check"]);
-const ALL_PROJECT_ALIASES = new Set(["3", "all", "todos"]);
+const COMMANDS_WITH_ALL_PROJECTS = new Set(['precommit:check']);
+const ALL_PROJECT_ALIASES = new Set(['3', 'all', 'todos']);
 
 const rawArgs = argv.slice(2);
 const loweredArgs = rawArgs.map((arg) => arg.toLowerCase());
 
-if (loweredArgs[0] === "--help" || loweredArgs[0] === "-h") {
+if (loweredArgs[0] === '--help' || loweredArgs[0] === '-h') {
   showHelp();
   process.exit(0);
 }
@@ -41,7 +41,7 @@ const lifecycleCommand = env.npm_lifecycle_event?.toLowerCase();
 let command;
 let remainingArgs;
 
-if (lifecycleCommand === "run:project") {
+if (lifecycleCommand === 'run:project') {
   command = rawCommand;
   remainingArgs = rawArgs.slice(1);
 } else if (rawCommand) {
@@ -51,12 +51,12 @@ if (lifecycleCommand === "run:project") {
   command = lifecycleCommand;
   remainingArgs = [];
 } else {
-  command = "dev";
+  command = 'dev';
   remainingArgs = [];
 }
 
 if (!command) {
-  stderrAndExit("Informe o script para executar. Exemplo: npm run run:project -- test:e2e");
+  stderrAndExit('Informe o script para executar. Exemplo: npm run run:project -- test:e2e');
 }
 
 const parsed = parseRemainingArgs(remainingArgs);
@@ -103,9 +103,9 @@ function askProject(command, forwardedArgs) {
     const selected = PROJECTS.find((project) => project.aliases.includes(normalized));
     if (!selected) {
       if (allowAllProjects) {
-        stderrAndExit("Opcao invalida. Use 1 para Aurea, 2 para White Label ou 3 para todos.");
+        stderrAndExit('Opcao invalida. Use 1 para VidaSystem, 2 para White Label ou 3 para todos.');
       }
-      stderrAndExit("Opcao invalida. Use 1 para Aurea ou 2 para White Label.");
+      stderrAndExit('Opcao invalida. Use 1 para VidaSystem ou 2 para White Label.');
     }
     const workspaceScript = resolveWorkspaceScript(command, selected);
     runScript(workspaceScript, selected.workspace, forwardedArgs);
@@ -118,14 +118,14 @@ function runScript(script, workspace, forwardedArgs, onExit) {
     stderrAndExit("Nao foi possivel localizar o executavel do npm. Execute via 'npm run ...'.");
   }
 
-  const spawnArgs = ["run", script, "-w", workspace];
+  const spawnArgs = ['run', script, '-w', workspace];
   if (forwardedArgs.length > 0) {
-    spawnArgs.push("--", ...forwardedArgs);
+    spawnArgs.push('--', ...forwardedArgs);
   }
 
-  const child = spawn(execPath, [npmExecPath, ...spawnArgs], { stdio: "inherit" });
+  const child = spawn(execPath, [npmExecPath, ...spawnArgs], { stdio: 'inherit' });
 
-  child.on("exit", (code, signal) => {
+  child.on('exit', (code, signal) => {
     if (onExit) {
       onExit(code, signal);
       return;
@@ -148,13 +148,15 @@ function runScriptForAllProjects(command, forwardedArgs) {
 
   function runQueueIndex(index) {
     if (index >= queue.length) {
-      stdout.write("Todos os projetos finalizaram com sucesso.\n");
+      stdout.write('Todos os projetos finalizaram com sucesso.\n');
       process.exit(0);
       return;
     }
 
     const current = queue[index];
-    stdout.write(`[${index + 1}/${queue.length}] Rodando ${command} em ${current.project.label}...\n`);
+    stdout.write(
+      `[${index + 1}/${queue.length}] Rodando ${command} em ${current.project.label}...\n`
+    );
     runScript(current.script, current.project.workspace, forwardedArgs, (code, signal) => {
       if (signal) {
         process.kill(process.pid, signal);
@@ -177,13 +179,13 @@ function stderrAndExit(message) {
 }
 
 function parseRemainingArgs(args) {
-  const dashDashIndex = args.indexOf("--");
+  const dashDashIndex = args.indexOf('--');
   const argsBeforeDashDash = dashDashIndex >= 0 ? args.slice(0, dashDashIndex) : args;
   const argsAfterDashDash = dashDashIndex >= 0 ? args.slice(dashDashIndex + 1) : [];
 
   let projectArg;
   const cleanedBefore = [...argsBeforeDashDash];
-  if (cleanedBefore.length > 0 && !cleanedBefore[0].startsWith("-")) {
+  if (cleanedBefore.length > 0 && !cleanedBefore[0].startsWith('-')) {
     projectArg = cleanedBefore.shift();
   }
 
@@ -215,17 +217,17 @@ function supportsAllProjects(command) {
 
 function getPackageJson(packageJsonPath) {
   try {
-    return JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    return JSON.parse(readFileSync(packageJsonPath, 'utf8'));
   } catch (_error) {
     stderrAndExit(`Nao foi possivel ler o package.json em ${packageJsonPath}`);
   }
 }
 
 function showHelp() {
-  stdout.write("Uso:\n");
-  stdout.write("- npm run dev [-- <projeto>]\n");
-  stdout.write("- npm run precommit:check [-- <projeto|all>]\n");
-  stdout.write("- npm run test:e2e [-- <projeto>] [-- <args-do-script>]\n");
-  stdout.write("- npm run run:project -- <script> [<projeto>] [-- <args-do-script>]\n");
-  stdout.write("Projetos: aurea | white-label | all (somente precommit:check)\n");
+  stdout.write('Uso:\n');
+  stdout.write('- npm run dev [-- <projeto>]\n');
+  stdout.write('- npm run precommit:check [-- <projeto|all>]\n');
+  stdout.write('- npm run test:e2e [-- <projeto>] [-- <args-do-script>]\n');
+  stdout.write('- npm run run:project -- <script> [<projeto>] [-- <args-do-script>]\n');
+  stdout.write('Projetos: vidasystem | white-label | all (somente precommit:check)\n');
 }

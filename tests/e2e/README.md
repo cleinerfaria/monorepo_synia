@@ -4,18 +4,18 @@
 
 1. Copy `tests/e2e/.env.example` to a local `.env` file loaded by your shell.
 2. Keep `APP_ENV=dev`.
-3. Run Aurea E2E:
-   - `npm run test:e2e -w aurea`
+3. Run vidasystem E2E:
+   - `npm run test:e2e -w vidasystem`
 4. Run White Label E2E:
    - `npm run test:e2e -w white_label`
 
 ## Manual DB commands
 
-- Aurea:
-  - `npm run db:reset:aurea`
-  - `npm run db:migrate:aurea`
-  - `npm run db:seed:dev:aurea`
-  - `npm run db:prepare:test:aurea`
+- vidasystem:
+  - `npm run db:reset:vidasystem`
+  - `npm run db:migrate:vidasystem`
+  - `npm run db:seed:dev:vidasystem`
+  - `npm run db:prepare:test:vidasystem`
 - White Label:
   - `npm run db:reset:white-label`
   - `npm run db:migrate:white-label`

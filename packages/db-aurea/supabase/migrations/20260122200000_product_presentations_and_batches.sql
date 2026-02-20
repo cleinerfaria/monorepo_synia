@@ -1,5 +1,5 @@
 -- =====================================================
--- ÁUREA CARE - Apresentações de Produtos e Lotes
+-- VidaSystem - Apresentações de Produtos e Lotes
 -- Suporta conversão de unidades e rastreabilidade
 -- =====================================================
 

@@ -7,7 +7,7 @@
 scripts/** @cleinerfaria
 
 # Applications
-apps/aurea/** @cleinerfaria
+apps/vidasystem/** @cleinerfaria
 apps/white-label/** @cleinerfaria
 
 # Shared packages

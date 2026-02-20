@@ -28,10 +28,10 @@ environment:
 git checkout -b feat/nova-funcionalidade
 
 # Desenvolver + migrations
-# packages/db-aurea/supabase/migrations/20260215_nova_funcionalidade.sql
+# packages/db-vidasystem/supabase/migrations/20260215_nova_funcionalidade.sql
 
 # Testar migrations localmente
-npm run db:migrate:aurea
+npm run db:migrate:vidasystem
 npm run test:migrations  # ← NOVO script de teste
 
 # Commit + push
@@ -101,8 +101,8 @@ Cada environment precisa ter:
 
 ```
 SUPABASE_ACCESS_TOKEN=seu_token_pessoal
-AUREA_SUPABASE_PROJECT_REF=projeto_referencia_aurea
-AUREA_SUPABASE_DB_PASSWORD=senha_do_banco_aurea
+VIDASYSTEM_SUPABASE_PROJECT_REF=projeto_referencia_VidaSystem
+VIDASYSTEM_SUPABASE_DB_PASSWORD=senha_do_banco_VidaSystem
 WL_SUPABASE_PROJECT_REF=projeto_referencia_wl
 WL_SUPABASE_DB_PASSWORD=senha_do_banco_wl
 ```
@@ -127,11 +127,11 @@ Cada deploy agora mostra:
 🎯 Deploying to environment: production
 Branch: main
 Event: push
-🔗 Linking Aurea project: prod1234567890
-✅ Aurea project linked successfully
-🚀 Applying Aurea migrations...
-✅ Aurea migrations applied successfully
-🔍 Verifying Aurea migrations status...
+🔗 Linking VidaSystem project: prod1234567890
+✅ VidaSystem project linked successfully
+🚀 Applying VidaSystem migrations...
+✅ VidaSystem migrations applied successfully
+🔍 Verifying VidaSystem migrations status...
 [Lista de migrations aplicadas]
 ```
 
@@ -142,7 +142,7 @@ Event: push
 npm run test:migrations
 
 # Verificar status após deploy (no ambiente)
-supabase migration list --workdir packages/db-aurea
+supabase migration list --workdir packages/db-vidasystem
 ```
 
 ---
@@ -151,7 +151,7 @@ supabase migration list --workdir packages/db-aurea
 
 Antes de fazer push para `develop` ou `main`:
 
-- [ ] Migrations testadas localmente: `npm run db:migrate:aurea`
+- [ ] Migrations testadas localmente: `npm run db:migrate:vidasystem`
 - [ ] Teste automático passou: `npm run test:migrations`
 - [ ] Precommit check passou: `npm run precommit:check`
 - [ ] Environments configurados no GitHub

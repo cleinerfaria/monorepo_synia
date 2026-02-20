@@ -1,16 +1,16 @@
-﻿const { seedAureaDev } = require('./lib.cjs');
+﻿const { seedVidaSystemDev } = require('./lib.cjs');
 
 try {
-  process.stdout.write('🌱 Starting Aurea dev seed...\n');
-  seedAureaDev()
+  process.stdout.write('🌱 Starting VidaSystem dev seed...\n');
+  seedVidaSystemDev()
     .catch((error) => {
-      process.stderr.write(`\n❌ Aurea db:seed:dev failed: ${error.message}\n`);
+      process.stderr.write(`\n❌ VidaSystem db:seed:dev failed: ${error.message}\n`);
       process.exit(1);
     })
     .then(() => {
-      process.stdout.write('\n✅ Aurea dev seed complete.\n');
+      process.stdout.write('\n✅ VidaSystem dev seed complete.\n');
     });
 } catch (error) {
-  process.stderr.write(`\n❌ Aurea db:seed:dev failed: ${error.message}\n`);
+  process.stderr.write(`\n❌ VidaSystem db:seed:dev failed: ${error.message}\n`);
   process.exit(1);
 }

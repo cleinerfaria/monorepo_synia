@@ -9,7 +9,7 @@ export default async function globalTeardown(): Promise<void> {
   };
 
   // execFileSync('npm', ['run', 'db:reset'], {
-  //   cwd: path.resolve(repoRoot, 'apps/aurea'),
+  //   cwd: path.resolve(repoRoot, 'apps/vidasystem'),
   //   stdio: 'inherit',
   //   env,
   //   timeout: 300_000,

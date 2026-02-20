@@ -1,4 +1,4 @@
-# 📊 Relatório: Otimização de Índices do Banco de Dados Aurea
+# 📊 Relatório: Otimização de Índices do Banco de Dados VidaSystem
 
 **Data:** 15 de Fevereiro de 2026  
 **Status:** ✅ Concluído  
@@ -8,7 +8,7 @@
 
 ## 🎯 Resumo Executivo
 
-Implementadas **229 melhorias de performance** no banco de dados Aurea:
+Implementadas **229 melhorias de performance** no banco de dados VidaSystem:
 
 | Ação                                | Quantidade | Status        |
 | ----------------------------------- | ---------- | ------------- |
@@ -198,7 +198,7 @@ Performance:
 ## 📁 Arquivos Gerados
 
 ```
-packages/db-aurea/supabase/migrations/
+packages/db-vidasystem/supabase/migrations/
 ├── 20260215170000_add_missing_foreign_key_indexes.sql (16 índices)
 └── 20260215180000_remove_unused_indexes.sql (127 removidos)
 ```

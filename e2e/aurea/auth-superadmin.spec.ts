@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-const email = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@aurea.com';
-const password = process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Aurea123';
+const email = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@vidasystem.com';
+const password = process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Vida123';
 
 function generateCNPJ() {
   const n = 9;

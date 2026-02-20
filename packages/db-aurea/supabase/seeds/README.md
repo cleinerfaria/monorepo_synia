@@ -1,4 +1,4 @@
-﻿# Aurea Development Seeds
+﻿# VidaSystem Development Seeds
 
 ## 📁 Estrutura
 
@@ -21,7 +21,7 @@ supabase/seeds/
 ### 1️⃣ Migrations (Estrutura)
 
 ```bash
-npm run db:reset:aurea
+npm run db:reset:vidasystem
 ```
 
 - Schema tables
@@ -32,6 +32,7 @@ npm run db:reset:aurea
 ### 2️⃣ Supabase Seed SQL (Automático no comando de reset)
 
 O script de reset executa `supabase db push --include-seed --yes` via `DB_URL` apos criar os auth users:
+
 - `supabase/seeds/seed-01-professions.sql`
 - `supabase/seeds/seed-02-professionals.sql`
 - `supabase/seeds/seed-03-patients.sql`
@@ -48,41 +49,41 @@ O script de reset executa `supabase db push --include-seed --yes` via `DB_URL` a
 ### 3️⃣ Auth Users + Vinculação App User (Automático no reset)
 
 ```bash
-npm run db:reset:aurea
+npm run db:reset:vidasystem
 ```
 
 **Fluxo:**
 
-1. **scripts/lib.cjs (seedAureaDev)** → Cria auth users via API Supabase
-   - superadmin@aurea.com (system admin)
-   - admin@aurea.com
-   - manager@aurea.com
-   - user@aurea.com
+1. **scripts/lib.cjs (seedVidaSystemDev)** → Cria auth users via API Supabase
+   - superadmin@vidasystem.com (system admin)
+   - admin@vidasystem.com
+   - manager@vidasystem.com
+   - user@vidasystem.com
 
-2. **scripts/lib.cjs (seedAureaDev)** → Cria/atualiza `system_user` e `app_user` via REST
+2. **scripts/lib.cjs (seedVidaSystemDev)** → Cria/atualiza `system_user` e `app_user` via REST
    - Insere/upsert de system_user
    - Insere/upsert de app_user
 
 ## ✅ Responsabilidades
 
-| Etapa                              | Arquivo           | Tipo        | Gatilho                    |
-| ---------------------------------- | ----------------- | ----------- | -------------------------- |
-| Schema                             | migration         | SQL         | Auto (db reset)            |
+| Etapa                                                     | Arquivo                        | Tipo        | Gatilho                                          |
+| --------------------------------------------------------- | ------------------------------ | ----------- | ------------------------------------------------ |
+| Schema                                                    | migration                      | SQL         | Auto (db reset)                                  |
 | Profissionais/Pacientes/Medicações/PAD/Escala/Prescrições | supabase/seeds/seed-01..07.sql | SQL         | Auto (db:reset script -> db push --include-seed) |
-| Auth Users                         | scripts/lib.cjs   | Node.js/API | Auto (chamado pelo db:reset) |
-| System User + App Users            | scripts/lib.cjs   | Node.js/API | Auto (chamado pelo db:reset) |
+| Auth Users                                                | scripts/lib.cjs                | Node.js/API | Auto (chamado pelo db:reset)                     |
+| System User + App Users                                   | scripts/lib.cjs                | Node.js/API | Auto (chamado pelo db:reset)                     |
 
 ## 📊 Dados Inseridos
 
 ### System User (1)
 
-- `superadmin@aurea.com` (is_superadmin=true)
+- `superadmin@vidasystem.com` (is_superadmin=true)
 
 ### App Users (3)
 
-- `admin@aurea.com` (role: admin)
-- `manager@aurea.com` (role: manager)
-- `user@aurea.com` (role: viewer)
+- `admin@vidasystem.com` (role: admin)
+- `manager@vidasystem.com` (role: manager)
+- `user@vidasystem.com` (role: viewer)
 
 ### Profissionais (3)
 
@@ -104,10 +105,10 @@ npm run db:reset:aurea
 ## 🧪 Setup Completo
 
 ```bash
-npm run setup -- aurea
+npm run setup -- vidasystem
 
 # Internamente executa:
-# 1. npm run db:reset:aurea
+# 1. npm run db:reset:vidasystem
 #    → reset sem seed
 #    → cria auth users + cria/atualiza system_user e app_user
 #    → executa supabase/seeds/seed-01..07.sql

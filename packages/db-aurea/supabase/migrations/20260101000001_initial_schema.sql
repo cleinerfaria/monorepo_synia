@@ -1,5 +1,5 @@
 -- =====================================================
--- ÁUREA CARE - Home Care Management System
+-- VidaSystem - Home Care Management System
 -- Database Schema for Supabase (PostgreSQL)
 -- =====================================================
 

@@ -21,8 +21,8 @@ https://github.com/SEU_USERNAME/monorepo_synia/settings/environments
 - **Secrets**:
   ```
   SUPABASE_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (token pessoal)
-  AUREA_SUPABASE_PROJECT_REF=abcd1234567890 (projeto dev)
-  AUREA_SUPABASE_DB_PASSWORD=sua_senha_dev
+  VIDASYSTEM_SUPABASE_PROJECT_REF=abcd1234567890 (projeto dev)
+  VIDASYSTEM_SUPABASE_DB_PASSWORD=sua_senha_dev
   WL_SUPABASE_PROJECT_REF=xyz9876543210 (projeto dev)
   WL_SUPABASE_DB_PASSWORD=sua_senha_dev
   ```
@@ -34,8 +34,8 @@ https://github.com/SEU_USERNAME/monorepo_synia/settings/environments
 - **Secrets**:
   ```
   SUPABASE_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (mesmo token)
-  AUREA_SUPABASE_PROJECT_REF=homolog1234567890 (projeto staging)
-  AUREA_SUPABASE_DB_PASSWORD=senha_staging_aurea
+  VIDASYSTEM_SUPABASE_PROJECT_REF=homolog1234567890 (projeto staging)
+  VIDASYSTEM_SUPABASE_DB_PASSWORD=senha_staging_VidaSystem
   WL_SUPABASE_PROJECT_REF=homolog9876543210 (projeto staging)
   WL_SUPABASE_DB_PASSWORD=senha_staging_wl
   ```
@@ -47,8 +47,8 @@ https://github.com/SEU_USERNAME/monorepo_synia/settings/environments
 - **Secrets**:
   ```
   SUPABASE_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (mesmo token)
-  AUREA_SUPABASE_PROJECT_REF=prod1234567890 (projeto produção)
-  AUREA_SUPABASE_DB_PASSWORD=senha_producao_aurea
+  VIDASYSTEM_SUPABASE_PROJECT_REF=prod1234567890 (projeto produção)
+  VIDASYSTEM_SUPABASE_DB_PASSWORD=senha_producao_VidaSystem
   WL_SUPABASE_PROJECT_REF=prod9876543210 (projeto produção)
   WL_SUPABASE_DB_PASSWORD=senha_producao_wl
   ```
@@ -122,7 +122,7 @@ Para testar se funcionou:
 
 ## 🔧 Troubleshooting
 
-### **Erro: "Missing AUREA_SUPABASE_PROJECT_REF"**
+### **Erro: "Missing VIDASYSTEM_SUPABASE_PROJECT_REF"**
 
 - Verifique se o environment está configurado no GitHub
 - Confirme se o secret foi adicionado com o nome exato
