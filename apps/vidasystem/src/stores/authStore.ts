@@ -93,7 +93,7 @@ export const useAuthStore = create<AuthState>()(
             // Fetch app user
             const { data: appUser } = await supabase
               .from('app_user')
-              .select('*, access_profile(id, code, name, is_admin)')
+              .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
               .eq('auth_user_id', session.user.id)
               .maybeSingle();
 
@@ -143,7 +143,7 @@ export const useAuthStore = create<AuthState>()(
             // Fetch app user
             const { data: appUser } = await supabase
               .from('app_user')
-              .select('*, access_profile(id, code, name, is_admin)')
+              .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
               .eq('auth_user_id', data.session.user.id)
               .maybeSingle();
 
@@ -200,7 +200,7 @@ export const useAuthStore = create<AuthState>()(
                 email,
                 access_profile_id: defaultProfile?.id,
               } as any)
-              .select('*, access_profile(id, code, name, is_admin)')
+              .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
               .single();
 
             if (appUserError) throw appUserError;
@@ -252,7 +252,7 @@ export const useAuthStore = create<AuthState>()(
           .from('app_user')
           .update({ theme_preference: theme } as any)
           .eq('id', appUser.id)
-          .select('*, access_profile(id, code, name, is_admin)')
+          .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
           .single();
 
         if (!error && data) {
