@@ -66,6 +66,27 @@ export interface UserPermission {
   permission_name: string;
 }
 
+const PERMISSIONS_TIMEOUT_MS = 10000;
+
+async function withTimeout<T>(promiseLike: PromiseLike<T>, timeoutMs: number, context: string) {
+  const promise = Promise.resolve(promiseLike);
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${context} timeout after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
 // =====================================================
 // HOOKS DE MÓDULOS DO SISTEMA
 // =====================================================
@@ -320,13 +341,23 @@ export function useCurrentUserPermissions() {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase.rpc('get_user_permissions', {
-        p_auth_user_id: user.id,
-      });
+      try {
+        const { data, error } = await withTimeout(
+          supabase.rpc('get_user_permissions', {
+            p_auth_user_id: user.id,
+          }),
+          PERMISSIONS_TIMEOUT_MS,
+          'get_user_permissions'
+        );
 
-      if (error) throw error;
-      return (data ?? []) as UserPermission[];
+        if (error) throw error;
+        return (data ?? []) as UserPermission[];
+      } catch (error) {
+        console.error('[useCurrentUserPermissions] failed to fetch permissions:', error);
+        return [];
+      }
     },
+    retry: false,
   });
 }
 
