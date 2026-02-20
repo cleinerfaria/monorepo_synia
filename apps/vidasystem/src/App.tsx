@@ -281,7 +281,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: userData, error: userError } = await withTimeout(
         supabase
           .from('app_user')
-          .select('*, access_profile(id, code, name, is_admin)')
+          .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
           .eq('auth_user_id', userId)
           .maybeSingle(),
         AUTH_INIT_TIMEOUT_MS,
@@ -290,6 +290,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Se não tem app_user, permite continuar (system_user ou bootstrap)
       if (userError || !userData) {
+        if (userError) {
+          console.error('[AuthProvider] app_user query failed:', userError);
+        }
         setAppUser(null);
         setCompany(null);
         return true;
