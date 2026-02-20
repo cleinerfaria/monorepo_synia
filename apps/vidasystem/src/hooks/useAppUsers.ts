@@ -139,24 +139,21 @@ export function useCreateAppUser() {
         throw new Error('Não autenticado');
       }
 
-      const response = await fetch(
-        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'create',
-            email: input.email,
-            password: input.password,
-            name: input.name,
-            company_id: input.company_id,
-            access_profile_id: input.access_profile_id,
-          }),
-        }
-      );
+      const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'create',
+          email: input.email,
+          password: input.password,
+          name: input.name,
+          company_id: input.company_id,
+          access_profile_id: input.access_profile_id,
+        }),
+      });
 
       const result = await response.json();
 
@@ -206,23 +203,20 @@ export function useUpdateAppUser() {
         .eq('id', input.id)
         .single();
 
-      const response = await fetch(
-        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'update',
-            user_id: input.id,
-            name: input.name,
-            access_profile_id: input.access_profile_id,
-            active: input.active,
-          }),
-        }
-      );
+      const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'update',
+          user_id: input.id,
+          name: input.name,
+          access_profile_id: input.access_profile_id,
+          active: input.active,
+        }),
+      });
 
       const result = await response.json();
 
@@ -270,21 +264,18 @@ export function useDeactivateAppUser() {
         throw new Error('Não autenticado');
       }
 
-      const response = await fetch(
-        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'update',
-            user_id: id,
-            active: false,
-          }),
-        }
-      );
+      const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'update',
+          user_id: id,
+          active: false,
+        }),
+      });
 
       const result = await response.json();
 
@@ -314,21 +305,18 @@ export function useReactivateAppUser() {
         throw new Error('Não autenticado');
       }
 
-      const response = await fetch(
-        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'update',
-            user_id: id,
-            active: true,
-          }),
-        }
-      );
+      const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'update',
+          user_id: id,
+          active: true,
+        }),
+      });
 
       const result = await response.json();
 
@@ -356,21 +344,18 @@ export function useResetUserPassword() {
         throw new Error('Não autenticado');
       }
 
-      const response = await fetch(
-        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'reset-password',
-            user_id: userId,
-            new_password: newPassword,
-          }),
-        }
-      );
+      const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'reset-password',
+          user_id: userId,
+          new_password: newPassword,
+        }),
+      });
 
       const result = await response.json();
 
@@ -405,20 +390,17 @@ export function useDeleteAppUser() {
         .eq('id', id)
         .single();
 
-      const response = await fetch(
-        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'delete',
-            user_id: id,
-          }),
-        }
-      );
+      const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          user_id: id,
+        }),
+      });
 
       const result = await response.json();
 

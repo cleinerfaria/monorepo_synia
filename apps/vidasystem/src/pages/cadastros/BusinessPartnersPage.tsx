@@ -238,7 +238,8 @@ export default function BusinessPartnersPage() {
         header: 'Parceiro de Negócio',
         cell: ({ row }) => {
           const legalName = row.original.legal_name || '';
-          const truncatedName = legalName.length > 80 ? legalName.substring(0, 80) + '...' : legalName;
+          const truncatedName =
+            legalName.length > 80 ? legalName.substring(0, 80) + '...' : legalName;
 
           return (
             <div className="flex items-center gap-3">

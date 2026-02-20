@@ -7,7 +7,9 @@ const readline = require('node:readline/promises');
 const { stdin, stdout } = require('node:process');
 
 const targetDirArg = process.argv.find((arg) => arg.startsWith('--target-dir='));
+const projectNameArg = process.argv.find((arg) => arg.startsWith('--project-name='));
 const targetDir = targetDirArg ? targetDirArg.split('=')[1] : process.cwd();
+const projectName = projectNameArg ? projectNameArg.split('=')[1] : null;
 const packageJsonPath = path.join(targetDir, 'package.json');
 
 function readPackageVersion() {
@@ -49,6 +51,37 @@ function runNpmVersion(newVersion) {
       ? `npm.cmd version ${newVersion} --no-git-tag-version`
       : `npm version ${newVersion} --no-git-tag-version`;
   execSync(cmd, { cwd: targetDir, stdio: 'inherit' });
+}
+
+function createGitCommitAndTag(newVersion) {
+  const tag = `v${newVersion}`;
+  const scopePrefix = projectName ? `(${projectName})` : '';
+  const commitMessage = `chore${scopePrefix}: bump version to ${newVersion}`;
+
+  try {
+    // Commit das mudanças
+    execSync('git add package.json', { cwd: targetDir, stdio: 'inherit' });
+    execSync(`git commit -m "${commitMessage}"`, { cwd: targetDir, stdio: 'inherit' });
+
+    // Criar tag
+    execSync(`git tag -a ${tag} -m "Release ${tag}"`, { cwd: targetDir, stdio: 'inherit' });
+
+    // Obter branch atual
+    const currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: targetDir, encoding: 'utf8' }).trim();
+
+    // Push com tags
+    execSync(`git push origin ${currentBranch} --tags`, { cwd: targetDir, stdio: 'inherit' });
+
+    return true;
+  } catch (error) {
+    console.error(`\nErro ao criar commit e tag: ${error.message}`);
+    console.error('Você pode fazer isso manualmente com:');
+    console.error(`  git add package.json`);
+    console.error(`  git commit -m "chore: bump version to ${newVersion}"`);
+    console.error(`  git tag -a v${newVersion} -m "Release v${newVersion}"`);
+    console.error(`  git push origin <branch> --tags`);
+    return false;
+  }
 }
 
 async function askBumpType(currentVersion) {
@@ -118,6 +151,15 @@ async function main() {
   stdout.write(`\nUpdating version: ${currentVersion} -> ${targetVersion}\n`);
   runNpmVersion(targetVersion);
   stdout.write(`Version updated to ${targetVersion}.\n`);
+
+  stdout.write('\nCriando commit e tag do GitHub...\n');
+  const success = createGitCommitAndTag(targetVersion);
+
+  if (success) {
+    stdout.write(`\n✓ Commit criado, tag v${targetVersion} criada e enviada para GitHub com sucesso!\n`);
+  } else {
+    stdout.write(`\n⚠ Versão atualizada mas houve erro ao criar commit/tag. Verifique os comandos acima.\n`);
+  }
 }
 
 main().catch((error) => {

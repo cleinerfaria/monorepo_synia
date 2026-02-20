@@ -223,24 +223,21 @@ export function useCreateAndLinkProfessionalUser() {
       if (!shiftProfile) throw new Error('Perfil de plantão não encontrado para esta empresa');
 
       // 1. Criar app_user via Edge Function
-      const response = await fetch(
-        `${resolvedSupabaseUrl}/functions/v1/manage-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'create',
-            email,
-            password,
-            name,
-            company_id: company.id,
-            access_profile_id: shiftProfile.id,
-          }),
-        }
-      );
+      const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'create',
+          email,
+          password,
+          name,
+          company_id: company.id,
+          access_profile_id: shiftProfile.id,
+        }),
+      });
 
       const result = await response.json();
 
