@@ -228,6 +228,25 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const initRef = useRef(false);
+  const AUTH_INIT_TIMEOUT_MS = 15000;
+
+  const withTimeout = async <T,>(promiseLike: PromiseLike<T>, timeoutMs: number, context: string) => {
+    const promise = Promise.resolve(promiseLike);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error(`${context} timeout after ${timeoutMs}ms`));
+      }, timeoutMs);
+    });
+
+    try {
+      return await Promise.race([promise, timeoutPromise]);
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
+  };
 
   const handleClearSession = async () => {
     await supabase.auth.signOut();
@@ -238,28 +257,36 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUserData = async (userId: string): Promise<boolean> => {
     try {
       // Fetch system_user data
-      const { data: systemUserData, error: systemUserError } = await supabase
-        .from('system_user')
-        .select('*')
-        .eq('auth_user_id', userId)
-        .maybeSingle();
+      const { data: systemUserData, error: systemUserError } = await withTimeout(
+        supabase.from('system_user').select('*').eq('auth_user_id', userId).maybeSingle(),
+        AUTH_INIT_TIMEOUT_MS,
+        'load system_user'
+      );
 
       if (systemUserError) {
         throw systemUserError;
       }
 
-      const { data: countResult } = await supabase.rpc('count_system_users');
+      const { data: countResult } = await withTimeout(
+        supabase.rpc('count_system_users'),
+        AUTH_INIT_TIMEOUT_MS,
+        'count system_user'
+      );
       const hasAny = (countResult ?? 0) > 0;
 
       setSystemUser(systemUserData ?? null);
       useAuthStore.setState({ hasAnySystemUser: hasAny });
 
       // Fetch app_user
-      const { data: userData, error: userError } = await supabase
-        .from('app_user')
-        .select('*, access_profile(id, code, name, is_admin)')
-        .eq('auth_user_id', userId)
-        .maybeSingle();
+      const { data: userData, error: userError } = await withTimeout(
+        supabase
+          .from('app_user')
+          .select('*, access_profile(id, code, name, is_admin)')
+          .eq('auth_user_id', userId)
+          .maybeSingle(),
+        AUTH_INIT_TIMEOUT_MS,
+        'load app_user'
+      );
 
       // Se não tem app_user, permite continuar (system_user ou bootstrap)
       if (userError || !userData) {
@@ -271,11 +298,15 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       setAppUser(userData as AppUserWithProfile);
 
       // Fetch company
-      const { data: companyData, error: companyError } = await supabase
-        .from('company')
-        .select('*')
-        .eq('id', (userData as AppUserWithProfile).company_id)
-        .single();
+      const { data: companyData, error: companyError } = await withTimeout(
+        supabase
+          .from('company')
+          .select('*')
+          .eq('id', (userData as AppUserWithProfile).company_id)
+          .single(),
+        AUTH_INIT_TIMEOUT_MS,
+        'load company'
+      );
 
       if (companyError || !companyData) {
         setCompany(null);
@@ -284,7 +315,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setCompany(companyData as Company);
       return true;
-    } catch {
+    } catch (error) {
+      console.error('[AuthProvider] Failed to load user bootstrap data:', error);
       setAuthError('Erro ao carregar dados do usuário');
       return false;
     }
@@ -300,7 +332,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
           data: { session },
           error,
-        } = await supabase.auth.getSession();
+        } = await withTimeout(
+          supabase.auth.getSession(),
+          AUTH_INIT_TIMEOUT_MS,
+          'getSession at startup'
+        );
 
         if (error) {
           setAuthError('Erro ao verificar sessão');
@@ -323,7 +359,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setLoading(false);
         setInitialized(true);
-      } catch {
+      } catch (error) {
+        console.error('[AuthProvider] Unexpected auth initialization error:', error);
         setAuthError('Erro inesperado na autenticação');
         setLoading(false);
         setInitialized(true);
