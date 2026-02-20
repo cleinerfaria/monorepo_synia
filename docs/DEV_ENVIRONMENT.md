@@ -145,19 +145,19 @@ Durante o setup, essas credenciais são criadas automaticamente no banco:
 ### Admin
 
 - Email: `e2e.admin@vidasystem.local` (customizável via `E2E_ADMIN_EMAIL`)
-- Senha: `AureaE2E!123` (customizável via `E2E_ADMIN_PASSWORD`)
+- Senha: `Vida123` (customizável via `E2E_ADMIN_PASSWORD`)
 - Função: Admin (acesso total)
 
 ### Manager
 
 - Email: `e2e.manager@vidasystem.local` (customizável via `E2E_MANAGER_EMAIL`)
-- Senha: `AureaE2E!123` (customizável via `E2E_MANAGER_PASSWORD`)
+- Senha: `Vida123` (customizável via `E2E_MANAGER_PASSWORD`)
 - Função: Manager (acesso parcial)
 
 ### Viewer/User
 
 - Email: `e2e.user@vidasystem.local` (customizável via `E2E_USER_EMAIL`)
-- Senha: `AureaE2E!123` (customizável via `E2E_USER_PASSWORD`)
+- Senha: `Vida123` (customizável via `E2E_USER_PASSWORD`)
 - Função: Viewer (acesso somente leitura)
 
 **Nota:** Customize via variáveis de ambiente no `.env.local` se precisar de valores diferentes.
@@ -208,7 +208,7 @@ DB_URL=postgresql://postgres:pwd@db.seu-projeto.supabase.co:5432/postgres
 
 # E2E Tests (opcionais — temos defaults)
 E2E_ADMIN_EMAIL=e2e.admin@vidasystem.local
-E2E_ADMIN_PASSWORD=AureaE2E!123
+E2E_ADMIN_PASSWORD=Vida123
 ```
 
 ### Banco de Dados
@@ -444,7 +444,7 @@ Usa variáveis de ambiente apontando para Supabase em produção:
 - [ ] Verificou credenciais: `npx supabase status`
 - [ ] Iniciou dev: `npm run dev:vidasystem`
 - [ ] Conseguiu acessar a app em `http://localhost:5173`
-- [ ] Conseguiu fazer login com `e2e.admin@vidasystem.local` / `AureaE2E!123`
+- [ ] Conseguiu fazer login com `e2e.admin@vidasystem.local` / `Vida123`
 - [ ] Verificou Dashboard Supabase: https://app.supabase.com/projects
 - [ ] Coordenou com colega sobre resets futuros
 

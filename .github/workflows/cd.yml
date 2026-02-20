@@ -83,8 +83,8 @@ jobs:
       - name: Validate environment secrets
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          AUREA_SUPABASE_PROJECT_REF: ${{ secrets.AUREA_SUPABASE_PROJECT_REF }}
-          AUREA_SUPABASE_DB_PASSWORD: ${{ secrets.AUREA_SUPABASE_DB_PASSWORD }}
+          VIDASYSTEM_SUPABASE_PROJECT_REF: ${{ secrets.VIDASYSTEM_SUPABASE_PROJECT_REF }}
+          VIDASYSTEM_SUPABASE_DB_PASSWORD: ${{ secrets.VIDASYSTEM_SUPABASE_DB_PASSWORD }}
           WL_SUPABASE_PROJECT_REF: ${{ secrets.WL_SUPABASE_PROJECT_REF }}
           WL_SUPABASE_DB_PASSWORD: ${{ secrets.WL_SUPABASE_DB_PASSWORD }}
         shell: bash
@@ -94,12 +94,12 @@ jobs:
             echo "Missing SUPABASE_ACCESS_TOKEN (repository secret or environment secret)."
             exit 1
           fi
-          if [ -z "${AUREA_SUPABASE_PROJECT_REF:-}" ]; then
-            echo "Missing AUREA_SUPABASE_PROJECT_REF for this environment."
+          if [ -z "${VIDASYSTEM_SUPABASE_PROJECT_REF:-}" ]; then
+            echo "Missing VIDASYSTEM_SUPABASE_PROJECT_REF for this environment."
             exit 1
           fi
-          if [ -z "${AUREA_SUPABASE_DB_PASSWORD:-}" ]; then
-            echo "Missing AUREA_SUPABASE_DB_PASSWORD for this environment."
+          if [ -z "${VIDASYSTEM_SUPABASE_DB_PASSWORD:-}" ]; then
+            echo "Missing VIDASYSTEM_SUPABASE_DB_PASSWORD for this environment."
             exit 1
           fi
           if [ -z "${WL_SUPABASE_PROJECT_REF:-}" ]; then
@@ -114,19 +114,19 @@ jobs:
       - name: Link Supabase project (VidaSystem)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          AUREA_SUPABASE_PROJECT_REF: ${{ secrets.AUREA_SUPABASE_PROJECT_REF }}
-          AUREA_SUPABASE_DB_PASSWORD: ${{ secrets.AUREA_SUPABASE_DB_PASSWORD }}
+          VIDASYSTEM_SUPABASE_PROJECT_REF: ${{ secrets.VIDASYSTEM_SUPABASE_PROJECT_REF }}
+          VIDASYSTEM_SUPABASE_DB_PASSWORD: ${{ secrets.VIDASYSTEM_SUPABASE_DB_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
-          echo "🔗 Linking VidaSystem project: ${AUREA_SUPABASE_PROJECT_REF}"
-          supabase link --project-ref "${AUREA_SUPABASE_PROJECT_REF}" --password "${AUREA_SUPABASE_DB_PASSWORD}" --workdir packages/db-vidasystem --debug
+          echo "🔗 Linking VidaSystem project: ${VIDASYSTEM_SUPABASE_PROJECT_REF}"
+          supabase link --project-ref "${VIDASYSTEM_SUPABASE_PROJECT_REF}" --password "${VIDASYSTEM_SUPABASE_DB_PASSWORD}" --workdir packages/db-vidasystem --debug
           echo "✅ VidaSystem project linked successfully"
 
       - name: Apply VidaSystem migrations
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          AUREA_SUPABASE_DB_PASSWORD: ${{ secrets.AUREA_SUPABASE_DB_PASSWORD }}
+          VIDASYSTEM_SUPABASE_DB_PASSWORD: ${{ secrets.VIDASYSTEM_SUPABASE_DB_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
@@ -137,7 +137,7 @@ jobs:
       - name: Verify VidaSystem migrations
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          AUREA_SUPABASE_DB_PASSWORD: ${{ secrets.AUREA_SUPABASE_DB_PASSWORD }}
+          VIDASYSTEM_SUPABASE_DB_PASSWORD: ${{ secrets.VIDASYSTEM_SUPABASE_DB_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail

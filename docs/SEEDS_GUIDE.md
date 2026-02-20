@@ -59,7 +59,7 @@ npm run db:seed:dev:vidasystem
 
 **Vantagens**:
 
-- Função em `seedAureaDev()`
+- Função em `seedVidaSystemDev()`
 - Usa API REST (funciona até remotamente)
 - Perfeito para CI/CD e ambiente de produção
 - Validación de ambiente (APP_ENV=dev)

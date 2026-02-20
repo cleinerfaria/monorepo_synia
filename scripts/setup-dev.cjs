@@ -180,9 +180,9 @@ function displaySetupInfo() {
   log(`     npx supabase stop`, 'dim');
 
   log(`\nCredenciais padrão para E2E:`, 'bright');
-  log(`  Admin:   e2e.admin@vidasystem.local / AureaE2E!123`, 'dim');
-  log(`  Manager: e2e.manager@vidasystem.local / AureaE2E!123`, 'dim');
-  log(`  User:    e2e.user@vidasystem.local / AureaE2E!123`, 'dim');
+  log(`  Admin:   e2e.admin@vidasystem.local / Vida123`, 'dim');
+  log(`  Manager: e2e.manager@vidasystem.local / Vida123`, 'dim');
+  log(`  User:    e2e.user@vidasystem.local / Vida123`, 'dim');
 
   log('');
 }

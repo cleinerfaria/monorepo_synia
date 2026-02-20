@@ -1,5 +1,5 @@
 -- =====================================================
--- AUREA CARE - RLS policies for client/patient accessories
+-- VIDASYSTEM CARE - RLS policies for client/patient accessories
 -- Adds RLS to client_contact, patient_address, patient_contact,
 -- patient_identifier, and patient_payer
 -- =====================================================

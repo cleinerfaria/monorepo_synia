@@ -54,7 +54,7 @@ npm run dev:vidasystem
 
 - App: `http://localhost:5173`
 - Banco Web: Apontado em `.env.local`
-- Login: `e2e.admin@vidasystem.local` / `AureaE2E!123`
+- Login: `e2e.admin@vidasystem.local` / `Vida123`
 
 ---
 

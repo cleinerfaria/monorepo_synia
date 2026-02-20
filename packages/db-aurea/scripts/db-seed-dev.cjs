@@ -1,8 +1,8 @@
-﻿const { seedAureaDev } = require('./lib.cjs');
+﻿const { seedVidaSystemDev } = require('./lib.cjs');
 
 try {
   process.stdout.write('🌱 Starting VidaSystem dev seed...\n');
-  seedAureaDev()
+  seedVidaSystemDev()
     .catch((error) => {
       process.stderr.write(`\n❌ VidaSystem db:seed:dev failed: ${error.message}\n`);
       process.exit(1);

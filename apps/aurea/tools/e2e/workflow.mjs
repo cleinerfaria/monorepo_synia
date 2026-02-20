@@ -5,13 +5,13 @@ import process from 'node:process';
 
 const DEFAULT_BASE_URL = 'http://127.0.0.1:4173';
 const DEFAULT_ADMIN_EMAIL = 'e2e.admin@vidasystem.local';
-const DEFAULT_ADMIN_PASSWORD = 'AureaE2E!123';
+const DEFAULT_ADMIN_PASSWORD = 'Vida123';
 const DEFAULT_ADMIN_NAME = 'E2E Admin';
 const DEFAULT_MANAGER_EMAIL = 'e2e.manager@vidasystem.local';
-const DEFAULT_MANAGER_PASSWORD = 'AureaE2E!123';
+const DEFAULT_MANAGER_PASSWORD = 'Vida123';
 const DEFAULT_MANAGER_NAME = 'E2E Manager';
 const DEFAULT_USER_EMAIL = 'e2e.user@vidasystem.local';
-const DEFAULT_USER_PASSWORD = 'AureaE2E!123';
+const DEFAULT_USER_PASSWORD = 'Vida123';
 const DEFAULT_USER_NAME = 'E2E User';
 
 function run(command, args, { capture = false, env = process.env } = {}) {

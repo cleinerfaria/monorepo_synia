@@ -10,7 +10,7 @@ const DB_URL_ENV = 'DB_URL';
 const SUPABASE_URL_ENV = 'VITE_SUPABASE_URL';
 const SERVICE_ROLE_ENV = 'SUPABASE_SERVICE_ROLE_KEY';
 const SUPABASE_ACCESS_TOKEN_ENV = 'SUPABASE_ACCESS_TOKEN';
-const PROJECT_REF_ENV = 'AUREA_SUPABASE_PROJECT_REF';
+const PROJECT_REF_ENV = 'VIDASYSTEM_SUPABASE_PROJECT_REF';
 const APP_DIR = path.resolve(__dirname, '..');
 const FUNCTIONS_DIR = path.resolve(APP_DIR, 'supabase/functions');
 
@@ -180,7 +180,7 @@ function listFunctions() {
     .sort();
 }
 
-async function deployAureaFunctions() {
+async function deployVidaSystemFunctions() {
   if (!hasSupabaseAccessToken()) {
     process.stdout.write(
       `\n⚠️  Skipping VidaSystem edge functions deploy: missing ${SUPABASE_ACCESS_TOKEN_ENV}. Add it to apps/vidasystem/.env.local to enable deploy.\n`
@@ -221,9 +221,9 @@ async function dbReset() {
       timeout: 180_000,
     }
   );
-  await seedAureaDev();
+  await seedVidaSystemDev();
   await runSqlSeed();
-  await deployAureaFunctions();
+  await deployVidaSystemFunctions();
 }
 
 async function dbMigrate() {
@@ -308,7 +308,7 @@ async function upsertRows({ supabaseUrl, serviceRoleKey, table, rows, onConflict
   );
 }
 
-async function seedAureaDev() {
+async function seedVidaSystemDev() {
   ensureDevEnv();
 
   const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
@@ -316,13 +316,13 @@ async function seedAureaDev() {
 
   // Ler credenciais do .env.local
   const systemAdminEmail = process.env.E2E_SYSTEM_ADMIN_EMAIL || 'superadmin@vidasystem.com';
-  const systemAdminPassword = process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Aurea123';
+  const systemAdminPassword = process.env.E2E_SYSTEM_ADMIN_PASSWORD || 'Vida123';
   const adminEmail = process.env.E2E_ADMIN_EMAIL || 'admin@vidasystem.com';
-  const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'Aurea123';
+  const adminPassword = process.env.E2E_ADMIN_PASSWORD || 'Vida123';
   const managerEmail = process.env.E2E_MANAGER_EMAIL || 'manager@vidasystem.com';
-  const managerPassword = process.env.E2E_MANAGER_PASSWORD || 'Aurea123';
+  const managerPassword = process.env.E2E_MANAGER_PASSWORD || 'Vida123';
   const userEmail = process.env.E2E_USER_EMAIL || 'user@vidasystem.com';
-  const userPassword = process.env.E2E_USER_PASSWORD || 'Aurea123';
+  const userPassword = process.env.E2E_USER_PASSWORD || 'Vida123';
 
   process.stdout.write('\n📝 Creating auth users...\n');
 
@@ -479,6 +479,6 @@ module.exports = {
   PROJECT,
   dbReset,
   dbMigrate,
-  seedAureaDev,
+  seedVidaSystemDev,
   ensureDevEnv,
 };

@@ -54,13 +54,13 @@ npm run db:reset:vidasystem
 
 **Fluxo:**
 
-1. **scripts/lib.cjs (seedAureaDev)** → Cria auth users via API Supabase
+1. **scripts/lib.cjs (seedVidaSystemDev)** → Cria auth users via API Supabase
    - superadmin@vidasystem.com (system admin)
    - admin@vidasystem.com
    - manager@vidasystem.com
    - user@vidasystem.com
 
-2. **scripts/lib.cjs (seedAureaDev)** → Cria/atualiza `system_user` e `app_user` via REST
+2. **scripts/lib.cjs (seedVidaSystemDev)** → Cria/atualiza `system_user` e `app_user` via REST
    - Insere/upsert de system_user
    - Insere/upsert de app_user
 

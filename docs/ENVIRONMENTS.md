@@ -66,11 +66,11 @@ DB_URL=postgresql://postgres:<pwd>@db.seu-projeto.supabase.co:5432/postgres
 
 # E2E Tests
 E2E_ADMIN_EMAIL=e2e.admin@vidasystem.local
-E2E_ADMIN_PASSWORD=AureaE2E!123
+E2E_ADMIN_PASSWORD=Vida123
 E2E_MANAGER_EMAIL=e2e.manager@vidasystem.local
-E2E_MANAGER_PASSWORD=AureaE2E!123
+E2E_MANAGER_PASSWORD=Vida123
 E2E_USER_EMAIL=e2e.user@vidasystem.local
-E2E_USER_PASSWORD=AureaE2E!123
+E2E_USER_PASSWORD=Vida123
 ```
 
 **Características:**
@@ -88,7 +88,7 @@ APP_ENV=staging
 VITE_SUPABASE_URL=https://staging-proj.supabase.co
 VITE_SUPABASE_ANON_KEY=<staging-anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<staging-service-key>
-AUREA_DB_URL=postgresql://postgres:<pwd>@db.staging-proj.supabase.co:5432/postgres
+VIDASYSTEM_DB_URL=postgresql://postgres:<pwd>@db.staging-proj.supabase.co:5432/postgres
 ```
 
 #### Production
@@ -99,7 +99,7 @@ APP_ENV=production
 VITE_SUPABASE_URL=https://prod-proj.supabase.co
 VITE_SUPABASE_ANON_KEY=<prod-anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<prod-service-key>
-AUREA_DB_URL=postgresql://postgres:<pwd>@db.prod-proj.supabase.co:5432/postgres
+VIDASYSTEM_DB_URL=postgresql://postgres:<pwd>@db.prod-proj.supabase.co:5432/postgres
 ```
 
 ---

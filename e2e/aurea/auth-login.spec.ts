@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const email =
   process.env.E2E_ADMIN_EMAIL || process.env.E2E_USER_EMAIL || 'e2e.admin@vidasystem.local';
-const password = process.env.E2E_ADMIN_PASSWORD || process.env.E2E_USER_PASSWORD || 'AureaE2E!123';
+const password = process.env.E2E_ADMIN_PASSWORD || process.env.E2E_USER_PASSWORD || 'Vida123';
 
 async function expectAuthenticated(page: import('@playwright/test').Page) {
   await expect.poll(() => new URL(page.url()).pathname).not.toBe('/login');

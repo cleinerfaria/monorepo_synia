@@ -101,8 +101,8 @@ Cada environment precisa ter:
 
 ```
 SUPABASE_ACCESS_TOKEN=seu_token_pessoal
-AUREA_SUPABASE_PROJECT_REF=projeto_referencia_aurea
-AUREA_SUPABASE_DB_PASSWORD=senha_do_banco_aurea
+VIDASYSTEM_SUPABASE_PROJECT_REF=projeto_referencia_VidaSystem
+VIDASYSTEM_SUPABASE_DB_PASSWORD=senha_do_banco_VidaSystem
 WL_SUPABASE_PROJECT_REF=projeto_referencia_wl
 WL_SUPABASE_DB_PASSWORD=senha_do_banco_wl
 ```
