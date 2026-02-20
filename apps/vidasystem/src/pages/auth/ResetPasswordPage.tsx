@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
               </svg>
             </div>
             <h1 className="font-display text-3xl font-bold text-gray-900 dark:text-white">
-              Áurea Care
+              VidaSystem
             </h1>
             <p className="mt-2 text-gray-500 dark:text-gray-400">Nova Senha</p>
           </div>
@@ -224,7 +224,7 @@ export default function ResetPasswordPage() {
 
           {/* Footer */}
           <p className="mt-8 text-center text-sm text-gray-400 dark:text-gray-500">
-            © 2026 Áurea Care. Todos os direitos reservados.
+            © 2026 VidaSystem. Todos os direitos reservados.
           </p>
         </div>
       </div>

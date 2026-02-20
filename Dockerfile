@@ -20,8 +20,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV APP_NAME=$APP_NAME
 
-RUN npm install -g serve
-
 COPY --from=build /workspace/apps/${APP_NAME}/ ./
 
 EXPOSE 3000
@@ -29,4 +27,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/ || exit 1
 
-CMD ["sh", "-c", "if [ -f server.cjs ]; then node server.cjs; else serve -s dist -l ${PORT:-3000}; fi"]
+CMD ["node", "server.cjs"]

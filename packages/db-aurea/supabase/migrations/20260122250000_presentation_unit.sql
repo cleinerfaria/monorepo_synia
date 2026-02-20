@@ -1,5 +1,5 @@
 -- =====================================================
--- ÁUREA CARE - Adicionar unidade à apresentação
+-- VidaSystem - Adicionar unidade à apresentação
 -- =====================================================
 
 -- Adiciona campo de unidade à apresentação

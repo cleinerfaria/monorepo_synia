@@ -539,7 +539,7 @@ function SidebarContent({
       {/* Footer */}
       <div className="border-t border-gray-100 px-4 py-4 dark:border-gray-700">
         <p className="truncate text-center text-xs text-gray-400 dark:text-gray-500">
-          {isExpanded_ ? `Áurea Care ${versionLabel}` : versionLabel}
+          {isExpanded_ ? `VidaSystem ${versionLabel}` : versionLabel}
         </p>
       </div>
     </>

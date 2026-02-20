@@ -89,7 +89,7 @@ export default function DashboardPage() {
           Olá, {appUser?.name?.split(' ')[0]} 👋
         </h1>
         <p className="mt-1 text-gray-500 dark:text-gray-400">
-          Bem-vindo ao {company?.trade_name || 'Áurea Care'}. Aqui está um resumo do seu dia.
+          Bem-vindo ao {company?.trade_name || 'VidaSystem'}. Aqui está um resumo do seu dia.
         </p>
       </div>
 

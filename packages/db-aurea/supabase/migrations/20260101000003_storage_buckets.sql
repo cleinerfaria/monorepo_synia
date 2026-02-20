@@ -1,5 +1,5 @@
 -- =====================================================
--- ÁUREA CARE - Storage Buckets Configuration
+-- VidaSystem - Storage Buckets Configuration
 -- =====================================================
 
 -- Criar bucket para logos das empresas

@@ -1,4 +1,4 @@
-# Áurea Care - Sistema de Gestão Home Care
+# VidaSystem - Sistema de Gestão Home Care
 
 Sistema completo de gestão para empresas de Home Care, com controle de pacientes, profissionais, prescrições, estoque e importação de NFe.
 

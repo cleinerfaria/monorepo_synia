@@ -1,5 +1,5 @@
 -- =====================================================
--- ÁUREA CARE - Client Contact Management
+-- VidaSystem - Client Contact Management
 -- Adiciona tabela de contatos para clientes
 -- =====================================================
 
