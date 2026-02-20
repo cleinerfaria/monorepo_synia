@@ -388,7 +388,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+      if (session?.user && event === 'SIGNED_IN') {
+        setLoading(true);
         const success = await loadUserData(session.user.id);
 
         if (!success) {
