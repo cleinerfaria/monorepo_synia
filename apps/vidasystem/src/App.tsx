@@ -313,7 +313,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         );
 
         if (error) {
-          setAuthError('Erro ao verificar sessão');
+          console.error('[AuthProvider] Session error:', error);
+          // Não bloquear com tela de erro — o onAuthStateChange pode recuperar a sessão
           setLoading(false);
           setInitialized(true);
           return;
@@ -322,20 +323,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
 
         if (session?.user) {
-          const success = await loadUserData(session.user.id);
-
-          if (!success) {
-            setLoading(false);
-            setInitialized(true);
-            return;
-          }
+          await loadUserData(session.user.id);
         }
 
         setLoading(false);
         setInitialized(true);
       } catch (error) {
         console.error('[AuthProvider] Unexpected auth initialization error:', error);
-        setAuthError('Erro inesperado na autenticação');
+        // Não bloquear com tela de erro — permite que onAuthStateChange recupere a sessão
         setLoading(false);
         setInitialized(true);
       }
@@ -365,19 +360,17 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setSession(session);
 
-      if (event === 'SIGNED_IN') {
-        setLoading(true);
-        const success = await loadUserData(session.user.id);
+      // Carregar dados do usuário se:
+      // - SIGNED_IN: login novo
+      // - Qualquer evento onde os dados ainda não foram carregados (fallback de initAuth)
+      const currentState = useAuthStore.getState();
+      const needsDataLoad = event === 'SIGNED_IN' || !currentState.appUser;
 
-        if (!success) {
-          setLoading(false);
-          return;
-        }
+      if (needsDataLoad) {
+        setLoading(true);
+        await loadUserData(session.user.id);
         setLoading(false);
       }
-
-      // Para INITIAL_SESSION, TOKEN_REFRESHED, etc. — não alterar isLoading.
-      // O initAuth() gerencia o estado de loading durante a inicialização.
     });
 
     return () => {
