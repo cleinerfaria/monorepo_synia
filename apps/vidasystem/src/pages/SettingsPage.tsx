@@ -24,15 +24,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import {
-  Building,
-  SwatchBook,
-  Landmark,
-  Layers,
-  Plus,
-  Pencil,
-  Stethoscope,
-} from 'lucide-react';
+import { Building, SwatchBook, Landmark, Layers, Plus, Pencil, Stethoscope } from 'lucide-react';
 import { UF_OPTIONS, fetchAddressFromZip, formatZipInput } from '@/lib/addressZip';
 import {
   type CompanyUnit,
@@ -299,30 +291,33 @@ export default function SettingsPage() {
     setIsUnitModalOpen(true);
   };
 
-  const handleOpenEditUnitModal = useCallback((unit: CompanyUnit) => {
-    const formattedDocument = formatCnpjCpfInput(unit.document || '');
-    const formattedPostalCode = formatZipInput(unit.zip || '');
+  const handleOpenEditUnitModal = useCallback(
+    (unit: CompanyUnit) => {
+      const formattedDocument = formatCnpjCpfInput(unit.document || '');
+      const formattedPostalCode = formatZipInput(unit.zip || '');
 
-    setEditingUnit(unit);
-    unitForm.reset({
-      name: unit.name || '',
-      trade_name: unit.trade_name || '',
-      document: formattedDocument,
-      zip: formattedPostalCode,
-      street: unit.street || '',
-      district: unit.district || '',
-      number: unit.number || '',
-      city: unit.city || '',
-      state: unit.state || '',
-      complement: unit.complement || '',
-      unit_type: unit.unit_type || 'filial',
-      is_active: unit.is_active ?? true,
-    });
-    setDocumentValue(formattedDocument);
-    setPostalCodeValue(formattedPostalCode);
-    setIsZipLookupLoading(false);
-    setIsUnitModalOpen(true);
-  }, [unitForm]);
+      setEditingUnit(unit);
+      unitForm.reset({
+        name: unit.name || '',
+        trade_name: unit.trade_name || '',
+        document: formattedDocument,
+        zip: formattedPostalCode,
+        street: unit.street || '',
+        district: unit.district || '',
+        number: unit.number || '',
+        city: unit.city || '',
+        state: unit.state || '',
+        complement: unit.complement || '',
+        unit_type: unit.unit_type || 'filial',
+        is_active: unit.is_active ?? true,
+      });
+      setDocumentValue(formattedDocument);
+      setPostalCodeValue(formattedPostalCode);
+      setIsZipLookupLoading(false);
+      setIsUnitModalOpen(true);
+    },
+    [unitForm]
+  );
 
   const handlePostalCodeChange = async (value: string) => {
     const formattedZip = formatZipInput(value);
