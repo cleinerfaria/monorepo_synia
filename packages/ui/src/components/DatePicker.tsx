@@ -424,7 +424,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
                             onClick={() => handleDateSelect(day, close)}
                             className={clsx(
                               'relative rounded-lg p-2 text-sm transition-all duration-150',
-                              'focus:ring-primary-500/50 focus:outline-none focus:ring-2',
+                              'focus:ring-primary-500/50 focus:ring-5 focus:outline-none',
                               !isCurrentMonth && 'text-gray-300 dark:text-gray-600',
                               isCurrentMonth &&
                                 !isSelected &&

@@ -1,32 +1,32 @@
-import { Fragment, useState, useEffect, forwardRef, ChangeEvent, FocusEvent } from 'react'
-import { Popover, Transition, Listbox } from '@headlessui/react'
-import { useFloating, autoUpdate, offset, shift, size, FloatingPortal } from '@floating-ui/react'
-import { clsx } from 'clsx'
-import { Clock, ChevronUp, ChevronDown } from 'lucide-react'
-type ChangeHandler = (event: { target: { value: string; name?: string }; type?: string }) => void
+import { Fragment, useState, useEffect, forwardRef, ChangeEvent, FocusEvent } from 'react';
+import { Popover, Transition, Listbox } from '@headlessui/react';
+import { useFloating, autoUpdate, offset, shift, size, FloatingPortal } from '@floating-ui/react';
+import { clsx } from 'clsx';
+import { Clock, ChevronUp, ChevronDown } from 'lucide-react';
+type ChangeHandler = (event: { target: { value: string; name?: string }; type?: string }) => void;
 
 export interface TimePickerProps {
-  label?: string
-  error?: string
-  value?: string
-  defaultValue?: string
+  label?: string;
+  error?: string;
+  value?: string;
+  defaultValue?: string;
   onChange?:
     | ((value: string) => void)
     | ((event: ChangeEvent<HTMLInputElement>) => void)
-    | ChangeHandler
-  onBlur?: (() => void) | ((event: FocusEvent<HTMLInputElement>) => void) | ChangeHandler
-  name?: string
-  required?: boolean
-  disabled?: boolean
-  placeholder?: string
-  className?: string
+    | ChangeHandler;
+  onBlur?: (() => void) | ((event: FocusEvent<HTMLInputElement>) => void) | ChangeHandler;
+  name?: string;
+  required?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
+  className?: string;
 }
 
 // Generate hours (0-23)
-const generateHours = () => Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+const generateHours = () => Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 
 // Generate minutes (0-59, step 1)
-const generateMinutes = () => Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
+const generateMinutes = () => Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
 export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
   (
@@ -45,10 +45,10 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
     },
     ref
   ) => {
-    const [isOpen, setIsOpen] = useState(false)
-    const [displayValue, setDisplayValue] = useState(value || defaultValue || '')
-    const [hours, setHours] = useState(value ? value.split(':')[0] : '00')
-    const [minutes, setMinutes] = useState(value ? value.split(':')[1] : '00')
+    const [isOpen, setIsOpen] = useState(false);
+    const [displayValue, setDisplayValue] = useState(value || defaultValue || '');
+    const [hours, setHours] = useState(value ? value.split(':')[0] : '00');
+    const [minutes, setMinutes] = useState(value ? value.split(':')[1] : '00');
 
     const { refs, floatingStyles } = useFloating({
       open: isOpen,
@@ -60,75 +60,75 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
           apply({ elements }) {
             Object.assign(elements.floating.style, {
               width: 'auto',
-            })
+            });
           },
         }),
       ],
       whileElementsMounted: autoUpdate,
-    })
+    });
 
     useEffect(() => {
       if (value) {
-        const [h, m] = value.split(':')
-        setHours(h || '00')
-        setMinutes(m || '00')
-        setDisplayValue(value)
+        const [h, m] = value.split(':');
+        setHours(h || '00');
+        setMinutes(m || '00');
+        setDisplayValue(value);
       }
-    }, [value])
+    }, [value]);
 
     const handleTimeChange = (newHours: string, newMinutes: string) => {
-      const newTime = `${newHours}:${newMinutes}`
-      setHours(newHours)
-      setMinutes(newMinutes)
-      setDisplayValue(newTime)
+      const newTime = `${newHours}:${newMinutes}`;
+      setHours(newHours);
+      setMinutes(newMinutes);
+      setDisplayValue(newTime);
 
       if (onChange) {
         if (typeof onChange === 'function') {
-          const target = { target: { value: newTime, name } }
-          onChange(target as any)
+          const target = { target: { value: newTime, name } };
+          onChange(target as any);
         }
       }
-    }
+    };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-      let val = e.target.value
+      let val = e.target.value;
 
       // Remove caracteres que não são números
-      val = val.replace(/[^\d]/g, '')
+      val = val.replace(/[^\d]/g, '');
 
       // Aplica máscara HH:MM
       if (val.length >= 2) {
-        val = val.substring(0, 2) + ':' + val.substring(2, 4)
+        val = val.substring(0, 2) + ':' + val.substring(2, 4);
       }
 
       // Limita a 5 caracteres (HH:MM)
-      val = val.substring(0, 5)
+      val = val.substring(0, 5);
 
-      setDisplayValue(val)
+      setDisplayValue(val);
 
       // Validar formato de hora completo (HH:MM)
-      const timeRegex = /^([0-1]?[0-9]|2[0-3]):([0-5]?[0-9])$/
+      const timeRegex = /^([0-1]?[0-9]|2[0-3]):([0-5]?[0-9])$/;
       if (timeRegex.test(val) && val.length === 5) {
-        const [newHours, newMinutes] = val.split(':')
+        const [newHours, newMinutes] = val.split(':');
         // Validar se as horas são válidas (00-23)
-        const hourNum = parseInt(newHours)
-        const minuteNum = parseInt(newMinutes)
+        const hourNum = parseInt(newHours);
+        const minuteNum = parseInt(newMinutes);
 
         if (hourNum >= 0 && hourNum <= 23 && minuteNum >= 0 && minuteNum <= 59) {
-          setHours(newHours.padStart(2, '0'))
-          setMinutes(newMinutes.padStart(2, '0'))
+          setHours(newHours.padStart(2, '0'));
+          setMinutes(newMinutes.padStart(2, '0'));
         }
       }
 
       if (onChange) {
-        const changeHandler = onChange as (event: ChangeEvent<HTMLInputElement>) => void
+        const changeHandler = onChange as (event: ChangeEvent<HTMLInputElement>) => void;
         const syntheticEvent = {
           ...e,
           target: { ...e.target, value: val },
-        }
-        changeHandler(syntheticEvent)
+        };
+        changeHandler(syntheticEvent);
       }
-    }
+    };
 
     const handleBlur = () => {
       if (onBlur) {
@@ -136,10 +136,10 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
         const syntheticEvent = {
           target: { value: displayValue, name: name || '' },
           type: 'blur',
-        }
-        ;(onBlur as ChangeHandler)(syntheticEvent)
+        };
+        (onBlur as ChangeHandler)(syntheticEvent);
       }
-    }
+    };
 
     return (
       <div className={clsx('w-full', className)}>
@@ -161,7 +161,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                   maxLength={5}
                   onChange={handleInputChange}
                   onBlur={() => {
-                    handleBlur()
+                    handleBlur();
                   }}
                   onKeyDown={(e) => {
                     // Permite apenas números, backspace, delete, tab, enter e setas
@@ -174,23 +174,23 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                       'ArrowRight',
                       'ArrowUp',
                       'ArrowDown',
-                    ]
-                    const isNumber = /^[0-9]$/.test(e.key)
+                    ];
+                    const isNumber = /^[0-9]$/.test(e.key);
 
                     if (!allowedKeys.includes(e.key) && !isNumber) {
-                      e.preventDefault()
+                      e.preventDefault();
                     }
 
                     // Impede digitar mais que 4 números
                     if (isNumber && displayValue.replace(/[^\d]/g, '').length >= 4) {
-                      e.preventDefault()
+                      e.preventDefault();
                     }
                   }}
                   className={clsx(
                     'relative w-full rounded-xl border border-gray-300 bg-white px-3 py-1.5 pr-10 text-left text-sm outline-none transition-colors',
-                    'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-                    'focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-0',
-                    'dark:focus-visible:ring-primary-400',
+                    'dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100',
+                    'focus-visible:ring-primary-500/10 focus-visible:ring-2 focus-visible:ring-offset-0',
+                    'dark:focus-visible:ring-primary-500/10',
                     'hover:border-primary-500 dark:hover:border-primary-500',
                     disabled &&
                       'cursor-not-allowed bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400',
@@ -202,11 +202,11 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                   disabled={disabled}
                   tabIndex={-1}
                   onClick={() => {
-                    setIsOpen(!isOpen)
+                    setIsOpen(!isOpen);
                   }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  <Clock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <Clock className="h-5 w-5 text-gray-400 dark:text-gray-400" />
                 </button>
               </div>
 
@@ -246,7 +246,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                                   className={({ active }) =>
                                     clsx(
                                       'cursor-pointer select-none px-3 py-2 text-center font-mono text-sm',
-                                      active && 'bg-primary-500 text-white dark:bg-primary-600',
+                                      active && 'bg-primary-500 dark:bg-primary-600 text-white',
                                       !active && 'text-gray-900 dark:text-gray-100'
                                     )
                                   }
@@ -262,8 +262,8 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                         <button
                           type="button"
                           onClick={() => {
-                            const newHour = String((parseInt(hours) + 1) % 24).padStart(2, '0')
-                            handleTimeChange(newHour, minutes)
+                            const newHour = String((parseInt(hours) + 1) % 24).padStart(2, '0');
+                            handleTimeChange(newHour, minutes);
                           }}
                           className="rounded-md p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
@@ -272,8 +272,11 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                         <button
                           type="button"
                           onClick={() => {
-                            const newHour = String((parseInt(hours) - 1 + 24) % 24).padStart(2, '0')
-                            handleTimeChange(newHour, minutes)
+                            const newHour = String((parseInt(hours) - 1 + 24) % 24).padStart(
+                              2,
+                              '0'
+                            );
+                            handleTimeChange(newHour, minutes);
                           }}
                           className="rounded-md p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
@@ -310,7 +313,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                                   className={({ active }) =>
                                     clsx(
                                       'cursor-pointer select-none px-3 py-2 text-center font-mono text-sm',
-                                      active && 'bg-primary-500 text-white dark:bg-primary-600',
+                                      active && 'bg-primary-500 dark:bg-primary-600 text-white',
                                       !active && 'text-gray-900 dark:text-gray-100'
                                     )
                                   }
@@ -326,8 +329,8 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                         <button
                           type="button"
                           onClick={() => {
-                            const newMinute = String((parseInt(minutes) + 1) % 60).padStart(2, '0')
-                            handleTimeChange(hours, newMinute)
+                            const newMinute = String((parseInt(minutes) + 1) % 60).padStart(2, '0');
+                            handleTimeChange(hours, newMinute);
                           }}
                           className="rounded-md p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
@@ -339,8 +342,8 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                             const newMinute = String((parseInt(minutes) - 1 + 60) % 60).padStart(
                               2,
                               '0'
-                            )
-                            handleTimeChange(hours, newMinute)
+                            );
+                            handleTimeChange(hours, newMinute);
                           }}
                           className="rounded-md p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
@@ -353,7 +356,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="mt-3 w-28 rounded-xl bg-primary-500/90 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700"
+                    className="bg-primary-500/90 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 mt-3 w-28 rounded-xl py-1.5 text-sm font-semibold text-white transition-colors"
                   >
                     Confirmar
                   </button>
@@ -374,8 +377,8 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
           onBlur={handleBlur}
         />
       </div>
-    )
+    );
   }
-)
+);
 
-TimePicker.displayName = 'TimePicker'
+TimePicker.displayName = 'TimePicker';

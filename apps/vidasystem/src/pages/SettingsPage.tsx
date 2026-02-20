@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Card,
   CardHeader,
@@ -12,7 +13,11 @@ import {
   Modal,
   ModalFooter,
   Switch,
+  SwitchNew,
   TabButton,
+  DataTable,
+  EmptyState,
+  IconButton,
 } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuthStore } from '@/stores/authStore';
@@ -20,6 +25,7 @@ import { supabase } from '@/lib/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Building, SwatchBook, Landmark, Layers, Plus, Pencil, Stethoscope } from 'lucide-react';
+import { UF_OPTIONS, fetchAddressFromZip, formatZipInput } from '@/lib/addressZip';
 import {
   type CompanyUnit,
   type CompanyUnitType,
@@ -59,9 +65,9 @@ interface CompanyUnitFormData {
   name: string;
   trade_name: string;
   document: string;
-  postal_code: string;
-  address: string;
-  neiborhood: string;
+  zip: string;
+  street: string;
+  district: string;
   number: string;
   city: string;
   state: string;
@@ -82,9 +88,9 @@ const emptyUnitForm: CompanyUnitFormData = {
   name: '',
   trade_name: '',
   document: '',
-  postal_code: '',
-  address: '',
-  neiborhood: '',
+  zip: '',
+  street: '',
+  district: '',
   number: '',
   city: '',
   state: '',
@@ -113,6 +119,30 @@ const UNIT_TYPE_LABEL: Record<CompanyUnitType, string> = {
 
 const toNull = (value: string) => (value?.trim() ? value.trim() : null);
 
+// Formatação de CNPJ/CPF
+const formatCnpjCpfInput = (value: string): string => {
+  const digits = value.replace(/\D/g, '').slice(0, 14);
+
+  if (digits.length <= 11) {
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    if (digits.length <= 9) {
+      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    }
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  }
+
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 8) {
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  }
+  if (digits.length <= 12) {
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  }
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+};
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('company');
   const [isUploadingCollapsed, setIsUploadingCollapsed] = useState(false);
@@ -121,6 +151,9 @@ export default function SettingsPage() {
   const [editingUnit, setEditingUnit] = useState<CompanyUnit | null>(null);
   const [isPadServiceModalOpen, setIsPadServiceModalOpen] = useState(false);
   const [editingPadService, setEditingPadService] = useState<PadService | null>(null);
+  const [postalCodeValue, setPostalCodeValue] = useState('');
+  const [documentValue, setDocumentValue] = useState('');
+  const [isZipLookupLoading, setIsZipLookupLoading] = useState(false);
   const fileInputCollapsedRef = useRef<HTMLInputElement>(null);
   const fileInputExpandedRef = useRef<HTMLInputElement>(null);
 
@@ -246,37 +279,76 @@ export default function SettingsPage() {
     });
   };
 
-  const handleLinkUnit = (unitId: string) => {
-    if (unitId === company?.company_unit_id) return;
-    updateCompany.mutate({ company_unit_id: unitId });
-  };
-
   const handleOpenCreateUnitModal = () => {
     setEditingUnit(null);
     unitForm.reset({
       ...emptyUnitForm,
       unit_type: hasMatrizUnit ? 'filial' : 'matriz',
     });
+    setDocumentValue('');
+    setPostalCodeValue('');
+    setIsZipLookupLoading(false);
     setIsUnitModalOpen(true);
   };
 
-  const handleOpenEditUnitModal = (unit: CompanyUnit) => {
-    setEditingUnit(unit);
-    unitForm.reset({
-      name: unit.name || '',
-      trade_name: unit.trade_name || '',
-      document: unit.document || '',
-      postal_code: unit.postal_code || '',
-      address: unit.address || '',
-      neiborhood: unit.neiborhood || '',
-      number: unit.number || '',
-      city: unit.city || '',
-      state: unit.state || '',
-      complement: unit.complement || '',
-      unit_type: unit.unit_type || 'filial',
-      is_active: unit.is_active ?? true,
+  const handleOpenEditUnitModal = useCallback(
+    (unit: CompanyUnit) => {
+      const formattedDocument = formatCnpjCpfInput(unit.document || '');
+      const formattedPostalCode = formatZipInput(unit.zip || '');
+
+      setEditingUnit(unit);
+      unitForm.reset({
+        name: unit.name || '',
+        trade_name: unit.trade_name || '',
+        document: formattedDocument,
+        zip: formattedPostalCode,
+        street: unit.street || '',
+        district: unit.district || '',
+        number: unit.number || '',
+        city: unit.city || '',
+        state: unit.state || '',
+        complement: unit.complement || '',
+        unit_type: unit.unit_type || 'filial',
+        is_active: unit.is_active ?? true,
+      });
+      setDocumentValue(formattedDocument);
+      setPostalCodeValue(formattedPostalCode);
+      setIsZipLookupLoading(false);
+      setIsUnitModalOpen(true);
+    },
+    [unitForm]
+  );
+
+  const handlePostalCodeChange = async (value: string) => {
+    const formattedZip = formatZipInput(value);
+    setPostalCodeValue(formattedZip);
+    unitForm.setValue('zip', formattedZip, { shouldDirty: true });
+
+    const digits = formattedZip.replace(/\D/g, '');
+    if (digits.length !== 8) {
+      setIsZipLookupLoading(false);
+      return;
+    }
+
+    setIsZipLookupLoading(true);
+    const zipData = await fetchAddressFromZip(formattedZip);
+    setIsZipLookupLoading(false);
+
+    if (unitForm.watch('zip') !== formattedZip) return;
+    if (!zipData) return;
+
+    const mappedFields: Array<[keyof CompanyUnitFormData, string | undefined]> = [
+      ['street', zipData.logradouro],
+      ['district', zipData.bairro],
+      ['city', zipData.localidade],
+      ['state', zipData.uf],
+      ['complement', zipData.complemento],
+    ];
+
+    mappedFields.forEach(([field, fieldValue]) => {
+      if (!fieldValue) return;
+      unitForm.setValue(field, fieldValue, { shouldDirty: true });
     });
-    setIsUnitModalOpen(true);
   };
 
   const handleCloseUnitModal = () => {
@@ -286,16 +358,21 @@ export default function SettingsPage() {
       ...emptyUnitForm,
       unit_type: hasMatrizUnit ? 'filial' : 'matriz',
     });
+    setDocumentValue('');
+    setPostalCodeValue('');
+    setIsZipLookupLoading(false);
   };
 
   const handleUnitSubmit = async (data: CompanyUnitFormData) => {
+    if (!company?.id) return;
+
     const payload = {
       name: data.name.trim(),
       trade_name: toNull(data.trade_name),
-      document: toNull(data.document),
-      postal_code: toNull(data.postal_code),
-      address: toNull(data.address),
-      neiborhood: toNull(data.neiborhood),
+      document: data.document ? data.document.replace(/\D/g, '') : null,
+      zip: toNull(data.zip),
+      street: toNull(data.street),
+      district: toNull(data.district),
       number: toNull(data.number),
       city: toNull(data.city),
       state: toNull(data.state),
@@ -310,7 +387,7 @@ export default function SettingsPage() {
       return;
     }
 
-    const created = await createUnit.mutateAsync(payload);
+    const created = await createUnit.mutateAsync({ company_id: company.id, ...payload });
     updateCompany.mutate({ company_unit_id: created.id });
     handleCloseUnitModal();
   };
@@ -522,6 +599,73 @@ export default function SettingsPage() {
   const serviceIsActive = padServiceForm.watch('active');
   const unitTypeValue = unitForm.watch('unit_type');
   const isPadServiceSaving = createPadService.isPending || updatePadService.isPending;
+
+  const unitColumns: ColumnDef<CompanyUnit>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'trade_name',
+        header: 'Nome Fantasia',
+        cell: ({ row }) => (
+          <span className="text-gray-900 dark:text-white">{row.original.trade_name || '-'}</span>
+        ),
+      },
+      {
+        accessorKey: 'name',
+        header: 'Razão Social',
+        cell: ({ row }) => (
+          <span className="text-gray-700 dark:text-gray-300">{row.original.name}</span>
+        ),
+      },
+      {
+        accessorKey: 'unit_type',
+        header: 'Tipo',
+        cell: ({ row }) => (
+          <Badge variant={row.original.unit_type === 'matriz' ? 'info' : 'neutral'}>
+            {UNIT_TYPE_LABEL[row.original.unit_type]}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: 'document',
+        header: 'CNPJ',
+        cell: ({ row }) => (
+          <span className="text-gray-700 dark:text-gray-300">{row.original.document || '-'}</span>
+        ),
+      },
+      {
+        accessorKey: 'city',
+        header: 'Localização',
+        cell: ({ row }) => (
+          <span className="text-gray-700 dark:text-gray-300">
+            {row.original.city || '-'}
+            {row.original.state ? `/${row.original.state}` : ''}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'is_active',
+        header: 'Status',
+        cell: ({ row }) => (
+          <Badge variant={row.original.is_active === false ? 'neutral' : 'success'}>
+            {row.original.is_active === false ? 'Inativa' : 'Ativa'}
+          </Badge>
+        ),
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-2">
+            <IconButton onClick={() => handleOpenEditUnitModal(row.original)}>
+              <Pencil className="h-4 w-4" />
+            </IconButton>
+          </div>
+        ),
+      },
+    ],
+    [handleOpenEditUnitModal]
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -741,86 +885,28 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              {isLoadingUnits && (
-                <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                  Carregando unidades...
-                </div>
-              )}
-
-              {!isLoadingUnits && units.length === 0 && (
-                <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                  Nenhuma unidade cadastrada. Clique em "Adicionar Unidade" para começar.
-                </div>
-              )}
-
-              {!isLoadingUnits && units.length > 0 && (
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  {units.map((unit) => {
-                    const isLinked = company?.company_unit_id === unit.id;
-                    return (
-                      <Card
-                        key={unit.id}
-                        className={isLinked ? 'border-primary-500 ring-primary-500 ring-1' : ''}
-                      >
-                        <CardHeader>
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <CardTitle className="text-base">
-                                {unit.trade_name || unit.name}
-                              </CardTitle>
-                              {unit.trade_name && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  {unit.name}
-                                </p>
-                              )}
-                            </div>
-                            <Badge variant={unit.unit_type === 'matriz' ? 'info' : 'neutral'}>
-                              {UNIT_TYPE_LABEL[unit.unit_type]}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
-                            <p>CNPJ: {unit.document || '-'}</p>
-                            <p>
-                              Cidade: {unit.city || '-'}
-                              {unit.state ? `/${unit.state}` : ''}
-                            </p>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-2">
-                            <Badge variant={unit.is_active === false ? 'neutral' : 'success'}>
-                              {unit.is_active === false ? 'Inativa' : 'Ativa'}
-                            </Badge>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                icon={<Pencil className="h-4 w-4" />}
-                                onClick={() => handleOpenEditUnitModal(unit)}
-                              >
-                                Editar
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant={isLinked ? 'neutral' : 'solid'}
-                                onClick={() => handleLinkUnit(unit.id)}
-                                isLoading={updateCompany.isPending && !isLinked}
-                                disabled={isLinked}
-                              >
-                                {isLinked ? 'Vinculada' : 'Vincular'}
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
+            <CardContent className="overflow-x-auto">
+              <DataTable
+                data={units}
+                columns={unitColumns}
+                showPagination={false}
+                isLoading={isLoadingUnits}
+                onRowClick={handleOpenEditUnitModal}
+                emptyState={
+                  <EmptyState
+                    title="Nenhuma unidade cadastrada"
+                    description="Comece cadastrando sua primeira unidade da organização"
+                    action={
+                      <Button
+                        onClick={handleOpenCreateUnitModal}
+                        size="sm"
+                        variant="solid"
+                        label="Cadastrar Unidade"
+                      />
+                    }
+                  />
+                }
+              />
             </CardContent>
           </Card>
         </div>
@@ -991,71 +1077,168 @@ export default function SettingsPage() {
         onClose={handleCloseUnitModal}
         title={editingUnit ? 'Editar Unidade' : 'Adicionar Unidade'}
         size="lg"
+        panelClassName="max-w-[calc(42rem+100px)]"
       >
-        <form onSubmit={unitForm.handleSubmit(handleUnitSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Input
-              label="Razão Social"
-              {...unitForm.register('name', { required: 'Razão social é obrigatória' })}
-              error={unitForm.formState.errors.name?.message}
-              required
-            />
-            <Input label="Nome Fantasia" {...unitForm.register('trade_name')} />
-            <Input label="CNPJ" {...unitForm.register('document')} />
+        <div className="flex min-h-[400px] flex-col">
+          <div className="flex-1 overflow-y-auto pt-4">
+            <form onSubmit={unitForm.handleSubmit(handleUnitSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                <div className="md:col-span-6">
+                  <Input
+                    label="Razão Social"
+                    placeholder="Nome oficial da unidade"
+                    {...unitForm.register('name', { required: 'Razão social é obrigatória' })}
+                    error={unitForm.formState.errors.name?.message}
+                    required
+                  />
+                </div>
+                <div className="md:col-span-6">
+                  <Input
+                    label="Nome Fantasia"
+                    placeholder="Nome comercial"
+                    {...unitForm.register('trade_name', {
+                      required: 'Nome fantasia é obrigatório',
+                    })}
+                    error={unitForm.formState.errors.trade_name?.message}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                <div className="md:col-span-4">
+                  <Input
+                    label="CNPJ"
+                    placeholder="00.000.000/0000-00"
+                    inputMode="numeric"
+                    {...unitForm.register('document')}
+                    value={documentValue}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const formatted = formatCnpjCpfInput(e.target.value);
+                      setDocumentValue(formatted);
+                      unitForm.setValue('document', formatted, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <div className="md:col-span-8">
+                  <Select
+                    label="Tipo da Unidade"
+                    options={UNIT_TYPE_OPTIONS}
+                    value={unitTypeValue}
+                    {...unitForm.register('unit_type', {
+                      required: 'Tipo da unidade é obrigatória',
+                    })}
+                    error={unitForm.formState.errors.unit_type?.message}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                  <div className="relative md:col-span-3">
+                    <Input
+                      label="CEP"
+                      placeholder="00000-000"
+                      inputMode="numeric"
+                      {...unitForm.register('zip')}
+                      value={postalCodeValue}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        void handlePostalCodeChange(e.target.value);
+                      }}
+                    />
+                    {isZipLookupLoading && (
+                      <svg
+                        className="text-primary-500 absolute right-3 top-7 h-4 w-4 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    )}
+                  </div>
+                  <div className="md:col-span-7">
+                    <Input
+                      label="Logradouro"
+                      placeholder="Rua, Avenida, etc."
+                      {...unitForm.register('street')}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Input label="Número" placeholder="123" {...unitForm.register('number')} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(24,minmax(0,1fr))]">
+                  <div className="md:col-span-8">
+                    <Input
+                      label="Complemento"
+                      placeholder="Apto, bloco, sala..."
+                      {...unitForm.register('complement')}
+                    />
+                  </div>
+                  <div className="md:col-span-6">
+                    <Input label="Bairro" placeholder="Bairro" {...unitForm.register('district')} />
+                  </div>
+                  <div className="md:col-span-6">
+                    <Input label="Cidade" placeholder="Cidade" {...unitForm.register('city')} />
+                  </div>
+                  <div className="md:col-span-4">
+                    <Select
+                      label="UF"
+                      options={UF_OPTIONS}
+                      value={unitForm.watch('state')}
+                      {...unitForm.register('state')}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <ModalFooter className="mt-4 !justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
+                <SwitchNew
+                  label={unitTypeValue === 'matriz' ? 'Status da Matriz' : 'Status da Filial'}
+                  showStatus
+                  name={unitActiveName}
+                  ref={unitActiveRef}
+                  onBlur={unitActiveOnBlur}
+                  checked={!!unitIsActive}
+                  onChange={(e) =>
+                    unitForm.setValue('is_active', e.target.checked, { shouldDirty: true })
+                  }
+                />
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="neutral"
+                    showIcon={false}
+                    onClick={handleCloseUnitModal}
+                    label="Cancelar"
+                  />
+                  <Button
+                    type="submit"
+                    showIcon={false}
+                    isLoading={createUnit.isPending || updateUnit.isPending}
+                  >
+                    {editingUnit ? 'Salvar Unidade' : 'Adicionar Unidade'}
+                  </Button>
+                </div>
+              </ModalFooter>
+            </form>
           </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <Input label="CEP" {...unitForm.register('postal_code')} />
-            <Input label="Endereço" {...unitForm.register('address')} />
-            <Input label="Bairro" {...unitForm.register('neiborhood')} />
-            <Input label="Número" {...unitForm.register('number')} />
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Input label="Cidade" {...unitForm.register('city')} />
-            <Input label="Estado" {...unitForm.register('state')} />
-            <Input label="Complemento" {...unitForm.register('complement')} />
-          </div>
-
-          <Select
-            label="Tipo da Unidade"
-            options={UNIT_TYPE_OPTIONS}
-            value={unitTypeValue}
-            {...unitForm.register('unit_type', { required: 'Tipo da unidade é obrigatória' })}
-            error={unitForm.formState.errors.unit_type?.message}
-            required
-          />
-
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <Switch
-              label={unitTypeValue === 'matriz' ? 'Status da Matriz' : 'Status da Filial'}
-              showStatus
-              name={unitActiveName}
-              ref={unitActiveRef}
-              onBlur={unitActiveOnBlur}
-              checked={!!unitIsActive}
-              onChange={(e) =>
-                unitForm.setValue('is_active', e.target.checked, { shouldDirty: true })
-              }
-            />
-            <Badge variant={unitTypeValue === 'matriz' ? 'info' : 'neutral'}>
-              {UNIT_TYPE_LABEL[unitTypeValue || 'filial']}
-            </Badge>
-          </div>
-
-          <ModalFooter>
-            <Button type="button" variant="outline" showIcon={false} onClick={handleCloseUnitModal}>
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              showIcon={false}
-              isLoading={createUnit.isPending || updateUnit.isPending}
-            >
-              {editingUnit ? 'Salvar Unidade' : 'Adicionar Unidade'}
-            </Button>
-          </ModalFooter>
-        </form>
+        </div>
       </Modal>
 
       <Modal
