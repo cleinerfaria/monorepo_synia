@@ -56,7 +56,6 @@ const ReferenceTablesPage = lazy(() => import('@/pages/settings/ReferenceTablesP
 const UsersSettingsPage = lazy(() => import('@/pages/settings/UsersPage'));
 const AccessProfilesPage = lazy(() => import('@/pages/settings/AccessProfilesPage'));
 const LogsPage = lazy(() => import('@/pages/settings/LogsPage'));
-const AdminPage = lazy(() => import('@/pages/admin/AdminPage'));
 const NoAccessPage = lazy(() => import('@/pages/auth/NoAccessPage'));
 const MyShiftsPage = lazy(() => import('@/pages/shift/MyShiftsPage'));
 const ActiveShiftPage = lazy(() => import('@/pages/shift/ActiveShiftPage'));
@@ -83,7 +82,7 @@ function RouteLoader() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, company, appUser, systemUser, hasAnySystemUser } = useAuthStore();
+  const { session, isLoading, company, appUser } = useAuthStore();
   const { isLoading: isLoadingPermissions } = useCurrentUserPermissions();
 
   if (isLoading) {
@@ -109,13 +108,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   // Usuário sem empresa
   if (!company) {
     // Se é system_user, vai para admin
-    if (systemUser) {
-      return <Navigate to="/admin" replace />;
-    }
-    // Se não há system_users cadastrados (bootstrap), vai para admin (onboarding)
-    if (!hasAnySystemUser) {
-      return <Navigate to="/admin" replace />;
-    }
     // Caso contrário, sem acesso
     return <Navigate to="/sem-acesso" replace />;
   }
@@ -130,7 +122,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Rota exclusiva para usuários shift_only
 function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, company, appUser, systemUser, hasAnySystemUser } = useAuthStore();
+  const { session, isLoading, company, appUser } = useAuthStore();
   const { data: userPermissions = [], isLoading: isLoadingPermissions } =
     useCurrentUserPermissions();
   const hasShiftPageAccess = userPermissions.some(
@@ -158,8 +150,6 @@ function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!company) {
-    if (systemUser) return <Navigate to="/admin" replace />;
-    if (!hasAnySystemUser) return <Navigate to="/admin" replace />;
     return <Navigate to="/sem-acesso" replace />;
   }
 
@@ -171,34 +161,8 @@ function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Rota especial para admin - requer system_user ou bootstrap (sem system_users)
-function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, systemUser, hasAnySystemUser } = useAuthStore();
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Loading size="lg" />
-      </div>
-    );
-  }
-
-  if (!session) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Permitir acesso se:
-  // 1. É um system_user (superadmin ou não)
-  // 2. Não há system_users cadastrados (bootstrap/onboarding)
-  if (!systemUser && hasAnySystemUser) {
-    return <Navigate to="/sem-acesso" replace />;
-  }
-
-  return <>{children}</>;
-}
-
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, appUser, company, systemUser, hasAnySystemUser } = useAuthStore();
+  const { session, isLoading, appUser, company } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -209,10 +173,6 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (session) {
-    // Se é system_user ou não há system_users (bootstrap), vai para admin
-    if (!company && (systemUser || !hasAnySystemUser)) {
-      return <Navigate to="/admin" replace />;
-    }
     // Se não tem empresa e não é system_user, sem acesso
     if (!company && !appUser) {
       return <Navigate to="/sem-acesso" replace />;
@@ -289,10 +249,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       );
 
       // Se não tem app_user, permite continuar (system_user ou bootstrap)
-      if (userError || !userData) {
-        if (userError) {
-          console.error('[AuthProvider] app_user query failed:', userError);
-        }
+      if (userError) {
+        throw userError;
+      }
+
+      // Se nao tem app_user, permite continuar (system_user ou bootstrap)
+      if (!userData) {
         setAppUser(null);
         setCompany(null);
         return true;
@@ -311,7 +273,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         'load company'
       );
 
-      if (companyError || !companyData) {
+      if (companyError) {
+        throw companyError;
+      }
+
+      if (!companyData) {
         setCompany(null);
         return true;
       }
@@ -376,10 +342,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
       setAuthError(null);
 
       if (event === 'SIGNED_OUT') {
+        setSession(null);
         setAppUser(null);
         setCompany(null);
         setSystemUser(null);
@@ -388,7 +354,13 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      if (session?.user && event === 'SIGNED_IN') {
+      if (!session) {
+        return;
+      }
+
+      setSession(session);
+
+      if (event === 'SIGNED_IN') {
         setLoading(true);
         const success = await loadUserData(session.user.id);
 
@@ -784,13 +756,7 @@ function App() {
               {/* Administração - Rota separada que permite acesso sem empresa */}
               <Route
                 path="/admin"
-                element={
-                  <AdminRoute>
-                    <Suspense fallback={<RouteLoader />}>
-                      <AdminPage />
-                    </Suspense>
-                  </AdminRoute>
-                }
+                element={<Navigate to="/" replace />}
               />
 
               {/* Meu Plantão - Layout dedicado para shift_only */}
