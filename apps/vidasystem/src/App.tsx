@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -82,8 +82,7 @@ function RouteLoader() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, company, appUser } = useAuthStore();
-  const location = useLocation();
+  const { session, isLoading, appUser } = useAuthStore();
   const { isLoading: isLoadingPermissions } = useCurrentUserPermissions();
 
   if (isLoading) {
@@ -106,14 +105,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Usuário sem empresa
-  if (!company) {
-    if (location.pathname !== '/') {
-      return <Navigate to="/" replace />;
-    }
-    return <>{children}</>;
-  }
-
   // Redirecionamento automático para Meu Plantão apenas para perfil técnico
   if (appUser?.access_profile?.code === 'tecnico') {
     return <Navigate to="/meu-plantao" replace />;
@@ -124,7 +115,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Rota exclusiva para usuários shift_only
 function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, company, appUser } = useAuthStore();
+  const { session, isLoading, appUser } = useAuthStore();
   const { data: userPermissions = [], isLoading: isLoadingPermissions } =
     useCurrentUserPermissions();
   const hasShiftPageAccess = userPermissions.some(
@@ -149,10 +140,6 @@ function ShiftOnlyRoute({ children }: { children: React.ReactNode }) {
         <Loading size="lg" />
       </div>
     );
-  }
-
-  if (!company) {
-    return <Navigate to="/" replace />;
   }
 
   // Qualquer role pode acessar (admins testando, etc), mas shift_only é o principal
@@ -212,84 +199,101 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.reload();
   };
 
-  const loadUserData = async (userId: string): Promise<boolean> => {
-    try {
-      // Fetch system_user data
-      const { data: systemUserData, error: systemUserError } = await withTimeout(
-        supabase.from('system_user').select('*').eq('auth_user_id', userId).maybeSingle(),
-        AUTH_INIT_TIMEOUT_MS,
-        'load system_user'
-      );
+  const loadUserDataOnce = async (userId: string): Promise<boolean> => {
+    // Fetch system_user data
+    const { data: systemUserData, error: systemUserError } = await withTimeout(
+      supabase.from('system_user').select('*').eq('auth_user_id', userId).maybeSingle(),
+      AUTH_INIT_TIMEOUT_MS,
+      'load system_user'
+    );
 
-      if (systemUserError) {
-        throw systemUserError;
-      }
+    if (systemUserError) {
+      throw systemUserError;
+    }
 
-      const { data: countResult } = await withTimeout(
-        supabase.rpc('count_system_users'),
-        AUTH_INIT_TIMEOUT_MS,
-        'count system_user'
-      );
-      const hasAny = (countResult ?? 0) > 0;
+    const { data: countResult } = await withTimeout(
+      supabase.rpc('count_system_users'),
+      AUTH_INIT_TIMEOUT_MS,
+      'count system_user'
+    );
+    const hasAny = (countResult ?? 0) > 0;
 
-      setSystemUser(systemUserData ?? null);
-      useAuthStore.setState({ hasAnySystemUser: hasAny });
+    setSystemUser(systemUserData ?? null);
+    useAuthStore.setState({ hasAnySystemUser: hasAny });
 
-      // Fetch app_user
-      const { data: userData, error: userError } = await withTimeout(
-        supabase
-          .from('app_user')
-          .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
-          .eq('auth_user_id', userId)
-          .maybeSingle(),
-        AUTH_INIT_TIMEOUT_MS,
-        'load app_user'
-      );
+    // Fetch app_user
+    const { data: userData, error: userError } = await withTimeout(
+      supabase
+        .from('app_user')
+        .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
+        .eq('auth_user_id', userId)
+        .maybeSingle(),
+      AUTH_INIT_TIMEOUT_MS,
+      'load app_user'
+    );
 
-      // Se não tem app_user, permite continuar (system_user ou bootstrap)
-      if (userError) {
-        throw userError;
-      }
+    // Se não tem app_user, permite continuar (system_user ou bootstrap)
+    if (userError) {
+      throw userError;
+    }
 
-      // Se nao tem app_user, permite continuar (system_user ou bootstrap)
-      if (!userData) {
-        setAppUser(null);
-        setCompany(null);
-        return true;
-      }
-
-      setAppUser(userData as AppUserWithProfile);
-
-      // Fetch company
-      const { data: companyData, error: companyError } = await withTimeout(
-        supabase
-          .from('company')
-          .select('*')
-          .eq('id', (userData as AppUserWithProfile).company_id)
-          .single(),
-        AUTH_INIT_TIMEOUT_MS,
-        'load company'
-      );
-
-      if (companyError) {
-        throw companyError;
-      }
-
-      if (!companyData) {
-        setCompany(null);
-        return true;
-      }
-
-      setCompany(companyData as Company);
-      return true;
-    } catch (error) {
-      console.error('[AuthProvider] Failed to load user bootstrap data:', error);
-      setSystemUser(null);
-      useAuthStore.setState({ hasAnySystemUser: false });
+    // Se nao tem app_user, permite continuar (system_user ou bootstrap)
+    if (!userData) {
       setAppUser(null);
       setCompany(null);
       return true;
     }
+
+    setAppUser(userData as AppUserWithProfile);
+
+    // Fetch company
+    const { data: companyData, error: companyError } = await withTimeout(
+      supabase
+        .from('company')
+        .select('*')
+        .eq('id', (userData as AppUserWithProfile).company_id)
+        .single(),
+      AUTH_INIT_TIMEOUT_MS,
+      'load company'
+    );
+
+    if (companyError) {
+      throw companyError;
+    }
+
+    if (!companyData) {
+      setCompany(null);
+      return true;
+    }
+
+    setCompany(companyData as Company);
+    return true;
+  };
+
+  const loadUserData = async (userId: string): Promise<boolean> => {
+    const MAX_RETRIES = 1;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        return await loadUserDataOnce(userId);
+      } catch (error) {
+        console.error(
+          `[AuthProvider] Failed to load user data (attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+          error
+        );
+        if (attempt < MAX_RETRIES) {
+          // Aguarda antes de tentar novamente
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          continue;
+        }
+        // Última tentativa falhou — limpar dados e continuar
+        setSystemUser(null);
+        useAuthStore.setState({ hasAnySystemUser: false });
+        setAppUser(null);
+        setCompany(null);
+        return true;
+      }
+    }
+    return true;
   };
 
   useEffect(() => {
@@ -369,9 +373,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
           return;
         }
+        setLoading(false);
       }
 
-      setLoading(false);
+      // Para INITIAL_SESSION, TOKEN_REFRESHED, etc. — não alterar isLoading.
+      // O initAuth() gerencia o estado de loading durante a inicialização.
     });
 
     return () => {
