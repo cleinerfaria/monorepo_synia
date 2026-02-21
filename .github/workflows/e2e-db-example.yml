@@ -26,55 +26,55 @@ jobs:
       - name: Prepare VidaSystem DB
         env:
           APP_ENV: dev
-          VIDASYSTEM_DB_URL: ${{ secrets.VIDASYSTEM_DB_URL }}
-          VIDASYSTEM_SUPABASE_URL: ${{ secrets.VIDASYSTEM_SUPABASE_URL }}
-          VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY }}
-          VIDASYSTEM_E2E_ADMIN_EMAIL: ${{ secrets.VIDASYSTEM_E2E_ADMIN_EMAIL }}
-          VIDASYSTEM_E2E_ADMIN_PASSWORD: ${{ secrets.VIDASYSTEM_E2E_ADMIN_PASSWORD }}
+          VIDASYSTEM_DB_URL: ${{ secrets['VIDASYSTEM_DB_URL'] }}
+          VIDASYSTEM_SUPABASE_URL: ${{ secrets['VIDASYSTEM_SUPABASE_URL'] }}
+          VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets['VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY'] }}
+          VIDASYSTEM_E2E_ADMIN_EMAIL: ${{ secrets['VIDASYSTEM_E2E_ADMIN_EMAIL'] }}
+          VIDASYSTEM_E2E_ADMIN_PASSWORD: ${{ secrets['VIDASYSTEM_E2E_ADMIN_PASSWORD'] }}
         run: npm run db:prepare:test:vidasystem
 
       - name: Run VidaSystem E2E
         env:
           APP_ENV: dev
-          VIDASYSTEM_DB_URL: ${{ secrets.VIDASYSTEM_DB_URL }}
-          VIDASYSTEM_SUPABASE_URL: ${{ secrets.VIDASYSTEM_SUPABASE_URL }}
-          VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY }}
-          VIDASYSTEM_E2E_ADMIN_EMAIL: ${{ secrets.VIDASYSTEM_E2E_ADMIN_EMAIL }}
-          VIDASYSTEM_E2E_ADMIN_PASSWORD: ${{ secrets.VIDASYSTEM_E2E_ADMIN_PASSWORD }}
+          VIDASYSTEM_DB_URL: ${{ secrets['VIDASYSTEM_DB_URL'] }}
+          VIDASYSTEM_SUPABASE_URL: ${{ secrets['VIDASYSTEM_SUPABASE_URL'] }}
+          VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets['VIDASYSTEM_SUPABASE_SERVICE_ROLE_KEY'] }}
+          VIDASYSTEM_E2E_ADMIN_EMAIL: ${{ secrets['VIDASYSTEM_E2E_ADMIN_EMAIL'] }}
+          VIDASYSTEM_E2E_ADMIN_PASSWORD: ${{ secrets['VIDASYSTEM_E2E_ADMIN_PASSWORD'] }}
         run: npm run test:e2e -w vidasystem
 
       - name: Cleanup VidaSystem DB
         if: always()
         env:
           APP_ENV: dev
-          VIDASYSTEM_DB_URL: ${{ secrets.VIDASYSTEM_DB_URL }}
+          VIDASYSTEM_DB_URL: ${{ secrets['VIDASYSTEM_DB_URL'] }}
         run: npm run db:reset:vidasystem
 
       - name: Prepare White Label DB
         env:
           APP_ENV: dev
-          WHITELABEL_DB_URL: ${{ secrets.WHITELABEL_DB_URL }}
-          WHITELABEL_SUPABASE_URL: ${{ secrets.WHITELABEL_SUPABASE_URL }}
-          WHITELABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.WHITELABEL_SUPABASE_SERVICE_ROLE_KEY }}
-          WHITELABEL_E2E_ADMIN_EMAIL: ${{ secrets.WHITELABEL_E2E_ADMIN_EMAIL }}
-          WHITELABEL_E2E_ADMIN_PASSWORD: ${{ secrets.WHITELABEL_E2E_ADMIN_PASSWORD }}
-          TEST_USER_EMAIL: ${{ secrets.WHITELABEL_E2E_ADMIN_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.WHITELABEL_E2E_ADMIN_PASSWORD }}
+          WHITELABEL_DB_URL: ${{ secrets['WHITELABEL_DB_URL'] }}
+          WHITELABEL_SUPABASE_URL: ${{ secrets['WHITELABEL_SUPABASE_URL'] }}
+          WHITELABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets['WHITELABEL_SUPABASE_SERVICE_ROLE_KEY'] }}
+          WHITELABEL_E2E_ADMIN_EMAIL: ${{ secrets['WHITELABEL_E2E_ADMIN_EMAIL'] }}
+          WHITELABEL_E2E_ADMIN_PASSWORD: ${{ secrets['WHITELABEL_E2E_ADMIN_PASSWORD'] }}
+          TEST_USER_EMAIL: ${{ secrets['WHITELABEL_E2E_ADMIN_EMAIL'] }}
+          TEST_USER_PASSWORD: ${{ secrets['WHITELABEL_E2E_ADMIN_PASSWORD'] }}
         run: npm run db:prepare:test:whitelabel
 
       - name: Run White Label E2E
         env:
           APP_ENV: dev
-          WHITELABEL_DB_URL: ${{ secrets.WHITELABEL_DB_URL }}
-          WHITELABEL_SUPABASE_URL: ${{ secrets.WHITELABEL_SUPABASE_URL }}
-          WHITELABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.WHITELABEL_SUPABASE_SERVICE_ROLE_KEY }}
-          TEST_USER_EMAIL: ${{ secrets.WHITELABEL_E2E_ADMIN_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.WHITELABEL_E2E_ADMIN_PASSWORD }}
+          WHITELABEL_DB_URL: ${{ secrets['WHITELABEL_DB_URL'] }}
+          WHITELABEL_SUPABASE_URL: ${{ secrets['WHITELABEL_SUPABASE_URL'] }}
+          WHITELABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets['WHITELABEL_SUPABASE_SERVICE_ROLE_KEY'] }}
+          TEST_USER_EMAIL: ${{ secrets['WHITELABEL_E2E_ADMIN_EMAIL'] }}
+          TEST_USER_PASSWORD: ${{ secrets['WHITELABEL_E2E_ADMIN_PASSWORD'] }}
         run: npm run test:e2e -w whitelabel
 
       - name: Cleanup White Label DB
         if: always()
         env:
           APP_ENV: dev
-          WHITELABEL_DB_URL: ${{ secrets.WHITELABEL_DB_URL }}
+          WHITELABEL_DB_URL: ${{ secrets['WHITELABEL_DB_URL'] }}
         run: npm run db:reset:whitelabel
