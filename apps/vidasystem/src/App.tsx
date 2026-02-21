@@ -174,9 +174,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authError, setAuthError] = useState<string | null>(null);
   const initRef = useRef(false);
   const QUERY_TIMEOUT_MS = 10000; // Timeout for individual Supabase queries
-  const INIT_FALLBACK_TIMEOUT_MS = 30000; // Fallback if onAuthStateChange never fires
 
-  const withTimeout = async <T,>(promiseLike: PromiseLike<T>, timeoutMs: number, context: string) => {
+  const withTimeout = async <T,>(
+    promiseLike: PromiseLike<T>,
+    timeoutMs: number,
+    context: string
+  ) => {
     const promise = Promise.resolve(promiseLike);
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
@@ -208,11 +211,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         QUERY_TIMEOUT_MS,
         'load system_user'
       ),
-      withTimeout(
-        supabase.rpc('count_system_users'),
-        QUERY_TIMEOUT_MS,
-        'count system_user'
-      ),
+      withTimeout(supabase.rpc('count_system_users'), QUERY_TIMEOUT_MS, 'count system_user'),
       withTimeout(
         supabase
           .from('app_user')
@@ -305,16 +304,46 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     if (initRef.current) return;
     initRef.current = true;
 
-    // CRITICAL: Supabase auth-js v2 awaits onAuthStateChange callbacks inside
-    // _notifyAllSubscribers (line 2014 of GoTrueClient.js). Meanwhile, every
-    // Supabase REST call internally calls getSession() which does
-    // "await this.initializePromise" — waiting for _initialize() to finish.
-    // But _initialize() is waiting for _notifyAllSubscribers() to finish,
-    // which is waiting for OUR callback. This creates a DEADLOCK.
-    //
-    // Solution: never await Supabase REST calls inside this callback.
-    // Use setTimeout(0) to defer data loading to the next event loop tick,
-    // AFTER _initialize() has finished and released the lock.
+    // getSession() para inicialização: funciona em dev (StrictMode) e prod
+    const initAuth = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await withTimeout(
+          supabase.auth.getSession(),
+          QUERY_TIMEOUT_MS,
+          'getSession at startup'
+        );
+
+        if (error) {
+          console.error('[AuthProvider] Session error:', error);
+          setLoading(false);
+          setInitialized(true);
+          return;
+        }
+
+        setSession(session);
+
+        if (session?.user) {
+          await loadUserData(session.user.id);
+        }
+
+        setLoading(false);
+        setInitialized(true);
+      } catch (error) {
+        console.error('[AuthProvider] Unexpected auth initialization error:', error);
+        setLoading(false);
+        setInitialized(true);
+      }
+    };
+
+    initAuth();
+
+    // onAuthStateChange para eventos subsequentes (login, logout, refresh token)
+    // CRITICAL: Supabase auth-js v2 awaits callbacks inside _notifyAllSubscribers.
+    // REST calls inside the callback call getSession() which waits for _initialize(),
+    // creating a DEADLOCK. Use setTimeout(0) to defer REST calls to the next tick.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -327,11 +356,15 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         setSystemUser(null);
         useAuthStore.setState({ hasAnySystemUser: false });
         setLoading(false);
-        setInitialized(true);
         return;
       }
 
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+      if (event === 'INITIAL_SESSION') {
+        // Já tratado por initAuth — ignorar para evitar duplicação
+        return;
+      }
+
+      if (event === 'SIGNED_IN') {
         setSession(session);
 
         if (session?.user) {
@@ -340,40 +373,18 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           setTimeout(async () => {
             await loadUserData(session.user.id);
             setLoading(false);
-            setInitialized(true);
           }, 0);
-        } else {
-          // No session — user is not logged in
-          setAppUser(null);
-          setCompany(null);
-          setSystemUser(null);
-          useAuthStore.setState({ hasAnySystemUser: false });
-          setLoading(false);
-          setInitialized(true);
         }
         return;
       }
 
       if (event === 'TOKEN_REFRESHED' && session) {
-        // Just update the session, don't reload user data
         setSession(session);
       }
     });
 
-    // Fallback: if onAuthStateChange never fires (e.g. network issue),
-    // unblock the UI after timeout so user can at least see the login page
-    const fallbackTimeout = setTimeout(() => {
-      const state = useAuthStore.getState();
-      if (!state.isInitialized) {
-        console.warn('[AuthProvider] Fallback timeout — unblocking UI without session');
-        setLoading(false);
-        setInitialized(true);
-      }
-    }, INIT_FALLBACK_TIMEOUT_MS);
-
     return () => {
       subscription.unsubscribe();
-      clearTimeout(fallbackTimeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -753,10 +764,7 @@ function App() {
               />
 
               {/* Administração - Rota separada que permite acesso sem empresa */}
-              <Route
-                path="/admin"
-                element={<Navigate to="/" replace />}
-              />
+              <Route path="/admin" element={<Navigate to="/" replace />} />
 
               {/* Meu Plantão - Layout dedicado para shift_only */}
               <Route
