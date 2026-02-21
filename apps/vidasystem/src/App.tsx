@@ -173,7 +173,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const initRef = useRef(false);
-  const AUTH_INIT_TIMEOUT_MS = 15000;
+  const AUTH_INIT_TIMEOUT_MS = 45000; // Increased from 15s to 45s to account for connection pool delays
 
   const withTimeout = async <T,>(promiseLike: PromiseLike<T>, timeoutMs: number, context: string) => {
     const promise = Promise.resolve(promiseLike);
@@ -200,42 +200,44 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loadUserDataOnce = async (userId: string): Promise<boolean> => {
-    // Fetch system_user data
-    const { data: systemUserData, error: systemUserError } = await withTimeout(
-      supabase.from('system_user').select('*').eq('auth_user_id', userId).maybeSingle(),
-      AUTH_INIT_TIMEOUT_MS,
-      'load system_user'
-    );
+    // Parallelize independent queries: system_user and app_user can load simultaneously
+    const [systemUserResult, countResult, appUserResult] = await Promise.all([
+      withTimeout(
+        supabase.from('system_user').select('*').eq('auth_user_id', userId).maybeSingle(),
+        AUTH_INIT_TIMEOUT_MS,
+        'load system_user'
+      ),
+      withTimeout(
+        supabase.rpc('count_system_users'),
+        AUTH_INIT_TIMEOUT_MS,
+        'count system_user'
+      ),
+      withTimeout(
+        supabase
+          .from('app_user')
+          .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
+          .eq('auth_user_id', userId)
+          .maybeSingle(),
+        AUTH_INIT_TIMEOUT_MS,
+        'load app_user'
+      ),
+    ]);
+
+    const { data: systemUserData, error: systemUserError } = systemUserResult;
+    const { data: countData } = countResult;
+    const { data: userData, error: userError } = appUserResult;
 
     if (systemUserError) {
       throw systemUserError;
     }
 
-    const { data: countResult } = await withTimeout(
-      supabase.rpc('count_system_users'),
-      AUTH_INIT_TIMEOUT_MS,
-      'count system_user'
-    );
-    const hasAny = (countResult ?? 0) > 0;
-
-    setSystemUser(systemUserData ?? null);
-    useAuthStore.setState({ hasAnySystemUser: hasAny });
-
-    // Fetch app_user
-    const { data: userData, error: userError } = await withTimeout(
-      supabase
-        .from('app_user')
-        .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
-        .eq('auth_user_id', userId)
-        .maybeSingle(),
-      AUTH_INIT_TIMEOUT_MS,
-      'load app_user'
-    );
-
-    // Se não tem app_user, permite continuar (system_user ou bootstrap)
     if (userError) {
       throw userError;
     }
+
+    const hasAny = (countData ?? 0) > 0;
+    setSystemUser(systemUserData ?? null);
+    useAuthStore.setState({ hasAnySystemUser: hasAny });
 
     // Se nao tem app_user, permite continuar (system_user ou bootstrap)
     if (!userData) {
@@ -246,7 +248,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setAppUser(userData as AppUserWithProfile);
 
-    // Fetch company
+    // Fetch company (depends on app_user, so must be sequential)
     const { data: companyData, error: companyError } = await withTimeout(
       supabase
         .from('company')
@@ -281,8 +283,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           error
         );
         if (attempt < MAX_RETRIES) {
-          // Aguarda antes de tentar novamente
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          // Aguarda antes de tentar novamente (exponential backoff: 2s, 4s, etc)
+          const delayMs = 2000 * Math.pow(2, attempt);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
           continue;
         }
         // Última tentativa falhou — limpar dados e continuar

@@ -66,7 +66,7 @@ export interface UserPermission {
   permission_name: string;
 }
 
-const PERMISSIONS_TIMEOUT_MS = 10000;
+const PERMISSIONS_TIMEOUT_MS = 30000; // Increased from 10s to 30s to account for connection pool delays
 
 async function withTimeout<T>(promiseLike: PromiseLike<T>, timeoutMs: number, context: string) {
   const promise = Promise.resolve(promiseLike);
@@ -333,11 +333,12 @@ export function useDeleteAccessProfile() {
 
 // Buscar permissões do usuário atual
 export function useCurrentUserPermissions() {
-  const { user, session, isLoading: isAuthLoading } = useAuthStore();
+  const { user, session, isLoading: isAuthLoading, isInitialized } = useAuthStore();
 
   return useQuery({
     queryKey: ['user_permissions', user?.id],
-    enabled: !isAuthLoading && !!session?.user?.id,
+    // Only enable after auth is fully initialized to avoid blocking initial render
+    enabled: isInitialized && !isAuthLoading && !!session?.user?.id,
     queryFn: async () => {
       if (!user) return [];
 
@@ -357,7 +358,8 @@ export function useCurrentUserPermissions() {
         return [];
       }
     },
-    retry: false,
+    retry: 1,
+    staleTime: 1000 * 60 * 10, // Cache for 10 minutes
   });
 }
 
