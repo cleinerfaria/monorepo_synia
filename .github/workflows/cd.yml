@@ -153,7 +153,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "🔗 Linking White Label project: ${WL_SUPABASE_PROJECT_REF}"
-          supabase link --project-ref "${WL_SUPABASE_PROJECT_REF}" --password "${WL_SUPABASE_DB_PASSWORD}" --workdir packages/db-white-label --debug
+          supabase link --project-ref "${WL_SUPABASE_PROJECT_REF}" --password "${WL_SUPABASE_DB_PASSWORD}" --workdir packages/db-whitelabel --debug
           echo "✅ White Label project linked successfully"
 
       - name: Apply White Label migrations
@@ -164,7 +164,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "🚀 Applying White Label migrations..."
-          supabase db push --workdir packages/db-white-label --include-all --debug
+          supabase db push --workdir packages/db-whitelabel --include-all --debug
           echo "✅ White Label migrations applied successfully"
 
       - name: Verify White Label migrations
@@ -175,7 +175,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "🔍 Verifying White Label migrations status..."
-          supabase migration list --workdir packages/db-white-label
+          supabase migration list --workdir packages/db-whitelabel
 
       - name: Deployment Summary
         shell: bash

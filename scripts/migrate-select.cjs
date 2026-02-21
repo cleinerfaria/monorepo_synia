@@ -12,10 +12,10 @@ const PROJECTS = [
     script: 'db:migrate:vidasystem',
   },
   {
-    aliases: ['2', 'white-label', 'white_label', 'wl'],
+    aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
     label: 'White Label',
-    workspace: '@synia/db-white-label',
-    script: 'db:migrate:white-label',
+    workspace: '@synia/db-whitelabel',
+    script: 'db:migrate:whitelabel',
   },
 ];
 

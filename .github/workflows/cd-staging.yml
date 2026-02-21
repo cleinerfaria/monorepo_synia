@@ -113,8 +113,8 @@ jobs:
           echo "🚀 Deploying White Label to Staging..."
           echo "Project: ${WL_SUPABASE_PROJECT_REF}"
 
-          supabase link --project-ref "${WL_SUPABASE_PROJECT_REF}" --password "${WL_SUPABASE_DB_PASSWORD}" --workdir packages/db-white-label --debug
-          supabase db push --workdir packages/db-white-label --include-all --debug
+          supabase link --project-ref "${WL_SUPABASE_PROJECT_REF}" --password "${WL_SUPABASE_DB_PASSWORD}" --workdir packages/db-whitelabel --debug
+          supabase db push --workdir packages/db-whitelabel --include-all --debug
 
           echo "✅ White Label staging deployment completed"
 
@@ -132,6 +132,6 @@ jobs:
           supabase migration list --workdir packages/db-vidasystem
 
           echo "White Label migrations status:"
-          supabase migration list --workdir packages/db-white-label
+          supabase migration list --workdir packages/db-whitelabel
 
           echo "🎉 Staging deployment verified successfully!"

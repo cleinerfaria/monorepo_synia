@@ -14,10 +14,10 @@ const PROJECTS = [
     packageJsonPath: join(__dirname, '..', 'apps', 'vidasystem', 'package.json'),
   },
   {
-    aliases: ['2', 'white-label', 'white_label', 'wl'],
+    aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
     label: 'White Label',
-    workspace: 'white_label',
-    packageJsonPath: join(__dirname, '..', 'apps', 'white-label', 'package.json'),
+    workspace: 'whitelabel',
+    packageJsonPath: join(__dirname, '..', 'apps', 'whitelabel', 'package.json'),
   },
 ];
 
@@ -229,5 +229,5 @@ function showHelp() {
   stdout.write('- npm run precommit:check [-- <projeto|all>]\n');
   stdout.write('- npm run test:e2e [-- <projeto>] [-- <args-do-script>]\n');
   stdout.write('- npm run run:project -- <script> [<projeto>] [-- <args-do-script>]\n');
-  stdout.write('Projetos: vidasystem | white-label | all (somente precommit:check)\n');
+  stdout.write('Projetos: vidasystem | whitelabel | all (somente precommit:check)\n');
 }

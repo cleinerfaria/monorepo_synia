@@ -12,9 +12,9 @@ const PROJECTS = [
     dir: join(__dirname, '..', 'apps', 'vidasystem'),
   },
   {
-    aliases: ['2', 'white-label', 'white_label', 'wl'],
+    aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
     label: 'White Label',
-    dir: join(__dirname, '..', 'apps', 'white-label'),
+    dir: join(__dirname, '..', 'apps', 'whitelabel'),
   },
 ];
 
@@ -65,9 +65,13 @@ function runRelease(project) {
   stdout.write(`\nIniciando release para ${project.label}...\n\n`);
   const bumpScriptPath = join(__dirname, 'bump-version.cjs');
 
-  const child = spawn(execPath, [bumpScriptPath, `--target-dir=${project.dir}`, `--project-name=${project.label}`], {
-    stdio: 'inherit',
-  });
+  const child = spawn(
+    execPath,
+    [bumpScriptPath, `--target-dir=${project.dir}`, `--project-name=${project.label}`],
+    {
+      stdio: 'inherit',
+    }
+  );
 
   child.on('exit', (code, signal) => {
     if (signal) {
@@ -91,6 +95,6 @@ function showHelp() {
   stdout.write('Uso:\n');
   stdout.write('- npm run release\n');
   stdout.write('- npm run release vidasystem\n');
-  stdout.write('- npm run release white-label\n');
-  stdout.write('Projetos: vidasystem | white-label | white_label | wl\n');
+  stdout.write('- npm run release whitelabel\n');
+  stdout.write('Projetos: vidasystem | whitelabel | whitelabel | wl\n');
 }

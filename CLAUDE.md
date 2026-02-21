@@ -27,12 +27,12 @@ Se qualquer regra não puder ser cumprida, **não executar mudanças**.
 
 - Cada projeto tem suas migrations isoladas:
   - **VidaSystem**: `packages/db-vidasystem/supabase/migrations/` (fonte da verdade)
-  - **White Label**: `packages/db-white-label/supabase/migrations/` (fonte da verdade)
+  - **White Label**: `packages/db-whitelabel/supabase/migrations/` (fonte da verdade)
 - **Usar SEMPRE scripts npm** para aplicar migrations:
   - `npm run db:migrate:vidasystem` — aplica migrations do VidaSystem no banco correto
-  - `npm run db:migrate:white-label` — aplica migrations do White Label no banco correto
+  - `npm run db:migrate:whitelabel` — aplica migrations do White Label no banco correto
   - `npm run db:reset:vidasystem` — reseta banco do VidaSystem (destrutivo)
-  - `npm run db:reset:white-label` — reseta banco do White Label (destrutivo)
+  - `npm run db:reset:whitelabel` — reseta banco do White Label (destrutivo)
 - Os scripts usam `--workdir` e `--db-url` internamente, garantindo isolamento entre projetos
 
 ## Arquivos de Regras (carregar sob demanda)

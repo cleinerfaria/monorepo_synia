@@ -14,10 +14,10 @@ const PROJECTS = [
     packageJsonPath: join(__dirname, '..', 'apps', 'vidasystem', 'package.json'),
   },
   {
-    aliases: ['2', 'white-label', 'white_label', 'wl'],
+    aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
     label: 'White Label',
-    workspace: 'white_label',
-    packageJsonPath: join(__dirname, '..', 'apps', 'white-label', 'package.json'),
+    workspace: 'whitelabel',
+    packageJsonPath: join(__dirname, '..', 'apps', 'whitelabel', 'package.json'),
   },
   {
     aliases: ['3', 'ambos', 'all'],
@@ -153,5 +153,5 @@ function parseRemainingArgs(args) {
 function showHelp() {
   stdout.write('Uso:\n');
   stdout.write('- npm run test [-- <projeto>]\n');
-  stdout.write('Projetos: vidasystem | white-label | ambos\n');
+  stdout.write('Projetos: vidasystem | whitelabel | ambos\n');
 }

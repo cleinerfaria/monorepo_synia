@@ -3,7 +3,7 @@
   "build": {
     "builder": "DOCKERFILE",
     "dockerfilePath": "../../Dockerfile",
-    "buildArgs": { "APP_NAME": "white-label" }
+    "buildArgs": { "APP_NAME": "whitelabel" }
   },
   "deploy": {
     "healthcheckPath": "/",

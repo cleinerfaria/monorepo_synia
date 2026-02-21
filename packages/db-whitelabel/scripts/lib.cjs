@@ -1,10 +1,10 @@
-﻿// Load environment variables from app .env.local first, then from root .env.local
+// Load environment variables from app .env.local first, then from root .env.local
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 
-// Tentar carregar de apps/white-label/.env.local primeiro
-const appEnvPath = path.resolve(__dirname, '../../../apps/white-label/.env.local');
+// Tentar carregar de apps/whitelabel/.env.local primeiro
+const appEnvPath = path.resolve(__dirname, '../../../apps/whitelabel/.env.local');
 if (fs.existsSync(appEnvPath)) {
   require('dotenv').config({ path: appEnvPath });
 } else {
@@ -12,7 +12,7 @@ if (fs.existsSync(appEnvPath)) {
   require('dotenv').config({ path: path.resolve(__dirname, '../../../.env.local') });
 }
 
-const PROJECT = 'white-label';
+const PROJECT = 'whitelabel';
 const DB_URL_ENV = 'DB_URL';
 const SUPABASE_URL_ENV = 'VITE_SUPABASE_URL';
 const SERVICE_ROLE_ENV = 'SUPABASE_SERVICE_ROLE_KEY';

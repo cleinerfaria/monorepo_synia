@@ -7,10 +7,10 @@ RUN npm ci
 
 RUN if [ "$APP_NAME" = "vidasystem" ]; then \
       npm run build -w vidasystem; \
-    elif [ "$APP_NAME" = "white-label" ]; then \
-      npm run build -w white_label; \
+    elif [ "$APP_NAME" = "whitelabel" ]; then \
+      npm run build -w whitelabel; \
     else \
-      echo "APP_NAME inválido: $APP_NAME (use: vidasystem ou white-label)" && exit 1; \
+      echo "APP_NAME inválido: $APP_NAME (use: vidasystem ou whitelabel)" && exit 1; \
     fi
 
 FROM node:20-alpine AS runtime

@@ -1,4 +1,4 @@
-﻿# E2E DB Setup
+# E2E DB Setup
 
 ## Local run
 
@@ -7,7 +7,7 @@
 3. Run vidasystem E2E:
    - `npm run test:e2e -w vidasystem`
 4. Run White Label E2E:
-   - `npm run test:e2e -w white_label`
+   - `npm run test:e2e -w whitelabel`
 
 ## Manual DB commands
 
@@ -17,7 +17,7 @@
   - `npm run db:seed:dev:vidasystem`
   - `npm run db:prepare:test:vidasystem`
 - White Label:
-  - `npm run db:reset:white-label`
-  - `npm run db:migrate:white-label`
-  - `npm run db:seed:dev:white-label`
-  - `npm run db:prepare:test:white-label`
+  - `npm run db:reset:whitelabel`
+  - `npm run db:migrate:whitelabel`
+  - `npm run db:seed:dev:whitelabel`
+  - `npm run db:prepare:test:whitelabel`

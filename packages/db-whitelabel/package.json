@@ -1,11 +1,11 @@
-﻿{
-  "name": "@synia/db-white-label",
+{
+  "name": "@synia/db-whitelabel",
   "private": true,
   "version": "0.1.0",
   "type": "commonjs",
   "scripts": {
-    "lint": "echo \"@synia/db-white-label: no lint step configured\"",
-    "build": "echo \"@synia/db-white-label: no build step configured\"",
+    "lint": "echo \"@synia/db-whitelabel: no lint step configured\"",
+    "build": "echo \"@synia/db-whitelabel: no build step configured\"",
     "test:run": "true",
     "db:reset": "node scripts/db-reset.cjs",
     "db:migrate": "node scripts/db-migrate.cjs",

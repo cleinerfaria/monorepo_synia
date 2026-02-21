@@ -57,7 +57,7 @@ Copie o arquivo de exemplo para cada app:
 cp apps/vidasystem/.env.local.example apps/vidasystem/.env.local
 
 # White Label
-cp apps/white-label/.env.local.example apps/white-label/.env.local
+cp apps/whitelabel/.env.local.example apps/whitelabel/.env.local
 ```
 
 **Importante:** Não comite `.env.local` no git (já está em `.gitignore`).
@@ -216,19 +216,19 @@ E2E_ADMIN_PASSWORD=Vida123
 ```bash
 # Migrations (aplica novas mudanças no schema)
 npm run db:migrate:vidasystem
-npm run db:migrate:white-label
+npm run db:migrate:whitelabel
 
 # Reset (apaga tudo e recria - ⚠️ DESTRUTIVO)
 npm run db:reset:vidasystem
-npm run db:reset:white-label
+npm run db:reset:whitelabel
 
 # Seed (popula com dados de exemplo)
 npm run db:seed:dev:vidasystem
-npm run db:seed:dev:white-label
+npm run db:seed:dev:whitelabel
 
 # Preparar banco para testes
 npm run db:prepare:test:vidasystem
-npm run db:prepare:test:white-label
+npm run db:prepare:test:whitelabel
 ```
 
 ### Desenvolvimento e Testes

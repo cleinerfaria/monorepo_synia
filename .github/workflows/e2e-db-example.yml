@@ -53,28 +53,28 @@ jobs:
       - name: Prepare White Label DB
         env:
           APP_ENV: dev
-          WHITE_LABEL_DB_URL: ${{ secrets.WHITE_LABEL_DB_URL }}
-          WHITE_LABEL_SUPABASE_URL: ${{ secrets.WHITE_LABEL_SUPABASE_URL }}
-          WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY }}
-          WHITE_LABEL_E2E_ADMIN_EMAIL: ${{ secrets.WHITE_LABEL_E2E_ADMIN_EMAIL }}
-          WHITE_LABEL_E2E_ADMIN_PASSWORD: ${{ secrets.WHITE_LABEL_E2E_ADMIN_PASSWORD }}
-          TEST_USER_EMAIL: ${{ secrets.WHITE_LABEL_E2E_ADMIN_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.WHITE_LABEL_E2E_ADMIN_PASSWORD }}
-        run: npm run db:prepare:test:white-label
+          WHITELABEL_DB_URL: ${{ secrets.WHITELABEL_DB_URL }}
+          WHITELABEL_SUPABASE_URL: ${{ secrets.WHITELABEL_SUPABASE_URL }}
+          WHITELABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.WHITELABEL_SUPABASE_SERVICE_ROLE_KEY }}
+          WHITELABEL_E2E_ADMIN_EMAIL: ${{ secrets.WHITELABEL_E2E_ADMIN_EMAIL }}
+          WHITELABEL_E2E_ADMIN_PASSWORD: ${{ secrets.WHITELABEL_E2E_ADMIN_PASSWORD }}
+          TEST_USER_EMAIL: ${{ secrets.WHITELABEL_E2E_ADMIN_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.WHITELABEL_E2E_ADMIN_PASSWORD }}
+        run: npm run db:prepare:test:whitelabel
 
       - name: Run White Label E2E
         env:
           APP_ENV: dev
-          WHITE_LABEL_DB_URL: ${{ secrets.WHITE_LABEL_DB_URL }}
-          WHITE_LABEL_SUPABASE_URL: ${{ secrets.WHITE_LABEL_SUPABASE_URL }}
-          WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.WHITE_LABEL_SUPABASE_SERVICE_ROLE_KEY }}
-          TEST_USER_EMAIL: ${{ secrets.WHITE_LABEL_E2E_ADMIN_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.WHITE_LABEL_E2E_ADMIN_PASSWORD }}
-        run: npm run test:e2e -w white_label
+          WHITELABEL_DB_URL: ${{ secrets.WHITELABEL_DB_URL }}
+          WHITELABEL_SUPABASE_URL: ${{ secrets.WHITELABEL_SUPABASE_URL }}
+          WHITELABEL_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.WHITELABEL_SUPABASE_SERVICE_ROLE_KEY }}
+          TEST_USER_EMAIL: ${{ secrets.WHITELABEL_E2E_ADMIN_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.WHITELABEL_E2E_ADMIN_PASSWORD }}
+        run: npm run test:e2e -w whitelabel
 
       - name: Cleanup White Label DB
         if: always()
         env:
           APP_ENV: dev
-          WHITE_LABEL_DB_URL: ${{ secrets.WHITE_LABEL_DB_URL }}
-        run: npm run db:reset:white-label
+          WHITELABEL_DB_URL: ${{ secrets.WHITELABEL_DB_URL }}
+        run: npm run db:reset:whitelabel

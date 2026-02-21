@@ -1,5 +1,5 @@
 {
-  "name": "white_label",
+  "name": "whitelabel",
   "private": true,
   "version": "2.1.4",
   "type": "module",
@@ -23,10 +23,10 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "db:reset": "node ../../packages/db-white-label/scripts/db-reset.cjs",
-    "db:migrate": "node ../../packages/db-white-label/scripts/db-migrate.cjs",
-    "db:seed:dev": "node ../../packages/db-white-label/scripts/db-seed-dev.cjs",
-    "db:prepare:test": "node ../../packages/db-white-label/scripts/db-prepare-test.cjs",
+    "db:reset": "node ../../packages/db-whitelabel/scripts/db-reset.cjs",
+    "db:migrate": "node ../../packages/db-whitelabel/scripts/db-migrate.cjs",
+    "db:seed:dev": "node ../../packages/db-whitelabel/scripts/db-seed-dev.cjs",
+    "db:prepare:test": "node ../../packages/db-whitelabel/scripts/db-prepare-test.cjs",
     "test:db:create-user": "node ../../scripts/create-test-user.cjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"

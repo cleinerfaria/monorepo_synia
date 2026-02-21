@@ -1,4 +1,4 @@
-﻿import { execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
 export default async function globalTeardown(): Promise<void> {
@@ -9,7 +9,7 @@ export default async function globalTeardown(): Promise<void> {
   };
 
   // execFileSync('npm', ['run', 'db:reset'], {
-  //   cwd: path.resolve(repoRoot, 'apps/white-label'),
+  //   cwd: path.resolve(repoRoot, 'apps/whitelabel'),
   //   stdio: 'inherit',
   //   env,
   //   timeout: 300_000,

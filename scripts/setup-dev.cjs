@@ -10,14 +10,14 @@
  * 4. Exibe informações úteis para desenvolvimento
  *
  * Uso:
- *   node scripts/setup-dev.cjs [vidasystem|white-label|all]
+ *   node scripts/setup-dev.cjs [vidasystem|whitelabel|all]
  */
 
 const { execSync, spawn } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 
-const PROJECTS = ['vidasystem', 'white-label'];
+const PROJECTS = ['vidasystem', 'whitelabel'];
 const DEFAULT_PROJECT = 'vidasystem';
 const SUPABASE_API_PORT = 54321;
 const SUPABASE_DB_PORT = 54322;
@@ -169,7 +169,7 @@ function displaySetupInfo() {
   log('\nPróximos passos:', 'bright');
   log(`  1. Verifique/atualize o .env.local da sua app:`, 'dim');
   log(`     cp apps/vidasystem/.env.example apps/vidasystem/.env.local`, 'dim');
-  log(`     (ou white-label/.env.local)`, 'dim');
+  log(`     (ou whitelabel/.env.local)`, 'dim');
 
   log(`\n  2. Inicie o desenvolvimento:`, 'dim');
   log(`     npm run dev:vidasystem`, 'dim');
@@ -198,8 +198,8 @@ async function main() {
         ? PROJECTS
         : projectArg === 'vidasystem'
           ? ['vidasystem']
-          : projectArg === 'white-label'
-            ? ['white-label']
+          : projectArg === 'whitelabel'
+            ? ['whitelabel']
             : (() => {
                 throw new Error(`Projeto inválido: ${projectArg}`);
               })();

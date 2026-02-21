@@ -36,17 +36,17 @@ BEGIN
   
   SELECT id INTO v_admin_auth_id
   FROM auth.users
-  WHERE email = 'e2e.admin@white-label.local'
+  WHERE email = 'e2e.admin@whitelabel.local'
   LIMIT 1;
 
   SELECT id INTO v_manager_auth_id
   FROM auth.users
-  WHERE email = 'e2e.manager@white-label.local'
+  WHERE email = 'e2e.manager@whitelabel.local'
   LIMIT 1;
 
   SELECT id INTO v_user_auth_id
   FROM auth.users
-  WHERE email = 'e2e.user@white-label.local'
+  WHERE email = 'e2e.user@whitelabel.local'
   LIMIT 1;
 
   IF v_admin_auth_id IS NULL OR v_manager_auth_id IS NULL OR v_user_auth_id IS NULL THEN
@@ -86,7 +86,7 @@ BEGIN
     v_admin_auth_id,
     true,
     'E2E Admin White Label',
-    'e2e.admin@white-label.local'
+    'e2e.admin@whitelabel.local'
   )
   ON CONFLICT (auth_user_id) DO UPDATE SET
     is_superadmin = EXCLUDED.is_superadmin,
@@ -100,9 +100,9 @@ BEGIN
     company_id, auth_user_id, name, email, active, access_profile_id
   )
   VALUES
-    (v_company_id, v_admin_auth_id, 'E2E Admin White Label', 'e2e.admin@white-label.local', true, v_admin_profile_id),
-    (v_company_id, v_manager_auth_id, 'E2E Manager White Label', 'e2e.manager@white-label.local', true, v_manager_profile_id),
-    (v_company_id, v_user_auth_id, 'E2E User White Label', 'e2e.user@white-label.local', true, v_user_profile_id)
+    (v_company_id, v_admin_auth_id, 'E2E Admin White Label', 'e2e.admin@whitelabel.local', true, v_admin_profile_id),
+    (v_company_id, v_manager_auth_id, 'E2E Manager White Label', 'e2e.manager@whitelabel.local', true, v_manager_profile_id),
+    (v_company_id, v_user_auth_id, 'E2E User White Label', 'e2e.user@whitelabel.local', true, v_user_profile_id)
   ON CONFLICT (auth_user_id, company_id) DO UPDATE SET
     name = EXCLUDED.name,
     email = EXCLUDED.email,

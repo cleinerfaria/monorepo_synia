@@ -9,7 +9,7 @@
  * 3. Executa npm run db:seed:dev:<project>
  *
  * Uso:
- *   npm run setup [-- vidasystem|white-label]
+ *   npm run setup [-- vidasystem|whitelabel]
  *   npm run setup (abre menu interativo)
  */
 
@@ -25,9 +25,9 @@ const PROJECTS = [
     key: 'vidasystem',
   },
   {
-    aliases: ['2', 'white-label', 'white_label', 'wl'],
+    aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
     label: 'White Label',
-    key: 'white-label',
+    key: 'whitelabel',
   },
 ];
 
@@ -38,7 +38,7 @@ const projectArg = loweredArgs[0]?.replace(/^--/, '');
 if (projectArg) {
   const selected = PROJECTS.find((project) => project.aliases.includes(projectArg));
   if (!selected) {
-    console.error(`❌ Projeto inválido: ${projectArg}\nUse: vidasystem ou white-label`);
+    console.error(`❌ Projeto inválido: ${projectArg}\nUse: vidasystem ou whitelabel`);
     process.exit(1);
   }
   runSetup(selected);

@@ -13,7 +13,7 @@ seeds/
 ### 1️⃣ Migrations (Estrutura)
 
 ```bash
-npm run db:reset:white-label
+npm run db:reset:whitelabel
 ```
 
 Executa:
@@ -25,15 +25,15 @@ Executa:
 ### 2️⃣ Auth Users + App Users + System User
 
 ```bash
-npm run db:seed:dev:white-label
+npm run db:seed:dev:whitelabel
 ```
 
 **Fluxo:**
 
 1. **lib.cjs** → Cria auth users via API Supabase
-   - e2e.admin@white-label.local
-   - e2e.manager@white-label.local
-   - e2e.user@white-label.local
+   - e2e.admin@whitelabel.local
+   - e2e.manager@whitelabel.local
+   - e2e.user@whitelabel.local
 
 2. **seeds/app-users.sql** → Vincula ao banco (executado via psql)
    - Insere system_user (1x - o admin)
@@ -43,20 +43,20 @@ npm run db:seed:dev:white-label
 
 ### System User (1)
 
-- `e2e.admin@white-label.local` (is_superadmin=true)
+- `e2e.admin@whitelabel.local` (is_superadmin=true)
 
 ### App Users (3)
 
-- `e2e.admin@white-label.local` (access_profile: admin)
-- `e2e.manager@white-label.local` (access_profile: manager)
-- `e2e.user@white-label.local` (access_profile: user)
+- `e2e.admin@whitelabel.local` (access_profile: admin)
+- `e2e.manager@whitelabel.local` (access_profile: manager)
+- `e2e.user@whitelabel.local` (access_profile: user)
 
 ## ��� Credenciais Padrão
 
 ```
-e2e.admin@white-label.local / Vida123
-e2e.manager@white-label.local / Vida123
-e2e.user@white-label.local / Vida123
+e2e.admin@whitelabel.local / Vida123
+e2e.manager@whitelabel.local / Vida123
+e2e.user@whitelabel.local / Vida123
 ```
 
 Customize via `.env.local`:
@@ -68,12 +68,12 @@ Customize via `.env.local`:
 ## ��� Fluxo Rápido
 
 ```bash
-npm run setup -- white-label
+npm run setup -- whitelabel
 
 # Internamente executa:
-# 1. npm run db:reset:white-label
+# 1. npm run db:reset:whitelabel
 #    → migrations + access_profiles
-# 2. npm run db:seed:dev:white-label
+# 2. npm run db:seed:dev:whitelabel
 #    → cria auth users + executa app-users.sql
 ```
 

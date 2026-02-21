@@ -5,7 +5,7 @@ Monorepo com apps e pacotes compartilhados.
 ## Estrutura
 
 - `apps/vidasystem` (`vidasystem`)
-- `apps/white-label` (`white_label`)
+- `apps/whitelabel` (`whitelabel`)
 - `packages/ui` (`@synia/ui`)
 - `packages/config` (`@synia/config`)
 
