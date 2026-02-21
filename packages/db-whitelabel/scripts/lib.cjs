@@ -239,7 +239,7 @@ async function dbMigrate() {
   });
 }
 
-async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, name }) {
+async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, name, seedRole }) {
   const usersResponse = await requestJson(
     `${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1000`,
     {
@@ -261,6 +261,7 @@ async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, na
         email_confirm: true,
         user_metadata: {
           name,
+          seed_role: seedRole,
         },
       },
     });
@@ -277,6 +278,7 @@ async function ensureAuthUser({ supabaseUrl, serviceRoleKey, email, password, na
       email_confirm: true,
       user_metadata: {
         name,
+        seed_role: seedRole,
       },
     },
   });
@@ -382,6 +384,8 @@ async function seedWhiteLabelDev() {
   const companyDocument = '22.222.222/0001-22';
 
   // Ler credenciais do .env.local
+  const systemAdminEmail = requireEnv('E2E_SYSTEM_ADMIN_EMAIL');
+  const systemAdminPassword = requireEnv('E2E_SYSTEM_ADMIN_PASSWORD');
   const adminEmail = requireEnv('E2E_ADMIN_EMAIL');
   const adminPassword = requireEnv('E2E_ADMIN_PASSWORD');
   const managerEmail = requireEnv('E2E_MANAGER_EMAIL');
@@ -389,15 +393,24 @@ async function seedWhiteLabelDev() {
   const userEmail = requireEnv('E2E_USER_EMAIL');
   const userPassword = requireEnv('E2E_USER_PASSWORD');
 
-  // Criar os 3 usuários auth via API
+  // Criar os 4 usuários auth via API
   process.stdout.write('\n🔐 Criando auth users...\n');
-  const [adminId, managerId, userId] = await Promise.all([
+  const [systemAdminId, adminId, managerId, userId] = await Promise.all([
+    ensureAuthUser({
+      supabaseUrl,
+      serviceRoleKey,
+      email: systemAdminEmail,
+      password: systemAdminPassword,
+      name: 'E2E System Admin whitelabel',
+      seedRole: 'system_admin',
+    }),
     ensureAuthUser({
       supabaseUrl,
       serviceRoleKey,
       email: adminEmail,
       password: adminPassword,
       name: 'E2E Admin whitelabel',
+      seedRole: 'admin',
     }),
     ensureAuthUser({
       supabaseUrl,
@@ -405,6 +418,7 @@ async function seedWhiteLabelDev() {
       email: managerEmail,
       password: managerPassword,
       name: 'E2E Manager whitelabel',
+      seedRole: 'manager',
     }),
     ensureAuthUser({
       supabaseUrl,
@@ -412,6 +426,7 @@ async function seedWhiteLabelDev() {
       email: userEmail,
       password: userPassword,
       name: 'E2E User whitelabel',
+      seedRole: 'user',
     }),
   ]);
   process.stdout.write('✅ Auth users criados\n');
@@ -456,7 +471,7 @@ async function seedWhiteLabelDev() {
   }
   process.stdout.write('✅ Access profiles encontrados\n');
 
-  // Criar system_user (admin é superadmin)
+  // Criar system_user (E2E_SYSTEM_ADMIN é superadmin)
   process.stdout.write('\n📝 Criando system_user...\n');
   await upsertRows({
     supabaseUrl,
@@ -464,10 +479,10 @@ async function seedWhiteLabelDev() {
     table: 'system_user',
     rows: [
       {
-        auth_user_id: adminId,
+        auth_user_id: systemAdminId,
         is_superadmin: true,
-        name: 'E2E Admin whitelabel',
-        email: adminEmail,
+        name: 'E2E System Admin whitelabel',
+        email: systemAdminEmail,
       },
     ],
     onConflict: 'auth_user_id',
@@ -481,6 +496,14 @@ async function seedWhiteLabelDev() {
     serviceRoleKey,
     table: 'app_user',
     rows: [
+      {
+        company_id: company.id,
+        auth_user_id: systemAdminId,
+        name: 'E2E System Admin whitelabel',
+        email: systemAdminEmail,
+        active: true,
+        access_profile_id: adminProfile.id,
+      },
       {
         company_id: company.id,
         auth_user_id: adminId,
@@ -511,6 +534,7 @@ async function seedWhiteLabelDev() {
   process.stdout.write('✅ app_users criados\n');
 
   process.stdout.write('\n✨ whitelabel dev seed aplicado com sucesso!\n');
+  process.stdout.write(`  - System Admin: ${systemAdminEmail}\n`);
   process.stdout.write(`  - Admin: ${adminEmail}\n`);
   process.stdout.write(`  - Manager: ${managerEmail}\n`);
   process.stdout.write(`  - User: ${userEmail}\n`);
