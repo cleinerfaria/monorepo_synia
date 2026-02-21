@@ -152,10 +152,12 @@ export default function PatientsPage() {
       },
       {
         accessorKey: 'cpf',
-        header: () => <span className="block w-full">CPF</span>,
+        header: () => <span className="block w-full min-w-[105px]">CPF</span>,
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="text-gray-700 dark:text-gray-300">{formatCPF(row.original.cpf)}</div>
+          <div className="min-w-[100px] text-gray-700 dark:text-gray-300">
+            {formatCPF(row.original.cpf)}
+          </div>
         ),
       },
       {
