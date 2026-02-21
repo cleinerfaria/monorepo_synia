@@ -1,10 +1,9 @@
-﻿const { dbReset, dbMigrate, seedWhiteLabelDev, ensureDevEnv } = require('./lib.cjs');
+const { dbReset, dbMigrate, ensureDevEnv } = require('./lib.cjs');
 
 async function run() {
   ensureDevEnv();
-  dbReset();
-  dbMigrate();
-  await seedWhiteLabelDev();
+  await dbReset();
+  await dbMigrate();
   process.stdout.write('whitelabel db:prepare:test complete.\n');
 }
 

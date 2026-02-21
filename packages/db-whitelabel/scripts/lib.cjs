@@ -16,7 +16,10 @@ const PROJECT = 'whitelabel';
 const DB_URL_ENV = 'DB_URL';
 const SUPABASE_URL_ENV = 'VITE_SUPABASE_URL';
 const SERVICE_ROLE_ENV = 'SUPABASE_SERVICE_ROLE_KEY';
+const SUPABASE_ACCESS_TOKEN_ENV = 'SUPABASE_ACCESS_TOKEN';
+const PROJECT_REF_ENV = 'WHITELABEL_SUPABASE_PROJECT_REF';
 const APP_DIR = path.resolve(__dirname, '..');
+const FUNCTIONS_DIR = path.resolve(APP_DIR, 'supabase/functions');
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -107,11 +110,126 @@ function getSupabaseConfig() {
   };
 }
 
-async function dbReset() {
+function extractProjectRefFromSupabaseUrl(supabaseUrl) {
+  try {
+    const hostname = new URL(supabaseUrl).hostname.toLowerCase();
+    const match = hostname.match(/^([a-z0-9]{20})\.supabase\.co$/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractProjectRefFromDbUrl(dbUrl) {
+  try {
+    const parsed = new URL(dbUrl);
+    const username = decodeURIComponent(parsed.username || '').toLowerCase();
+    const usernameMatch = username.match(/^postgres\.([a-z0-9]{20})$/);
+    if (usernameMatch) {
+      return usernameMatch[1];
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+    const hostMatch = hostname.match(/^db\.([a-z0-9]{20})\.supabase\.co$/);
+    return hostMatch ? hostMatch[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveProjectRef() {
+  const explicitProjectRef = (process.env[PROJECT_REF_ENV] || '').trim().toLowerCase();
+  if (explicitProjectRef) {
+    return explicitProjectRef;
+  }
+
+  const dbUrl = process.env[DB_URL_ENV];
+  const fromDbUrl = dbUrl ? extractProjectRefFromDbUrl(dbUrl) : null;
+  if (fromDbUrl) {
+    return fromDbUrl;
+  }
+
+  const supabaseUrl = process.env[SUPABASE_URL_ENV];
+  const fromSupabaseUrl = supabaseUrl ? extractProjectRefFromSupabaseUrl(supabaseUrl) : null;
+  if (fromSupabaseUrl) {
+    return fromSupabaseUrl;
+  }
+
+  throw new Error(
+    `Missing project ref for functions deploy. Set ${PROJECT_REF_ENV} or provide ${DB_URL_ENV}/${SUPABASE_URL_ENV} with a valid Supabase project ref.`
+  );
+}
+
+function hasSupabaseAccessToken() {
+  return Boolean((process.env[SUPABASE_ACCESS_TOKEN_ENV] || '').trim());
+}
+
+async function runSqlSeed() {
   const dbUrl = getDbUrl();
-  await run('supabase', ['db', 'reset', '--db-url', dbUrl, '--no-seed', '--workdir', APP_DIR], {
-    timeout: 180_000,
-  });
+  await run(
+    'supabase',
+    ['db', 'push', '--db-url', dbUrl, '--include-seed', '--workdir', APP_DIR, '--yes'],
+    {
+      timeout: 180_000,
+    }
+  );
+}
+
+function listFunctions() {
+  if (!fs.existsSync(FUNCTIONS_DIR)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(FUNCTIONS_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+}
+
+async function deployWhiteLabelFunctions() {
+  if (!hasSupabaseAccessToken()) {
+    process.stdout.write(
+      `\n⚠️  Skipping white label edge functions deploy: missing ${SUPABASE_ACCESS_TOKEN_ENV}. Add it to apps/whitelabel/.env.local to enable deploy.\n`
+    );
+    return;
+  }
+
+  const functions = listFunctions();
+  if (!functions.length) {
+    process.stdout.write('\n⚠️  No white label edge functions found to deploy.\n');
+    return;
+  }
+
+  const projectRef = resolveProjectRef();
+  process.stdout.write(`\n🚀 Deploying white label edge functions (${functions.join(', ')})...\n`);
+  for (const fnName of functions) {
+    const args = ['functions', 'deploy', fnName, '--project-ref', projectRef, '--workdir', APP_DIR];
+
+    if (fnName === 'manage-user') {
+      args.push('--no-verify-jwt');
+    }
+
+    await run('supabase', args, {
+      timeout: 180_000,
+    });
+  }
+  process.stdout.write('✅ white label edge functions deployed\n');
+}
+
+async function dbReset() {
+  ensureDevEnv();
+  const dbUrl = getDbUrl();
+  await run(
+    'supabase',
+    ['db', 'reset', '--db-url', dbUrl, '--workdir', APP_DIR, '--yes', '--no-seed'],
+    {
+      timeout: 180_000,
+    }
+  );
+  await seedWhiteLabelDev();
+  await runSqlSeed();
+  await deployWhiteLabelFunctions();
 }
 
 async function dbMigrate() {
@@ -196,6 +314,67 @@ async function upsertRows({ supabaseUrl, serviceRoleKey, table, rows, onConflict
   );
 }
 
+async function ensureDefaultAccessProfiles({ supabaseUrl, serviceRoleKey, companyId }) {
+  await requestJson(`${supabaseUrl}/rest/v1/rpc/create_default_access_profiles_for_company`, {
+    method: 'POST',
+    headers: postgrestHeaders(serviceRoleKey, 'return=representation'),
+    body: { company_uuid: companyId },
+  });
+}
+
+async function getAccessProfilesByCompany({ supabaseUrl, serviceRoleKey, companyId }) {
+  const [adminProfile, managerProfile, userProfile] = await Promise.all([
+    getSingleRow({
+      supabaseUrl,
+      serviceRoleKey,
+      path: `access_profile?select=id&company_id=eq.${companyId}&code=eq.admin&limit=1`,
+    }),
+    getSingleRow({
+      supabaseUrl,
+      serviceRoleKey,
+      path: `access_profile?select=id&company_id=eq.${companyId}&code=eq.manager&limit=1`,
+    }),
+    getSingleRow({
+      supabaseUrl,
+      serviceRoleKey,
+      path: `access_profile?select=id&company_id=eq.${companyId}&code=eq.user&limit=1`,
+    }),
+  ]);
+
+  return { adminProfile, managerProfile, userProfile };
+}
+
+async function ensureWhiteLabelCompany({ supabaseUrl, serviceRoleKey, document }) {
+  const existingCompany = await getSingleRow({
+    supabaseUrl,
+    serviceRoleKey,
+    path: `company?select=id,document&document=eq.${encodeURIComponent(document)}&limit=1`,
+  });
+
+  if (existingCompany?.id) {
+    return existingCompany;
+  }
+
+  const createdRows = await requestJson(`${supabaseUrl}/rest/v1/company`, {
+    method: 'POST',
+    headers: postgrestHeaders(serviceRoleKey, 'return=representation'),
+    body: [
+      {
+        name: 'White Label Dev',
+        trade_name: 'White Label Dev',
+        document,
+      },
+    ],
+  });
+
+  const createdCompany = Array.isArray(createdRows) ? createdRows[0] || null : createdRows;
+  if (!createdCompany?.id) {
+    throw new Error('Could not create whitelabel company for dev seed');
+  }
+
+  return createdCompany;
+}
+
 async function seedWhiteLabelDev() {
   ensureDevEnv();
 
@@ -237,12 +416,12 @@ async function seedWhiteLabelDev() {
   ]);
   process.stdout.write('✅ Auth users criados\n');
 
-  // Buscar company
-  process.stdout.write('\n🔍 Buscando empresa...\n');
-  const company = await getSingleRow({
+  // Garantir company base para criar os app users
+  process.stdout.write('\n🔍 Buscando/criando empresa...\n');
+  const company = await ensureWhiteLabelCompany({
     supabaseUrl,
     serviceRoleKey,
-    path: `company?select=id,document&document=eq.${encodeURIComponent(companyDocument)}&limit=1`,
+    document: companyDocument,
   });
 
   if (!company?.id) {
@@ -252,26 +431,28 @@ async function seedWhiteLabelDev() {
 
   // Buscar access_profiles
   process.stdout.write('\n🔍 Buscando access_profiles...\n');
-  const [adminProfile, managerProfile, userProfile] = await Promise.all([
-    getSingleRow({
-      supabaseUrl,
-      serviceRoleKey,
-      path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.admin&limit=1`,
-    }),
-    getSingleRow({
-      supabaseUrl,
-      serviceRoleKey,
-      path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.manager&limit=1`,
-    }),
-    getSingleRow({
-      supabaseUrl,
-      serviceRoleKey,
-      path: `access_profile?select=id&company_id=eq.${company.id}&code=eq.user&limit=1`,
-    }),
-  ]);
+  let { adminProfile, managerProfile, userProfile } = await getAccessProfilesByCompany({
+    supabaseUrl,
+    serviceRoleKey,
+    companyId: company.id,
+  });
 
   if (!adminProfile?.id || !managerProfile?.id || !userProfile?.id) {
-    throw new Error('Could not resolve whitelabel access profiles for dev seed');
+    await ensureDefaultAccessProfiles({
+      supabaseUrl,
+      serviceRoleKey,
+      companyId: company.id,
+    });
+
+    ({ adminProfile, managerProfile, userProfile } = await getAccessProfilesByCompany({
+      supabaseUrl,
+      serviceRoleKey,
+      companyId: company.id,
+    }));
+
+    if (!adminProfile?.id || !managerProfile?.id || !userProfile?.id) {
+      throw new Error('Could not resolve whitelabel access profiles for dev seed');
+    }
   }
   process.stdout.write('✅ Access profiles encontrados\n');
 
