@@ -173,7 +173,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const initRef = useRef(false);
-  const AUTH_INIT_TIMEOUT_MS = 45000; // Increased from 15s to 45s to account for connection pool delays
+  const QUERY_TIMEOUT_MS = 10000; // Timeout for individual Supabase queries
+  const INIT_FALLBACK_TIMEOUT_MS = 30000; // Fallback if onAuthStateChange never fires
 
   const withTimeout = async <T,>(promiseLike: PromiseLike<T>, timeoutMs: number, context: string) => {
     const promise = Promise.resolve(promiseLike);
@@ -204,12 +205,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     const [systemUserResult, countResult, appUserResult] = await Promise.all([
       withTimeout(
         supabase.from('system_user').select('*').eq('auth_user_id', userId).maybeSingle(),
-        AUTH_INIT_TIMEOUT_MS,
+        QUERY_TIMEOUT_MS,
         'load system_user'
       ),
       withTimeout(
         supabase.rpc('count_system_users'),
-        AUTH_INIT_TIMEOUT_MS,
+        QUERY_TIMEOUT_MS,
         'count system_user'
       ),
       withTimeout(
@@ -218,7 +219,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           .select('*, access_profile:access_profile_id(id, code, name, is_admin)')
           .eq('auth_user_id', userId)
           .maybeSingle(),
-        AUTH_INIT_TIMEOUT_MS,
+        QUERY_TIMEOUT_MS,
         'load app_user'
       ),
     ]);
@@ -255,7 +256,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         .select('*')
         .eq('id', (userData as AppUserWithProfile).company_id)
         .single(),
-      AUTH_INIT_TIMEOUT_MS,
+      QUERY_TIMEOUT_MS,
       'load company'
     );
 
@@ -304,44 +305,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     if (initRef.current) return;
     initRef.current = true;
 
-    const initAuth = async () => {
-      try {
-        const {
-          data: { session },
-          error,
-        } = await withTimeout(
-          supabase.auth.getSession(),
-          AUTH_INIT_TIMEOUT_MS,
-          'getSession at startup'
-        );
-
-        if (error) {
-          console.error('[AuthProvider] Session error:', error);
-          // Não bloquear com tela de erro — o onAuthStateChange pode recuperar a sessão
-          setLoading(false);
-          setInitialized(true);
-          return;
-        }
-
-        setSession(session);
-
-        if (session?.user) {
-          await loadUserData(session.user.id);
-        }
-
-        setLoading(false);
-        setInitialized(true);
-      } catch (error) {
-        console.error('[AuthProvider] Unexpected auth initialization error:', error);
-        // Não bloquear com tela de erro — permite que onAuthStateChange recupere a sessão
-        setLoading(false);
-        setInitialized(true);
-      }
-    };
-
-    initAuth();
-
-    // Listen for auth changes
+    // Use ONLY onAuthStateChange — avoid getSession() which competes for
+    // the same navigator.lock as _initialize(), causing deadlock-like delays
+    // on page refresh. The INITIAL_SESSION event fires once _initialize()
+    // completes, giving us the session without lock contention.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -354,30 +321,52 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         setSystemUser(null);
         useAuthStore.setState({ hasAnySystemUser: false });
         setLoading(false);
+        setInitialized(true);
         return;
       }
 
-      if (!session) {
-        return;
-      }
+      // INITIAL_SESSION: fired once when Supabase finishes restoring the session
+      // SIGNED_IN: fired on new login
+      // TOKEN_REFRESHED: token was refreshed, session is still valid
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+        setSession(session);
 
-      setSession(session);
+        if (session?.user) {
+          setLoading(true);
+          await loadUserData(session.user.id);
+        } else {
+          // No session — user is not logged in
+          setAppUser(null);
+          setCompany(null);
+          setSystemUser(null);
+          useAuthStore.setState({ hasAnySystemUser: false });
+        }
 
-      // Carregar dados do usuário se:
-      // - SIGNED_IN: login novo
-      // - Qualquer evento onde os dados ainda não foram carregados (fallback de initAuth)
-      const currentState = useAuthStore.getState();
-      const needsDataLoad = event === 'SIGNED_IN' || !currentState.appUser;
-
-      if (needsDataLoad) {
-        setLoading(true);
-        await loadUserData(session.user.id);
         setLoading(false);
+        setInitialized(true);
+        return;
+      }
+
+      if (event === 'TOKEN_REFRESHED' && session) {
+        // Just update the session, don't reload user data
+        setSession(session);
       }
     });
 
+    // Fallback: if onAuthStateChange never fires (e.g. network issue),
+    // unblock the UI after timeout so user can at least see the login page
+    const fallbackTimeout = setTimeout(() => {
+      const state = useAuthStore.getState();
+      if (!state.isInitialized) {
+        console.warn('[AuthProvider] Fallback timeout — unblocking UI without session');
+        setLoading(false);
+        setInitialized(true);
+      }
+    }, INIT_FALLBACK_TIMEOUT_MS);
+
     return () => {
       subscription.unsubscribe();
+      clearTimeout(fallbackTimeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
