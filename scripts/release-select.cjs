@@ -13,7 +13,7 @@ const PROJECTS = [
   },
   {
     aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
-    label: 'White Label',
+    label: 'whitelabel',
     dir: join(__dirname, '..', 'apps', 'whitelabel'),
   },
 ];
@@ -54,7 +54,7 @@ function askProject() {
 
     const selected = PROJECTS.find((project) => project.aliases.includes(normalized));
     if (!selected) {
-      stderrAndExit('Opção inválida. Use 1 para VidaSystem ou 2 para White Label.');
+      stderrAndExit('Opção inválida. Use 1 para VidaSystem ou 2 para whitelabel.');
     }
 
     runRelease(selected);

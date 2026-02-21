@@ -15,13 +15,13 @@ const PROJECTS = [
   },
   {
     aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
-    label: 'White Label',
+    label: 'whitelabel',
     workspace: 'whitelabel',
     packageJsonPath: join(__dirname, '..', 'apps', 'whitelabel', 'package.json'),
   },
   {
     aliases: ['3', 'ambos', 'all'],
-    label: 'Ambos (vidasystem + White Label)',
+    label: 'Ambos (vidasystem + whitelabel)',
     workspace: null,
     packageJsonPath: null,
   },
@@ -68,7 +68,7 @@ function askProject(forwardedArgs) {
     rl.close();
 
     if (!selected) {
-      stderrAndExit(`Opcao invalida. Use 1 para vidasystem, 2 para White Label ou 3 para Ambos.`);
+      stderrAndExit(`Opcao invalida. Use 1 para vidasystem, 2 para whitelabel ou 3 para Ambos.`);
     }
     runTest(selected, forwardedArgs);
   });

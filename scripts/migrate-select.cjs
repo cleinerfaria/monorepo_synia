@@ -13,7 +13,7 @@ const PROJECTS = [
   },
   {
     aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
-    label: 'White Label',
+    label: 'whitelabel',
     workspace: '@synia/db-whitelabel',
     script: 'db:migrate:whitelabel',
   },
@@ -32,7 +32,7 @@ function askProject() {
     rl.close();
 
     if (!selected) {
-      process.stderr.write('Opcao invalida. Use 1 para VidaSystem ou 2 para White Label.\n');
+      process.stderr.write('Opcao invalida. Use 1 para VidaSystem ou 2 para whitelabel.\n');
       process.exit(1);
     }
 

@@ -15,7 +15,7 @@ const PROJECTS = [
   },
   {
     aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
-    label: 'White Label',
+    label: 'whitelabel',
     workspace: 'whitelabel',
     packageJsonPath: join(__dirname, '..', 'apps', 'whitelabel', 'package.json'),
   },
@@ -103,9 +103,9 @@ function askProject(command, forwardedArgs) {
     const selected = PROJECTS.find((project) => project.aliases.includes(normalized));
     if (!selected) {
       if (allowAllProjects) {
-        stderrAndExit('Opcao invalida. Use 1 para VidaSystem, 2 para White Label ou 3 para todos.');
+        stderrAndExit('Opcao invalida. Use 1 para VidaSystem, 2 para whitelabel ou 3 para todos.');
       }
-      stderrAndExit('Opcao invalida. Use 1 para VidaSystem ou 2 para White Label.');
+      stderrAndExit('Opcao invalida. Use 1 para VidaSystem ou 2 para whitelabel.');
     }
     const workspaceScript = resolveWorkspaceScript(command, selected);
     runScript(workspaceScript, selected.workspace, forwardedArgs);

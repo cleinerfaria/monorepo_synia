@@ -218,21 +218,21 @@ async function seedWhiteLabelDev() {
       serviceRoleKey,
       email: adminEmail,
       password: adminPassword,
-      name: 'E2E Admin White Label',
+      name: 'E2E Admin whitelabel',
     }),
     ensureAuthUser({
       supabaseUrl,
       serviceRoleKey,
       email: managerEmail,
       password: managerPassword,
-      name: 'E2E Manager White Label',
+      name: 'E2E Manager whitelabel',
     }),
     ensureAuthUser({
       supabaseUrl,
       serviceRoleKey,
       email: userEmail,
       password: userPassword,
-      name: 'E2E User White Label',
+      name: 'E2E User whitelabel',
     }),
   ]);
   process.stdout.write('✅ Auth users criados\n');
@@ -246,7 +246,7 @@ async function seedWhiteLabelDev() {
   });
 
   if (!company?.id) {
-    throw new Error('Could not resolve White Label company for dev seed');
+    throw new Error('Could not resolve whitelabel company for dev seed');
   }
   process.stdout.write('✅ Empresa encontrada\n');
 
@@ -271,7 +271,7 @@ async function seedWhiteLabelDev() {
   ]);
 
   if (!adminProfile?.id || !managerProfile?.id || !userProfile?.id) {
-    throw new Error('Could not resolve White Label access profiles for dev seed');
+    throw new Error('Could not resolve whitelabel access profiles for dev seed');
   }
   process.stdout.write('✅ Access profiles encontrados\n');
 
@@ -285,7 +285,7 @@ async function seedWhiteLabelDev() {
       {
         auth_user_id: adminId,
         is_superadmin: true,
-        name: 'E2E Admin White Label',
+        name: 'E2E Admin whitelabel',
         email: adminEmail,
       },
     ],
@@ -303,7 +303,7 @@ async function seedWhiteLabelDev() {
       {
         company_id: company.id,
         auth_user_id: adminId,
-        name: 'E2E Admin White Label',
+        name: 'E2E Admin whitelabel',
         email: adminEmail,
         active: true,
         access_profile_id: adminProfile.id,
@@ -311,7 +311,7 @@ async function seedWhiteLabelDev() {
       {
         company_id: company.id,
         auth_user_id: managerId,
-        name: 'E2E Manager White Label',
+        name: 'E2E Manager whitelabel',
         email: managerEmail,
         active: true,
         access_profile_id: managerProfile.id,
@@ -319,7 +319,7 @@ async function seedWhiteLabelDev() {
       {
         company_id: company.id,
         auth_user_id: userId,
-        name: 'E2E User White Label',
+        name: 'E2E User whitelabel',
         email: userEmail,
         active: true,
         access_profile_id: userProfile.id,
@@ -329,7 +329,7 @@ async function seedWhiteLabelDev() {
   });
   process.stdout.write('✅ app_users criados\n');
 
-  process.stdout.write('\n✨ White Label dev seed aplicado com sucesso!\n');
+  process.stdout.write('\n✨ whitelabel dev seed aplicado com sucesso!\n');
   process.stdout.write(`  - Admin: ${adminEmail}\n`);
   process.stdout.write(`  - Manager: ${managerEmail}\n`);
   process.stdout.write(`  - User: ${userEmail}\n`);

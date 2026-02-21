@@ -4,7 +4,7 @@
  * Setup Project Selection Script
  *
  * Permite selecionar qual projeto fazer setup:
- * 1. Pergunta qual projeto (VidaSystem ou White Label)
+ * 1. Pergunta qual projeto (VidaSystem ou whitelabel)
  * 2. Executa npm run db:reset:<project>
  * 3. Executa npm run db:seed:dev:<project>
  *
@@ -26,7 +26,7 @@ const PROJECTS = [
   },
   {
     aliases: ['2', 'whitelabel', 'whitelabel', 'wl'],
-    label: 'White Label',
+    label: 'whitelabel',
     key: 'whitelabel',
   },
 ];
@@ -64,7 +64,7 @@ function askProject() {
     rl.close();
 
     if (!selected) {
-      console.error('❌ Opção inválida. Use 1 para VidaSystem ou 2 para White Label.');
+      console.error('❌ Opção inválida. Use 1 para VidaSystem ou 2 para whitelabel.');
       process.exit(1);
     }
     stdout.write('\n');

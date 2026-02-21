@@ -42,7 +42,7 @@ function testMigrations() {
 
   const projects = [
     { name: 'VidaSystem', workdir: 'packages/db-vidasystem' },
-    { name: 'White Label', workdir: 'packages/db-whitelabel' },
+    { name: 'whitelabel', workdir: 'packages/db-whitelabel' },
   ];
 
   let allSuccess = true;
