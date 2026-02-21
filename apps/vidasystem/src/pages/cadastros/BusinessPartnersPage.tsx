@@ -48,6 +48,13 @@ interface BusinessPartnerFormData {
 
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
+const formatCNPJ = (value?: string | null): string => {
+  if (!value) return '-';
+  const digits = value.replace(/\D/g, '');
+  if (digits.length !== 14) return value;
+  return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+};
+
 export default function BusinessPartnersPage() {
   const [currentPage, setCurrentPage] = useListPageState();
   const [searchTerm, setSearchTerm] = useState('');
@@ -234,21 +241,31 @@ export default function BusinessPartnersPage() {
   const columns: ColumnDef<BusinessPartner>[] = useMemo(
     () => [
       {
-        accessorKey: 'legal_name',
+        accessorKey: 'name',
         header: 'Parceiro de Negócio',
         cell: ({ row }) => {
-          const legalName = row.original.legal_name || '';
-          const truncatedName =
-            legalName.length > 80 ? legalName.substring(0, 80) + '...' : legalName;
+          const corporateName = row.original.name || '-';
+          const tradeName = row.original.legal_name || '';
+          const showTradeName = Boolean(tradeName && tradeName !== corporateName);
 
           return (
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                <HeartHandshake className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div className="bg-primary-100 dark:bg-primary-900/30 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+                <HeartHandshake className="text-primary-600 dark:text-primary-400 h-5 w-5" />
               </div>
-              <p className="truncate font-medium text-gray-900 dark:text-white" title={legalName}>
-                {truncatedName}
-              </p>
+              <div className="min-w-0">
+                <p
+                  className="truncate font-medium text-gray-900 dark:text-white"
+                  title={corporateName}
+                >
+                  {corporateName}
+                </p>
+                {showTradeName && (
+                  <p className="truncate text-sm text-gray-500" title={tradeName}>
+                    {tradeName}
+                  </p>
+                )}
+              </div>
             </div>
           );
         },
@@ -257,7 +274,9 @@ export default function BusinessPartnersPage() {
         accessorKey: 'document',
         header: 'CNPJ',
         cell: ({ row }) => (
-          <span className="text-gray-700 dark:text-gray-300">{row.original.document || '-'}</span>
+          <span className="text-gray-700 dark:text-gray-300">
+            {formatCNPJ(row.original.document)}
+          </span>
         ),
       },
       {
@@ -319,7 +338,7 @@ export default function BusinessPartnersPage() {
       <Card padding="none">
         <div className="space-y-4 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="relative w-full sm:w-[30%]">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"

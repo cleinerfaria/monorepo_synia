@@ -1,6 +1,6 @@
 -- =====================================================
 -- Seed 02: Professionals
--- Depends on: seed-01-professions.sql
+-- Depends on: professions seeded by migrations
 -- =====================================================
 
 BEGIN;
@@ -28,7 +28,7 @@ BEGIN
   SELECT id INTO v_fisioterapeuta_id FROM public.profession WHERE company_id = v_company_id AND code = 'fisioterapeuta';
 
   IF v_medico_id IS NULL OR v_enfermeiro_id IS NULL OR v_tec_enfermagem_id IS NULL OR v_fisioterapeuta_id IS NULL THEN
-    RAISE EXCEPTION 'Missing required profession ids. Verify seed-01-professions.sql execution.';
+    RAISE EXCEPTION 'Missing required profession ids. Verify migrations with profession seeds.';
   END IF;
 
   INSERT INTO public.professional

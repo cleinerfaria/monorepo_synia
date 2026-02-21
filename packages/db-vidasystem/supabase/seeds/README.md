@@ -4,7 +4,7 @@
 
 ```
 supabase/seeds/
-├── seed-01-professions.sql   ← Profissões
+├── seed-01-business-partners.sql ← Parceiros de negócio
 ├── seed-02-professionals.sql ← Profissionais
 ├── seed-03-patients.sql      ← Pacientes
 ├── seed-04-products.sql      ← Produtos/Medicações
@@ -33,7 +33,7 @@ npm run db:reset:vidasystem
 
 O script de reset executa `supabase db push --include-seed --yes` via `DB_URL` apos criar os auth users:
 
-- `supabase/seeds/seed-01-professions.sql`
+- `supabase/seeds/seed-01-business-partners.sql`
 - `supabase/seeds/seed-02-professionals.sql`
 - `supabase/seeds/seed-03-patients.sql`
 - `supabase/seeds/seed-04-products.sql`
@@ -41,6 +41,7 @@ O script de reset executa `supabase db push --include-seed --yes` via `DB_URL` a
 - `supabase/seeds/seed-06-escalas.sql`
 - `supabase/seeds/seed-07-prescricoes.sql`
 
+- 3 Parceiros de negócio
 - 3 Profissionais
 - 3 Pacientes
 - 10 Medicações
@@ -69,7 +70,7 @@ npm run db:reset:vidasystem
 | Etapa                                                     | Arquivo                        | Tipo        | Gatilho                                          |
 | --------------------------------------------------------- | ------------------------------ | ----------- | ------------------------------------------------ |
 | Schema                                                    | migration                      | SQL         | Auto (db reset)                                  |
-| Profissionais/Pacientes/Medicações/PAD/Escala/Prescrições | supabase/seeds/seed-01..07.sql | SQL         | Auto (db:reset script -> db push --include-seed) |
+| Parceiros/Profissionais/Pacientes/Medicações/PAD/Escala/Prescrições | supabase/seeds/seed-01..07.sql | SQL         | Auto (db:reset script -> db push --include-seed) |
 | Auth Users                                                | scripts/lib.cjs                | Node.js/API | Auto (chamado pelo db:reset)                     |
 | System User + App Users                                   | scripts/lib.cjs                | Node.js/API | Auto (chamado pelo db:reset)                     |
 
@@ -84,6 +85,12 @@ npm run db:reset:vidasystem
 - `admin@vidasystem.com` (role: admin)
 - `manager@vidasystem.com` (role: manager)
 - `user@vidasystem.com` (role: viewer)
+
+### Parceiros de negócio (3)
+
+- COOPERN
+- HUMANIZE
+- SALUD CARE
 
 ### Profissionais (3)
 
