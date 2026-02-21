@@ -305,13 +305,19 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     if (initRef.current) return;
     initRef.current = true;
 
-    // Use ONLY onAuthStateChange — avoid getSession() which competes for
-    // the same navigator.lock as _initialize(), causing deadlock-like delays
-    // on page refresh. The INITIAL_SESSION event fires once _initialize()
-    // completes, giving us the session without lock contention.
+    // CRITICAL: Supabase auth-js v2 awaits onAuthStateChange callbacks inside
+    // _notifyAllSubscribers (line 2014 of GoTrueClient.js). Meanwhile, every
+    // Supabase REST call internally calls getSession() which does
+    // "await this.initializePromise" — waiting for _initialize() to finish.
+    // But _initialize() is waiting for _notifyAllSubscribers() to finish,
+    // which is waiting for OUR callback. This creates a DEADLOCK.
+    //
+    // Solution: never await Supabase REST calls inside this callback.
+    // Use setTimeout(0) to defer data loading to the next event loop tick,
+    // AFTER _initialize() has finished and released the lock.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setAuthError(null);
 
       if (event === 'SIGNED_OUT') {
@@ -325,25 +331,26 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // INITIAL_SESSION: fired once when Supabase finishes restoring the session
-      // SIGNED_IN: fired on new login
-      // TOKEN_REFRESHED: token was refreshed, session is still valid
       if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
         setSession(session);
 
         if (session?.user) {
           setLoading(true);
-          await loadUserData(session.user.id);
+          // Defer REST calls to next tick to break the deadlock with _initialize()
+          setTimeout(async () => {
+            await loadUserData(session.user.id);
+            setLoading(false);
+            setInitialized(true);
+          }, 0);
         } else {
           // No session — user is not logged in
           setAppUser(null);
           setCompany(null);
           setSystemUser(null);
           useAuthStore.setState({ hasAnySystemUser: false });
+          setLoading(false);
+          setInitialized(true);
         }
-
-        setLoading(false);
-        setInitialized(true);
         return;
       }
 
