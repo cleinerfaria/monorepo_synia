@@ -406,5 +406,5 @@ CREATE POLICY "access_profile_permission_delete_policy" ON public.access_profile
         )
     );
 
-
+COMMIT;
 
