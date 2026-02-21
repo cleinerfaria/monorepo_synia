@@ -11,7 +11,6 @@
 -- - Write operations remain restricted to super admins (existing policies).
 
 DROP POLICY IF EXISTS "Super admins can view system_settings" ON public.system_settings;
-DROP POLICY IF EXISTS "Public can view system_settings" ON public.system_settings;
 
 CREATE POLICY "Public can view system_settings"
   ON public.system_settings

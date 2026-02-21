@@ -29,16 +29,8 @@ ON CONFLICT (id) DO NOTHING;
 -- =====================================================
 
 -- COMPANY LOGOS
-DROP POLICY IF EXISTS "Public can view company logos" ON storage.objects;
-DROP POLICY IF EXISTS "Users can upload company logos" ON storage.objects;
-DROP POLICY IF EXISTS "Users can update company logos" ON storage.objects;
-DROP POLICY IF EXISTS "Users can delete company logos" ON storage.objects;
 
 -- USER AVATARS
-DROP POLICY IF EXISTS "Tenant can view user avatars" ON storage.objects;
-DROP POLICY IF EXISTS "User can upload own avatar" ON storage.objects;
-DROP POLICY IF EXISTS "User can update own avatar" ON storage.objects;
-DROP POLICY IF EXISTS "User can delete own avatar" ON storage.objects;
 
 -- =====================================================
 -- 3) COMPANY LOGOS (bucket público)

@@ -74,7 +74,6 @@ create table if not exists public.company_plan_settings (
 );
 
 -- Trigger padrão do projeto para manter updated_at sempre atualizado.
-drop trigger if exists trg_company_plan_settings_updated_at on public.company_plan_settings;
 create trigger trg_company_plan_settings_updated_at
 before update on public.company_plan_settings
 for each row
@@ -122,7 +121,6 @@ create index if not exists idx_whatsapp_instance_status
 on public.whatsapp_instance(status);
 
 -- updated_at automático
-drop trigger if exists trg_whatsapp_instance_updated_at on public.whatsapp_instance;
 create trigger trg_whatsapp_instance_updated_at
 before update on public.whatsapp_instance
 for each row
@@ -148,7 +146,6 @@ create table if not exists public.whatsapp_instance_secret (
 create index if not exists idx_whatsapp_instance_secret_company
 on public.whatsapp_instance_secret(company_id);
 
-drop trigger if exists trg_whatsapp_instance_secret_updated_at on public.whatsapp_instance_secret;
 create trigger trg_whatsapp_instance_secret_updated_at
 before update on public.whatsapp_instance_secret
 for each row
@@ -204,7 +201,6 @@ on public.whatsapp_contact(company_id);
 create index if not exists idx_whatsapp_contact_company_phone
 on public.whatsapp_contact(company_id, phone_number);
 
-drop trigger if exists trg_whatsapp_contact_updated_at on public.whatsapp_contact;
 create trigger trg_whatsapp_contact_updated_at
 before update on public.whatsapp_contact
 for each row
@@ -256,7 +252,6 @@ on public.whatsapp_conversation(contact_id);
 create index if not exists idx_whatsapp_conversation_company_last_message
 on public.whatsapp_conversation(company_id, last_message_at desc);
 
-drop trigger if exists trg_whatsapp_conversation_updated_at on public.whatsapp_conversation;
 create trigger trg_whatsapp_conversation_updated_at
 before update on public.whatsapp_conversation
 for each row
@@ -309,7 +304,6 @@ on public.whatsapp_message(contact_id);
 create index if not exists idx_whatsapp_message_company_conversation_ts
 on public.whatsapp_message(company_id, conversation_id, sent_ts desc);
 
-drop trigger if exists trg_whatsapp_message_updated_at on public.whatsapp_message;
 create trigger trg_whatsapp_message_updated_at
 before update on public.whatsapp_message
 for each row
@@ -335,7 +329,6 @@ $$;
 revoke all on function public.whatsapp_message_fill_sent_at() from public;
 grant execute on function public.whatsapp_message_fill_sent_at() to authenticated;
 
-drop trigger if exists trg_whatsapp_message_fill_sent_at on public.whatsapp_message;
 create trigger trg_whatsapp_message_fill_sent_at
 before insert or update of sent_ts, sent_at on public.whatsapp_message
 for each row
@@ -369,7 +362,6 @@ on public.whatsapp_media(company_id);
 create index if not exists idx_whatsapp_media_message
 on public.whatsapp_media(message_id);
 
-drop trigger if exists trg_whatsapp_media_updated_at on public.whatsapp_media;
 create trigger trg_whatsapp_media_updated_at
 before update on public.whatsapp_media
 for each row
@@ -415,7 +407,6 @@ on public.whatsapp_session(start_at desc);
 create index if not exists idx_whatsapp_session_end_at
 on public.whatsapp_session(end_at desc);
 
-drop trigger if exists trg_whatsapp_session_updated_at on public.whatsapp_session;
 create trigger trg_whatsapp_session_updated_at
 before update on public.whatsapp_session
 for each row
@@ -441,7 +432,6 @@ create table if not exists public.evaluation (
 create index if not exists idx_evaluation_company
 on public.evaluation(company_id);
 
-drop trigger if exists trg_evaluation_updated_at on public.evaluation;
 create trigger trg_evaluation_updated_at
 before update on public.evaluation
 for each row
@@ -467,7 +457,6 @@ on public.evaluation_aspect(company_id);
 create index if not exists idx_evaluation_aspect_evaluation
 on public.evaluation_aspect(evaluation_id);
 
-drop trigger if exists trg_evaluation_aspect_updated_at on public.evaluation_aspect;
 create trigger trg_evaluation_aspect_updated_at
 before update on public.evaluation_aspect
 for each row
@@ -501,7 +490,6 @@ on public.whatsapp_session_evaluation(session_id);
 create index if not exists idx_whatsapp_session_eval_evaluation
 on public.whatsapp_session_evaluation(evaluation_id);
 
-drop trigger if exists trg_whatsapp_session_evaluation_updated_at on public.whatsapp_session_evaluation;
 create trigger trg_whatsapp_session_evaluation_updated_at
 before update on public.whatsapp_session_evaluation
 for each row
@@ -567,7 +555,6 @@ $$;
 revoke all on function public.enforce_whatsapp_instance_limit() from public;
 grant execute on function public.enforce_whatsapp_instance_limit() to authenticated;
 
-drop trigger if exists trg_whatsapp_instance_limit on public.whatsapp_instance;
 create trigger trg_whatsapp_instance_limit
 before insert or update of active on public.whatsapp_instance
 for each row
@@ -619,10 +606,6 @@ alter table public.whatsapp_session_evaluation force row level security;
 -- -----------------------------------------------------
 -- Apenas superadmin pode inserir/alterar/excluir.
 -- Usuários da empresa podem ler (para UI, ex: exibir limite/uso), ou superadmin.
-drop policy if exists "company_plan_settings_select" on public.company_plan_settings;
-drop policy if exists "company_plan_settings_insert" on public.company_plan_settings;
-drop policy if exists "company_plan_settings_update" on public.company_plan_settings;
-drop policy if exists "company_plan_settings_delete" on public.company_plan_settings;
 
 create policy "company_plan_settings_select"
 on public.company_plan_settings
@@ -657,10 +640,6 @@ using (public.is_superadmin());
 -- INSERT/UPDATE/DELETE:
 -- - superadmin
 -- - ou usuário da empresa com: admin, manager ou permissão 'whatsapp/manage_instances'
-drop policy if exists "whatsapp_instance_select" on public.whatsapp_instance;
-drop policy if exists "whatsapp_instance_insert" on public.whatsapp_instance;
-drop policy if exists "whatsapp_instance_update" on public.whatsapp_instance;
-drop policy if exists "whatsapp_instance_delete" on public.whatsapp_instance;
 
 create policy "whatsapp_instance_select"
 on public.whatsapp_instance
@@ -715,10 +694,6 @@ using (
 -- 3.3) whatsapp_instance_secret policies
 -- -----------------------------------------------------
 -- Secrets só podem ser lidos e alterados por superadmin.
-drop policy if exists "whatsapp_instance_secret_select" on public.whatsapp_instance_secret;
-drop policy if exists "whatsapp_instance_secret_insert" on public.whatsapp_instance_secret;
-drop policy if exists "whatsapp_instance_secret_update" on public.whatsapp_instance_secret;
-drop policy if exists "whatsapp_instance_secret_delete" on public.whatsapp_instance_secret;
 
 create policy "whatsapp_instance_secret_select"
 on public.whatsapp_instance_secret
@@ -755,10 +730,6 @@ using (public.is_superadmin());
 -- - Aqui mantemos insert/update/delete liberados para company scope,
 --   pois o backend (service_role) normalmente realiza ingestão via webhook.
 --   Se você quiser travar no futuro, dá para colocar RBAC também.
-drop policy if exists "whatsapp_contact_select" on public.whatsapp_contact;
-drop policy if exists "whatsapp_contact_insert" on public.whatsapp_contact;
-drop policy if exists "whatsapp_contact_update" on public.whatsapp_contact;
-drop policy if exists "whatsapp_contact_delete" on public.whatsapp_contact;
 
 create policy "whatsapp_contact_select"
 on public.whatsapp_contact
@@ -785,10 +756,6 @@ for delete
 to authenticated
 using (public.is_superadmin() or company_id = public.get_user_company_id());
 
-drop policy if exists "whatsapp_conversation_select" on public.whatsapp_conversation;
-drop policy if exists "whatsapp_conversation_insert" on public.whatsapp_conversation;
-drop policy if exists "whatsapp_conversation_update" on public.whatsapp_conversation;
-drop policy if exists "whatsapp_conversation_delete" on public.whatsapp_conversation;
 
 create policy "whatsapp_conversation_select"
 on public.whatsapp_conversation
@@ -815,10 +782,6 @@ for delete
 to authenticated
 using (public.is_superadmin() or company_id = public.get_user_company_id());
 
-drop policy if exists "whatsapp_message_select" on public.whatsapp_message;
-drop policy if exists "whatsapp_message_insert" on public.whatsapp_message;
-drop policy if exists "whatsapp_message_update" on public.whatsapp_message;
-drop policy if exists "whatsapp_message_delete" on public.whatsapp_message;
 
 create policy "whatsapp_message_select"
 on public.whatsapp_message
@@ -845,10 +808,6 @@ for delete
 to authenticated
 using (public.is_superadmin() or company_id = public.get_user_company_id());
 
-drop policy if exists "whatsapp_media_select" on public.whatsapp_media;
-drop policy if exists "whatsapp_media_insert" on public.whatsapp_media;
-drop policy if exists "whatsapp_media_update" on public.whatsapp_media;
-drop policy if exists "whatsapp_media_delete" on public.whatsapp_media;
 
 create policy "whatsapp_media_select"
 on public.whatsapp_media
@@ -875,10 +834,6 @@ for delete
 to authenticated
 using (public.is_superadmin() or company_id = public.get_user_company_id());
 
-drop policy if exists "whatsapp_session_select" on public.whatsapp_session;
-drop policy if exists "whatsapp_session_insert" on public.whatsapp_session;
-drop policy if exists "whatsapp_session_update" on public.whatsapp_session;
-drop policy if exists "whatsapp_session_delete" on public.whatsapp_session;
 
 create policy "whatsapp_session_select"
 on public.whatsapp_session
@@ -905,10 +860,6 @@ for delete
 to authenticated
 using (public.is_superadmin() or company_id = public.get_user_company_id());
 
-drop policy if exists "evaluation_select" on public.evaluation;
-drop policy if exists "evaluation_insert" on public.evaluation;
-drop policy if exists "evaluation_update" on public.evaluation;
-drop policy if exists "evaluation_delete" on public.evaluation;
 
 create policy "evaluation_select"
 on public.evaluation
@@ -935,10 +886,6 @@ for delete
 to authenticated
 using (public.is_superadmin() or company_id = public.get_user_company_id());
 
-drop policy if exists "evaluation_aspect_select" on public.evaluation_aspect;
-drop policy if exists "evaluation_aspect_insert" on public.evaluation_aspect;
-drop policy if exists "evaluation_aspect_update" on public.evaluation_aspect;
-drop policy if exists "evaluation_aspect_delete" on public.evaluation_aspect;
 
 create policy "evaluation_aspect_select"
 on public.evaluation_aspect
@@ -965,10 +912,6 @@ for delete
 to authenticated
 using (public.is_superadmin() or company_id = public.get_user_company_id());
 
-drop policy if exists "whatsapp_session_evaluation_select" on public.whatsapp_session_evaluation;
-drop policy if exists "whatsapp_session_evaluation_insert" on public.whatsapp_session_evaluation;
-drop policy if exists "whatsapp_session_evaluation_update" on public.whatsapp_session_evaluation;
-drop policy if exists "whatsapp_session_evaluation_delete" on public.whatsapp_session_evaluation;
 
 create policy "whatsapp_session_evaluation_select"
 on public.whatsapp_session_evaluation

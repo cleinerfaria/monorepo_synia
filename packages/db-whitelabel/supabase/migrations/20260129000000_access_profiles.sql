@@ -49,7 +49,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_access_profile_system_code
   WHERE company_id IS NULL;
 
 -- Trigger de updated_at (reusa função da migration 01)
-DROP TRIGGER IF EXISTS trg_access_profile_updated_at ON public.access_profile;
 CREATE TRIGGER trg_access_profile_updated_at
 BEFORE UPDATE ON public.access_profile
 FOR EACH ROW
@@ -201,7 +200,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS app_user_default_access_profile ON public.app_user;
 CREATE TRIGGER app_user_default_access_profile
 BEFORE INSERT ON public.app_user
 FOR EACH ROW
@@ -238,7 +236,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS app_user_profile_company_guard ON public.app_user;
 CREATE TRIGGER app_user_profile_company_guard
 BEFORE INSERT OR UPDATE OF access_profile_id, company_id ON public.app_user
 FOR EACH ROW
@@ -295,17 +292,8 @@ ALTER TABLE public.access_profile_permission ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.access_profile_permission FORCE ROW LEVEL SECURITY;
 
 -- Limpa policies antigas (idempotente)
-DROP POLICY IF EXISTS "access_profile_select_policy" ON public.access_profile;
-DROP POLICY IF EXISTS "access_profile_insert_policy" ON public.access_profile;
-DROP POLICY IF EXISTS "access_profile_update_policy" ON public.access_profile;
-DROP POLICY IF EXISTS "access_profile_delete_policy" ON public.access_profile;
 
-DROP POLICY IF EXISTS "system_module_select_policy" ON public.system_module;
-DROP POLICY IF EXISTS "module_permission_select_policy" ON public.module_permission;
 
-DROP POLICY IF EXISTS "access_profile_permission_select_policy" ON public.access_profile_permission;
-DROP POLICY IF EXISTS "access_profile_permission_insert_policy" ON public.access_profile_permission;
-DROP POLICY IF EXISTS "access_profile_permission_delete_policy" ON public.access_profile_permission;
 
 -- ACCESS_PROFILE
 -- SELECT: vê perfis do sistema + perfis do próprio tenant
@@ -531,7 +519,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_create_default_profiles ON public.company;
 CREATE TRIGGER trg_create_default_profiles
 AFTER INSERT ON public.company
 FOR EACH ROW

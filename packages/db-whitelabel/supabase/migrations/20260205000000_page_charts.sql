@@ -120,7 +120,6 @@ COMMENT ON COLUMN public.page_chart.height IS 'Altura do gráfico em pixels';
 COMMENT ON COLUMN public.page_chart.meta_data IS 'Metadados adicionais do gráfico';
 
 -- Trigger para manter updated_at sempre atualizado
-DROP TRIGGER IF EXISTS trg_page_chart_updated_at ON public.page_chart;
 CREATE TRIGGER trg_page_chart_updated_at
   BEFORE UPDATE ON public.page_chart
   FOR EACH ROW
@@ -143,7 +142,6 @@ ALTER TABLE public.page_chart FORCE ROW LEVEL SECURITY;
 -- 4) POLÍTICAS RLS PARA PAGE_CHART
 -- =====================================================
 
-DROP POLICY IF EXISTS page_chart_select_policy ON public.page_chart;
 CREATE POLICY "page_chart_select_policy"
   ON public.page_chart
   FOR SELECT
@@ -156,7 +154,6 @@ CREATE POLICY "page_chart_select_policy"
     )
   );
 
-DROP POLICY IF EXISTS page_chart_insert_policy ON public.page_chart;
 CREATE POLICY "page_chart_insert_policy"
   ON public.page_chart
   FOR INSERT
@@ -183,7 +180,6 @@ CREATE POLICY "page_chart_insert_policy"
     )
   );
 
-DROP POLICY IF EXISTS page_chart_update_policy ON public.page_chart;
 CREATE POLICY "page_chart_update_policy"
   ON public.page_chart
   FOR UPDATE
@@ -225,7 +221,6 @@ CREATE POLICY "page_chart_update_policy"
     )
   );
 
-DROP POLICY IF EXISTS page_chart_delete_policy ON public.page_chart;
 CREATE POLICY "page_chart_delete_policy"
   ON public.page_chart
   FOR DELETE

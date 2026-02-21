@@ -16,7 +16,6 @@ on public.evaluation_instance(company_id, evaluation_id);
 create index if not exists idx_evaluation_instance_instance
 on public.evaluation_instance(company_id, instance_id);
 
-drop trigger if exists trg_evaluation_instance_updated_at on public.evaluation_instance;
 create trigger trg_evaluation_instance_updated_at
 before update on public.evaluation_instance
 for each row
@@ -26,10 +25,6 @@ alter table public.evaluation_instance enable row level security;
 alter table public.evaluation_instance force row level security;
 
 -- Policies (padrão do seu módulo: company scope + superadmin)
-drop policy if exists "evaluation_instance_select" on public.evaluation_instance;
-drop policy if exists "evaluation_instance_insert" on public.evaluation_instance;
-drop policy if exists "evaluation_instance_update" on public.evaluation_instance;
-drop policy if exists "evaluation_instance_delete" on public.evaluation_instance;
 
 create policy "evaluation_instance_select"
 on public.evaluation_instance

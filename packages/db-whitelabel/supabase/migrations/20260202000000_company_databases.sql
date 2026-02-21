@@ -149,7 +149,6 @@ $$;
 -- =====================================================
 
 -- Trigger para updated_at
-DROP TRIGGER IF EXISTS set_company_databases_updated_at ON public.company_databases;
 CREATE TRIGGER set_company_databases_updated_at
   BEFORE UPDATE ON public.company_databases
   FOR EACH ROW
@@ -174,7 +173,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_company_databases_single_default ON public.company_databases;
 CREATE TRIGGER trg_company_databases_single_default
   BEFORE INSERT OR UPDATE OF is_default ON public.company_databases
   FOR EACH ROW
@@ -300,7 +298,6 @@ GRANT EXECUTE ON FUNCTION public.update_database_connection_status(uuid, text, t
 -- 8) View segura (sem expor senha)
 -- =====================================================
 
-DROP VIEW IF EXISTS public.company_databases_safe;
 
 CREATE OR REPLACE VIEW public.company_databases_safe
 WITH (security_invoker=true)
@@ -339,7 +336,6 @@ ALTER TABLE public.company_databases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_databases FORCE ROW LEVEL SECURITY;
 
 -- Superadmin: acesso total
-DROP POLICY IF EXISTS company_databases_superadmin_select ON public.company_databases;
 CREATE POLICY company_databases_superadmin_select
 ON public.company_databases
 FOR SELECT
@@ -353,7 +349,6 @@ USING (
   )
 );
 
-DROP POLICY IF EXISTS company_databases_superadmin_insert ON public.company_databases;
 CREATE POLICY company_databases_superadmin_insert
 ON public.company_databases
 FOR INSERT
@@ -367,7 +362,6 @@ WITH CHECK (
   )
 );
 
-DROP POLICY IF EXISTS company_databases_superadmin_update ON public.company_databases;
 CREATE POLICY company_databases_superadmin_update
 ON public.company_databases
 FOR UPDATE
@@ -381,7 +375,6 @@ USING (
   )
 );
 
-DROP POLICY IF EXISTS company_databases_superadmin_delete ON public.company_databases;
 CREATE POLICY company_databases_superadmin_delete
 ON public.company_databases
 FOR DELETE
@@ -396,7 +389,6 @@ USING (
 );
 
 -- Admin de empresa: acesso à sua própria empresa
-DROP POLICY IF EXISTS company_databases_admin_select ON public.company_databases;
 CREATE POLICY company_databases_admin_select
 ON public.company_databases
 FOR SELECT
@@ -413,7 +405,6 @@ USING (
   )
 );
 
-DROP POLICY IF EXISTS company_databases_admin_insert ON public.company_databases;
 CREATE POLICY company_databases_admin_insert
 ON public.company_databases
 FOR INSERT
@@ -430,7 +421,6 @@ WITH CHECK (
   )
 );
 
-DROP POLICY IF EXISTS company_databases_admin_update ON public.company_databases;
 CREATE POLICY company_databases_admin_update
 ON public.company_databases
 FOR UPDATE
@@ -447,7 +437,6 @@ USING (
   )
 );
 
-DROP POLICY IF EXISTS company_databases_admin_delete ON public.company_databases;
 CREATE POLICY company_databases_admin_delete
 ON public.company_databases
 FOR DELETE
@@ -482,7 +471,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_company_databases_block_company_id_change ON public.company_databases;
 CREATE TRIGGER trg_company_databases_block_company_id_change
   BEFORE UPDATE ON public.company_databases
   FOR EACH ROW

@@ -20,16 +20,8 @@ ALTER TABLE public.app_user FORCE ROW LEVEL SECURITY;
 -- =============================================
 
 -- company (antigas)
-DROP POLICY IF EXISTS "company_select_policy" ON public.company;
-DROP POLICY IF EXISTS "company_insert_policy" ON public.company;
-DROP POLICY IF EXISTS "company_update_policy" ON public.company;
-DROP POLICY IF EXISTS "company_delete_policy" ON public.company;
 
 -- app_user (antigas)
-DROP POLICY IF EXISTS "app_user_select_policy" ON public.app_user;
-DROP POLICY IF EXISTS "app_user_insert_policy" ON public.app_user;
-DROP POLICY IF EXISTS "app_user_update_policy" ON public.app_user;
-DROP POLICY IF EXISTS "app_user_delete_policy" ON public.app_user;
 
 -- =============================================
 -- 3) GARANTIR POLICIES SEGURAS (sem duplicar)

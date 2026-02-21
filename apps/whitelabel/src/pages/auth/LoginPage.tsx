@@ -284,6 +284,7 @@ export default function LoginPage() {
 
               <Button
                 label={isSubmitting ? 'Entrando...' : 'Entrar'}
+                type="submit"
                 variant="solid"
                 size="lg"
                 showIcon={false}

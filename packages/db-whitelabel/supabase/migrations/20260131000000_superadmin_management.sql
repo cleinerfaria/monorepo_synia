@@ -4,7 +4,6 @@
 
 -- Atualiza a policy para superadmins verem todos os system_users
 DROP POLICY IF EXISTS "system_user_self_read" ON public.system_user;
-DROP POLICY IF EXISTS "system_user_superadmin_read" ON public.system_user;
 
 -- Superadmins podem ver todos; usuários normais veem apenas a si mesmos
 CREATE POLICY "system_user_read"
@@ -17,7 +16,6 @@ CREATE POLICY "system_user_read"
   );
 
 -- Superadmins podem atualizar qualquer system_user
-DROP POLICY IF EXISTS "system_user_superadmin_update" ON public.system_user;
 
 CREATE POLICY "system_user_superadmin_update"
   ON public.system_user
@@ -28,7 +26,6 @@ CREATE POLICY "system_user_superadmin_update"
 
 -- Superadmins podem inserir novos system_users (via Service Role na Edge Function,
 -- mas esta policy é para casos onde usamos RLS diretamente)
-DROP POLICY IF EXISTS "system_user_superadmin_insert" ON public.system_user;
 
 CREATE POLICY "system_user_superadmin_insert"
   ON public.system_user
@@ -42,7 +39,6 @@ CREATE POLICY "system_user_superadmin_insert"
   );
 
 -- Superadmins podem remover superadmin status (mas não deletar o registro para manter histórico)
-DROP POLICY IF EXISTS "system_user_superadmin_delete" ON public.system_user;
 
 CREATE POLICY "system_user_superadmin_delete"
   ON public.system_user

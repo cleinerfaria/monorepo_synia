@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS public.system_user (
 ALTER TABLE public.system_user ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_user FORCE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "system_user_self_read" ON public.system_user;
 
 -- cada usuário só enxerga seu próprio registro (não é essencial, mas ok)
 CREATE POLICY "system_user_self_read"
@@ -83,8 +82,6 @@ CREATE POLICY "Admins can update their company"
   );
 
 -- Opcional: permitir INSERT/DELETE de company só para superadmin
-DROP POLICY IF EXISTS "Superadmin can insert company" ON public.company;
-DROP POLICY IF EXISTS "Superadmin can delete company" ON public.company;
 
 CREATE POLICY "Superadmin can insert company"
   ON public.company

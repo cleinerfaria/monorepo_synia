@@ -80,7 +80,6 @@ COMMENT ON COLUMN public.page.name IS 'Nome identificador da página';
 COMMENT ON COLUMN public.page.meta_data IS 'Metadados adicionais da página em formato JSON';
 
 -- Trigger para manter updated_at sempre atualizado
-DROP TRIGGER IF EXISTS trg_page_updated_at ON public.page;
 CREATE TRIGGER trg_page_updated_at
   BEFORE UPDATE ON public.page
   FOR EACH ROW
@@ -139,7 +138,6 @@ COMMENT ON COLUMN public.page_filter.active IS 'Indica se o filtro está ativo/h
 COMMENT ON COLUMN public.page_filter.meta_data IS 'Metadados adicionais do filtro em formato JSON';
 
 -- Trigger para manter updated_at sempre atualizado
-DROP TRIGGER IF EXISTS trg_page_filter_updated_at ON public.page_filter;
 CREATE TRIGGER trg_page_filter_updated_at
   BEFORE UPDATE ON public.page_filter
   FOR EACH ROW
@@ -165,7 +163,6 @@ ALTER TABLE public.page_filter FORCE ROW LEVEL SECURITY;
 -- 5) POLÍTICAS RLS PARA PAGE
 -- =====================================================
 
-DROP POLICY IF EXISTS page_select_policy ON public.page;
 CREATE POLICY "page_select_policy"
   ON public.page
   FOR SELECT
@@ -178,7 +175,6 @@ CREATE POLICY "page_select_policy"
     )
   );
 
-DROP POLICY IF EXISTS page_insert_policy ON public.page;
 CREATE POLICY "page_insert_policy"
   ON public.page
   FOR INSERT
@@ -202,7 +198,6 @@ CREATE POLICY "page_insert_policy"
 -- IMPORTANTE:
 -- - USING controla quais linhas podem ser atualizadas
 -- - WITH CHECK controla para quais valores a linha pode ser alterada
-DROP POLICY IF EXISTS page_update_policy ON public.page;
 CREATE POLICY "page_update_policy"
   ON public.page
   FOR UPDATE
@@ -238,7 +233,6 @@ CREATE POLICY "page_update_policy"
     )
   );
 
-DROP POLICY IF EXISTS page_delete_policy ON public.page;
 CREATE POLICY "page_delete_policy"
   ON public.page
   FOR DELETE
@@ -263,7 +257,6 @@ CREATE POLICY "page_delete_policy"
 -- 6) POLÍTICAS RLS PARA PAGE_FILTER
 -- =====================================================
 
-DROP POLICY IF EXISTS page_filter_select_policy ON public.page_filter;
 CREATE POLICY "page_filter_select_policy"
   ON public.page_filter
   FOR SELECT
@@ -276,7 +269,6 @@ CREATE POLICY "page_filter_select_policy"
     )
   );
 
-DROP POLICY IF EXISTS page_filter_insert_policy ON public.page_filter;
 CREATE POLICY "page_filter_insert_policy"
   ON public.page_filter
   FOR INSERT
@@ -303,7 +295,6 @@ CREATE POLICY "page_filter_insert_policy"
     )
   );
 
-DROP POLICY IF EXISTS page_filter_update_policy ON public.page_filter;
 CREATE POLICY "page_filter_update_policy"
   ON public.page_filter
   FOR UPDATE
@@ -345,7 +336,6 @@ CREATE POLICY "page_filter_update_policy"
     )
   );
 
-DROP POLICY IF EXISTS page_filter_delete_policy ON public.page_filter;
 CREATE POLICY "page_filter_delete_policy"
   ON public.page_filter
   FOR DELETE

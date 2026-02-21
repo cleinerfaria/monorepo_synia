@@ -47,8 +47,6 @@ COMMENT ON COLUMN public.user_action_logs.new_data IS 'Novo estado do registro (
 ALTER TABLE public.user_action_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_action_logs FORCE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can view logs from their company" ON public.user_action_logs;
-DROP POLICY IF EXISTS "Only admins can delete logs" ON public.user_action_logs;
 
 -- Usuários autenticados: ver apenas logs do próprio tenant
 CREATE POLICY "Users can view logs from their company"

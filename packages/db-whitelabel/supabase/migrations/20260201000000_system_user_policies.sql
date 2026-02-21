@@ -53,7 +53,6 @@ CREATE POLICY "system_user_read_policy"
   );
 
 -- Apenas superadmins podem inserir novos system_users
-DROP POLICY IF EXISTS "system_user_insert_policy" ON public.system_user;
 
 CREATE POLICY "system_user_insert_policy"
   ON public.system_user
@@ -63,7 +62,6 @@ CREATE POLICY "system_user_insert_policy"
 
 -- Superadmins podem atualizar qualquer system_user
 -- Cada usuário pode atualizar seu próprio registro (exceto is_superadmin)
-DROP POLICY IF EXISTS "system_user_update_policy" ON public.system_user;
 
 CREATE POLICY "system_user_update_policy"
   ON public.system_user
@@ -87,7 +85,6 @@ CREATE POLICY "system_user_update_policy"
   );
 
 -- Apenas superadmins podem deletar system_users
-DROP POLICY IF EXISTS "system_user_delete_policy" ON public.system_user;
 
 CREATE POLICY "system_user_delete_policy"
   ON public.system_user

@@ -22,13 +22,7 @@ ALTER TABLE public.app_user FORCE ROW LEVEL SECURITY;
 -- 2) LIMPAR POLICIES EXISTENTES (IDEMPOTENTE)
 -- =====================================================
 
-DROP POLICY IF EXISTS "Users can view their own company" ON public.company;
-DROP POLICY IF EXISTS "Admins can update their company" ON public.company;
 
-DROP POLICY IF EXISTS "Users can view users in their company" ON public.app_user;
-DROP POLICY IF EXISTS "Admins can insert users in their company" ON public.app_user;
-DROP POLICY IF EXISTS "Users can update own record or admins can update" ON public.app_user;
-DROP POLICY IF EXISTS "Admins can delete users" ON public.app_user;
 
 -- =====================================================
 -- 3) POLICIES: COMPANY
