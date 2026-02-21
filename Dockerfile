@@ -1,5 +1,7 @@
+# Dockerfile para build multi-app (vidasystem | whitelabel)
+# Uso: docker build --build-arg APP_NAME=whitelabel .
 FROM node:20-alpine AS build
-ARG APP_NAME=vidasystem
+ARG APP_NAME
 WORKDIR /workspace
 
 COPY . .
@@ -14,7 +16,7 @@ RUN if [ "$APP_NAME" = "vidasystem" ]; then \
     fi
 
 FROM node:20-alpine AS runtime
-ARG APP_NAME=vidasystem
+ARG APP_NAME
 WORKDIR /app
 
 ENV NODE_ENV=production
