@@ -254,8 +254,6 @@ export function filterByDateRange<T>(
 
 // Calcula datas para períodos predefinidos
 export function getDateRange(period: string): { startDate: Date; endDate: Date } {
-  console.log('🗓️ [getDateRange] Calculando período:', period);
-
   // Check if it's a monthly period (YYYY-MM format)
   const monthlyMatch = period.match(/^(\d{4})-(\d{2})$/);
   if (monthlyMatch) {
@@ -266,26 +264,10 @@ export function getDateRange(period: string): { startDate: Date; endDate: Date }
     const startDate = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
     const endDate = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999)); // Last day of the month
 
-    console.log('🗓️ [getDateRange] Período mensal detectado (UTC):', {
-      period,
-      year,
-      month: month + 1,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      startDateLocal: startDate.toISOString().split('T')[0],
-      endDateLocal: endDate.toISOString().split('T')[0],
-      timezone: 'UTC (sem conversão de fuso horário)',
-    });
-
     return { startDate, endDate };
   }
 
   // Fallback para o mês atual se o formato não for reconhecido
-  console.warn(
-    '⚠️ [getDateRange] Formato de período não reconhecido:',
-    period,
-    'usando fevereiro 2026 como padrão'
-  );
   const startDate = new Date(Date.UTC(2026, 1, 1, 0, 0, 0, 0)); // Fevereiro de 2026 UTC
   const endDate = new Date(Date.UTC(2026, 2, 0, 23, 59, 59, 999)); // Último dia de fevereiro UTC
 

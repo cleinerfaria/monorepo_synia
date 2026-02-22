@@ -7,8 +7,9 @@ import { getPrimaryColorRgb, toRgba } from '@/lib/themeColors';
 interface DualLineDataPoint {
   name: string;
   date: string;
-  meta: number;
   faturamento: number | null; // null para dias futuros
+  anoAnterior: number; // Faturamento do mesmo período no ano anterior
+  meta?: number; // Meta de faturamento (opcional)
 }
 
 interface DualLineChartProps {
@@ -16,19 +17,26 @@ interface DualLineChartProps {
   height?: number;
   className?: string;
   valueFormatter?: (value: number) => string;
-  metaColor?: string;
   faturamentoColor?: string;
+  anoAnteriorColor?: string;
+  metaColor?: string;
   isLoading?: boolean;
-  /** Label para a linha de meta/referência */
-  metaLabel?: string;
   /** Label para a linha de faturamento */
   faturamentoLabel?: string;
+  /** Label para a linha de ano anterior */
+  anoAnteriorLabel?: string;
+  /** Label para a linha de meta */
+  metaLabel?: string;
   /** Mostrar marcadores (círculos) na linha de faturamento */
   showFaturamentoMarkers?: boolean;
+  /** Mostrar marcadores (círculos) na linha de ano anterior */
+  showAnoAnteriorMarkers?: boolean;
   /** Mostrar marcadores (círculos) na linha de meta */
   showMetaMarkers?: boolean;
   /** Mostrar área preenchida sob a linha de faturamento */
   showFaturamentoArea?: boolean;
+  /** Mostrar linha de ano anterior */
+  showAnoAnteriorLine?: boolean;
   /** Mostrar linha de meta */
   showMetaLine?: boolean;
   /** Função para filtrar quais labels do eixo X mostrar */
@@ -36,33 +44,34 @@ interface DualLineChartProps {
 }
 
 /**
- * Gráfico de duas linhas com configurações flexíveis
+ * Gráfico de linhas com suporte para até 3 linhas
  *
- * Suporta dois modos principais:
+ * Suporta múltiplos modos:
  *
- * 1. MODO VISÃO GERAL (valores padrão):
- *    - Compara faturamento atual vs ano anterior
+ * 1. MODO VISÃO GERAL COM META:
+ *    - Compara faturamento atual vs ano anterior vs meta
  *    - Mostra marcadores apenas no faturamento
- *    - Útil para análise de crescimento
+ *    - Útil para análise de crescimento com acompanhamento de meta
  *
- * 2. MODO META (configuração específica):
- *    - Compara faturamento vs meta
- *    - Oculta marcadores da meta para clareza
- *    - Útil para acompanhamento de metas
- *
- * @example
- * // Modo Visão Geral (padrão)
- * <DualLineChart data={data} height={340} />
+ * 2. MODO COMPARATIVO:
+ *    - Compara faturamento atual vs ano anterior
+ *    - Útil para análise de crescimento YoY
  *
  * @example
- * // Modo Meta
+ * // Modo Visão Geral com Meta
+ * <DualLineChart
+ *   data={data}
+ *   height={340}
+ *   metaColor="#eab308"
+ *   showMetaLine={true}
+ * />
+ *
+ * @example
+ * // Modo Comparativo
  * <DualLineChart
  *   data={data}
  *   height={400}
- *   metaLabel="Meta"
- *   faturamentoLabel="Faturamento"
- *   showFaturamentoMarkers={true}
- *   showMetaMarkers={false}
+ *   showMetaLine={false}
  * />
  */
 export function DualLineChart({
@@ -70,14 +79,18 @@ export function DualLineChart({
   height = 320,
   className,
   valueFormatter = toAxisBRL,
-  metaColor,
   faturamentoColor,
+  anoAnteriorColor,
+  metaColor = '#eab308', // Amarelo padrão para meta
   isLoading = false,
-  metaLabel = 'Ano Anterior',
   faturamentoLabel = 'Últimos 12 meses',
+  anoAnteriorLabel = 'Ano Anterior',
+  metaLabel = 'Meta',
   showFaturamentoMarkers = true,
+  showAnoAnteriorMarkers = false,
   showMetaMarkers = false,
   showFaturamentoArea = true,
+  showAnoAnteriorLine = true,
   showMetaLine = true,
   filterXLabels,
 }: DualLineChartProps) {
@@ -85,18 +98,18 @@ export function DualLineChart({
   const [isAnimated, setIsAnimated] = useState(false);
 
   // Cores default - derivadas da paleta primária da empresa
-  // Meta usa tom mais claro (200), Faturamento usa a cor base (500)
   const normalizeColor = (color: string) => {
     if (!color) return color;
     if (color.startsWith('#') || color.startsWith('rgb')) return color;
     return `rgb(${color})`;
   };
 
-  const defaultMetaColor = getPrimaryColorRgb('200');
   const defaultFaturamentoColor = getPrimaryColorRgb('500');
+  const defaultAnoAnteriorColor = getPrimaryColorRgb('200');
 
-  const finalMetaColor = normalizeColor(metaColor || defaultMetaColor);
   const finalFaturamentoColor = normalizeColor(faturamentoColor || defaultFaturamentoColor);
+  const finalAnoAnteriorColor = normalizeColor(anoAnteriorColor || defaultAnoAnteriorColor);
+  const finalMetaColor = normalizeColor(metaColor);
 
   // Trigger animation on mount
   useEffect(() => {
@@ -111,14 +124,14 @@ export function DualLineChart({
   const chartWidth = viewBoxWidth - padding.left - padding.right;
   const chartHeight = viewBoxHeight - padding.top - padding.bottom;
 
-  const { maxValue, metaPoints, faturamentoPoints, lastFaturamentoIndex } = useMemo(() => {
+  const { maxValue, anoAnteriorPoints, metaPoints, faturamentoPoints, lastFaturamentoIndex } = useMemo(() => {
     if (!data || data.length === 0) {
-      return { maxValue: 0, metaPoints: [], faturamentoPoints: [], lastFaturamentoIndex: -1 };
+      return { maxValue: 0, anoAnteriorPoints: [], metaPoints: [], faturamentoPoints: [], lastFaturamentoIndex: -1 };
     }
 
-    // Encontrar o máximo entre meta e faturamento
+    // Encontrar o máximo entre anoAnterior, meta e faturamento
     const allValues = data.flatMap((d) =>
-      [d.meta, d.faturamento].filter((v): v is number => v !== null)
+      [d.anoAnterior, d.meta, d.faturamento].filter((v): v is number => v !== null)
     );
     const max = Math.max(...allValues) * 1.08;
 
@@ -128,10 +141,24 @@ export function DualLineChart({
       if (d.faturamento !== null) lastIdx = i;
     });
 
-    const metaPts = data.map((d, i) => {
+    const anoAnteriorPts = data.map((d, i) => {
       const x = padding.left + (i / Math.max(data.length - 1, 1)) * chartWidth;
-      const y = padding.top + chartHeight - (d.meta / (max || 1)) * chartHeight;
-      return { x, y, value: d.meta, name: d.name, date: d.date };
+      const y = padding.top + chartHeight - (d.anoAnterior / (max || 1)) * chartHeight;
+      return { x, y, value: d.anoAnterior, name: d.name, date: d.date, index: i };
+    });
+
+    const metaPts = data.map((d, i) => {
+      const metaValue = d.meta || 0;
+      const x = padding.left + (i / Math.max(data.length - 1, 1)) * chartWidth;
+      const y = padding.top + chartHeight - (metaValue / (max || 1)) * chartHeight;
+      return {
+        x,
+        y,
+        value: metaValue,
+        name: d.name,
+        date: d.date,
+        index: i,
+      };
     });
 
     const faturamentoPts = data
@@ -152,6 +179,7 @@ export function DualLineChart({
 
     return {
       maxValue: max,
+      anoAnteriorPoints: anoAnteriorPts,
       metaPoints: metaPts,
       faturamentoPoints: faturamentoPts,
       lastFaturamentoIndex: lastIdx,
@@ -221,7 +249,8 @@ export function DualLineChart({
     return path;
   };
 
-  const metaLinePath = createSmoothPath(metaPoints);
+  const anoAnteriorLinePath = createSmoothPath(anoAnteriorPoints);
+  const metaLinePath = metaPoints.length > 0 ? createSmoothPath(metaPoints) : '';
   const faturamentoLinePath = createSmoothPath(faturamentoPoints);
 
   // Área preenchida para faturamento
@@ -243,7 +272,13 @@ export function DualLineChart({
 
       {/* Legenda */}
       <div className="absolute right-4 top-2 z-10 flex items-center gap-4 text-xs">
-        {showMetaLine && (
+        {showAnoAnteriorLine && (
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: finalAnoAnteriorColor }} />
+            <span className="text-gray-600 dark:text-gray-400">{anoAnteriorLabel}</span>
+          </div>
+        )}
+        {showMetaLine && metaPoints.length > 0 && (
           <div className="flex items-center gap-1.5">
             <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: finalMetaColor }} />
             <span className="text-gray-600 dark:text-gray-400">{metaLabel}</span>
@@ -332,12 +367,12 @@ export function DualLineChart({
           />
         )}
 
-        {/* Linha de Meta (tracejada com transparência) */}
-        {showMetaLine && (
+        {/* Linha de Ano Anterior (tracejada com transparência) */}
+        {showAnoAnteriorLine && (
           <path
-            d={metaLinePath}
+            d={anoAnteriorLinePath}
             fill="none"
-            stroke={finalMetaColor}
+            stroke={finalAnoAnteriorColor}
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -350,11 +385,67 @@ export function DualLineChart({
           />
         )}
 
+        {/* Linha de Meta (sólida amarela) */}
+        {showMetaLine && metaPoints.length > 0 && (
+          <path
+            d={metaLinePath}
+            fill="none"
+            stroke={finalMetaColor}
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={clsx(
+              'transition-all duration-1000 ease-out',
+              isAnimated ? 'opacity-100' : 'opacity-0'
+            )}
+          />
+        )}
+
+        {/* Pontos da linha de Ano Anterior (opcional) */}
+        {showAnoAnteriorMarkers &&
+          anoAnteriorPoints.map((p, i) => {
+            const isMax = p.value === Math.max(...anoAnteriorPoints.map((pt) => pt.value));
+            const isHovered = hoveredIndex === i;
+            const isHighlighted = isMax || isHovered;
+
+            return (
+              <g key={`anoAnterior-point-${i}`}>
+                {/* Halo para ponto destacado */}
+                {isHighlighted && (
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={isMax ? 12 : 10}
+                    fill={finalAnoAnteriorColor}
+                    fillOpacity={0.15}
+                    filter="url(#pointGlow)"
+                    className="animate-pulse"
+                  />
+                )}
+
+                {/* Ponto principal */}
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={isHighlighted ? 5 : 3.5}
+                  fill="white"
+                  stroke={finalAnoAnteriorColor}
+                  strokeWidth={isHighlighted ? 2.5 : 2}
+                  className={clsx(
+                    'transition-all duration-200 ease-out dark:fill-black',
+                    isAnimated ? 'opacity-100' : 'opacity-0'
+                  )}
+                  style={{ transitionDelay: `${i * 50}ms` }}
+                />
+              </g>
+            );
+          })}
+
         {/* Pontos da linha de Meta (opcional) */}
         {showMetaMarkers &&
           metaPoints.map((p, i) => {
             const isMax = p.value === Math.max(...metaPoints.map((pt) => pt.value));
-            const isHovered = hoveredIndex === i;
+            const isHovered = hoveredIndex === p.index;
             const isHighlighted = isMax || isHovered;
 
             return (
@@ -484,13 +575,13 @@ export function DualLineChart({
           (() => {
             const d = data[hoveredIndex];
             const _x = padding.left + (hoveredIndex / Math.max(data.length - 1, 1)) * chartWidth;
-            const _metaY = metaPoints[hoveredIndex]?.y || padding.top;
             const fatPt = faturamentoPoints.find((p) => p.index === hoveredIndex);
 
             // Tooltip para faturamento (principal)
             if (fatPt) {
-              const tooltipWidth = 150;
-              const tooltipHeight = 64;
+              const hasMeta = d.meta !== undefined && d.meta !== null;
+              const tooltipWidth = 160;
+              const tooltipHeight = hasMeta ? 90 : 70;
               let tooltipX = fatPt.x - tooltipWidth / 2;
               if (tooltipX < padding.left) tooltipX = padding.left;
               if (tooltipX + tooltipWidth > viewBoxWidth - padding.right) {
@@ -551,7 +642,7 @@ export function DualLineChart({
                     textAnchor="middle"
                     fill="white"
                     style={{
-                      fontSize: '13px',
+                      fontSize: '14px',
                       fontWeight: 600,
                       fontFamily: 'Inter, system-ui, sans-serif',
                     }}
@@ -559,10 +650,10 @@ export function DualLineChart({
                     {toBRL(fatPt.value)}
                   </text>
 
-                  {/* Valor YoY (embaixo) */}
+                  {/* Valor Ano Anterior */}
                   <text
                     x={tooltipX + tooltipWidth / 2}
-                    y={tooltipY + 44}
+                    y={tooltipY + 46}
                     textAnchor="middle"
                     fill={NEUTRAL_COLORS.gray400}
                     style={{
@@ -571,23 +662,57 @@ export function DualLineChart({
                       fontFamily: 'Inter, system-ui, sans-serif',
                     }}
                   >
-                    YoY: {toBRL(d.meta)}
+                    YoY: {toBRL(d.anoAnterior)}
                   </text>
 
-                  {/* Diferença percentual */}
+                  {/* Diferença percentual vs Ano Anterior */}
                   <text
                     x={tooltipX + tooltipWidth / 2}
-                    y={tooltipY + 58}
+                    y={tooltipY + 60}
                     textAnchor="middle"
-                    fill={fatPt.value >= d.meta ? STATUS_COLORS.success : STATUS_COLORS.danger}
+                    fill={fatPt.value >= d.anoAnterior ? STATUS_COLORS.success : STATUS_COLORS.danger}
                     style={{
                       fontSize: '9px',
                       fontWeight: 500,
                       fontFamily: 'Inter, system-ui, sans-serif',
                     }}
                   >
-                    {d.meta > 0 ? `${(((fatPt.value - d.meta) / d.meta) * 100).toFixed(1)}%` : '—'}
+                    {d.anoAnterior > 0 ? `${(((fatPt.value - d.anoAnterior) / d.anoAnterior) * 100).toFixed(1)}%` : '—'}
                   </text>
+
+                  {/* Valor Meta (se existir) */}
+                  {hasMeta && (
+                    <>
+                      <text
+                        x={tooltipX + tooltipWidth / 2}
+                        y={tooltipY + 76}
+                        textAnchor="middle"
+                        fill={finalMetaColor}
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 500,
+                          fontFamily: 'Inter, system-ui, sans-serif',
+                        }}
+                      >
+                        Meta: {toBRL(d.meta!)}
+                      </text>
+
+                      {/* Atingimento da Meta */}
+                      <text
+                        x={tooltipX + tooltipWidth / 2}
+                        y={tooltipY + 88}
+                        textAnchor="middle"
+                        fill={fatPt.value >= (d.meta || 0) ? STATUS_COLORS.success : STATUS_COLORS.warning}
+                        style={{
+                          fontSize: '9px',
+                          fontWeight: 600,
+                          fontFamily: 'Inter, system-ui, sans-serif',
+                        }}
+                      >
+                        {d.meta! > 0 ? `${((fatPt.value / d.meta!) * 100).toFixed(1)}% da meta` : '—'}
+                      </text>
+                    </>
+                  )}
                 </g>
               );
             }
@@ -658,7 +783,8 @@ export function DualLineChart({
         {/* Áreas de hover invisíveis (por cima de tudo para capturar eventos - renderizado por último) */}
         {data.map((d, i) => {
           const x = padding.left + (i / Math.max(data.length - 1, 1)) * chartWidth;
-          const metaY = metaPoints[i]?.y || 0;
+          const anoAnteriorY = anoAnteriorPoints[i]?.y || 0;
+          const metaPt = metaPoints.find((p) => p.index === i);
           const fatPt = faturamentoPoints.find((p) => p.index === i);
 
           return (
@@ -678,13 +804,24 @@ export function DualLineChart({
               {/* Área de hover invisível maior nos pontos */}
               <circle
                 cx={x}
-                cy={metaY}
+                cy={anoAnteriorY}
                 r={30}
                 fill="transparent"
                 className="cursor-pointer"
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
               />
+              {metaPt && (
+                <circle
+                  cx={metaPt.x}
+                  cy={metaPt.y}
+                  r={30}
+                  fill="transparent"
+                  className="cursor-pointer"
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                />
+              )}
               {fatPt && (
                 <circle
                   cx={fatPt.x}

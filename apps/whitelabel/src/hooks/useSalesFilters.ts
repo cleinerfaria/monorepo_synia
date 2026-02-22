@@ -47,20 +47,11 @@ export function useSalesFilters() {
 
   // Calcula as datas baseado no período
   const { startDate, endDate } = useMemo(() => {
-    console.log('📅 [useSalesFilters] Recalculando datas para período:', period);
-
     if (period === 'custom' && customStartDate && customEndDate) {
       return { startDate: customStartDate, endDate: customEndDate };
     }
 
-    const result = getDateRange(period);
-    console.log('📅 [useSalesFilters] Datas calculadas:', {
-      period,
-      startDate: result.startDate.toISOString().split('T')[0],
-      endDate: result.endDate.toISOString().split('T')[0],
-    });
-
-    return result;
+    return getDateRange(period);
   }, [period, customStartDate, customEndDate]);
 
   // Atualiza URL com os filtros
@@ -125,11 +116,17 @@ export function useSalesFilters() {
 
   // Handlers - sanitizam o valor antes de armazenar
   const handlePeriodChange = useCallback(
-    (newPeriod: string) => {
-      console.log('🗓️ [handlePeriodChange] Mudança de período solicitada:', newPeriod);
-      const sanitized = sanitizeValue(newPeriod);
-      const finalPeriod = sanitized || '2026-02'; // Default para fevereiro 2026
-      console.log('🗓️ [handlePeriodChange] Período final:', finalPeriod);
+    (newPeriod: string | { target: { value: string } }) => {
+      // Extrair valor se for um evento, ou usar diretamente se for string
+      let finalPeriod: string;
+      if (typeof newPeriod === 'string') {
+        finalPeriod = newPeriod || '2026-02';
+      } else if (newPeriod && typeof newPeriod === 'object' && 'target' in newPeriod) {
+        finalPeriod = newPeriod.target.value || '2026-02';
+      } else {
+        finalPeriod = '2026-02';
+      }
+      
       setPeriod(finalPeriod);
       updateSearchParams({ period: finalPeriod });
     },

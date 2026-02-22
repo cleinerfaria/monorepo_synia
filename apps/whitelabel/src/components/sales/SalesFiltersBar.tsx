@@ -6,7 +6,7 @@ import { clsx } from 'clsx';
 
 interface SalesFiltersBarProps {
   period: string;
-  onPeriodChange: (value: string) => void;
+  onPeriodChange: (value: string | { target: { value: string } }) => void;
   filial: string[];
   filialTemp: string[];
   onFilialChange: (value: string[]) => void;

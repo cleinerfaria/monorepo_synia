@@ -249,8 +249,9 @@ export default function SalesMetaPage() {
       return {
         name,
         date: d.dia_ano_atual,
-        meta: d.meta_acumulada_ano_atual,
         faturamento,
+        anoAnterior: 0, // Não há comparação com ano anterior neste gráfico
+        meta: d.meta_acumulada_ano_atual,
       };
     });
   }, [metaData, today]);
@@ -406,6 +407,7 @@ export default function SalesMetaPage() {
             showMetaMarkers={false}
             showFaturamentoArea={true}
             showMetaLine={true}
+            showAnoAnteriorLine={false}
             filterXLabels={filterMetaLabels}
           />
         </div>

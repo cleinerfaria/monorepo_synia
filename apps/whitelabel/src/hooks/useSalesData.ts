@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase, resolvedSupabaseUrl, resolvedSupabaseAnonKey } from '@/lib/supabase';
 import type { SalesMovement } from '@/types/sales';
+import { buildOverviewDataQuery } from './queries/overviewDataQuery';
 
 /**
  * Hook para buscar dados de vendas do banco externo da empresa
@@ -63,17 +64,6 @@ async function fetchSalesData(
   const startDateStr = startDate.toISOString().split('T')[0];
   const endDateStr = endDate.toISOString().split('T')[0];
 
-  console.log('📅 [fetchSalesData] Filtros aplicados:', {
-    startDate: startDateStr,
-    endDate: endDateStr,
-    startDateFull: startDate.toISOString(),
-    endDateFull: endDate.toISOString(),
-    originalStartDate: startDate,
-    originalEndDate: endDate,
-    timezone: 'UTC - sem conversão de fuso horário',
-    filters,
-  });
-
   // Query otimizada usando CTEs para melhor performance
   // Primeiro vamos verificar se as tabelas existem
   const checkQuery = `
@@ -100,8 +90,6 @@ async function fetchSalesData(
   });
 
   const checkResult = await checkResponse.json();
-
-  console.log('🔍 [fetchSalesData] Verificação de tabelas:', checkResult.data?.rows?.[0]);
 
   let query: string;
 
@@ -211,13 +199,6 @@ async function fetchSalesData(
     `;
   }
 
-  console.log('🔍 [fetchSalesData] Query SQL gerada:', query);
-  console.log('📅 [fetchSalesData] Filtros aplicados:', {
-    startDate: startDate.toISOString().split('T')[0],
-    endDate: endDate.toISOString().split('T')[0],
-    filters,
-  });
-
   // Executar a query no banco externo
   const queryResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
     method: 'POST',
@@ -250,11 +231,6 @@ async function fetchSalesData(
       const num = parseFloat(cleaned);
       const result = isNaN(num) ? 0 : num;
 
-      // Debug log para valores grandes ou problemáticos
-      if (val.includes('vr_venda') || parseFloat(val) > 1000) {
-        console.log('🔢 [toNumber] Convertendo:', { original: val, cleaned, result });
-      }
-
       return result;
     }
     // Objeto Decimal ou similar
@@ -264,14 +240,6 @@ async function fetchSalesData(
     }
     return 0;
   };
-
-  // Log para debug
-  console.log('📊 [fetchSalesData] Resultado da query:', {
-    success: queryResult.success,
-    totalRows: queryResult.data?.rows?.length || 0,
-    firstRow: queryResult.data?.rows?.[0],
-    lastRow: queryResult.data?.rows?.[queryResult.data?.rows?.length - 1],
-  });
 
   // Parsear valores numéricos que podem vir como string do banco
   const rows = (queryResult.data?.rows || []).map((row: Record<string, unknown>) => {
@@ -291,27 +259,8 @@ async function fetchSalesData(
       uf: row.cep ? getUFFromCEP(String(row.cep)) : undefined,
     };
 
-    // Log valores para debug
-    if (queryResult.data?.rows?.indexOf(row) < 5) {
-      console.log(`📝 [fetchSalesData] Linha ${queryResult.data?.rows?.indexOf(row)}:`, {
-        dt_mov: parsed.dt_mov,
-        vr_venda_original: row.vr_venda,
-        vr_venda_parsed: parsed.vr_venda,
-        cod_cliente: parsed.cod_cliente,
-      });
-    }
-
     return parsed;
   }) as SalesMovement[];
-
-  const totalFaturamento = rows.reduce((total, row) => total + row.vr_venda, 0);
-  console.log('💰 [fetchSalesData] Faturamento total calculado:', {
-    totalRows: rows.length,
-    totalFaturamento,
-    formatted: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-      totalFaturamento
-    ),
-  });
 
   return rows;
 }
@@ -370,21 +319,12 @@ export function useSalesData(
     filters,
   ];
 
-  console.log('🔍 [useSalesData] Query being executed with:', {
-    companyId: company?.id,
-    startDate: startDate.toISOString().split('T')[0],
-    endDate: endDate.toISOString().split('T')[0],
-    filters,
-    queryKey,
-  });
-
   return useQuery({
     queryKey,
     queryFn: () => {
       if (!company?.id) {
         throw new Error('Empresa não encontrada');
       }
-      console.log('📡 [useSalesData] Executando fetchSalesData...');
       return fetchSalesData(company.id, startDate, endDate, filters);
     },
     staleTime: 1000 * 60 * 60, // 1 hora
@@ -452,6 +392,7 @@ export interface OverviewMonthlyData {
   crescimento_faturamento_mom_pct: number | null;
   faturamento_ano_anterior: number | null;
   crescimento_faturamento_yoy_pct: number | null;
+  meta_faturamento: number | null;
   volume_litros: number;
   volume_mes_anterior: number | null;
   crescimento_volume_mom_pct: number | null;
@@ -532,115 +473,7 @@ async function fetchOverviewData(
 
   // Query otimizada com CTEs - FONTE ÚNICA DE DADOS
   // Sempre busca últimos 12 meses + 12 anteriores para YoY
-  console.log('🎯 [fetchOverviewData] Buscando últimos 12 meses (dados fixos para cache)');
-  const query = `
-    WITH base AS (
-      SELECT
-        date_trunc('month', m.dt_mov)::date AS mes,
-        m.cod_cliente,
-        m.cod_filial,
-        mi.id_produto,
-        mi.vr_venda,
-        mi.qtd_litros
-      FROM public.movimentacao m
-      JOIN public.movimentacao_item mi
-        ON mi.id_movimentacao = m.id_movimentacao
-      WHERE m.dt_mov >= date_trunc('month', current_date) - interval '23 months'
-        AND m.dt_mov < date_trunc('month', current_date) + interval '1 month'
-        ${filialFilter ? `AND m.cod_filial IN (${filialFilter})` : ''}
-        ${clienteFilter ? `AND m.cod_cliente IN (${clienteFilter})` : ''}
-        ${produtoFilter ? `AND mi.id_produto IN (${produtoFilter})` : ''}
-    ),
-    totais_mes AS (
-      SELECT
-        mes,
-        sum(vr_venda) AS faturamento_total,
-        sum(qtd_litros) AS volume_litros,
-        count(DISTINCT cod_cliente) AS clientes_ativos
-      FROM base
-      GROUP BY mes
-    ),
-    produto_mes AS (
-      SELECT
-        mes,
-        id_produto,
-        sum(vr_venda) AS faturamento_produto
-      FROM base
-      GROUP BY mes, id_produto
-    ),
-    produto_lider AS (
-      SELECT
-        mes,
-        max(faturamento_produto) / nullif(sum(faturamento_produto), 0) AS produto_lider_share
-      FROM produto_mes
-      GROUP BY mes
-    ),
-    kpis AS (
-      SELECT
-        t.mes,
-        -- Faturamento
-        t.faturamento_total AS faturamento,
-        lag(t.faturamento_total) OVER (ORDER BY t.mes) AS faturamento_mes_anterior,
-        CASE
-          WHEN lag(t.faturamento_total) OVER (ORDER BY t.mes) IS NULL
-            OR lag(t.faturamento_total) OVER (ORDER BY t.mes) = 0
-          THEN NULL
-          ELSE (t.faturamento_total / lag(t.faturamento_total) OVER (ORDER BY t.mes)) - 1
-        END AS crescimento_faturamento_mom_pct,
-        lag(t.faturamento_total, 12) OVER (ORDER BY t.mes) AS faturamento_ano_anterior,
-        CASE
-          WHEN lag(t.faturamento_total, 12) OVER (ORDER BY t.mes) IS NULL
-            OR lag(t.faturamento_total, 12) OVER (ORDER BY t.mes) = 0
-          THEN NULL
-          ELSE (t.faturamento_total / lag(t.faturamento_total, 12) OVER (ORDER BY t.mes)) - 1
-        END AS crescimento_faturamento_yoy_pct,
-        -- Volume (Litros)
-        t.volume_litros,
-        lag(t.volume_litros) OVER (ORDER BY t.mes) AS volume_mes_anterior,
-        CASE
-          WHEN lag(t.volume_litros) OVER (ORDER BY t.mes) IS NULL
-            OR lag(t.volume_litros) OVER (ORDER BY t.mes) = 0
-          THEN NULL
-          ELSE (t.volume_litros / lag(t.volume_litros) OVER (ORDER BY t.mes)) - 1
-        END AS crescimento_volume_mom_pct,
-        lag(t.volume_litros, 12) OVER (ORDER BY t.mes) AS volume_ano_anterior,
-        CASE
-          WHEN lag(t.volume_litros, 12) OVER (ORDER BY t.mes) IS NULL
-            OR lag(t.volume_litros, 12) OVER (ORDER BY t.mes) = 0
-          THEN NULL
-          ELSE (t.volume_litros / lag(t.volume_litros, 12) OVER (ORDER BY t.mes)) - 1
-        END AS crescimento_volume_yoy_pct,
-        -- Outros KPIs
-        t.clientes_ativos,
-        t.faturamento_total / nullif(t.clientes_ativos, 0) AS ticket_medio
-      FROM totais_mes t
-    )
-    SELECT
-      to_char(k.mes, 'YYYY-MM') AS mes,
-      -- Faturamento
-      k.faturamento::numeric AS faturamento,
-      k.faturamento_mes_anterior::numeric AS faturamento_mes_anterior,
-      k.crescimento_faturamento_mom_pct::numeric AS crescimento_faturamento_mom_pct,
-      k.faturamento_ano_anterior::numeric AS faturamento_ano_anterior,
-      k.crescimento_faturamento_yoy_pct::numeric AS crescimento_faturamento_yoy_pct,
-      -- Volume
-      k.volume_litros::numeric AS volume_litros,
-      k.volume_mes_anterior::numeric AS volume_mes_anterior,
-      k.crescimento_volume_mom_pct::numeric AS crescimento_volume_mom_pct,
-      k.volume_ano_anterior::numeric AS volume_ano_anterior,
-      k.crescimento_volume_yoy_pct::numeric AS crescimento_volume_yoy_pct,
-      -- Demais KPIs
-      k.clientes_ativos::integer AS clientes_ativos,
-      k.ticket_medio::numeric AS ticket_medio,
-      pl.produto_lider_share::numeric AS produto_lider_share
-    FROM kpis k
-    LEFT JOIN produto_lider pl ON pl.mes = k.mes
-    WHERE k.mes >= date_trunc('month', current_date) - interval '11 months'
-      AND k.mes < date_trunc('month', current_date) + interval '1 month'
-    ORDER BY k.mes
-  `;
-
-  console.log('🎯 [fetchOverviewData] Executando query única para visão geral');
+  const query = buildOverviewDataQuery(filialFilter, clienteFilter, produtoFilter);
 
   const queryResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
     method: 'POST',
@@ -662,8 +495,6 @@ async function fetchOverviewData(
     console.error('Erro ao buscar dados da visão geral:', queryResult.error);
     throw new Error(queryResult.error || 'Erro ao buscar dados da visão geral');
   }
-
-  console.log('📊 [fetchOverviewData] Dados retornados:', queryResult.data?.rows?.length, 'meses');
 
   // Helper para converter valor numérico
   const toNumber = (val: unknown): number => {
@@ -695,6 +526,7 @@ async function fetchOverviewData(
     crescimento_faturamento_mom_pct: toNumberOrNull(row.crescimento_faturamento_mom_pct),
     faturamento_ano_anterior: toNumberOrNull(row.faturamento_ano_anterior),
     crescimento_faturamento_yoy_pct: toNumberOrNull(row.crescimento_faturamento_yoy_pct),
+    meta_faturamento: toNumberOrNull(row.meta_faturamento),
     volume_litros: toNumber(row.volume_litros),
     volume_mes_anterior: toNumberOrNull(row.volume_mes_anterior),
     crescimento_volume_mom_pct: toNumberOrNull(row.crescimento_volume_mom_pct),
@@ -704,8 +536,6 @@ async function fetchOverviewData(
     ticket_medio: toNumber(row.ticket_medio),
     produto_lider_share: toNumberOrNull(row.produto_lider_share),
   }));
-
-  console.log('📊 [fetchOverviewData] Dados processados:', rows);
 
   return rows;
 }
@@ -856,8 +686,6 @@ async function fetchOverviewKPIs(
     ORDER BY t.mes
   `;
 
-  console.log('🎯 [fetchOverviewKPIs] Executando query otimizada para KPIs');
-
   const queryResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
     method: 'POST',
     headers: {
@@ -878,8 +706,6 @@ async function fetchOverviewKPIs(
     console.error('Erro ao buscar KPIs:', queryResult.error);
     throw new Error(queryResult.error || 'Erro ao buscar KPIs');
   }
-
-  console.log('📊 [fetchOverviewKPIs] Dados retornados:', queryResult.data?.rows?.length, 'meses');
 
   // Helper para converter valor numérico
   const toNumber = (val: unknown): number => {
@@ -1015,7 +841,6 @@ async function fetchMonthlyRevenue(
   });
 
   const checkResult = await checkResponse.json();
-  console.log('🔍 [fetchMonthlyRevenue] Verificação de tabelas:', checkResult.data?.rows?.[0]);
 
   let query: string;
 
@@ -1116,9 +941,6 @@ async function fetchMonthlyRevenue(
     throw new Error(queryResult.error || 'Erro ao buscar faturamento mensal');
   }
 
-  // Log para debug
-  console.log('Monthly revenue raw data:', queryResult.data?.rows?.[0]);
-
   // Helper para converter valor numérico (postgres retorna numeric como string)
   const toNumber = (val: unknown): number => {
     if (val === null || val === undefined) return 0;
@@ -1135,7 +957,6 @@ async function fetchMonthlyRevenue(
   const rows = (queryResult.data?.rows || []).map((row: Record<string, unknown>) => {
     const faturamento = toNumber(row.faturamento_total);
     const mes = String(row.mes || '');
-    console.log('Parsed row:', mes, row.faturamento_total, '->', faturamento);
     return {
       mes,
       faturamento,
@@ -1751,8 +1572,6 @@ async function fetchRevenueByState(
     ORDER BY faturamento DESC
   `;
 
-  console.log('🗺️ [fetchRevenueByState] Executando query de faturamento por UF');
-
   const queryResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
     method: 'POST',
     headers: {
@@ -1781,8 +1600,6 @@ async function fetchRevenueByState(
       faturamento: Number(row.faturamento) || 0,
     })
   );
-
-  console.log(`🗺️ [fetchRevenueByState] Encontrados ${data.length} estados com faturamento`);
 
   return data;
 }
@@ -1905,8 +1722,6 @@ async function fetchRevenueByRegion(
     ORDER BY faturamento DESC
   `;
 
-  console.log('🌎 [fetchRevenueByRegion] Executando query de faturamento por região');
-
   const queryResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
     method: 'POST',
     headers: {
@@ -1935,8 +1750,6 @@ async function fetchRevenueByRegion(
       faturamento: Number(row.faturamento) || 0,
     })
   );
-
-  console.log(`🌎 [fetchRevenueByRegion] Encontradas ${data.length} regiões com faturamento`);
 
   return data;
 }

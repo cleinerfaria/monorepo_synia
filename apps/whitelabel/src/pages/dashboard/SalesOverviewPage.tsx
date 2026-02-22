@@ -177,7 +177,8 @@ export default function SalesOverviewPage() {
         name: formatMonth(monthKey),
         date: monthKey,
         faturamento: item?.faturamento ?? 0,
-        meta: item?.faturamento_ano_anterior ?? 0, // Usando ano anterior como "meta" para comparacao
+        anoAnterior: item?.faturamento_ano_anterior ?? 0,
+        meta: item?.meta_faturamento ?? 0,
       };
     });
   }, [overviewData]);
@@ -529,7 +530,7 @@ export default function SalesOverviewPage() {
       <div className="w-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700/50 dark:bg-gray-800/50">
         <div className="mb-2">
           <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-            Faturamento por Mês vs Ano Anterior
+            Faturamento por Mês vs Ano Anterior vs Meta
           </h3>
         </div>
         <div className="w-full overflow-hidden">
@@ -537,7 +538,8 @@ export default function SalesOverviewPage() {
             data={revenueByMonth}
             height={340}
             isLoading={isLoadingData}
-            metaColor={NEUTRAL_COLORS.gray400}
+            anoAnteriorColor={NEUTRAL_COLORS.gray400}
+            metaColor="#eab308"
           />
         </div>
       </div>
