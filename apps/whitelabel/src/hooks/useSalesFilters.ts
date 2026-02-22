@@ -126,7 +126,7 @@ export function useSalesFilters() {
       } else {
         finalPeriod = '2026-02';
       }
-      
+
       setPeriod(finalPeriod);
       updateSearchParams({ period: finalPeriod });
     },

@@ -124,68 +124,75 @@ export function DualLineChart({
   const chartWidth = viewBoxWidth - padding.left - padding.right;
   const chartHeight = viewBoxHeight - padding.top - padding.bottom;
 
-  const { maxValue, anoAnteriorPoints, metaPoints, faturamentoPoints, lastFaturamentoIndex } = useMemo(() => {
-    if (!data || data.length === 0) {
-      return { maxValue: 0, anoAnteriorPoints: [], metaPoints: [], faturamentoPoints: [], lastFaturamentoIndex: -1 };
-    }
+  const { maxValue, anoAnteriorPoints, metaPoints, faturamentoPoints, lastFaturamentoIndex } =
+    useMemo(() => {
+      if (!data || data.length === 0) {
+        return {
+          maxValue: 0,
+          anoAnteriorPoints: [],
+          metaPoints: [],
+          faturamentoPoints: [],
+          lastFaturamentoIndex: -1,
+        };
+      }
 
-    // Encontrar o máximo entre anoAnterior, meta e faturamento
-    const allValues = data.flatMap((d) =>
-      [d.anoAnterior, d.meta, d.faturamento].filter((v): v is number => v !== null)
-    );
-    const max = Math.max(...allValues) * 1.08;
+      // Encontrar o máximo entre anoAnterior, meta e faturamento
+      const allValues = data.flatMap((d) =>
+        [d.anoAnterior, d.meta, d.faturamento].filter((v): v is number => v !== null)
+      );
+      const max = Math.max(...allValues) * 1.08;
 
-    // Encontrar último índice com faturamento
-    let lastIdx = -1;
-    data.forEach((d, i) => {
-      if (d.faturamento !== null) lastIdx = i;
-    });
+      // Encontrar último índice com faturamento
+      let lastIdx = -1;
+      data.forEach((d, i) => {
+        if (d.faturamento !== null) lastIdx = i;
+      });
 
-    const anoAnteriorPts = data.map((d, i) => {
-      const x = padding.left + (i / Math.max(data.length - 1, 1)) * chartWidth;
-      const y = padding.top + chartHeight - (d.anoAnterior / (max || 1)) * chartHeight;
-      return { x, y, value: d.anoAnterior, name: d.name, date: d.date, index: i };
-    });
+      const anoAnteriorPts = data.map((d, i) => {
+        const x = padding.left + (i / Math.max(data.length - 1, 1)) * chartWidth;
+        const y = padding.top + chartHeight - (d.anoAnterior / (max || 1)) * chartHeight;
+        return { x, y, value: d.anoAnterior, name: d.name, date: d.date, index: i };
+      });
 
-    const metaPts = data.map((d, i) => {
-      const metaValue = d.meta || 0;
-      const x = padding.left + (i / Math.max(data.length - 1, 1)) * chartWidth;
-      const y = padding.top + chartHeight - (metaValue / (max || 1)) * chartHeight;
-      return {
-        x,
-        y,
-        value: metaValue,
-        name: d.name,
-        date: d.date,
-        index: i,
-      };
-    });
-
-    const faturamentoPts = data
-      .filter((d) => d.faturamento !== null)
-      .map((d, _i, _arr) => {
-        const originalIndex = data.findIndex((od) => od.date === d.date);
-        const x = padding.left + (originalIndex / Math.max(data.length - 1, 1)) * chartWidth;
-        const y = padding.top + chartHeight - ((d.faturamento || 0) / (max || 1)) * chartHeight;
+      const metaPts = data.map((d, i) => {
+        const metaValue = d.meta || 0;
+        const x = padding.left + (i / Math.max(data.length - 1, 1)) * chartWidth;
+        const y = padding.top + chartHeight - (metaValue / (max || 1)) * chartHeight;
         return {
           x,
           y,
-          value: d.faturamento || 0,
+          value: metaValue,
           name: d.name,
           date: d.date,
-          index: originalIndex,
+          index: i,
         };
       });
 
-    return {
-      maxValue: max,
-      anoAnteriorPoints: anoAnteriorPts,
-      metaPoints: metaPts,
-      faturamentoPoints: faturamentoPts,
-      lastFaturamentoIndex: lastIdx,
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, chartWidth, chartHeight]);
+      const faturamentoPts = data
+        .filter((d) => d.faturamento !== null)
+        .map((d, _i, _arr) => {
+          const originalIndex = data.findIndex((od) => od.date === d.date);
+          const x = padding.left + (originalIndex / Math.max(data.length - 1, 1)) * chartWidth;
+          const y = padding.top + chartHeight - ((d.faturamento || 0) / (max || 1)) * chartHeight;
+          return {
+            x,
+            y,
+            value: d.faturamento || 0,
+            name: d.name,
+            date: d.date,
+            index: originalIndex,
+          };
+        });
+
+      return {
+        maxValue: max,
+        anoAnteriorPoints: anoAnteriorPts,
+        metaPoints: metaPts,
+        faturamentoPoints: faturamentoPts,
+        lastFaturamentoIndex: lastIdx,
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data, chartWidth, chartHeight]);
 
   // Labels do eixo X - mostrar todos os meses
   // IMPORTANTE: Este hook deve estar ANTES de qualquer return condicional
@@ -274,7 +281,10 @@ export function DualLineChart({
       <div className="absolute right-4 top-2 z-10 flex items-center gap-4 text-xs">
         {showAnoAnteriorLine && (
           <div className="flex items-center gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: finalAnoAnteriorColor }} />
+            <div
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: finalAnoAnteriorColor }}
+            />
             <span className="text-gray-600 dark:text-gray-400">{anoAnteriorLabel}</span>
           </div>
         )}
@@ -670,14 +680,18 @@ export function DualLineChart({
                     x={tooltipX + tooltipWidth / 2}
                     y={tooltipY + 60}
                     textAnchor="middle"
-                    fill={fatPt.value >= d.anoAnterior ? STATUS_COLORS.success : STATUS_COLORS.danger}
+                    fill={
+                      fatPt.value >= d.anoAnterior ? STATUS_COLORS.success : STATUS_COLORS.danger
+                    }
                     style={{
                       fontSize: '9px',
                       fontWeight: 500,
                       fontFamily: 'Inter, system-ui, sans-serif',
                     }}
                   >
-                    {d.anoAnterior > 0 ? `${(((fatPt.value - d.anoAnterior) / d.anoAnterior) * 100).toFixed(1)}%` : '—'}
+                    {d.anoAnterior > 0
+                      ? `${(((fatPt.value - d.anoAnterior) / d.anoAnterior) * 100).toFixed(1)}%`
+                      : '—'}
                   </text>
 
                   {/* Valor Meta (se existir) */}
@@ -702,14 +716,20 @@ export function DualLineChart({
                         x={tooltipX + tooltipWidth / 2}
                         y={tooltipY + 88}
                         textAnchor="middle"
-                        fill={fatPt.value >= (d.meta || 0) ? STATUS_COLORS.success : STATUS_COLORS.warning}
+                        fill={
+                          fatPt.value >= (d.meta || 0)
+                            ? STATUS_COLORS.success
+                            : STATUS_COLORS.warning
+                        }
                         style={{
                           fontSize: '9px',
                           fontWeight: 600,
                           fontFamily: 'Inter, system-ui, sans-serif',
                         }}
                       >
-                        {d.meta! > 0 ? `${((fatPt.value / d.meta!) * 100).toFixed(1)}% da meta` : '—'}
+                        {d.meta! > 0
+                          ? `${((fatPt.value / d.meta!) * 100).toFixed(1)}% da meta`
+                          : '—'}
                       </text>
                     </>
                   )}
