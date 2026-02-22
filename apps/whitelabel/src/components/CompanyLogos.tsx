@@ -187,7 +187,7 @@ export function CompanyLogos({
                     type="button"
                     variant="neutral"
                     className="w-full"
-                    disabled={isUploading || isLoading}
+                    icon={<Upload className="mr-2 h-4 w-4" />}
                     onClick={(e) => {
                       const input = e.currentTarget.previousElementSibling as HTMLInputElement;
                       input?.click();
@@ -199,10 +199,7 @@ export function CompanyLogos({
                         Upload...
                       </>
                     ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Enviar
-                      </>
+                      <>Enviar</>
                     )}
                   </Button>
                 </label>

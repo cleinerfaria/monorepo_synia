@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Layers, TrendingUp, Crown, Search, RefreshCw } from 'lucide-react';
-import { Input } from '@synia/ui';
+import { Button, Input } from '@synia/ui';
 import { KpiCard, SalesFiltersBar, SimpleChart, ChartCard, PremiumTable } from '@/components/sales';
 import { useSalesData } from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
@@ -246,14 +246,13 @@ export default function SalesProductsPage() {
             Análise de performance por produto
           </p>
         </div>
-        <button
+        <Button
           onClick={() => refetch()}
-          disabled={isLoading || isFetching}
+          icon={<RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
         >
-          <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           Atualizar
-        </button>
+        </Button>
       </div>
 
       {/* Filtros */}

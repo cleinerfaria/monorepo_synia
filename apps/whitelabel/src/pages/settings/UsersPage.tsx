@@ -156,8 +156,7 @@ export default function UsersPage() {
             Usuários
           </h1>
         </div>
-        <Button onClick={handleNewUser}>
-          <Plus className="h-5 w-5" />
+        <Button icon={<Plus className="h-4 w-4" />} onClick={handleNewUser}>
           Novo Usuário
         </Button>
       </div>

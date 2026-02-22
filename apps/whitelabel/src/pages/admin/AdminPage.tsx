@@ -564,13 +564,21 @@ export default function AdminPage() {
               <ThemeSelector />
               <div className="flex items-center gap-2">
                 {company && (
-                  <Button variant="neutral" size="sm" onClick={handleGoToDashboard}>
-                    <Home className="mr-1 h-4 w-4" />
+                  <Button
+                    variant="neutral"
+                    icon={<Home className="mr-1 h-4 w-4" />}
+                    size="sm"
+                    onClick={handleGoToDashboard}
+                  >
                     Dashboard
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  <LogOut className="mr-1 h-4 w-4" />
+                <Button
+                  variant="neutral"
+                  icon={<LogOut className="mr-1 h-4 w-4" />}
+                  size="sm"
+                  onClick={handleSignOut}
+                >
                   Sair
                 </Button>
               </div>
@@ -862,8 +870,7 @@ function CompaniesTab({
             className="w-full pl-11"
           />
         </div>
-        <Button onClick={onNew}>
-          <Plus className="mr-2 h-5 w-5" />
+        <Button icon={<Plus className="mr-1 h-4 w-4" />} onClick={onNew}>
           Nova Empresa
         </Button>
       </div>
@@ -1006,8 +1013,11 @@ function UsersTab({
             ))}
           </select>
         </div>
-        <Button onClick={onNew} disabled={companies.length === 0}>
-          <Plus className="mr-2 h-5 w-5" />
+        <Button
+          icon={<Plus className="mr-1 h-4 w-4" />}
+          onClick={onNew}
+          disabled={companies.length === 0}
+        >
           Novo Usuário
         </Button>
       </div>
@@ -1024,8 +1034,7 @@ function UsersTab({
           }
           action={
             companies.length > 0 ? (
-              <Button onClick={onNew}>
-                <Plus className="mr-2 h-5 w-5" />
+              <Button icon={<Plus className="mr-1 h-4 w-4" />} onClick={onNew}>
                 Novo Usuário
               </Button>
             ) : undefined

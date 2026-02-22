@@ -308,8 +308,11 @@ export default function MessagesPage() {
           <p className="text-sm text-gray-500">Acompanhe conversas em tempo real</p>
         </div>
         {canManageMessages && (
-          <Button onClick={handleSyncConversations} disabled={!selectedInstance}>
-            <RefreshCw className="h-5 w-5" />
+          <Button
+            icon={<RefreshCw className="mr-1 h-4 w-4" />}
+            onClick={handleSyncConversations}
+            disabled={!selectedInstance}
+          >
             Sync conversas
           </Button>
         )}
@@ -354,8 +357,11 @@ export default function MessagesPage() {
                 description="Sincronize as conversas para comecar"
                 action={
                   canManageMessages ? (
-                    <Button size="sm" onClick={handleSyncConversations}>
-                      <RefreshCw className="h-4 w-4" />
+                    <Button
+                      icon={<RefreshCw className="h-4 w-4" />}
+                      size="sm"
+                      onClick={handleSyncConversations}
+                    >
                       Sync
                     </Button>
                   ) : undefined

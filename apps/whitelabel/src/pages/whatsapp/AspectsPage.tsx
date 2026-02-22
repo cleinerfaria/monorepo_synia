@@ -136,17 +136,17 @@ export default function AspectsPage() {
           <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
             Aspectos
           </h1>
-          <p className="text-sm text-gray-500">Defina os criterios para avaliacao de atendimento</p>
+          <p className="text-sm text-gray-500">Defina os criterios para avaliação de atendimento</p>
         </div>
         {canManageAspects && (
           <Button
+            icon={<Plus className="h-4 w-4" />}
             onClick={() => {
               setSelectedEvaluation(null);
               setIsEvaluationModalOpen(true);
             }}
           >
-            <Plus className="h-5 w-5" />
-            Nova avaliacao
+            Nova avaliação
           </Button>
         )}
       </div>
@@ -157,7 +157,7 @@ export default function AspectsPage() {
             <div className="relative w-full sm:w-[30%]">
               <input
                 type="text"
-                placeholder="Buscar avaliacao..."
+                placeholder="Buscar avaliação..."
                 value={searchEvaluations}
                 onChange={(e) => setSearchEvaluations(e.target.value)}
                 className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -173,19 +173,19 @@ export default function AspectsPage() {
           ) : filteredEvaluations.length === 0 ? (
             <EmptyState
               icon={<ClipboardList className="h-12 w-12 text-gray-400" />}
-              title="Nenhuma avaliacao cadastrada"
-              description="Crie sua primeira avaliacao para adicionar aspectos"
+              title="Nenhuma avaliação cadastrada"
+              description="Crie sua primeira avaliação para adicionar aspectos"
               action={
                 canManageAspects ? (
                   <Button
+                    icon={<Plus className="h-4 w-4" />}
                     onClick={() => {
                       setSelectedEvaluation(null);
                       setIsEvaluationModalOpen(true);
                     }}
                     size="sm"
                   >
-                    <Plus className="h-4 w-4" />
-                    Nova avaliacao
+                    Nova avaliação
                   </Button>
                 ) : undefined
               }
@@ -205,12 +205,12 @@ export default function AspectsPage() {
                       setIsEvaluationModalOpen(true);
                     }}
                     onDelete={async (evaluation) => {
-                      if (!confirm(`Excluir avaliacao "${evaluation.name}"?`)) return;
+                      if (!confirm(`Excluir avaliação "${evaluation.name}"?`)) return;
                       try {
                         await deleteEvaluation.mutateAsync(evaluation.id);
-                        toast.success('Avaliacao excluida');
+                        toast.success('Avaliação excluida');
                       } catch (error: any) {
-                        toast.error(error.message || 'Erro ao excluir avaliacao');
+                        toast.error(error.message || 'Erro ao excluir avaliação');
                       }
                     }}
                   />
@@ -226,10 +226,10 @@ export default function AspectsPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Aspectos da avaliacao
+                Aspectos da avaliação
               </h2>
               <p className="text-sm text-gray-500">
-                {selectedEvaluation ? selectedEvaluation.name : 'Selecione uma avaliacao'}
+                {selectedEvaluation ? selectedEvaluation.name : 'Selecione uma avaliação'}
               </p>
             </div>
             {canManageAspects && selectedEvaluation && (
@@ -265,11 +265,11 @@ export default function AspectsPage() {
             emptyState={
               <EmptyState
                 icon={<LayoutGrid className="h-12 w-12 text-gray-400" />}
-                title={selectedEvaluation ? 'Nenhum aspecto cadastrado' : 'Selecione uma avaliacao'}
+                title={selectedEvaluation ? 'Nenhum aspecto cadastrado' : 'Selecione uma avaliação'}
                 description={
                   selectedEvaluation
                     ? 'Crie aspectos para orientar as avaliacoes'
-                    : 'Escolha uma avaliacao acima para gerenciar aspectos'
+                    : 'Escolha uma avaliação acima para gerenciar aspectos'
                 }
                 action={
                   selectedEvaluation && canManageAspects ? (

@@ -71,9 +71,9 @@ export default function SessionDetailModal({
         session_id: session.id,
         evaluation_id: selectedEvaluation,
       });
-      toast.success('Avaliacao registrada como pendente');
+      toast.success('Avaliação registrada como pendente');
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao gerar avaliacao');
+      toast.error(error.message || 'Erro ao gerar avaliação');
     }
   };
 
@@ -145,7 +145,7 @@ export default function SessionDetailModal({
           <div className="flex-1">
             <Select
               options={[
-                { value: '', label: 'Selecione avaliacao' },
+                { value: '', label: 'Selecione avaliação' },
                 ...evaluations.map((evaluation) => ({
                   value: evaluation.id,
                   label: evaluation.name,
@@ -153,11 +153,11 @@ export default function SessionDetailModal({
               ]}
               value={selectedEvaluation}
               onChange={(value: string) => setSelectedEvaluation(value || '')}
-              placeholder="Selecione avaliacao"
+              placeholder="Selecione avaliação"
             />
           </div>
           <Button onClick={handleCreateEvaluation} disabled={!selectedEvaluation}>
-            Gerar avaliacao
+            Gerar avaliação
           </Button>
         </div>
 

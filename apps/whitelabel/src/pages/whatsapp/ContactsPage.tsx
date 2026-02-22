@@ -443,17 +443,17 @@ export default function ContactsPage() {
             <Button
               variant="neutral"
               onClick={handleOpenSyncModal}
+              icon={<RefreshCw className="h-4 w-4" />}
               disabled={!!syncProgress?.isSyncing || activeInstances.length === 0}
             >
-              <RefreshCw className="h-4 w-4" />
               {syncProgress?.isSyncing ? 'Sincronizando...' : 'Atualizar'}
             </Button>
             <Button
               variant="neutral"
               onClick={handleExportContacts}
+              icon={<Download className="h-4 w-4" />}
               disabled={exportContacts.isPending || contacts.length === 0}
             >
-              <Download className="h-4 w-4" />
               {exportContacts.isPending ? 'Exportando...' : 'Exportar'}
             </Button>
           </div>

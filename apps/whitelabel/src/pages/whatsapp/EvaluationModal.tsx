@@ -86,7 +86,7 @@ export default function EvaluationModal({
           active: formData.active,
           instance_ids: formData.instanceIds,
         });
-        toast.success('Avaliacao atualizada');
+        toast.success('Avaliação atualizada');
       } else {
         await createMutation.mutateAsync({
           company_id: companyId,
@@ -95,11 +95,11 @@ export default function EvaluationModal({
           active: formData.active,
           instance_ids: formData.instanceIds,
         });
-        toast.success('Avaliacao criada');
+        toast.success('Avaliação criada');
       }
       onClose();
     } catch (error: any) {
-      const message = error.message || 'Erro ao salvar avaliacao';
+      const message = error.message || 'Erro ao salvar avaliação';
       setErrors({ submit: message });
       toast.error(message);
     }
@@ -109,7 +109,7 @@ export default function EvaluationModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Editar avaliacao' : 'Nova avaliacao'}
+      title={isEditing ? 'Editar avaliação' : 'Nova avaliação'}
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -199,7 +199,7 @@ export default function EvaluationModal({
         <Switch
           checked={formData.active}
           onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-          label="Avaliacao ativa"
+          label="Avaliação ativa"
         />
 
         <div className="flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">

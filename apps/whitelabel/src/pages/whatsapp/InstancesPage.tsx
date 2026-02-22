@@ -266,8 +266,12 @@ export default function InstancesPage() {
       description="Crie sua primeira instância para conectar o WhatsApp"
       action={
         canManageInstances ? (
-          <Button onClick={handleNewInstance} size="sm" data-testid="new-instance-btn-empty">
-            <Plus className="h-4 w-4" />
+          <Button
+            icon={<Plus className="mr-1 h-4 w-4" />}
+            onClick={handleNewInstance}
+            size="sm"
+            data-testid="new-instance-btn-empty"
+          >
             Nova instância
           </Button>
         ) : undefined
@@ -319,11 +323,10 @@ export default function InstancesPage() {
         </div>
         {canManageInstances && (
           <Button
-            onClick={handleNewInstance}
+            icon={<Plus className="mr-1 h-4 w-4" />}
             disabled={!company?.id || isLimitReached}
             data-testid="new-instance-btn"
           >
-            <Plus className="h-5 w-5" />
             Nova instância
           </Button>
         )}
@@ -383,10 +386,9 @@ export default function InstancesPage() {
             </div>
             <Button
               variant="neutral"
-              size="sm"
+              icon={<RefreshCw className="h-4 w-4" />}
               onClick={() => qrInstance && refreshStatusMutation.mutateAsync(qrInstance)}
             >
-              <RefreshCw className="h-4 w-4" />
               Atualizar
             </Button>
           </div>

@@ -407,17 +407,16 @@ function CompanyDataTab({ company }: CompanyDataTabProps) {
               {!showDeleteConfirm && (
                 <Button
                   type="button"
+                  icon={<Trash2 className="mr-1 h-4 w-4" />}
                   variant="danger"
                   onClick={() => setShowDeleteConfirm(true)}
                   disabled={isLoading}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
                   Excluir Empresa
                 </Button>
               )}
             </div>
-            <Button type="submit" disabled={isLoading}>
-              <Save className="mr-2 h-4 w-4" />
+            <Button icon={<Save className="mr-1 h-4 w-4" />} type="submit" disabled={isLoading}>
               {isLoading ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </div>
@@ -509,8 +508,7 @@ function CompanyLimitsTab({ companyId, planSettings }: CompanyLimitsTabProps) {
           </div>
 
           <div className="flex justify-end border-t border-gray-200 pt-4 dark:border-gray-700">
-            <Button type="submit" disabled={isLoading}>
-              <Save className="mr-2 h-4 w-4" />
+            <Button icon={<Save className="mr-1 h-4 w-4" />} type="submit" disabled={isLoading}>
               {isLoading ? 'Salvando...' : 'Salvar Limites'}
             </Button>
           </div>
@@ -594,8 +592,7 @@ function CompanyDatabasesTab({ companyId, databases, isLoading }: CompanyDatabas
                 Configure conexões com bancos de dados externos para dashboards personalizados.
               </p>
             </div>
-            <Button onClick={handleNew}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button icon={<Plus className="mr-1 h-4 w-4" />} onClick={handleNew}>
               Nova Conexão
             </Button>
           </div>
@@ -606,8 +603,7 @@ function CompanyDatabasesTab({ companyId, databases, isLoading }: CompanyDatabas
               title="Nenhuma conexão configurada"
               description="Adicione conexões de banco de dados para criar dashboards personalizados."
               action={
-                <Button onClick={handleNew}>
-                  <Plus className="mr-2 h-4 w-4" />
+                <Button icon={<Plus className="mr-1 h-4 w-4" />} onClick={handleNew}>
                   Adicionar Conexão
                 </Button>
               }
@@ -1185,8 +1181,7 @@ function PagesSection({
               Configure as páginas e seus filtros dinâmicos
             </p>
           </div>
-          <Button onClick={onOpenPageModal}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button icon={<Plus className="mr-1 h-4 w-4" />} onClick={onOpenPageModal}>
             Nova Página
           </Button>
         </div>
