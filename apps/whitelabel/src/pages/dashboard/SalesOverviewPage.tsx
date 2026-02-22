@@ -158,14 +158,28 @@ export default function SalesOverviewPage() {
 
   // Dados para gráfico de faturamento por mês com comparação ano anterior
   const revenueByMonth = useMemo(() => {
-    if (!overviewData || overviewData.length === 0) return [];
+    if (!overviewData) return [];
 
-    return overviewData.map((item) => ({
-      name: formatMonth(item.mes),
-      date: item.mes,
-      faturamento: item.faturamento,
-      meta: item.faturamento_ano_anterior || 0, // Usando ano anterior como "meta" para comparação
-    }));
+    const monthMap = new Map(overviewData.map((item) => [item.mes, item]));
+    const currentMonth = new Date();
+    const startMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+
+    return Array.from({ length: 12 }, (_, index) => {
+      const monthDate = new Date(startMonth);
+      monthDate.setMonth(startMonth.getMonth() - (11 - index));
+
+      const year = monthDate.getFullYear();
+      const month = String(monthDate.getMonth() + 1).padStart(2, '0');
+      const monthKey = `${year}-${month}`;
+      const item = monthMap.get(monthKey);
+
+      return {
+        name: formatMonth(monthKey),
+        date: monthKey,
+        faturamento: item?.faturamento ?? 0,
+        meta: item?.faturamento_ano_anterior ?? 0, // Usando ano anterior como "meta" para comparacao
+      };
+    });
   }, [overviewData]);
 
   // Última atualização formatada
