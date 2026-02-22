@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Button, Select } from '@/components/ui';
+import { Modal, Input, Button, Select } from '@synia/ui';
 import usePageFilters from '@/hooks/usePageFilters';
 import toast from 'react-hot-toast';
 import type { PageFilter, PageFilterType, PageFilterSubtype } from '../types/database';

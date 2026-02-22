@@ -122,9 +122,6 @@ CREATE INDEX IF NOT EXISTS idx_access_profile_permission_permission
 -- 3) APP_USER: adicionar access_profile_id
 -- =====================================================
 
-ALTER TABLE public.app_user
-  ADD COLUMN IF NOT EXISTS access_profile_id UUID REFERENCES public.access_profile(id) ON DELETE SET NULL;
-
 CREATE INDEX IF NOT EXISTS idx_app_user_access_profile
   ON public.app_user(access_profile_id);
 

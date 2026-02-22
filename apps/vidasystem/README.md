@@ -150,7 +150,7 @@ VidaSystem/
 ## 🎨 Design
 
 - **Tipografia**: Inter (texto) + Playfair Display/DM Serif Display (títulos)
-- **Cor principal**: Gold (#D4AF37) - configurável
+- **Cor principal**: Gold (#1aa2ff) - configurável
 - **Temas**: Claro, Escuro e Sistema (automático)
 - **Design**: Premium B2B, clean e moderno
 

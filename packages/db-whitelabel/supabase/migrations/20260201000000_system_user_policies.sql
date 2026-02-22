@@ -38,9 +38,6 @@ $$;
 REVOKE ALL ON FUNCTION public.is_system_user() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.is_system_user() TO authenticated;
 
--- Remover política existente que só permite ler o próprio registro
-DROP POLICY IF EXISTS "system_user_self_read" ON public.system_user;
-
 -- Superadmins podem ver TODOS os system_users
 -- Multi-tenant admins só podem ver o próprio registro
 CREATE POLICY "system_user_read_policy"

@@ -126,7 +126,7 @@ serve(async (req: Request) => {
           name,
           trade_name: trade_name || null,
           document: document || null,
-          primary_color: primary_color || '#D4AF37',
+          primary_color: primary_color || '#1aa2ff',
         },
       ])
       .select()

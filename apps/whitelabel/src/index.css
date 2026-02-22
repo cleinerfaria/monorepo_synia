@@ -33,6 +33,79 @@
   --color-primary-900: 30 58 138;
   --color-primary-950: 23 37 84;
 
+  /* Surface */
+  --bg-canvas: 248 250 252;
+  --bg-surface: 255 255 255;
+  --bg-elevated: 241 245 249;
+  --bg-hover: 226 232 240;
+
+  /* Content */
+  --text-primary: 17 24 39;
+  --text-secondary: 55 65 81;
+  --text-muted: 107 114 128;
+  --text-inverse: 255 255 255;
+
+  /* Border */
+  --border-default: 229 231 235;
+  --border-strong: 209 213 219;
+  --border-focus: var(--color-primary-500);
+  --overlay-backdrop: 0 0 0;
+
+  /* Feedback */
+  --feedback-accent-bg: var(--color-primary-100);
+  --feedback-accent-fg: var(--color-primary-800);
+  --feedback-accent-border: var(--color-primary-300);
+
+  --feedback-success-bg: 220 252 231;
+  --feedback-success-fg: 21 128 61;
+  --feedback-success-border: 134 239 172;
+
+  --feedback-warning-bg: 254 243 199;
+  --feedback-warning-fg: 180 83 9;
+  --feedback-warning-border: 252 211 77;
+
+  --feedback-danger-bg: 254 226 226;
+  --feedback-danger-fg: 185 28 28;
+  --feedback-danger-border: 252 165 165;
+  --feedback-danger-solid: 239 68 68;
+
+  --feedback-info-bg: 219 234 254;
+  --feedback-info-fg: 29 78 216;
+  --feedback-info-border: 147 197 253;
+
+  --feedback-neutral-bg: 243 244 246;
+  --feedback-neutral-fg: 55 65 81;
+  --feedback-neutral-border: 209 213 219;
+
+  /* Tag */
+  --tag-purple-bg: 243 232 255;
+  --tag-purple-fg: 126 34 206;
+  --tag-purple-border: 216 180 254;
+
+  --tag-indigo-bg: 224 231 255;
+  --tag-indigo-fg: 67 56 202;
+  --tag-indigo-border: 165 180 252;
+
+  --tag-cyan-bg: 207 250 254;
+  --tag-cyan-fg: 14 116 144;
+  --tag-cyan-border: 103 232 249;
+
+  --tag-pink-bg: 252 231 243;
+  --tag-pink-fg: 190 24 93;
+  --tag-pink-border: 249 168 212;
+
+  --tag-teal-bg: 204 251 241;
+  --tag-teal-fg: 15 118 110;
+  --tag-teal-border: 94 234 212;
+
+  --tag-orange-bg: 255 237 213;
+  --tag-orange-fg: 194 65 12;
+  --tag-orange-border: 253 186 116;
+
+  --tag-softred-bg: 255 228 230;
+  --tag-softred-fg: 190 18 60;
+  --tag-softred-border: 253 164 175;
+
   /* Toast colors */
   --toast-bg: #ffffff;
   --toast-color: #1f2937;
@@ -44,6 +117,73 @@
 }
 
 .dark {
+  --bg-canvas: 17 24 39;
+  --bg-surface: 31 41 55;
+  --bg-elevated: 55 65 81;
+  --bg-hover: 75 85 99;
+
+  --text-primary: 243 244 246;
+  --text-secondary: 209 213 219;
+  --text-muted: 156 163 175;
+  --text-inverse: 255 255 255;
+
+  --border-default: 75 85 99;
+  --border-strong: 107 114 128;
+  --border-focus: var(--color-primary-400);
+
+  --feedback-accent-bg: var(--color-primary-900);
+  --feedback-accent-fg: var(--color-primary-300);
+  --feedback-accent-border: var(--color-primary-700);
+
+  --feedback-success-bg: 20 83 45;
+  --feedback-success-fg: 74 222 128;
+  --feedback-success-border: 22 101 52;
+
+  --feedback-warning-bg: 120 53 15;
+  --feedback-warning-fg: 251 191 36;
+  --feedback-warning-border: 146 64 14;
+
+  --feedback-danger-bg: 127 29 29;
+  --feedback-danger-fg: 248 113 113;
+  --feedback-danger-border: 153 27 27;
+  --feedback-danger-solid: 248 113 113;
+
+  --feedback-info-bg: 30 58 138;
+  --feedback-info-fg: 96 165 250;
+  --feedback-info-border: 30 64 175;
+
+  --feedback-neutral-bg: 55 65 81;
+  --feedback-neutral-fg: 209 213 219;
+  --feedback-neutral-border: 75 85 99;
+
+  --tag-purple-bg: 88 28 135;
+  --tag-purple-fg: 196 181 253;
+  --tag-purple-border: 107 33 168;
+
+  --tag-indigo-bg: 49 46 129;
+  --tag-indigo-fg: 165 180 252;
+  --tag-indigo-border: 55 48 163;
+
+  --tag-cyan-bg: 22 78 99;
+  --tag-cyan-fg: 103 232 249;
+  --tag-cyan-border: 14 116 144;
+
+  --tag-pink-bg: 131 24 67;
+  --tag-pink-fg: 244 114 182;
+  --tag-pink-border: 157 23 77;
+
+  --tag-teal-bg: 19 78 74;
+  --tag-teal-fg: 94 234 212;
+  --tag-teal-border: 15 118 110;
+
+  --tag-orange-bg: 124 45 18;
+  --tag-orange-fg: 251 146 60;
+  --tag-orange-border: 154 52 18;
+
+  --tag-softred-bg: 136 19 55;
+  --tag-softred-fg: 251 113 133;
+  --tag-softred-border: 159 18 57;
+
   --toast-bg: #1f2937;
   --toast-color: #f9fafb;
   --scrollbar-thumb: #4b5563;

@@ -137,7 +137,7 @@ extend: {
 | Borda default | `border-border`                       | `border-gray-200 dark:border-gray-700` repetido |
 | Erro de input | token semantico `input-error-*`       | `text-red-500` hardcoded                        |
 | Badge status  | `variant="success                     | warning                                         | danger | info | neutral"` | variantes livres sem semantica (`purple`, `pink`, etc.) |
-| Toast success | token `feedback-success-*`            | `iconTheme.primary = '#D4AF37'`                 |
+| Toast success | token `feedback-success-*`            | `iconTheme.primary = '#1aa2ff'`                 |
 
 ### Exemplo pratico
 

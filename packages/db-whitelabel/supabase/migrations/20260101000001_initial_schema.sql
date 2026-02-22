@@ -8,12 +8,6 @@
 -- =====================================================
 
 -- =====================================================
--- EXTENSÕES
--- =====================================================
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- =====================================================
 -- A) MULTI-EMPRESA E USUÁRIOS
 -- =====================================================
 
@@ -30,7 +24,7 @@ CREATE TABLE public.company (
     logo_url_expanded_light TEXT,
     logo_url_collapsed_light TEXT,
 
-    primary_color TEXT DEFAULT '#D4AF37',
+    primary_color TEXT DEFAULT '#1aa2ff',
     theme_preference TEXT DEFAULT 'light'
       CHECK (theme_preference IN ('light', 'dark', 'system')),
 
@@ -74,7 +68,7 @@ CREATE TABLE public.app_user (
     name TEXT NOT NULL,
     email TEXT NOT NULL,
     access_profile_id UUID NOT NULL,
-  theme public.enum_theme_preference DEFAULT 'system'::public.enum_theme_preference,
+    theme public.enum_theme_preference DEFAULT 'system'::public.enum_theme_preference,
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),

@@ -4,9 +4,6 @@
 -- Criptografia: pgcrypto (AES-256-CBC)
 -- =====================================================
 
--- Habilitar extensão pgcrypto
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
-
 -- =====================================================
 -- 1) Tabela de chaves de criptografia
 -- =====================================================
