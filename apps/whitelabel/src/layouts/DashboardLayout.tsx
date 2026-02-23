@@ -8,6 +8,7 @@ import { clsx } from 'clsx';
 import packageJson from '../../package.json';
 
 import {
+  Brain,
   Building2,
   ChevronDown,
   Home,
@@ -44,7 +45,7 @@ interface NavItem {
 
   icon: React.ComponentType<{ className?: string }>;
 
-  children?: { name: string; href: string }[];
+  children?: { name: string; href: string; disabled?: boolean }[];
 }
 
 const navigation: NavItem[] = [
@@ -66,21 +67,31 @@ const navigation: NavItem[] = [
   },
 
   {
-    name: 'WhatsApp',
+    name: 'Comunicação',
 
     href: '/whatsapp',
 
     icon: MessageSquare,
 
     children: [
-      { name: 'Instâncias', href: '/whatsapp/instances' },
+      { name: 'Atendentes', href: '/whatsapp/attendants', disabled: true },
       { name: 'Contatos', href: '/whatsapp/contacts' },
-
+      { name: 'Instâncias', href: '/whatsapp/instances' },
       { name: 'Mensagens', href: '/whatsapp/messages' },
+    ],
+  },
 
-      { name: 'Avaliações', href: '/whatsapp/evaluations' },
+  {
+    name: 'Inteligência',
 
+    href: '/whatsapp',
+
+    icon: Brain,
+
+    children: [
       { name: 'Aspectos', href: '/whatsapp/aspects' },
+      { name: 'Avaliações', href: '/whatsapp/evaluations' },
+      { name: 'Insights', href: '/whatsapp/insights', disabled: true },
     ],
   },
 
@@ -168,7 +179,7 @@ function getFilteredNavigation(
       }
 
       // Filter based on module settings
-      if (item.name === 'WhatsApp') {
+      if (item.name === 'Comunicação' || item.name === 'Inteligência') {
         return enabledModules.whatsapp ? item : null;
       }
 
@@ -792,22 +803,31 @@ function SidebarContent({
                         <ul className="ml-4 mt-0.5 space-y-0.5 overflow-hidden">
                           {item.children.map((child) => (
                             <li key={child.name}>
-                              <NavLink
-                                to={child.href}
-                                end
-                                onClick={(e) => {
-                                  onLinkClick?.(e, child.href);
+                              {child.disabled ? (
+                                <span className="sidebar-link cursor-not-allowed select-none pl-8 opacity-50">
+                                  <span>{child.name}</span>
+                                  <span className="ml-1.5 rounded text-[10px] font-medium text-gray-400 dark:text-gray-500">
+                                    em breve
+                                  </span>
+                                </span>
+                              ) : (
+                                <NavLink
+                                  to={child.href}
+                                  end
+                                  onClick={(e) => {
+                                    onLinkClick?.(e, child.href);
 
-                                  if (!e.defaultPrevented) {
-                                    onNavigate?.();
+                                    if (!e.defaultPrevented) {
+                                      onNavigate?.();
+                                    }
+                                  }}
+                                  className={({ isActive }) =>
+                                    clsx('sidebar-link pl-8', isActive && 'active')
                                   }
-                                }}
-                                className={({ isActive }) =>
-                                  clsx('sidebar-link pl-8', isActive && 'active')
-                                }
-                              >
-                                {child.name}
-                              </NavLink>
+                                >
+                                  {child.name}
+                                </NavLink>
+                              )}
                             </li>
                           ))}
                         </ul>
