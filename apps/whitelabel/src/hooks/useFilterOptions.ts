@@ -228,7 +228,7 @@ export function useClienteOptions() {
         return {
           items: items.map((row) => ({
             value: String(row.value || ''),
-            label: String(row.label || ''),
+            label: `${String(row.value || '')} - ${String(row.label || '')}`,
           })),
           nextPage: hasMore ? pageParam + 1 : null,
           total: items.length,

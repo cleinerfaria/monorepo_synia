@@ -82,7 +82,9 @@ export default function SalesClientsPage() {
   } = useRevenueByRegion(queryFilters);
 
   const clientGoalsMap = useMemo(() => {
-    return new Map((clientGoalsData || []).map((item) => [item.cod_cliente, item.meta_faturamento]));
+    return new Map(
+      (clientGoalsData || []).map((item) => [item.cod_cliente, item.meta_faturamento])
+    );
   }, [clientGoalsData]);
 
   // Dados agregados por cliente
@@ -179,7 +181,7 @@ export default function SalesClientsPage() {
   // Top 10 clientes para gráfico
   const topClientesChart = useMemo(() => {
     return clientData.slice(0, 10).map((c) => ({
-      name: c.nome_cliente.length > 22 ? c.nome_cliente.substring(0, 22) + '...' : c.nome_cliente,
+      name: `${c.cod_cliente} - ${c.nome_cliente.length > 40 ? c.nome_cliente.substring(0, 40) + '...' : c.nome_cliente}`,
       value: c.faturamento,
     })) as ChartDataPoint[];
   }, [clientData]);
@@ -236,8 +238,10 @@ export default function SalesClientsPage() {
     {
       key: 'nome_cliente',
       header: 'Nome',
-      render: (value: unknown) => (
-        <span className="font-medium text-gray-900 dark:text-white">{String(value)}</span>
+      render: (value: unknown, row: ClientAggregate) => (
+        <span className="font-medium text-gray-900 dark:text-white">
+          {row.cod_cliente} - {String(value)}
+        </span>
       ),
     },
     {
@@ -275,9 +279,18 @@ export default function SalesClientsPage() {
           return <span className="text-gray-400 dark:text-gray-500">-</span>;
         }
 
+        const isAchieved = pct >= 1;
+        const percentageValue = (pct * 100).toFixed(1);
+
         return (
-          <span className="font-medium text-gray-600 dark:text-gray-400">
-            {(pct * 100).toFixed(1)}%
+          <span
+            className={`inline-flex items-center gap-1 font-medium ${
+              isAchieved
+                ? 'text-primary-600 dark:text-primary-400'
+                : 'text-red-600 dark:text-red-400'
+            }`}
+          >
+            {percentageValue}%
           </span>
         );
       },
