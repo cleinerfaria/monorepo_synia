@@ -47,19 +47,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: staging
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Log Staging Deployment Info
-        shell: bash
-        run: |
-          echo "🎯 Deploying to Staging Environment"
-          echo "PR: #${{ github.event.pull_request.number }}"
-          echo "Branch: ${{ github.head_ref }}"
-          echo "Commit: ${{ github.sha }}"
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
@@ -69,8 +60,8 @@ jobs:
       - name: Link Supabase project (VidaSystem)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          VIDASYSTEM_SUPABASE_PROJECT_REF: ${{ secrets.VIDASYSTEM_SUPABASE_PROJECT_REF }}
-          VIDASYSTEM_SUPABASE_DB_PASSWORD: ${{ secrets.VIDASYSTEM_SUPABASE_DB_PASSWORD }}
+          VIDASYSTEM_SUPABASE_PROJECT_REF: ${{ secrets.STAGING_VIDASYSTEM_SUPABASE_PROJECT_REF }}
+          VIDASYSTEM_SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_VIDASYSTEM_SUPABASE_DB_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
@@ -81,7 +72,7 @@ jobs:
       - name: Apply VidaSystem migrations
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          VIDASYSTEM_SUPABASE_DB_PASSWORD: ${{ secrets.VIDASYSTEM_SUPABASE_DB_PASSWORD }}
+          VIDASYSTEM_SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_VIDASYSTEM_SUPABASE_DB_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
@@ -92,7 +83,7 @@ jobs:
       - name: Deploy VidaSystem Edge Functions
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          VIDASYSTEM_SUPABASE_PROJECT_REF: ${{ secrets.VIDASYSTEM_SUPABASE_PROJECT_REF }}
+          VIDASYSTEM_SUPABASE_PROJECT_REF: ${{ secrets.STAGING_VIDASYSTEM_SUPABASE_PROJECT_REF }}
         shell: bash
         run: |
           set -euo pipefail
@@ -106,7 +97,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: staging
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
 
     steps:
       - name: Checkout
@@ -120,19 +110,19 @@ jobs:
       - name: Link Supabase project (White Label Synia)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          WL_SYNIA_SUPABASE_PROJECT_REF: ${{ secrets.WL_SYNIA_SUPABASE_PROJECT_REF }}
-          WL_SYNIA_SUPABASE_DB_PASSWORD: ${{ secrets.WL_SYNIA_SUPABASE_DB_PASSWORD }}
+          WL_SUPABASE_PROJECT_REF: ${{ secrets.STAGING_WL_SUPABASE_PROJECT_REF }}
+          WL_SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_WL_SUPABASE_DB_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
-          echo "🔗 Linking White Label Synia project: ${WL_SYNIA_SUPABASE_PROJECT_REF}"
-          supabase link --project-ref "${WL_SYNIA_SUPABASE_PROJECT_REF}" --password "${WL_SYNIA_SUPABASE_DB_PASSWORD}" --workdir packages/db-whitelabel --debug
+          echo "🔗 Linking White Label Synia project: ${WL_SUPABASE_PROJECT_REF}"
+          supabase link --project-ref "${WL_SUPABASE_PROJECT_REF}" --password "${WL_SUPABASE_DB_PASSWORD}" --workdir packages/db-whitelabel --debug
           echo "✅ White Label Synia project linked successfully"
 
       - name: Apply White Label Synia migrations
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          WL_SYNIA_SUPABASE_DB_PASSWORD: ${{ secrets.WL_SYNIA_SUPABASE_DB_PASSWORD }}
+          WL_SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_WL_SUPABASE_DB_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
@@ -143,14 +133,14 @@ jobs:
       - name: Deploy White Label Synia Edge Functions
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          WL_SYNIA_SUPABASE_PROJECT_REF: ${{ secrets.WL_SYNIA_SUPABASE_PROJECT_REF }}
+          WL_SUPABASE_PROJECT_REF: ${{ secrets.STAGING_WL_SUPABASE_PROJECT_REF }}
         shell: bash
         run: |
           set -euo pipefail
           echo "⚡ Deploying White Label Synia Edge Functions..."
-          supabase functions deploy --workdir packages/db-whitelabel --project-ref "${WL_SYNIA_SUPABASE_PROJECT_REF}"
-          supabase functions deploy init-superadmin --workdir packages/db-whitelabel --project-ref "${WL_SYNIA_SUPABASE_PROJECT_REF}" --no-verify-jwt
-          supabase functions deploy manage-user --workdir packages/db-whitelabel --project-ref "${WL_SYNIA_SUPABASE_PROJECT_REF}" --no-verify-jwt
+          supabase functions deploy --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}"
+          supabase functions deploy init-superadmin --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
+          supabase functions deploy manage-user --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
           echo "✅ White Label Synia Edge Functions deployed"
 
   deploy-whitelabel-keplay-staging:
@@ -159,7 +149,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: staging
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
 
     steps:
       - name: Checkout
@@ -173,21 +162,19 @@ jobs:
       - name: Link Supabase project (White Label Keplay)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          WL_KEPLAY_SUPABASE_PROJECT_REF: ${{ secrets.WL_KEPLAY_SUPABASE_PROJECT_REF }}
-          WL_KEPLAY_SUPABASE_DB_PASSWORD: ${{ secrets.WL_KEPLAY_SUPABASE_DB_PASSWORD }}
-          STAGING_VIDASYSTEM_SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_VIDASYSTEM_SUPABASE_DB_PASSWORD }}
-          STAGING_WL_SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_WL_SUPABASE_DB_PASSWORD }}
+          WL_SUPABASE_PROJECT_REF: ${{ secrets.STAGING_WL_SUPABASE_PROJECT_REF }}
+          WL_SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_WL_SUPABASE_DB_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
-          echo "🔗 Linking White Label Keplay project: ${WL_KEPLAY_SUPABASE_PROJECT_REF}"
-          supabase link --project-ref "${WL_KEPLAY_SUPABASE_PROJECT_REF}" --password "${WL_KEPLAY_SUPABASE_DB_PASSWORD}" --workdir packages/db-whitelabel --debug
+          echo "🔗 Linking White Label Keplay project: ${WL_SUPABASE_PROJECT_REF}"
+          supabase link --project-ref "${WL_SUPABASE_PROJECT_REF}" --password "${WL_SUPABASE_DB_PASSWORD}" --workdir packages/db-whitelabel --debug
           echo "✅ White Label Keplay project linked successfully"
 
       - name: Apply White Label Keplay migrations
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          WL_KEPLAY_SUPABASE_DB_PASSWORD: ${{ secrets.WL_KEPLAY_SUPABASE_DB_PASSWORD }}
+          WL_SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_WL_SUPABASE_DB_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
@@ -198,14 +185,14 @@ jobs:
       - name: Deploy White Label Keplay Edge Functions
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          WL_KEPLAY_SUPABASE_PROJECT_REF: ${{ secrets.WL_KEPLAY_SUPABASE_PROJECT_REF }}
+          WL_SUPABASE_PROJECT_REF: ${{ secrets.STAGING_WL_SUPABASE_PROJECT_REF }}
         shell: bash
         run: |
           set -euo pipefail
           echo "⚡ Deploying White Label Keplay Edge Functions..."
-          supabase functions deploy --workdir packages/db-whitelabel --project-ref "${WL_KEPLAY_SUPABASE_PROJECT_REF}"
-          supabase functions deploy init-superadmin --workdir packages/db-whitelabel --project-ref "${WL_KEPLAY_SUPABASE_PROJECT_REF}" --no-verify-jwt
-          supabase functions deploy manage-user --workdir packages/db-whitelabel --project-ref "${WL_KEPLAY_SUPABASE_PROJECT_REF}" --no-verify-jwt
+          supabase functions deploy --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}"
+          supabase functions deploy init-superadmin --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
+          supabase functions deploy manage-user --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
           echo "✅ White Label Keplay Edge Functions deployed"
 
   staging-summary:
@@ -225,6 +212,6 @@ jobs:
           echo "  ✅ White Label Synia"
           echo "  ✅ White Label Keplay"
           echo ""
-          echo "🔗 Branch: ${{ github.ref_name }}"
-          echo "📝 Commit: ${{ github.sha }}"
+          echo "🔗 PR: #${{ github.event.pull_request.number }}"
+          echo "📝 Branch: ${{ github.head_ref }}"
           echo "⏱️ Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
