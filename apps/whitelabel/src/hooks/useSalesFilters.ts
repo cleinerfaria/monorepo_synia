@@ -10,17 +10,6 @@ export function useSalesFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Helper para garantir que o valor é uma string válida
-  const sanitizeValue = (value: unknown): string => {
-    if (typeof value === 'string') {
-      if (value === '[object Object]') return '';
-      return value;
-    }
-    if (value && typeof value === 'object' && 'value' in value) {
-      return String((value as { value: unknown }).value);
-    }
-    return '';
-  };
-
   // Estado dos filtros aplicados (atuais)
   const [period, setPeriod] = useState<string>(searchParams.get('period') || '2026-02');
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();

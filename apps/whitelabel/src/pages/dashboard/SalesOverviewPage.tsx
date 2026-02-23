@@ -10,7 +10,11 @@ import {
 } from 'lucide-react';
 import { SalesFiltersBar, PremiumTable, DualLineChart } from '@/components/sales';
 const BrazilMapChart = lazy(() => import('@/components/sales/BrazilMapChart'));
-import { useOverviewData, useRevenueByState, useLatestMovementCreatedAt } from '@/hooks/useSalesData';
+import {
+  useOverviewData,
+  useRevenueByState,
+  useLatestMovementCreatedAt,
+} from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
 import { toNumber, toPercent, formatMonth } from '@/utils/metrics';
 import { NEUTRAL_COLORS } from '@/lib/themeConstants';
@@ -63,12 +67,7 @@ export default function SalesOverviewPage() {
 
   // FONTE ÚNICA DE DADOS - Query otimizada com CTEs
   // Só refaz consulta quando mudar filtros de filial/cliente/produto
-  const {
-    data: overviewData,
-    isLoading,
-    isFetching,
-    refetch,
-  } = useOverviewData(queryFilters);
+  const { data: overviewData, isLoading, isFetching, refetch } = useOverviewData(queryFilters);
   const { data: latestMovementCreatedAt, refetch: refetchLatestMovementCreatedAt } =
     useLatestMovementCreatedAt();
 

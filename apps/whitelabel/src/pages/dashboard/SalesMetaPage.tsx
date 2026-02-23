@@ -46,12 +46,7 @@ export default function SalesMetaPage() {
   } = useSalesFilters();
 
   // Buscar dados da meta
-  const {
-    data: metaData,
-    isLoading,
-    isFetching,
-    refetch,
-  } = useMetaData(queryFilters);
+  const { data: metaData, isLoading, isFetching, refetch } = useMetaData(queryFilters);
   const { data: latestMovementCreatedAt, refetch: refetchLatestMovementCreatedAt } =
     useLatestMovementCreatedAt();
 
