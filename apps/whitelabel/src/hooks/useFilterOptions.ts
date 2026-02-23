@@ -31,23 +31,17 @@ async function executeCompanyQueryWithFallback<T = any[]>(
   primaryQuery: string,
   fallbackQuery: string
 ): Promise<T> {
-  console.log('🔍 [FilterOptions] Executando query para empresa:', companyId);
-  console.log('📝 [FilterOptions] SQL primária:', primaryQuery);
-
   try {
     const result = await executeCompanyQuery<T>(companyId, primaryQuery);
 
     // Se não retornou dados, tenta o fallback
     if (!result || (Array.isArray(result) && result.length === 0)) {
-      console.warn('⚠️ [FilterOptions] Query primária não retornou dados, tentando fallback');
-      console.log('📝 [FilterOptions] SQL fallback:', fallbackQuery);
       return await executeCompanyQuery<T>(companyId, fallbackQuery);
     }
 
     return result;
   } catch (error) {
     console.error('❌ [FilterOptions] Erro na query primária, tentando fallback:', error);
-    console.log('📝 [FilterOptions] SQL fallback:', fallbackQuery);
     return await executeCompanyQuery<T>(companyId, fallbackQuery);
   }
 }
@@ -56,9 +50,6 @@ async function executeCompanyQueryWithFallback<T = any[]>(
  * Executa uma query no banco de dados da empresa
  */
 async function executeCompanyQuery<T = any[]>(companyId: string, query: string): Promise<T> {
-  console.log('🔍 [FilterOptions] Executando query para empresa:', companyId);
-  console.log('📝 [FilterOptions] SQL:', query);
-
   try {
     const {
       data: { session },
@@ -75,22 +66,17 @@ async function executeCompanyQuery<T = any[]>(companyId: string, query: string):
       .eq('company_id', companyId)
       .eq('is_active', true);
 
-    console.log('📊 [FilterOptions] Bancos encontrados:', databases);
-
     if (dbError) {
       console.error('❌ [FilterOptions] Erro ao buscar bancos:', dbError);
       throw new Error(`Erro ao buscar bancos da empresa: ${dbError.message}`);
     }
 
     if (!databases || databases.length === 0) {
-      console.warn('⚠️ [FilterOptions] Nenhum banco ativo encontrado para empresa:', companyId);
       return [] as T;
     }
 
     // Usar o primeiro banco ativo (ou o padrão)
     const activeDb = databases.find((db) => db.is_default) || databases[0];
-    console.log('🎯 [FilterOptions] Usando banco:', activeDb);
-
     // Executar a query no banco externo
     const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
       method: 'POST',
@@ -107,12 +93,6 @@ async function executeCompanyQuery<T = any[]>(companyId: string, query: string):
     });
 
     const result = await response.json();
-
-    console.log('📈 [FilterOptions] Resultado da query:', {
-      success: result.success,
-      rowCount: result.data?.rows?.length || 0,
-      error: result.error,
-    });
 
     if (!result.success) {
       console.error('❌ [FilterOptions] Erro na query:', result.error);
@@ -138,8 +118,6 @@ export function useFilialOptions() {
       if (!company) {
         throw new Error('Nenhuma empresa selecionada');
       }
-
-      console.log('🏢 [Filial] Buscando filiais para empresa:', company.id);
 
       const primaryQuery = `
         SELECT DISTINCT 
@@ -170,9 +148,6 @@ export function useFilialOptions() {
           primaryQuery,
           fallbackQuery
         );
-
-        console.log('✅ [Filial] Filiais encontradas:', rows.length);
-        console.log('📋 [Filial] Primeira filial:', rows[0]);
 
         return rows.map((row) => ({
           value: String(row.value || ''),
@@ -206,26 +181,17 @@ export function useClienteOptions() {
         throw new Error('Nenhuma empresa selecionada');
       }
 
-      console.log(
-        '👥 [Cliente] Buscando clientes para empresa:',
-        company.id,
-        'página:',
-        pageParam,
-        'busca:',
-        searchTerm
-      );
-
       const offset = pageParam * PAGE_SIZE;
       const searchCondition = searchTerm
         ? `AND (LOWER(nome_cliente) LIKE LOWER('%${searchTerm.replace(/'/g, "''")}%') OR cod_cliente LIKE '%${searchTerm.replace(/'/g, "''")}%')`
         : '';
 
       const primaryQuery = `
-        SELECT DISTINCT 
+        SELECT DISTINCT
           c.id::text as value,
           coalesce(c.razao_social, c.nome) as label
         FROM public.cliente c
-        WHERE c.id IS NOT NULL 
+        WHERE c.id IS NOT NULL
           AND (c.razao_social IS NOT NULL OR c.nome IS NOT NULL)
           AND coalesce(c.razao_social, c.nome) != ''
           ${searchCondition.replace('nome_cliente', 'coalesce(c.razao_social, c.nome)').replace('cod_cliente', 'c.id::text')}
@@ -235,11 +201,11 @@ export function useClienteOptions() {
       `;
 
       const fallbackQuery = `
-        SELECT DISTINCT 
+        SELECT DISTINCT
           cod_cliente as value,
           nome_cliente as label
         FROM movimentos
-        WHERE cod_cliente IS NOT NULL 
+        WHERE cod_cliente IS NOT NULL
           AND nome_cliente IS NOT NULL
           AND cod_cliente != ''
           AND nome_cliente != ''
@@ -258,8 +224,6 @@ export function useClienteOptions() {
 
         const hasMore = rows.length > PAGE_SIZE;
         const items = hasMore ? rows.slice(0, PAGE_SIZE) : rows;
-
-        console.log('✅ [Cliente] Clientes encontrados:', items.length, 'hasMore:', hasMore);
 
         return {
           items: items.map((row) => ({
@@ -322,8 +286,6 @@ export function useProdutoOptions() {
         throw new Error('Nenhuma empresa selecionada');
       }
 
-      console.log('📦 [Produto] Buscando produtos para empresa:', company.id);
-
       const primaryQuery = `
         SELECT DISTINCT 
           p.id::text as value,
@@ -353,9 +315,6 @@ export function useProdutoOptions() {
           primaryQuery,
           fallbackQuery
         );
-
-        console.log('✅ [Produto] Produtos encontrados:', rows.length);
-        console.log('📋 [Produto] Primeiro produto:', rows[0]);
 
         return rows.map((row) => ({
           value: String(row.value || ''),
@@ -405,7 +364,6 @@ export function useDynamicFilterOptions(
       }
 
       if (!viewName) {
-        console.warn('⚠️ [DynamicFilter] Nenhuma view especificada');
         return [];
       }
 
@@ -430,8 +388,6 @@ export function useDynamicFilterOptions(
         throw new Error(`View "${viewName}" não está na lista de views permitidas`);
       }
 
-      console.log(`🔍 [DynamicFilter] Buscando opções da view: ${viewName}`);
-
       const query = `
         SELECT DISTINCT 
           ${valueField} as value,
@@ -447,8 +403,6 @@ export function useDynamicFilterOptions(
           company.id,
           query
         );
-
-        console.log(`✅ [DynamicFilter] Opções encontradas (${viewName}): ${rows.length}`);
 
         return rows.map((row) => ({
           value: String(row.value || ''),

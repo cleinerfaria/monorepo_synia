@@ -56,6 +56,8 @@ export interface ClientAggregate {
   cod_cliente: string;
   nome_cliente: string;
   faturamento: number;
+  meta_faturamento?: number | null;
+  atingimento_meta_pct?: number | null;
   volume: number;
   compras: number;
   ultima_compra: string;

@@ -336,6 +336,297 @@ export function useSalesData(
  * Hook para buscar opções de filtro (listas de filiais, clientes, produtos)
  * Clientes são limitados aos top 100 mais frequentes para melhor performance
  */
+export interface ClientGoalData {
+  cod_cliente: string;
+  meta_faturamento: number | null;
+}
+
+async function fetchClientGoalsData(
+  companyId: string,
+  startDate: Date,
+  endDate: Date,
+  filters?: {
+    filial?: string[];
+    clientes?: string[];
+    produto?: string[];
+  }
+): Promise<ClientGoalData[]> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error('Usuário não autenticado');
+  }
+
+  const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: resolvedSupabaseAnonKey,
+    },
+    body: JSON.stringify({
+      action: 'list',
+      company_id: companyId,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!result.success || !result.data || result.data.length === 0) {
+    throw new Error('Nenhum banco de dados configurado para a empresa');
+  }
+
+  const activeDb = result.data.find((db: { is_active: boolean }) => db.is_active);
+  if (!activeDb) {
+    throw new Error('Nenhum banco de dados ativo encontrado');
+  }
+
+  const startDateStr = startDate.toISOString().split('T')[0];
+  const endDateStr = endDate.toISOString().split('T')[0];
+
+  const escapeSql = (value: string) => value.replace(/'/g, "''");
+  const toInList = (values?: string[]) =>
+    values && values.length > 0 ? values.map((v) => `'${escapeSql(v)}'`).join(',') : null;
+
+  const filialList = toInList(filters?.filial);
+  const clienteList = toInList(filters?.clientes);
+  const produtoList = toInList(filters?.produto);
+
+  const metaColumnsResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: resolvedSupabaseAnonKey,
+    },
+    body: JSON.stringify({
+      action: 'query',
+      database_id: activeDb.id,
+      query: `
+        SELECT
+          column_name,
+          data_type
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'meta'
+      `,
+    }),
+  });
+
+  const metaColumnsResult = await metaColumnsResponse.json();
+
+  if (!metaColumnsResult.success) {
+    const errorMessage = String(metaColumnsResult.error || '').toLowerCase();
+    if (errorMessage.includes('meta')) {
+      return [];
+    }
+    throw new Error(metaColumnsResult.error || 'Erro ao inspecionar tabela de meta');
+  }
+
+  const metaColumns = (metaColumnsResult.data?.rows || []) as Array<{
+    column_name?: string;
+    data_type?: string;
+  }>;
+
+  if (metaColumns.length === 0) {
+    return [];
+  }
+
+  const findMetaColumn = (candidates: string[]) =>
+    metaColumns.find((col) => candidates.includes(String(col.column_name || '').toLowerCase()));
+
+  const clientColumn = findMetaColumn(['client_id', 'cliente_id', 'cod_cliente', 'id_cliente']);
+  const valueColumn = findMetaColumn(['valor', 'meta', 'valor_meta']);
+  const monthColumn = findMetaColumn(['mes', 'competencia', 'dt_mes', 'data_mes', 'data']);
+  const filialMetaColumn = findMetaColumn(['cod_filial', 'filial_id', 'id_filial']);
+
+  if (!clientColumn || !valueColumn || !monthColumn) {
+    return [];
+  }
+
+  const quoteIdent = (identifier: string) => `"${identifier.replace(/"/g, '""')}"`;
+  const metaClientCol = quoteIdent(String(clientColumn.column_name));
+  const metaValueCol = quoteIdent(String(valueColumn.column_name));
+  const metaMonthCol = quoteIdent(String(monthColumn.column_name));
+  const metaFilialCol = filialMetaColumn ? quoteIdent(String(filialMetaColumn.column_name)) : null;
+  const monthDataType = String(monthColumn.data_type || '').toLowerCase();
+  const monthExpr =
+    monthDataType.includes('date') || monthDataType.includes('timestamp')
+      ? `date_trunc('month', mt.${metaMonthCol})::date`
+      : `
+        CASE
+          WHEN mt.${metaMonthCol} IS NULL THEN NULL
+          WHEN mt.${metaMonthCol}::text ~ '^\\d{4}-\\d{2}-\\d{2}$'
+            THEN date_trunc('month', (mt.${metaMonthCol}::text)::date)::date
+          WHEN mt.${metaMonthCol}::text ~ '^\\d{4}-\\d{2}$'
+            THEN to_date(mt.${metaMonthCol}::text || '-01', 'YYYY-MM-DD')
+          ELSE NULL
+        END
+      `;
+
+  const checkQuery = `
+    SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'movimentacao') as mov_exists,
+           EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'movimentacao_item') as item_exists
+  `;
+
+  let hasNormalizedTables = false;
+  try {
+    const checkResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: resolvedSupabaseAnonKey,
+      },
+      body: JSON.stringify({
+        action: 'query',
+        database_id: activeDb.id,
+        query: checkQuery,
+      }),
+    });
+
+    const checkResult = await checkResponse.json();
+    hasNormalizedTables =
+      checkResult.success &&
+      !!checkResult.data?.rows?.[0]?.mov_exists &&
+      !!checkResult.data?.rows?.[0]?.item_exists;
+  } catch (error) {
+    console.warn('[fetchClientGoalsData] Erro ao verificar tabelas normalizadas:', error);
+    hasNormalizedTables = false;
+  }
+
+  let query: string;
+
+  if (hasNormalizedTables) {
+    query = `
+      WITH base_filtrada AS (
+        SELECT DISTINCT
+          date_trunc('month', m.dt_mov)::date AS mes_ref,
+          m.cod_cliente::text AS cod_cliente
+        FROM public.movimentacao m
+        JOIN public.movimentacao_item mi
+          ON mi.id_movimentacao = m.id_movimentacao
+        WHERE m.dt_mov >= '${startDateStr}'
+          AND m.dt_mov <= '${endDateStr}'
+          ${filialList ? `AND m.cod_filial IN (${filialList})` : ''}
+          ${clienteList ? `AND m.cod_cliente IN (${clienteList})` : ''}
+          ${produtoList ? `AND mi.id_produto IN (${produtoList})` : ''}
+      )
+      SELECT
+        bf.cod_cliente,
+        sum(mt.${metaValueCol})::numeric AS meta_faturamento
+      FROM base_filtrada bf
+      LEFT JOIN public.meta mt
+        ON mt.${metaClientCol}::text = bf.cod_cliente
+       AND (${monthExpr}) = bf.mes_ref
+       ${filialList && metaFilialCol ? `AND mt.${metaFilialCol} IN (${filialList})` : ''}
+      GROUP BY bf.cod_cliente
+    `;
+  } else {
+    query = `
+      WITH base_filtrada AS (
+        SELECT DISTINCT
+          date_trunc('month', dt_mov)::date AS mes_ref,
+          cod_cliente::text AS cod_cliente
+        FROM movimentos
+        WHERE dt_mov >= '${startDateStr}'
+          AND dt_mov <= '${endDateStr}'
+          ${filialList ? `AND cod_filial IN (${filialList})` : ''}
+          ${clienteList ? `AND cod_cliente IN (${clienteList})` : ''}
+          ${produtoList ? `AND cod_produto IN (${produtoList})` : ''}
+      )
+      SELECT
+        bf.cod_cliente,
+        sum(mt.${metaValueCol})::numeric AS meta_faturamento
+      FROM base_filtrada bf
+      LEFT JOIN public.meta mt
+        ON mt.${metaClientCol}::text = bf.cod_cliente
+       AND (${monthExpr}) = bf.mes_ref
+       ${filialList && metaFilialCol ? `AND mt.${metaFilialCol} IN (${filialList})` : ''}
+      GROUP BY bf.cod_cliente
+    `;
+  }
+
+  const queryResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: resolvedSupabaseAnonKey,
+    },
+    body: JSON.stringify({
+      action: 'query',
+      database_id: activeDb.id,
+      query,
+    }),
+  });
+
+  const queryResult = await queryResponse.json();
+
+  if (!queryResult.success) {
+    const errorMessage = String(queryResult.error || '').toLowerCase();
+
+    if (errorMessage.includes('meta')) {
+      console.warn('[fetchClientGoalsData] Tabela de meta indisponível:', queryResult.error);
+      return [];
+    }
+
+    console.error('Erro ao buscar metas por cliente:', queryResult.error);
+    throw new Error(queryResult.error || 'Erro ao buscar metas por cliente');
+  }
+
+  const toNumberOrNull = (val: unknown): number | null => {
+    if (val === null || val === undefined) return null;
+    if (typeof val === 'number') return isNaN(val) ? null : val;
+    if (typeof val === 'string') {
+      const cleaned = val.replace(/[^0-9.,-]/g, '').replace(',', '.');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? null : num;
+    }
+    if (typeof val === 'object' && val !== null && 'toString' in val) {
+      return toNumberOrNull(String(val));
+    }
+    return null;
+  };
+
+  return (queryResult.data?.rows || []).map((row: Record<string, unknown>) => ({
+    cod_cliente: String(row.cod_cliente || ''),
+    meta_faturamento: toNumberOrNull(row.meta_faturamento),
+  })) as ClientGoalData[];
+}
+
+export function useClientGoalsData(
+  startDate: Date,
+  endDate: Date,
+  filters?: {
+    filial?: string[];
+    clientes?: string[];
+    produto?: string[];
+  }
+) {
+  const { company } = useAuthStore();
+
+  return useQuery({
+    queryKey: [
+      'client-goals-data',
+      company?.id,
+      startDate.toISOString(),
+      endDate.toISOString(),
+      filters,
+    ],
+    queryFn: () => {
+      if (!company?.id) {
+        throw new Error('Empresa não encontrada');
+      }
+      return fetchClientGoalsData(company.id, startDate, endDate, filters);
+    },
+    staleTime: 1000 * 60 * 60, // 1 hora
+    enabled: !!company?.id,
+  });
+}
+
 export function useSalesFilterOptions(salesData: SalesMovement[] | undefined) {
   const filiais = salesData
     ? [

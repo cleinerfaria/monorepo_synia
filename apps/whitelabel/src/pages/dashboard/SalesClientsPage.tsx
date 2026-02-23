@@ -2,7 +2,12 @@ import { useMemo, lazy, Suspense } from 'react';
 import { Users, Crown, PieChart, Target, MapPin, RefreshCw } from 'lucide-react';
 import { KpiCard, SalesFiltersBar, SimpleChart, ChartCard, PremiumTable } from '@/components/sales';
 const BrazilMapChart = lazy(() => import('@/components/sales/BrazilMapChart'));
-import { useSalesData, useRevenueByState, useRevenueByRegion } from '@/hooks/useSalesData';
+import {
+  useSalesData,
+  useRevenueByState,
+  useRevenueByRegion,
+  useClientGoalsData,
+} from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
 import {
   sum,
@@ -56,6 +61,12 @@ export default function SalesClientsPage() {
     refetch,
   } = useSalesData(startDate, endDate, queryFilters);
 
+  const {
+    data: clientGoalsData,
+    isLoading: isLoadingClientGoals,
+    isFetching: isFetchingClientGoals,
+  } = useClientGoalsData(startDate, endDate, queryFilters);
+
   // Dados de faturamento por estado (UF) - últimos 12 meses
   const {
     data: revenueByStateData,
@@ -69,6 +80,10 @@ export default function SalesClientsPage() {
     isLoading: isLoadingRegionData,
     isFetching: isFetchingRegionData,
   } = useRevenueByRegion(queryFilters);
+
+  const clientGoalsMap = useMemo(() => {
+    return new Map((clientGoalsData || []).map((item) => [item.cod_cliente, item.meta_faturamento]));
+  }, [clientGoalsData]);
 
   // Dados agregados por cliente
   const clientData = useMemo(() => {
@@ -109,8 +124,19 @@ export default function SalesClientsPage() {
       }
     });
 
-    return Array.from(clienteMap.values()).sort((a, b) => b.faturamento - a.faturamento);
-  }, [salesData]);
+    return Array.from(clienteMap.values())
+      .map((cliente) => {
+        const meta = clientGoalsMap.get(cliente.cod_cliente) ?? null;
+        const hasMeta = meta !== null && meta > 0;
+
+        return {
+          ...cliente,
+          meta_faturamento: hasMeta ? meta : null,
+          atingimento_meta_pct: hasMeta ? cliente.faturamento / meta : null,
+        };
+      })
+      .sort((a, b) => b.faturamento - a.faturamento);
+  }, [salesData, clientGoalsMap]);
 
   // Faturamento total para cálculo de representatividade
   const faturamentoTotal = useMemo(() => {
@@ -203,6 +229,7 @@ export default function SalesClientsPage() {
 
   // Estado de loading
   const isLoadingData = isLoading || isFetching;
+  const isLoadingClientsTable = isLoadingData || isLoadingClientGoals || isFetchingClientGoals;
 
   // Colunas da tabela de clientes
   const tableColumns = [
@@ -224,11 +251,43 @@ export default function SalesClientsPage() {
       ),
     },
     {
-      key: 'faturamento',
-      header: '% Total',
+      key: 'meta_faturamento',
+      header: 'Meta',
       align: 'right' as const,
       render: (value: unknown) => {
-        const percent = faturamentoTotal > 0 ? (Number(value) / faturamentoTotal) * 100 : 0;
+        const meta = value === null || value === undefined ? null : Number(value);
+
+        if (meta === null || !Number.isFinite(meta) || meta <= 0) {
+          return <span className="text-gray-400 dark:text-gray-500">-</span>;
+        }
+
+        return <span className="text-gray-700 dark:text-gray-300">{toBRL(meta)}</span>;
+      },
+    },
+    {
+      key: 'atingimento_meta_pct',
+      header: '% Meta',
+      align: 'right' as const,
+      render: (value: unknown) => {
+        const pct = value === null || value === undefined ? null : Number(value);
+
+        if (pct === null || !Number.isFinite(pct)) {
+          return <span className="text-gray-400 dark:text-gray-500">-</span>;
+        }
+
+        return (
+          <span className="font-medium text-gray-600 dark:text-gray-400">
+            {(pct * 100).toFixed(1)}%
+          </span>
+        );
+      },
+    },
+    {
+      key: 'percentual_total',
+      header: '% Total',
+      align: 'right' as const,
+      render: (_value: unknown, row: ClientAggregate) => {
+        const percent = faturamentoTotal > 0 ? (row.faturamento / faturamentoTotal) * 100 : 0;
         return (
           <span className="font-medium text-gray-600 dark:text-gray-400">
             {percent.toFixed(1)}%
@@ -428,7 +487,7 @@ export default function SalesClientsPage() {
           columns={tableColumns}
           data={clientData.slice(0, 50)}
           emptyMessage="Nenhum cliente encontrado"
-          isLoading={isLoadingData}
+          isLoading={isLoadingClientsTable}
         />
 
         {clientData.length > 50 && (
