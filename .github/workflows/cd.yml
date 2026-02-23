@@ -4,23 +4,12 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      target_environment:
-        description: Environment to deploy
-        required: true
-        default: production
-        type: choice
-        options:
-          - development
-          - homolog
-          - production
 
 permissions:
   contents: read
 
 concurrency:
-  group: production-deploy-${{ github.ref_name }}-${{ github.event.inputs.target_environment || 'auto' }}
+  group: production-deploy-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -52,28 +41,25 @@ jobs:
         run: npm run build
 
   deploy:
-    name: Apply Production Migrations
+    name: Deploy to Production
     needs: quality-gate
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment:
-      name: ${{ github.event.inputs.target_environment || 'production' }}
-      url: ${{ github.event.inputs.target_environment == 'development' && 'https://dev.synia.com' || github.event.inputs.target_environment == 'homolog' && 'https://staging.synia.com' || 'https://app.synia.com' }}
+      name: production
+      url: https://app.synia.com
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Determine target environment
-        id: env
+      - name: Log Production Deployment Info
         shell: bash
         run: |
-          TARGET_ENV="${{ github.event.inputs.target_environment || 'production' }}"
-          echo "target=${TARGET_ENV}" >> $GITHUB_OUTPUT
-          echo "🎯 Deploying to environment: ${TARGET_ENV}"
+          echo "🎯 Deploying to Production"
           echo "Branch: ${{ github.ref_name }}"
-          echo "Event: ${{ github.event_name }}"
-          echo "Trigger: ${{ github.event_name == 'push' && 'Automatic (push to main)' || 'Manual (workflow_dispatch)' }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Trigger: Automatic (push to main)"
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
@@ -180,8 +166,8 @@ jobs:
       - name: Deployment Summary
         shell: bash
         run: |
-          echo "🎉 Deployment completed successfully!"
-          echo "Environment: ${{ steps.env.outputs.target }}"
+          echo "🎉 Production deployment completed successfully!"
+          echo "Environment: production"
           echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"
           echo "Both projects migrations applied and verified."
