@@ -391,3 +391,7 @@ verify_jwt = false
 # Disable JWT verification for manage-user (uses manual verification inside function)
 [functions.manage-user]
 verify_jwt = false
+
+# Disable JWT verification for company-database (uses manual verification inside function via getUser())
+[functions.company-database]
+verify_jwt = false

@@ -141,6 +141,7 @@ jobs:
           supabase functions deploy --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}"
           supabase functions deploy init-superadmin --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
           supabase functions deploy manage-user --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
+          supabase functions deploy company-database --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
           echo "✅ White Label Synia Edge Functions deployed"
 
   deploy-whitelabel-keplay-staging:
@@ -193,6 +194,7 @@ jobs:
           supabase functions deploy --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}"
           supabase functions deploy init-superadmin --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
           supabase functions deploy manage-user --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
+          supabase functions deploy company-database --workdir packages/db-whitelabel --project-ref "${WL_SUPABASE_PROJECT_REF}" --no-verify-jwt
           echo "✅ White Label Keplay Edge Functions deployed"
 
   staging-summary:
