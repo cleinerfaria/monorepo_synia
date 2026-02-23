@@ -75,7 +75,7 @@ export default function SalesFiltersBar({
       className={clsx(
         'flex items-center gap-3 rounded-xl border border-gray-100 bg-white/80 p-3',
         'dark:border-gray-700/50 dark:bg-gray-800/50',
-        'relative z-30 shadow-sm backdrop-blur-sm',
+        'relative shadow-sm backdrop-blur-sm',
         className
       )}
     >
