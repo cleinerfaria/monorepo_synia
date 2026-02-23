@@ -12,6 +12,7 @@ import {
 import { SalesFiltersBar, DualLineChart } from '@/components/sales';
 import { GroupedBarChart } from '@/components/sales/GroupedBarChart';
 import { useMetaData } from '@/hooks/useMetaData';
+import { useLatestMovementCreatedAt } from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
 import { toPercent, toCompactBRL } from '@/utils/metrics';
 import { NEUTRAL_COLORS } from '@/lib/themeConstants';
@@ -49,9 +50,10 @@ export default function SalesMetaPage() {
     data: metaData,
     isLoading,
     isFetching,
-    dataUpdatedAt,
     refetch,
   } = useMetaData(queryFilters);
+  const { data: latestMovementCreatedAt, refetch: refetchLatestMovementCreatedAt } =
+    useLatestMovementCreatedAt();
 
   // Data atual para filtrar faturamento (no timezone local, não UTC)
   const today = useMemo(() => {
@@ -279,9 +281,9 @@ export default function SalesMetaPage() {
 
   // Última atualização formatada
   const lastUpdate = useMemo(() => {
-    if (!dataUpdatedAt) return '-';
-    return new Date(dataUpdatedAt).toLocaleString('pt-BR');
-  }, [dataUpdatedAt]);
+    if (!latestMovementCreatedAt) return '-';
+    return new Date(latestMovementCreatedAt).toLocaleString('pt-BR');
+  }, [latestMovementCreatedAt]);
 
   // Estado de loading
   const isLoadingKpis = isLoading || isFetching;
@@ -299,7 +301,9 @@ export default function SalesMetaPage() {
           </p>
         </div>
         <button
-          onClick={() => refetch()}
+          onClick={() => {
+            void Promise.all([refetch(), refetchLatestMovementCreatedAt()]);
+          }}
           disabled={isLoading || isFetching}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
         >

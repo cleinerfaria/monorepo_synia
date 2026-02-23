@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { SalesFiltersBar, PremiumTable, DualLineChart } from '@/components/sales';
 const BrazilMapChart = lazy(() => import('@/components/sales/BrazilMapChart'));
-import { useOverviewData, useRevenueByState } from '@/hooks/useSalesData';
+import { useOverviewData, useRevenueByState, useLatestMovementCreatedAt } from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
 import { toNumber, toPercent, formatMonth } from '@/utils/metrics';
 import { NEUTRAL_COLORS } from '@/lib/themeConstants';
@@ -67,9 +67,10 @@ export default function SalesOverviewPage() {
     data: overviewData,
     isLoading,
     isFetching,
-    dataUpdatedAt,
     refetch,
   } = useOverviewData(queryFilters);
+  const { data: latestMovementCreatedAt, refetch: refetchLatestMovementCreatedAt } =
+    useLatestMovementCreatedAt();
 
   // Dados de faturamento por estado (UF) - últimos 12 meses
   const {
@@ -185,9 +186,9 @@ export default function SalesOverviewPage() {
 
   // Última atualização formatada
   const lastUpdate = useMemo(() => {
-    if (!dataUpdatedAt) return '-';
-    return new Date(dataUpdatedAt).toLocaleString('pt-BR');
-  }, [dataUpdatedAt]);
+    if (!latestMovementCreatedAt) return '-';
+    return new Date(latestMovementCreatedAt).toLocaleString('pt-BR');
+  }, [latestMovementCreatedAt]);
 
   // Estado de loading
   const isLoadingData = isLoading || isFetching;
@@ -452,7 +453,9 @@ export default function SalesOverviewPage() {
           </h1>
         </div>
         <button
-          onClick={() => refetch()}
+          onClick={() => {
+            void Promise.all([refetch(), refetchLatestMovementCreatedAt()]);
+          }}
           disabled={isLoading || isFetching}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
         >

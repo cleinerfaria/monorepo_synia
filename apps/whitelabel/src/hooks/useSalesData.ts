@@ -4,6 +4,102 @@ import { supabase, resolvedSupabaseUrl, resolvedSupabaseAnonKey } from '@/lib/su
 import type { SalesMovement } from '@/types/sales';
 import { buildOverviewDataQuery } from './queries/overviewDataQuery';
 
+async function fetchLatestMovementCreatedAt(companyId: string): Promise<string | null> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error('Usuário não autenticado');
+  }
+
+  const response = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: resolvedSupabaseAnonKey,
+    },
+    body: JSON.stringify({
+      action: 'list',
+      company_id: companyId,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!result.success || !result.data || result.data.length === 0) {
+    throw new Error('Nenhum banco de dados configurado para a empresa');
+  }
+
+  const activeDb = result.data.find((db: { is_active: boolean }) => db.is_active);
+  if (!activeDb) {
+    throw new Error('Nenhum banco de dados ativo encontrado');
+  }
+
+  const runQuery = async (query: string) => {
+    const queryResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: resolvedSupabaseAnonKey,
+      },
+      body: JSON.stringify({
+        action: 'query',
+        database_id: activeDb.id,
+        query,
+      }),
+    });
+
+    return queryResponse.json();
+  };
+
+  const primaryResult = await runQuery(`
+    SELECT MAX(m.created_at) AS latest_created_at
+    FROM public.movimentacao m
+    WHERE m.created_at IS NOT NULL
+  `);
+
+  if (primaryResult.success) {
+    const value = primaryResult.data?.rows?.[0]?.latest_created_at;
+    return value ? String(value) : null;
+  }
+
+  const fallbackResult = await runQuery(`
+    SELECT MAX(m.created_at) AS latest_created_at
+    FROM public.movimentos m
+    WHERE m.created_at IS NOT NULL
+  `);
+
+  if (!fallbackResult.success) {
+    console.warn(
+      '[fetchLatestMovementCreatedAt] Erro ao buscar última atualização:',
+      primaryResult.error || fallbackResult.error
+    );
+    return null;
+  }
+
+  const fallbackValue = fallbackResult.data?.rows?.[0]?.latest_created_at;
+  return fallbackValue ? String(fallbackValue) : null;
+}
+
+export function useLatestMovementCreatedAt() {
+  const { company } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['dashboard-last-update', company?.id],
+    queryFn: () => {
+      if (!company?.id) {
+        throw new Error('Empresa não encontrada');
+      }
+      return fetchLatestMovementCreatedAt(company.id);
+    },
+    staleTime: 1000 * 60 * 60, // 1 hora
+    enabled: !!company?.id,
+  });
+}
+
 /**
  * Hook para buscar dados de vendas do banco externo da empresa
  */

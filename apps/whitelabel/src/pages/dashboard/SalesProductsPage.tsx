@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Package, Layers, TrendingUp, Crown, Search, RefreshCw } from 'lucide-react';
 import { Button, Input } from '@synia/ui';
 import { KpiCard, SalesFiltersBar, SimpleChart, ChartCard, PremiumTable } from '@/components/sales';
-import { useSalesData } from '@/hooks/useSalesData';
+import { useSalesData, useLatestMovementCreatedAt } from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
 import { sum, distinctCount, groupAndSum, toBRL, toNumber, toPercent } from '@/utils/metrics';
 import type { ChartDataPoint, ProductAggregate } from '@/types/sales';
@@ -48,9 +48,10 @@ export default function SalesProductsPage() {
     data: salesData,
     isLoading,
     isFetching,
-    dataUpdatedAt,
     refetch,
   } = useSalesData(startDate, endDate, queryFilters);
+  const { data: latestMovementCreatedAt, refetch: refetchLatestMovementCreatedAt } =
+    useLatestMovementCreatedAt();
 
   // Dados agregados por produto
   const productData = useMemo(() => {
@@ -177,9 +178,9 @@ export default function SalesProductsPage() {
 
   // Última atualização formatada
   const lastUpdate = useMemo(() => {
-    if (!dataUpdatedAt) return '-';
-    return new Date(dataUpdatedAt).toLocaleString('pt-BR');
-  }, [dataUpdatedAt]);
+    if (!latestMovementCreatedAt) return '-';
+    return new Date(latestMovementCreatedAt).toLocaleString('pt-BR');
+  }, [latestMovementCreatedAt]);
 
   // Estado de loading
   const isLoadingData = isLoading || isFetching;
@@ -247,7 +248,9 @@ export default function SalesProductsPage() {
           </p>
         </div>
         <Button
-          onClick={() => refetch()}
+          onClick={() => {
+            void Promise.all([refetch(), refetchLatestMovementCreatedAt()]);
+          }}
           icon={<RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
         >

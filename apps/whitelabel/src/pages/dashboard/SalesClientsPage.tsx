@@ -7,6 +7,7 @@ import {
   useRevenueByState,
   useRevenueByRegion,
   useClientGoalsData,
+  useLatestMovementCreatedAt,
 } from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
 import {
@@ -57,9 +58,10 @@ export default function SalesClientsPage() {
     data: salesData,
     isLoading,
     isFetching,
-    dataUpdatedAt,
     refetch,
   } = useSalesData(startDate, endDate, queryFilters);
+  const { data: latestMovementCreatedAt, refetch: refetchLatestMovementCreatedAt } =
+    useLatestMovementCreatedAt();
 
   const {
     data: clientGoalsData,
@@ -225,9 +227,9 @@ export default function SalesClientsPage() {
 
   // Última atualização formatada
   const lastUpdate = useMemo(() => {
-    if (!dataUpdatedAt) return '-';
-    return new Date(dataUpdatedAt).toLocaleString('pt-BR');
-  }, [dataUpdatedAt]);
+    if (!latestMovementCreatedAt) return '-';
+    return new Date(latestMovementCreatedAt).toLocaleString('pt-BR');
+  }, [latestMovementCreatedAt]);
 
   // Estado de loading
   const isLoadingData = isLoading || isFetching;
@@ -347,7 +349,9 @@ export default function SalesClientsPage() {
           </p>
         </div>
         <button
-          onClick={() => refetch()}
+          onClick={() => {
+            void Promise.all([refetch(), refetchLatestMovementCreatedAt()]);
+          }}
           disabled={isLoading || isFetching}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
         >
