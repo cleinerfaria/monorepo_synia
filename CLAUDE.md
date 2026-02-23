@@ -52,6 +52,7 @@ O agente **NUNCA** deve:
 
 - Hardcodear cores, espaçamentos ou tokens de design
 - Quebrar padrões arquiteturais existentes
+- Não execute commits a menos que seja claramente solicitado
 - Alterar migrations já aplicadas em produção
 - Introduzir dependências sem justificativa técnica clara
 - Executar comandos destrutivos sem confirmação explícita
