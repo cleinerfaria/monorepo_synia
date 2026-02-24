@@ -44,20 +44,40 @@ export function usePatients() {
     queryFn: async () => {
       if (!company?.id) return [];
 
-      const { data, error } = await supabase
-        .from('patient')
-        .select(
-          `
-          *,
-          active:is_active,
-          billing_client:client(id, name)
-        `
-        )
-        .eq('company_id', company.id)
-        .order('name');
+      const pageSize = 1000;
+      let allPatients: PatientWithRelations[] = [];
+      let page = 0;
+      let hasMore = true;
 
-      if (error) throw error;
-      return data as PatientWithRelations[];
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('patient')
+          .select(
+            `
+            *,
+            active:is_active,
+            billing_client:client(id, name)
+          `
+          )
+          .eq('company_id', company.id)
+          .order('name')
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allPatients = [...allPatients, ...(data as PatientWithRelations[])];
+          if (data.length < pageSize) {
+            hasMore = false;
+          } else {
+            page++;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      return allPatients;
     },
     enabled: !!company?.id,
   });

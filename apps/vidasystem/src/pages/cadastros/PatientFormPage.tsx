@@ -83,6 +83,8 @@ import { todayDateOnly } from '@/lib/dateOnly';
 
 type FormTab = 'basic' | 'address' | 'contact' | 'payers';
 
+const normalizePatientName = (value: string): string => value.toLocaleUpperCase('pt-BR');
+
 interface PatientFormData {
   code: string;
   name: string;
@@ -221,6 +223,12 @@ export default function PatientFormPage() {
     ...birthDateField
   } = register('birth_date', { required: 'Data de nascimento é obrigatória' });
 
+  const {
+    ref: nameRef,
+    onChange: nameOnChange,
+    ...nameField
+  } = register('name', { required: 'Nome é obrigatório' });
+
   // Assistir mudanças na data de nascimento
   const birthDate = watch('birth_date');
   const gender = watch('gender');
@@ -254,6 +262,17 @@ export default function PatientFormPage() {
       setCpfError(undefined);
     }
   }, [cpfValue]);
+
+  const handleNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const normalizedValue = normalizePatientName(e.target.value);
+      if (e.target.value !== normalizedValue) {
+        e.target.value = normalizedValue;
+      }
+      nameOnChange(e);
+    },
+    [nameOnChange]
+  );
 
   // Funções para salvar dados relacionados individualmente
   const handleSaveAddresses = async (addressesToSave: PatientAddress[]) => {
@@ -344,7 +363,7 @@ export default function PatientFormPage() {
 
       reset({
         code: patient.code || '',
-        name: patient.name,
+        name: normalizePatientName(patient.name),
         social_name: (patient as any).social_name || '',
         cpf: formattedCPF,
         birth_date: patient.birth_date || '',
@@ -434,6 +453,7 @@ export default function PatientFormPage() {
 
     const patientData = {
       ...data,
+      name: normalizePatientName(data.name),
       code: data.code || null,
       social_name: data.social_name || null,
       cpf: cpfValue ? cpfValue.replace(/\D/g, '') : null, // Salvar apenas dígitos
@@ -559,7 +579,9 @@ export default function PatientFormPage() {
                     <Input
                       label="Nome Completo"
                       placeholder="Nome do paciente"
-                      {...register('name', { required: 'Nome é obrigatório' })}
+                      {...nameField}
+                      ref={nameRef}
+                      onChange={handleNameChange}
                       error={errors.name?.message}
                       required
                     />
