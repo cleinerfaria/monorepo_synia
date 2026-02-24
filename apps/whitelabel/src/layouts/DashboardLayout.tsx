@@ -37,6 +37,7 @@ import { useIsSuperadmin } from '@/hooks/useIsSuperadmin';
 import { useIsMultitenantAdmin } from '@/hooks/useSystemUsers';
 import { useUserCompanies } from '@/hooks/useUserCompanies';
 import usePages from '@/hooks/usePages';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 
 interface NavItem {
   name: string;
@@ -195,6 +196,7 @@ export default function DashboardLayout() {
 
   const { data: isSuperadmin = false } = useIsSuperadmin();
   const { data: isMultitenantAdmin = false } = useIsMultitenantAdmin();
+  const { data: systemSettings } = useSystemSettings();
 
   // Check if user is admin of their company
   const isCompanyAdmin = appUser?.access_profile?.is_admin || false;
@@ -343,7 +345,13 @@ export default function DashboardLayout() {
     { value: 'system', label: 'Sistema', icon: Monitor },
   ];
 
-  const defaultLogoSrc = resolvedTheme === 'dark' ? '/logo_dark.png' : '/logo_light.png';
+  const defaultCollapsedLogoSrc = resolvedTheme === 'dark'
+    ? (systemSettings?.logo_url_collapsed_dark || '/logo_dark.png')
+    : (systemSettings?.logo_url_collapsed_light || '/logo_light.png');
+
+  const defaultExpandedLogoSrc = resolvedTheme === 'dark'
+    ? (systemSettings?.logo_url_expanded_dark || '/logo_dark.png')
+    : (systemSettings?.logo_url_expanded_light || '/logo_light.png');
 
   const defaultLogoAlt = company?.trade_name || company?.name || 'sistema';
 
@@ -398,8 +406,10 @@ export default function DashboardLayout() {
                 isMultitenantAdmin={isMultitenantAdmin}
                 isCompanyAdmin={isCompanyAdmin}
                 onExitCompany={handleExitCompany}
-                defaultLogoSrc={defaultLogoSrc}
+                defaultCollapsedLogoSrc={defaultCollapsedLogoSrc}
+                defaultExpandedLogoSrc={defaultExpandedLogoSrc}
                 defaultLogoAlt={defaultLogoAlt}
+                resolvedTheme={resolvedTheme}
               />
             </div>
           </Transition.Child>
@@ -433,8 +443,10 @@ export default function DashboardLayout() {
             isMultitenantAdmin={isMultitenantAdmin}
             isCompanyAdmin={isCompanyAdmin}
             onExitCompany={handleExitCompany}
-            defaultLogoSrc={defaultLogoSrc}
+            defaultCollapsedLogoSrc={defaultCollapsedLogoSrc}
+            defaultExpandedLogoSrc={defaultExpandedLogoSrc}
             defaultLogoAlt={defaultLogoAlt}
+            resolvedTheme={resolvedTheme}
           />
         </div>
       </div>
@@ -641,9 +653,13 @@ interface SidebarContentProps {
 
   onExitCompany?: () => void;
 
-  defaultLogoSrc: string;
+  defaultCollapsedLogoSrc: string;
+
+  defaultExpandedLogoSrc: string;
 
   defaultLogoAlt: string;
+
+  resolvedTheme: 'light' | 'dark';
 }
 
 function SidebarContent({
@@ -675,10 +691,22 @@ function SidebarContent({
 
   onExitCompany,
 
-  defaultLogoSrc,
+  defaultCollapsedLogoSrc,
+
+  defaultExpandedLogoSrc,
 
   defaultLogoAlt,
+
+  resolvedTheme,
 }: SidebarContentProps) {
+  const collapsedLogoSrc = resolvedTheme === 'dark'
+    ? (company?.logo_url_collapsed_dark || company?.logo_url || null)
+    : (company?.logo_url_collapsed_light || company?.logo_url || null);
+
+  const expandedLogoSrc = resolvedTheme === 'dark'
+    ? (company?.logo_url_expanded_dark || company?.logo_url || null)
+    : (company?.logo_url_expanded_light || company?.logo_url || null);
+
   return (
     <>
       {/* Logo + Pin Button */}
@@ -692,28 +720,28 @@ function SidebarContent({
       >
         <div className="flex flex-1 items-center justify-center">
           {!isExpanded_ ? (
-            company?.logo_url_collapsed || company?.logo_url ? (
+            collapsedLogoSrc ? (
               <img
-                src={company.logo_url_collapsed || company.logo_url}
-                alt={company.trade_name || company.name}
+                src={collapsedLogoSrc}
+                alt={company?.trade_name || company?.name || defaultLogoAlt}
                 className="h-14 w-14 rounded-xl object-contain transition-all duration-300"
               />
             ) : (
               <img
-                src={defaultLogoSrc}
+                src={defaultCollapsedLogoSrc}
                 alt={defaultLogoAlt}
                 className="h-14 w-14 rounded-xl object-contain transition-all duration-300"
               />
             )
-          ) : company?.logo_url_expanded || company?.logo_url ? (
+          ) : expandedLogoSrc ? (
             <img
-              src={company.logo_url_expanded || company.logo_url}
-              alt={company.trade_name || company.name}
+              src={expandedLogoSrc}
+              alt={company?.trade_name || company?.name || defaultLogoAlt}
               className="h-16 max-w-[9.5rem] object-contain transition-all duration-300"
             />
           ) : (
             <img
-              src={defaultLogoSrc}
+              src={defaultExpandedLogoSrc}
               alt={defaultLogoAlt}
               className="h-16 max-w-[9.5rem] object-contain transition-all duration-300"
             />

@@ -137,7 +137,6 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
             if (company) {
               set({ company });
-              // Garantir que o ID está salvo
               localStorage.setItem(LAST_COMPANY_KEY, company.id);
             }
           }
