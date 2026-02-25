@@ -110,7 +110,7 @@ export function usePatientMonthSchedule(
         assignments,
       };
     },
-    enabled: !!company?.id && !!patientId,
+    enabled: !!companyId && !!patientId,
     staleTime: 5 * 60 * 1000,
   });
 }

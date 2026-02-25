@@ -141,6 +141,6 @@ export function useUserActionLogsStats(days: number = 30) {
 
       return stats;
     },
-    enabled: !!company,
+    enabled: !!companyId,
   });
 }

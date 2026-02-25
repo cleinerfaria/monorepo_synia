@@ -83,7 +83,7 @@ export function usePatientDemands(patientId?: string) {
       if (error) throw error;
       return data as PadWithPatient[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
