@@ -7,25 +7,25 @@ import toast from 'react-hot-toast';
 const QUERY_KEY = 'client-contacts';
 
 export function useClientContacts(clientId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, clientId],
+    queryKey: [QUERY_KEY, clientId, companyId],
     queryFn: async () => {
-      if (!clientId || !company?.id) return [];
+      if (!clientId || !companyId) return [];
 
       const { data, error } = await supabase
         .from('client_contact')
         .select('*')
         .eq('client_id', clientId)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('is_primary', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as ClientContact[];
     },
-    enabled: !!clientId && !!company?.id,
+    enabled: !!clientId && !!companyId,
   });
 }
 

@@ -10,45 +10,45 @@ const QUERY_KEY = 'clients';
 const CLIENT_LOG_EXCLUDE_FIELDS = ['id', 'company_id', 'created_at', 'updated_at'];
 
 export function useClients() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const { data, error } = await supabase
         .from('client')
         .select('*, active:is_active')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('name');
 
       if (error) throw error;
       return data as Client[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useClient(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, id],
+    queryKey: [QUERY_KEY, id, companyId],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('client')
         .select('*, active:is_active')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .filter('id', 'eq', id)
         .single();
 
       if (error) throw error;
       return data as Client;
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 

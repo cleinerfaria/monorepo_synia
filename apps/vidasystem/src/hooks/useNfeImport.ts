@@ -30,18 +30,18 @@ export type NfeImportWithStats = NfeImport & {
 };
 
 export function useNfeImports() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: ['nfe-imports', company?.id],
+    queryKey: ['nfe-imports', companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       // First get NFE imports
       const { data: imports, error: importsError } = await supabase
         .from('nfe_import')
         .select('*')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
       if (importsError) throw importsError;
@@ -98,7 +98,7 @@ export function useNfeImports() {
 
       return importsWithStats;
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 

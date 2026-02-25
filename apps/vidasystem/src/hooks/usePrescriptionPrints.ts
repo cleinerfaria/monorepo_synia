@@ -272,15 +272,15 @@ export function usePrescriptionPrintHistory(
   prescriptionId: string | undefined,
   enabled: boolean = true
 ) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [PRINT_HISTORY_QUERY_KEY, prescriptionId, company?.id],
+    queryKey: [PRINT_HISTORY_QUERY_KEY, prescriptionId, companyId],
     queryFn: async () => {
-      if (!prescriptionId || !company?.id) return [];
+      if (!prescriptionId || !companyId) return [];
 
       try {
-        return await loadPrescriptionPrintHistoryFallback(prescriptionId, company.id);
+        return await loadPrescriptionPrintHistoryFallback(prescriptionId, companyId);
       } catch (fallbackError) {
         if (isAuthorizationError(fallbackError) || !isFallbackStructuralError(fallbackError)) {
           throw fallbackError;
@@ -297,14 +297,14 @@ export function usePrescriptionPrintHistory(
           throw error;
         }
         if (isRpcStructuralError(error)) {
-          return loadPrescriptionPrintHistoryFallback(prescriptionId, company.id);
+          return loadPrescriptionPrintHistoryFallback(prescriptionId, companyId);
         }
         throw error;
       }
 
       return (data || []) as ListPrescriptionPrintsRow[] as PrescriptionPrintHistoryItem[];
     },
-    enabled: !!prescriptionId && !!company?.id && enabled,
+    enabled: !!prescriptionId && !!companyId && enabled,
     retry: false,
   });
 }

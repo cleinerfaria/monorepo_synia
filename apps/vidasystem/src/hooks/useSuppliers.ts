@@ -7,67 +7,67 @@ import toast from 'react-hot-toast';
 const QUERY_KEY = 'suppliers';
 
 export function useSuppliers() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const { data, error } = await supabase
         .from('supplier')
         .select('*, active:is_active')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('name');
 
       if (error) throw error;
       return data as Supplier[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useSupplier(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('supplier')
         .select('*, active:is_active')
         .eq('id', id)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .single();
 
       if (error) throw error;
       return data as Supplier;
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 
 export function useSupplierByDocument(document: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'document', document],
     queryFn: async () => {
-      if (!document || !company?.id) return null;
+      if (!document || !companyId) return null;
 
       const { data, error } = await supabase
         .from('supplier')
         .select('*, active:is_active')
         .eq('document', document)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .maybeSingle();
 
       if (error) throw error;
       return data as Supplier | null;
     },
-    enabled: !!document && !!company?.id,
+    enabled: !!document && !!companyId,
   });
 }
 

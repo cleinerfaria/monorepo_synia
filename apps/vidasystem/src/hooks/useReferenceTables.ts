@@ -49,12 +49,12 @@ export interface RefSourceWithStats extends RefSource {
 }
 
 export function useRefSourcesWithStats() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
-    queryKey: [QUERY_KEY, 'sources-stats', company?.id],
+    queryKey: [QUERY_KEY, 'sources-stats', companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       // Get sources
       const { data: sources, error: sourcesError } = await supabase
@@ -72,7 +72,7 @@ export function useRefSourcesWithStats() {
             .from('ref_import_batch')
             .select('*')
             .eq('source_id', source.id)
-            .eq('company_id', company.id)
+            .eq('company_id', companyId)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
@@ -82,7 +82,7 @@ export function useRefSourcesWithStats() {
             .from('ref_item')
             .select('*', { count: 'exact', head: true })
             .eq('source_id', source.id)
-            .eq('company_id', company.id)
+            .eq('company_id', companyId)
             .eq('is_active', true);
 
           // Get total imports count
@@ -90,7 +90,7 @@ export function useRefSourcesWithStats() {
             .from('ref_import_batch')
             .select('*', { count: 'exact', head: true })
             .eq('source_id', source.id)
-            .eq('company_id', company.id);
+            .eq('company_id', companyId);
 
           return {
             ...source,
@@ -110,7 +110,7 @@ export function useRefSourcesWithStats() {
 
       return sourcesWithStats;
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -119,19 +119,19 @@ export function useRefSourcesWithStats() {
 // ========================================
 
 export function useRefImportBatches(sourceId?: string) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
-    queryKey: [QUERY_KEY, 'batches', company?.id, sourceId],
+    queryKey: [QUERY_KEY, 'batches', companyId, sourceId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       let query = supabase
         .from('ref_import_batch')
         .select(
           `id, source_id, company_id, status, file_name, file_size, rows_read, rows_inserted, rows_updated, rows_skipped, rows_error, error_summary, created_at, started_at, finished_at, import_options, created_by, source:ref_source(id, code, name), created_by_user:app_user(id, name, email)`
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
       if (sourceId) {
@@ -143,7 +143,7 @@ export function useRefImportBatches(sourceId?: string) {
       if (error) throw error;
       return data as unknown as RefImportBatch[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -206,17 +206,17 @@ export interface RefItemFilters {
 }
 
 export function useRefItems(sourceId: string | undefined, filters?: RefItemFilters) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
-    queryKey: [QUERY_KEY, 'items', company?.id, sourceId, filters],
+    queryKey: [QUERY_KEY, 'items', companyId, sourceId, filters],
     queryFn: async () => {
-      if (!company?.id || !sourceId) return [];
+      if (!companyId || !sourceId) return [];
 
       let query = supabase
         .from('ref_item')
         .select('*')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('source_id', sourceId)
         .order('product_name');
 
@@ -269,7 +269,7 @@ export function useRefItems(sourceId: string | undefined, filters?: RefItemFilte
 
       return itemsWithPrices as RefItemWithPrices[];
     },
-    enabled: !!company?.id && !!sourceId,
+    enabled: !!companyId && !!sourceId,
   });
 }
 
@@ -349,17 +349,17 @@ export function useRefCurrentPrices(itemId: string | undefined) {
 // ========================================
 
 export function useRefCategories(sourceId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
-    queryKey: [QUERY_KEY, 'categories', company?.id, sourceId],
+    queryKey: [QUERY_KEY, 'categories', companyId, sourceId],
     queryFn: async () => {
-      if (!company?.id || !sourceId) return [];
+      if (!companyId || !sourceId) return [];
 
       const { data, error } = await supabase
         .from('ref_item')
         .select('category')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('source_id', sourceId)
         .not('category', 'is', null);
 
@@ -369,7 +369,7 @@ export function useRefCategories(sourceId: string | undefined) {
       const categories = [...new Set(data.map((d) => d.category).filter(Boolean))];
       return categories.sort() as string[];
     },
-    enabled: !!company?.id && !!sourceId,
+    enabled: !!companyId && !!sourceId,
   });
 }
 
@@ -1930,12 +1930,12 @@ export function useProcessRefImport() {
 // ========================================
 
 export function useSearchRefItems(searchTerm: string, sourceCode?: string) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
-    queryKey: [QUERY_KEY, 'search-items', company?.id, searchTerm, sourceCode],
+    queryKey: [QUERY_KEY, 'search-items', companyId, searchTerm, sourceCode],
     queryFn: async () => {
-      if (!company?.id || searchTerm.length < 2) return [];
+      if (!companyId || searchTerm.length < 2) return [];
 
       let query = supabase
         .from('ref_item')
@@ -1945,7 +1945,7 @@ export function useSearchRefItems(searchTerm: string, sourceCode?: string) {
           source:ref_source(*)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('is_active', true)
         .or(
           `description.ilike.%${searchTerm}%,external_code.ilike.%${searchTerm}%,ean.ilike.%${searchTerm}%`
@@ -1961,7 +1961,7 @@ export function useSearchRefItems(searchTerm: string, sourceCode?: string) {
       if (error) throw error;
       return data as (RefItem & { source: RefSource })[];
     },
-    enabled: !!company?.id && searchTerm.length >= 2,
+    enabled: !!companyId && searchTerm.length >= 2,
     staleTime: 30000, // Cache for 30 seconds
   });
 }
@@ -2501,15 +2501,15 @@ export async function searchRefItemsByEans(
  * Hook to search ref_item by EAN
  */
 export function useRefItemByEan(ean: string | null | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
-    queryKey: [QUERY_KEY, 'ref-item-by-ean', company?.id, ean],
+    queryKey: [QUERY_KEY, 'ref-item-by-ean', companyId, ean],
     queryFn: async () => {
-      if (!company?.id || !ean) return null;
-      return searchRefItemByEan(company.id, ean);
+      if (!companyId || !ean) return null;
+      return searchRefItemByEan(companyId, ean);
     },
-    enabled: !!company?.id && !!ean,
+    enabled: !!companyId && !!ean,
     staleTime: 60000, // Cache for 1 minute
   });
 }
@@ -2519,12 +2519,12 @@ export function useRefItemByEan(ean: string | null | undefined) {
 // ========================================
 
 export function useProductRefLinks(productId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'product-links', productId],
     queryFn: async () => {
-      if (!company?.id || !productId) return [];
+      if (!companyId || !productId) return [];
 
       const { data, error } = await supabase
         .from('product_ref_link')
@@ -2535,7 +2535,7 @@ export function useProductRefLinks(productId: string | undefined) {
           ref_item:ref_item(*)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('product_id', productId);
 
       if (error) throw error;
@@ -2569,7 +2569,7 @@ export function useProductRefLinks(productId: string | undefined) {
 
       return linksWithPrices;
     },
-    enabled: !!company?.id && !!productId,
+    enabled: !!companyId && !!productId,
   });
 }
 

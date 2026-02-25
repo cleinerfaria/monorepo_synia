@@ -35,17 +35,17 @@ const toNullable = (value: string | null | undefined) => {
 };
 
 export function usePadServices(includeInactive = false) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id, includeInactive],
+    queryKey: [QUERY_KEY, companyId, includeInactive],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       let query = supabase
         .from('pad_service')
         .select('*, active:is_active')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('sort_order', { ascending: true })
         .order('name', { ascending: true });
 
@@ -58,7 +58,7 @@ export function usePadServices(includeInactive = false) {
 
       return (data || []) as PadService[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 

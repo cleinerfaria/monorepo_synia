@@ -25,12 +25,12 @@ export function usePresentationsPaginated(
   searchTerm: string = '',
   filters: { productId?: string; status?: string } = {}
 ) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, 'paginated', company?.id, page, pageSize, searchTerm, filters],
+    queryKey: [QUERY_KEY, 'paginated', companyId, page, pageSize, searchTerm, filters],
     queryFn: async (): Promise<PaginatedResult<PresentationWithRelations>> => {
-      if (!company?.id) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
+      if (!companyId) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
 
       const trimmedSearchTerm = searchTerm.trim();
       let productIds: string[] = [];
@@ -41,7 +41,7 @@ export function usePresentationsPaginated(
         const { data: productsByName, error: productsByNameError } = await supabase
           .from('product')
           .select('id')
-          .eq('company_id', company.id)
+          .eq('company_id', companyId)
           .or(`name.ilike.%${trimmedSearchTerm}%,concentration.ilike.%${trimmedSearchTerm}%`);
 
         if (productsByNameError) throw productsByNameError;
@@ -55,7 +55,7 @@ export function usePresentationsPaginated(
       let countQuery = supabase
         .from('product_presentation')
         .select('id', { count: 'exact', head: true })
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Build base query for data
       let dataQuery = supabase
@@ -66,7 +66,7 @@ export function usePresentationsPaginated(
           product:product_id(id, name, concentration, item_type),
           manufacturer:manufacturer_id(id, name, trade_name)`
         )
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Apply search filter
       if (trimmedSearchTerm) {
@@ -120,23 +120,23 @@ export function usePresentationsPaginated(
         currentPage: page,
       };
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function usePresentations(productId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, productId],
+    queryKey: [QUERY_KEY, productId, companyId],
     queryFn: async () => {
-      if (!productId || !company?.id) return [];
+      if (!productId || !companyId) return [];
 
       const { data, error } = await supabase
         .from('product_presentation')
         .select('*, active:is_active, manufacturer:manufacturer_id(id, name, trade_name)')
         .eq('product_id', productId)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('conversion_factor');
 
       if (error) throw error;
@@ -144,7 +144,7 @@ export function usePresentations(productId: string | undefined) {
         manufacturer?: { id: string; name: string; trade_name?: string } | null;
       })[];
     },
-    enabled: !!productId && !!company?.id,
+    enabled: !!productId && !!companyId,
   });
 }
 

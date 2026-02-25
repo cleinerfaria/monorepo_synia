@@ -9,18 +9,18 @@ const QUERY_KEY = 'manufacturers';
 
 // Check if reference tables (CMED and Brasíndice) are imported
 export function useReferenceTablesStatus() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: ['reference-tables-status', company?.id],
+    queryKey: ['reference-tables-status', companyId],
     queryFn: async () => {
-      if (!company?.id) return { hasCmed: false, hasBrasindice: false };
+      if (!companyId) return { hasCmed: false, hasBrasindice: false };
 
       // Check for CMED (manufacturer_code contains '/' - CNPJ format)
       const { count: cmedCount } = await supabase
         .from('ref_item')
         .select('id', { count: 'exact', head: true })
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .like('manufacturer_code', '%/%')
         .limit(1);
 
@@ -28,7 +28,7 @@ export function useReferenceTablesStatus() {
       const { count: brasindiceCount } = await supabase
         .from('ref_item')
         .select('id', { count: 'exact', head: true })
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .not('manufacturer_code', 'like', '%/%')
         .not('manufacturer_code', 'is', null)
         .limit(1);
@@ -38,7 +38,7 @@ export function useReferenceTablesStatus() {
         hasBrasindice: (brasindiceCount ?? 0) > 0,
       };
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -149,23 +149,23 @@ export function useSyncManufacturersFromReference() {
 }
 
 export function useManufacturers() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const { data, error } = await supabase
         .from('manufacturer')
         .select('*, active:is_active')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('name');
 
       if (error) throw error;
       return data as Manufacturer[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -181,24 +181,24 @@ export function useManufacturersPaginated(
   pageSize: number = DEFAULT_LIST_PAGE_SIZE,
   searchTerm: string = ''
 ) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, 'paginated', company?.id, page, pageSize, searchTerm],
+    queryKey: [QUERY_KEY, 'paginated', companyId, page, pageSize, searchTerm],
     queryFn: async (): Promise<PaginatedResult<Manufacturer>> => {
-      if (!company?.id) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
+      if (!companyId) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
 
       // Build base query for count
       let countQuery = supabase
         .from('manufacturer')
         .select('id', { count: 'exact', head: true })
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Build base query for data
       let dataQuery = supabase
         .from('manufacturer')
         .select('*, active:is_active')
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Apply search filter if provided
       if (searchTerm) {
@@ -229,29 +229,29 @@ export function useManufacturersPaginated(
         currentPage: page,
       };
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useManufacturer(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, id],
+    queryKey: [QUERY_KEY, id, companyId],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('manufacturer')
         .select('*, active:is_active')
         .eq('id', id)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .single();
 
       if (error) throw error;
       return data as Manufacturer;
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 

@@ -49,12 +49,12 @@ export function useUserActionLogs(filters?: {
   endDate?: string;
   limit?: number;
 }) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: ['user_action_logs', filters],
+    queryKey: ['user_action_logs', filters, companyId],
     queryFn: async () => {
-      if (!company) throw new Error('Empresa não encontrada');
+      if (!companyId) throw new Error('Empresa não encontrada');
 
       let query = supabase
         .from('user_action_logs')
@@ -67,7 +67,7 @@ export function useUserActionLogs(filters?: {
           )
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
       if (filters?.entity) {
@@ -95,18 +95,18 @@ export function useUserActionLogs(filters?: {
       if (error) throw error;
       return data as UserActionLog[];
     },
-    enabled: !!company,
+    enabled: !!companyId,
   });
 }
 
 // Hook para contar logs por período
 export function useUserActionLogsStats(days: number = 30) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: ['user_action_logs_stats', days],
+    queryKey: ['user_action_logs_stats', days, companyId],
     queryFn: async () => {
-      if (!company) throw new Error('Empresa não encontrada');
+      if (!companyId) throw new Error('Empresa não encontrada');
 
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
@@ -114,7 +114,7 @@ export function useUserActionLogsStats(days: number = 30) {
       const { data, error } = await supabase
         .from('user_action_logs')
         .select('action, entity, created_at')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .gte('created_at', startDate.toISOString());
 
       if (error) throw error;

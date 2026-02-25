@@ -8,23 +8,23 @@ import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 const QUERY_KEY = 'business-partners';
 
 export function useBusinessPartners() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const { data, error } = await supabase
         .from('business_partner')
         .select('*, active:is_active')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('name');
 
       if (error) throw error;
       return data as BusinessPartner[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -40,24 +40,24 @@ export function useBusinessPartnersPaginated(
   pageSize: number = DEFAULT_LIST_PAGE_SIZE,
   searchTerm: string = ''
 ) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, 'paginated', company?.id, page, pageSize, searchTerm],
+    queryKey: [QUERY_KEY, 'paginated', companyId, page, pageSize, searchTerm],
     queryFn: async (): Promise<PaginatedResult<BusinessPartner>> => {
-      if (!company?.id) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
+      if (!companyId) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
 
       // Build base query for count
       let countQuery = supabase
         .from('business_partner')
         .select('id', { count: 'exact', head: true })
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Build base query for data
       let dataQuery = supabase
         .from('business_partner')
         .select('*, active:is_active')
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Apply search filter if provided
       if (searchTerm) {
@@ -88,29 +88,29 @@ export function useBusinessPartnersPaginated(
         currentPage: page,
       };
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useBusinessPartner(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, id],
+    queryKey: [QUERY_KEY, id, companyId],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('business_partner')
         .select('*, active:is_active')
         .eq('id', id)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .single();
 
       if (error) throw error;
       return data as BusinessPartner;
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 

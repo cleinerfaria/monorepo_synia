@@ -22,12 +22,12 @@ export function usePatientMonthSchedule(
   year: number,
   month: number
 ) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [SCHEDULE_KEY, company?.id, patientId, year, month],
+    queryKey: [SCHEDULE_KEY, companyId, patientId, year, month],
     queryFn: async (): Promise<PatientMonthSchedule | null> => {
-      if (!company?.id || !patientId) return null;
+      if (!companyId || !patientId) return null;
 
       const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
       const lastDay = new Date(year, month, 0).getDate();
@@ -37,7 +37,7 @@ export function usePatientMonthSchedule(
       const { data, error } = await supabase
         .from('pad_shift')
         .select('id, start_at, end_at, assigned_professional_id, status')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('patient_id', patientId)
         .gte('start_at', `${startDate}T00:00:00`)
         .lte('start_at', `${endDate}T23:59:59`)
@@ -49,7 +49,7 @@ export function usePatientMonthSchedule(
       const { data: padData } = await supabase
         .from('pad')
         .select('id, start_date, start_time')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('patient_id', patientId)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
@@ -64,7 +64,7 @@ export function usePatientMonthSchedule(
         const { data: shiftItem } = await supabase
           .from('pad_items')
           .select('id, hours_per_day, shift_duration_hours')
-          .eq('company_id', company.id)
+          .eq('company_id', companyId)
           .eq('pad_id', padData.id)
           .eq('type', 'shift')
           .eq('is_active', true)

@@ -37,12 +37,12 @@ interface PaginatedResult<T> {
 }
 
 export function usePatients() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const pageSize = 1000;
       let allPatients: PatientWithRelations[] = [];
@@ -59,7 +59,7 @@ export function usePatients() {
             billing_client:client(id, name)
           `
           )
-          .eq('company_id', company.id)
+          .eq('company_id', companyId)
           .order('name')
           .range(page * pageSize, (page + 1) * pageSize - 1);
 
@@ -79,7 +79,7 @@ export function usePatients() {
 
       return allPatients;
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -216,12 +216,12 @@ export function usePatientsPaginated(
 }
 
 export function usePatient(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('patient')
@@ -237,14 +237,14 @@ export function usePatient(id: string | undefined) {
           )
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .filter('id', 'eq', id)
         .single();
 
       if (error) throw error;
       return data as Patient & { billing_client: { id: string; name: string } | null };
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 
@@ -348,25 +348,25 @@ export function useDeletePatient() {
 // ========================================
 
 export function usePatientAddresses(patientId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'addresses', patientId],
     queryFn: async () => {
-      if (!patientId || !company?.id) return [];
+      if (!patientId || !companyId) return [];
 
       const { data, error } = await supabase
         .from('patient_address')
         .select('*, active:is_active')
         .eq('patient_id', patientId)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('is_primary', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as PatientAddress[];
     },
-    enabled: !!patientId && !!company?.id,
+    enabled: !!patientId && !!companyId,
   });
 }
 
@@ -439,25 +439,25 @@ export function useSavePatientAddresses() {
 // ========================================
 
 export function usePatientContacts(patientId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'contacts', patientId],
     queryFn: async () => {
-      if (!patientId || !company?.id) return [];
+      if (!patientId || !companyId) return [];
 
       const { data, error } = await supabase
         .from('patient_contact')
         .select('*, active:is_active')
         .eq('patient_id', patientId)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('is_primary', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as PatientContact[];
     },
-    enabled: !!patientId && !!company?.id,
+    enabled: !!patientId && !!companyId,
   });
 }
 
@@ -530,12 +530,12 @@ export function useSavePatientContacts() {
 // ========================================
 
 export function usePatientPayers(patientId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'payers', patientId],
     queryFn: async () => {
-      if (!patientId || !company?.id) return [];
+      if (!patientId || !companyId) return [];
 
       const { data, error } = await supabase
         .from('patient_payer')
@@ -547,14 +547,14 @@ export function usePatientPayers(patientId: string | undefined) {
         `
         )
         .eq('patient_id', patientId)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('is_primary', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as PatientPayer[];
     },
-    enabled: !!patientId && !!company?.id,
+    enabled: !!patientId && !!companyId,
   });
 }
 

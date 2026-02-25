@@ -45,12 +45,12 @@ export interface UpdatePadItemData extends Partial<Omit<CreatePadItemData, 'pad_
 }
 
 export function usePadItems(padId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id, padId],
+    queryKey: [QUERY_KEY, companyId, padId],
     queryFn: async () => {
-      if (!company?.id || !padId) return [];
+      if (!companyId || !padId) return [];
 
       const { data, error } = await supabase
         .from('pad_items')
@@ -60,7 +60,7 @@ export function usePadItems(padId: string | undefined) {
           profession:profession(id, name)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('pad_id', padId)
         .order('type')
         .order('created_at');
@@ -68,7 +68,7 @@ export function usePadItems(padId: string | undefined) {
       if (error) throw error;
       return data as PadItemWithProfession[];
     },
-    enabled: !!company?.id && !!padId,
+    enabled: !!companyId && !!padId,
   });
 }
 
