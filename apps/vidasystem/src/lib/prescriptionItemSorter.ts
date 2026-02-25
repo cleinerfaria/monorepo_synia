@@ -7,6 +7,7 @@ interface AdministrationRoute {
 }
 
 type SortablePrescriptionItem = PrescriptionItem & {
+  display_name?: string | null;
   product?: { name?: string | null } | null;
   procedure?: { name?: string | null } | null;
   equipment?: { name?: string | null } | null;
@@ -20,6 +21,7 @@ function resolveManualOrder(value: number | null | undefined): number | null {
 
 function resolveItemName(item: SortablePrescriptionItem): string {
   return (
+    item.display_name ||
     item.product?.name ||
     item.procedure?.name ||
     item.equipment?.name ||

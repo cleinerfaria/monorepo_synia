@@ -7,12 +7,12 @@ import toast from 'react-hot-toast';
 const QUERY_KEY = 'equipment';
 
 export function useEquipment() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const { data, error } = await supabase
         .from('equipment')
@@ -22,23 +22,23 @@ export function useEquipment() {
           assigned_patient:patient(id, name)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('name');
 
       if (error) throw error;
       return data as (Equipment & { assigned_patient: { id: string; name: string } | null })[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useEquipmentItem(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, id],
+    queryKey: [QUERY_KEY, id, companyId],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('equipment')
@@ -48,20 +48,21 @@ export function useEquipmentItem(id: string | undefined) {
           assigned_patient:patient(id, name)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .filter('id', 'eq', id)
         .single();
 
       if (error) throw error;
       return data as Equipment & { assigned_patient: { id: string; name: string } | null };
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 
 export function useCreateEquipment() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'equipment'>, 'company_id'>) => {
@@ -90,6 +91,7 @@ export function useCreateEquipment() {
 export function useUpdateEquipment() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'equipment'> & { id: string }) => {
@@ -120,6 +122,7 @@ export function useUpdateEquipment() {
 export function useDeleteEquipment() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -147,6 +150,7 @@ export function useDeleteEquipment() {
 export function useAssignEquipment() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, patientId }: { id: string; patientId: string | null }) => {
@@ -185,6 +189,7 @@ export function useAssignEquipment() {
 export function useUnassignEquipment() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

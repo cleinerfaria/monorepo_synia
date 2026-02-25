@@ -1,5 +1,5 @@
-﻿import { useState, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import { Users, Pencil, Ban, CircleCheck, X, Funnel, Search, FunnelX, Plus } from 'lucide-react';
 import { HealthWorkerIcon } from '@/components/icons/HealthWorkerIcon';
@@ -25,6 +25,19 @@ import { format, differenceInYears } from 'date-fns';
 import { formatDateOnly, parseDateOnlyOrNull } from '@/lib/dateOnly';
 
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
+const SORT_COLUMNS = new Set(['name', 'birth_date', 'active']);
+const GENDER_VALUES = new Set(['male', 'female', 'other']);
+const STATUS_VALUES = new Set(['active', 'inactive']);
+
+const parseSortColumn = (value: string | null) =>
+  value && SORT_COLUMNS.has(value) ? value : 'name';
+
+const parseSortDirection = (value: string | null): 'asc' | 'desc' =>
+  value === 'desc' ? 'desc' : 'asc';
+
+const parseGender = (value: string | null) => (value && GENDER_VALUES.has(value) ? value : '');
+
+const parseStatus = (value: string | null) => (value && STATUS_VALUES.has(value) ? value : '');
 
 const formatCPF = (cpf?: string | null): string => {
   if (!cpf) return '-';
@@ -35,21 +48,86 @@ const formatCPF = (cpf?: string | null): string => {
 
 export default function PatientsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialSearchTerm = searchParams.get('q') ?? '';
+  const initialClientFilter = searchParams.get('client') ?? '';
+  const initialGenderFilter = parseGender(searchParams.get('gender'));
+  const initialStatusFilter = parseStatus(searchParams.get('status'));
+  const initialSortColumn = parseSortColumn(searchParams.get('sort'));
+  const initialSortDirection = parseSortDirection(searchParams.get('dir'));
 
   // Paginação e busca server-side
   const [currentPage, setCurrentPage] = useListPageState();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [searchInput, setSearchInput] = useState(initialSearchTerm);
 
   // Filtros (agora server-side)
-  const [clientFilter, setClientFilter] = useState('');
-  const [genderFilter, setGenderFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [clientFilter, setClientFilter] = useState(initialClientFilter);
+  const [genderFilter, setGenderFilter] = useState(initialGenderFilter);
+  const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
   const [showFilters, setShowFilters] = useState(false);
 
   // Ordenação server-side
-  const [sortColumn, setSortColumn] = useState<string>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortColumn, setSortColumn] = useState<string>(initialSortColumn);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection);
+
+  const searchParamsString = searchParams.toString();
+
+  const parsedParams = useMemo(() => {
+    const params = new URLSearchParams(searchParamsString);
+    return {
+      searchTerm: params.get('q') ?? '',
+      clientFilter: params.get('client') ?? '',
+      genderFilter: parseGender(params.get('gender')),
+      statusFilter: parseStatus(params.get('status')),
+      sortColumn: parseSortColumn(params.get('sort')),
+      sortDirection: parseSortDirection(params.get('dir')),
+    };
+  }, [searchParamsString]);
+
+  useEffect(() => {
+    setSearchTerm(parsedParams.searchTerm);
+    setSearchInput(parsedParams.searchTerm);
+    setClientFilter(parsedParams.clientFilter);
+    setGenderFilter(parsedParams.genderFilter);
+    setStatusFilter(parsedParams.statusFilter);
+    setSortColumn(parsedParams.sortColumn);
+    setSortDirection(parsedParams.sortDirection);
+  }, [parsedParams]);
+
+  const listParamsString = useMemo(() => {
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('q', searchTerm);
+    if (currentPage > 1) params.set('page', String(currentPage));
+    if (clientFilter) params.set('client', clientFilter);
+    if (genderFilter) params.set('gender', genderFilter);
+    if (statusFilter) params.set('status', statusFilter);
+    if (sortColumn !== 'name') params.set('sort', sortColumn);
+    if (sortDirection !== 'asc') params.set('dir', sortDirection);
+    return params.toString();
+  }, [
+    searchTerm,
+    currentPage,
+    clientFilter,
+    genderFilter,
+    statusFilter,
+    sortColumn,
+    sortDirection,
+  ]);
+
+  useEffect(() => {
+    if (listParamsString !== searchParamsString) {
+      setSearchParams(listParamsString, { replace: true });
+    }
+  }, [listParamsString, searchParamsString, setSearchParams]);
+
+  const listQuerySuffix = listParamsString ? `?${listParamsString}` : '';
+  const buildPatientUrl = useCallback(
+    (patientId: string) => `/pacientes/${patientId}${listQuerySuffix}`,
+    [listQuerySuffix]
+  );
+  const newPatientUrl = listQuerySuffix ? `/pacientes/novo${listQuerySuffix}` : '/pacientes/novo';
 
   // Filters object for the paginated hook
   const filters = useMemo(
@@ -301,7 +379,7 @@ export default function PatientsPage() {
             <IconButton
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/pacientes/${row.original.id}`);
+                navigate(buildPatientUrl(row.original.id));
               }}
             >
               <Pencil className="h-4 w-4" />
@@ -325,7 +403,7 @@ export default function PatientsPage() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [navigate, sortColumn, sortDirection]
+    [buildPatientUrl, navigate, sortColumn, sortDirection]
   );
 
   return (
@@ -338,7 +416,7 @@ export default function PatientsPage() {
           </h1>
         </div>
         <Button
-          onClick={() => navigate('/pacientes/novo')}
+          onClick={() => navigate(newPatientUrl)}
           variant="solid"
           icon={<Plus className="h-4 w-4" />}
           label="Novo Paciente"
@@ -465,7 +543,7 @@ export default function PatientsPage() {
             columns={columns}
             showPagination={false}
             isLoading={isLoading}
-            onRowClick={(row) => navigate(`/pacientes/${row.id}`)}
+            onRowClick={(row) => navigate(buildPatientUrl(row.id))}
             emptyState={
               hasActiveFilters ? (
                 <EmptyState
@@ -489,7 +567,7 @@ export default function PatientsPage() {
                   description="Cadastre pacientes para gerenciar suas informações"
                   action={
                     <Button
-                      onClick={() => navigate('/pacientes/novo')}
+                      onClick={() => navigate(newPatientUrl)}
                       variant="solid"
                       icon={<Plus className="h-4 w-4" />}
                       label="Novo Paciente"

@@ -24,7 +24,13 @@ const mimeTypes = {
   '.map': 'application/json; charset=utf-8',
 };
 
-function sendText(res, statusCode, body, contentType = 'text/plain; charset=utf-8', cacheControl = null) {
+function sendText(
+  res,
+  statusCode,
+  body,
+  contentType = 'text/plain; charset=utf-8',
+  cacheControl = null
+) {
   const headers = { 'Content-Type': contentType };
   if (cacheControl) {
     headers['Cache-Control'] = cacheControl;
@@ -36,7 +42,19 @@ function sendText(res, statusCode, body, contentType = 'text/plain; charset=utf-
 function getCacheHeaders(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   // Assets com hash no nome: cache imutável de 1 ano
-  const immutableExts = ['.js', '.css', '.woff', '.woff2', '.ttf', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico'];
+  const immutableExts = [
+    '.js',
+    '.css',
+    '.woff',
+    '.woff2',
+    '.ttf',
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.webp',
+    '.svg',
+    '.ico',
+  ];
   if (immutableExts.includes(ext) && filePath.includes('/assets/')) {
     return 'public, max-age=31536000, immutable';
   }

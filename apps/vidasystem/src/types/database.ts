@@ -1705,6 +1705,7 @@ export type Database = {
           company_id: string;
           created_at: string | null;
           diluent_text: string | null;
+          display_name: string | null;
           end_date: string | null;
           equipment_id: string | null;
           frequency_mode: Database['public']['Enums']['enum_prescription_frequency_mode'] | null;
@@ -1736,6 +1737,7 @@ export type Database = {
           company_id: string;
           created_at?: string | null;
           diluent_text?: string | null;
+          display_name?: string | null;
           end_date?: string | null;
           equipment_id?: string | null;
           frequency_mode?: Database['public']['Enums']['enum_prescription_frequency_mode'] | null;
@@ -1767,6 +1769,7 @@ export type Database = {
           company_id?: string;
           created_at?: string | null;
           diluent_text?: string | null;
+          display_name?: string | null;
           end_date?: string | null;
           equipment_id?: string | null;
           frequency_mode?: Database['public']['Enums']['enum_prescription_frequency_mode'] | null;

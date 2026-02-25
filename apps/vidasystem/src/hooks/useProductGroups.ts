@@ -26,12 +26,12 @@ export type ProductGroupWithParent = ProductGroup & {
 };
 
 export function useProductGroups() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       // Busca grupos globais (company_id IS NULL) e da empresa
       const { data, error } = await supabase
@@ -43,7 +43,7 @@ export function useProductGroups() {
           parent:parent_id(id, name, code, color)
         `
         )
-        .or(`company_id.is.null,company_id.eq.${company.id}`)
+        .or(`company_id.is.null,company_id.eq.${companyId}`)
         .eq('is_active', true)
         .order('sort_order')
         .order('name');
@@ -51,17 +51,17 @@ export function useProductGroups() {
       if (error) throw error;
       return data as ProductGroupWithParent[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useProductGroup(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('product_group')
@@ -78,13 +78,14 @@ export function useProductGroup(id: string | undefined) {
       if (error) throw error;
       return data as ProductGroupWithParent;
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 
 export function useCreateProductGroup() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (
@@ -120,6 +121,7 @@ export function useCreateProductGroup() {
 export function useUpdateProductGroup() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<ProductGroup> & { id: string }) => {
@@ -155,6 +157,7 @@ export function useUpdateProductGroup() {
 export function useDeleteProductGroup() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

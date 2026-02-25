@@ -39,18 +39,18 @@ const QUERY_KEY = 'professional_user';
  * Busca o vínculo professional_user para um profissional específico
  */
 export function useProfessionalUser(professionalId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, professionalId],
     queryFn: async () => {
-      if (!professionalId || !company?.id) return null;
+      if (!professionalId || !companyId) return null;
 
       // Primeiro, busca o vínculo professional_user
       const { data: linkData, error: linkError } = await supabase
         .from('professional_user')
         .select('*')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('professional_id', professionalId)
         .maybeSingle();
 
@@ -72,7 +72,7 @@ export function useProfessionalUser(professionalId: string | undefined) {
         app_user: appUser,
       } as ProfessionalUserLink;
     },
-    enabled: !!professionalId && !!company?.id,
+    enabled: !!professionalId && !!companyId,
   });
 }
 
@@ -80,18 +80,18 @@ export function useProfessionalUser(professionalId: string | undefined) {
  * Lista app_users da empresa que NÃO estão vinculados a nenhum profissional
  */
 export function useAvailableAppUsers() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: ['available_app_users', company?.id],
+    queryKey: ['available_app_users', companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       // Buscar todos os user_ids já vinculados
       const { data: linkedUsers, error: linkedError } = await supabase
         .from('professional_user')
         .select('user_id')
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       if (linkedError) throw linkedError;
 
@@ -101,7 +101,7 @@ export function useAvailableAppUsers() {
       let query = supabase
         .from('app_user')
         .select('id, auth_user_id, name, email, active:is_active, access_profile(name)')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('is_active', true)
         .order('name');
 
@@ -113,7 +113,7 @@ export function useAvailableAppUsers() {
       if (error) throw error;
       return (data || []) as unknown as AvailableAppUser[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -123,6 +123,7 @@ export function useAvailableAppUsers() {
 export function useLinkProfessionalUser() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ professionalId, userId }: { professionalId: string; userId: string }) => {
@@ -160,6 +161,7 @@ export function useLinkProfessionalUser() {
 export function useUnlinkProfessionalUser() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ professionalId }: { professionalId: string }) => {
@@ -191,6 +193,7 @@ export function useUnlinkProfessionalUser() {
 export function useCreateAndLinkProfessionalUser() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({

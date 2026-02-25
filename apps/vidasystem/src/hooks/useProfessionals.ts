@@ -13,51 +13,52 @@ export type ProfessionalWithRelations = Professional & {
 };
 
 export function useProfessionals() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const { data, error } = await supabase
         .from('professional')
         .select('*, active:is_active, profession(name)')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('name');
 
       if (error) throw error;
       return data as ProfessionalWithRelations[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useProfessional(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('professional')
         .select('*, active:is_active')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .filter('id', 'eq', id)
         .single();
 
       if (error) throw error;
       return data as Professional;
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 
 export function useCreateProfessional() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'professional'>, 'company_id'>) => {
@@ -91,6 +92,7 @@ export function useCreateProfessional() {
 export function useUpdateProfessional() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'professional'> & { id: string }) => {
@@ -126,6 +128,7 @@ export function useUpdateProfessional() {
 export function useDeleteProfessional() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -151,23 +154,23 @@ export function useDeleteProfessional() {
 }
 
 export function useProfessions() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: ['professions', company?.id],
+    queryKey: ['professions', companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const { data, error } = await supabase
         .from('profession')
         .select('*, active:is_active')
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
       return data;
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }

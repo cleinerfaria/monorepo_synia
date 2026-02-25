@@ -315,8 +315,10 @@ function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContex
       .meta-grid {
         margin-top: 0px;
         display: grid;
-        grid-template-columns: minmax(0, 1.9fr) minmax(0, 1.1fr) 132px 92px;
+        grid-template-columns: minmax(0, 1.9fr) minmax(0, 1.1fr) 132px 116px;
         gap: 3px 8px;
+        padding-right: 8px;
+        box-sizing: border-box;
       }
       .meta-item {
         border-bottom: none;
@@ -358,7 +360,7 @@ function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContex
         border-right: 0;
       }
       tbody tr:nth-child(even) td {
-        background-color: #f3f4f6;
+        background-color: #cccccc;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }

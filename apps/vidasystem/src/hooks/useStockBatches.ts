@@ -28,12 +28,12 @@ export function useStockBatches(filters?: {
   productId?: string;
   expiringWithinDays?: number;
 }) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id, filters],
+    queryKey: [QUERY_KEY, companyId, filters],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       let query = supabase
         .from('stock_batch')
@@ -44,7 +44,7 @@ export function useStockBatches(filters?: {
           stock_location:location_id(id, name)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .gt('qty_on_hand', 0)
         .order('expiration_date', { ascending: true, nullsFirst: false });
 
@@ -66,17 +66,17 @@ export function useStockBatches(filters?: {
       if (error) throw error;
       return data as StockBatchWithRelations[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useStockBatch(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, id],
+    queryKey: [QUERY_KEY, id, companyId],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('stock_batch')
@@ -88,19 +88,20 @@ export function useStockBatch(id: string | undefined) {
         `
         )
         .eq('id', id)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .single();
 
       if (error) throw error;
       return data as StockBatchWithRelations;
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 
 export function useCreateStockBatch() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'stock_batch'>, 'company_id'>) => {
@@ -129,6 +130,7 @@ export function useCreateStockBatch() {
 export function useUpdateStockBatch() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'stock_batch'> & { id: string }) => {
@@ -159,6 +161,7 @@ export function useUpdateStockBatch() {
 export function useDeleteStockBatch() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

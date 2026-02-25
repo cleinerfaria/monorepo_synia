@@ -40,6 +40,7 @@ const createMockItem = ({
     product_id: productName ? `product-${id}` : null,
     equipment_id: null,
     procedure_id: null,
+    display_name: null,
     quantity: 1,
     frequency_mode: null,
     times_value: null,
@@ -89,6 +90,21 @@ describe('prescriptionItemSorter', () => {
 
       expect(sorted[0].id).toBe('item-2');
       expect(sorted[1].id).toBe('item-1');
+    });
+
+    it('uses display_name override in alphabetical ordering', () => {
+      const items = [
+        {
+          ...createMockItem({ id: 'item-1', routeId: 'route-3', productName: 'Zinco' }),
+          display_name: 'Acetilcisteina',
+        },
+        createMockItem({ id: 'item-2', routeId: 'route-4', productName: 'Bromoprida' }),
+      ];
+
+      const sorted = sortPrescriptionItemsByRoute(items, mockRoutes);
+
+      expect(sorted[0].id).toBe('item-1');
+      expect(sorted[1].id).toBe('item-2');
     });
 
     it('prioritizes manual item_order over automatic route ordering', () => {

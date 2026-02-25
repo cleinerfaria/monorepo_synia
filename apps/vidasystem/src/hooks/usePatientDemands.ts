@@ -57,12 +57,12 @@ export interface UpdatePadData extends Partial<CreatePadData> {
 // ========================================
 
 export function usePatientDemands(patientId?: string) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id, patientId],
+    queryKey: [QUERY_KEY, companyId, patientId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       let query = supabase
         .from('pad')
@@ -72,7 +72,7 @@ export function usePatientDemands(patientId?: string) {
           patient:patient(id, name)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
       if (patientId) {
@@ -89,6 +89,7 @@ export function usePatientDemands(patientId?: string) {
 
 export function usePatientDemand(demandId: string | undefined) {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: [QUERY_KEY, demandId],
@@ -116,6 +117,7 @@ export function usePatientDemand(demandId: string | undefined) {
 
 export function useDemandShifts(demandId: string | undefined, from: string, to: string) {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'shifts', demandId, from, to],
@@ -163,6 +165,7 @@ export function useDemandShifts(demandId: string | undefined, from: string, to: 
 export function useCreateDemand() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: CreatePadData) => {
@@ -196,6 +199,7 @@ export function useCreateDemand() {
 export function useUpdateDemand() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdatePadData) => {
@@ -231,6 +235,7 @@ export function useUpdateDemand() {
 export function useDeleteDemand() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

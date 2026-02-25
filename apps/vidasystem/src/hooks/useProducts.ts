@@ -25,12 +25,12 @@ interface PaginatedResult<T> {
 }
 
 export function useProducts(itemType?: 'medication' | 'material' | 'diet') {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id, itemType],
+    queryKey: [QUERY_KEY, companyId, itemType],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       // Buscar todos os produtos usando paginação para evitar limite de 1000
       const pageSize = 1000;
@@ -52,7 +52,7 @@ export function useProducts(itemType?: 'medication' | 'material' | 'diet') {
             group:group_id(id, code, name, color)
           `
           )
-          .eq('company_id', company.id)
+          .eq('company_id', companyId)
           .order('name')
           .range(page * pageSize, (page + 1) * pageSize - 1);
 
@@ -80,7 +80,7 @@ export function useProducts(itemType?: 'medication' | 'material' | 'diet') {
       return allProducts;
     },
     staleTime: 0,
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -98,13 +98,13 @@ export function useProductsPaginated(
   sortColumn: string = 'name',
   sortDirection: 'asc' | 'desc' = 'asc'
 ) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [
       QUERY_KEY,
       'paginated',
-      company?.id,
+      companyId,
       page,
       pageSize,
       searchTerm,
@@ -113,7 +113,7 @@ export function useProductsPaginated(
       sortDirection,
     ],
     queryFn: async (): Promise<PaginatedResult<ProductWithPresentations>> => {
-      if (!company?.id) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
+      if (!companyId) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
 
       let productIds: string[] = [];
 
@@ -123,14 +123,14 @@ export function useProductsPaginated(
         const { data: productsByName } = await supabase
           .from('product')
           .select('id')
-          .eq('company_id', company.id)
+          .eq('company_id', companyId)
           .ilike('name', `%${searchTerm}%`);
 
         // 2. Produtos que têm apresentações com o termo no nome
         const { data: presentationsData } = await supabase
           .from('product_presentation')
           .select('product_id')
-          .eq('company_id', company.id)
+          .eq('company_id', companyId)
           .ilike('name', `%${searchTerm}%`);
 
         const productsByPresentations = presentationsData?.map((p) => ({ id: p.product_id })) || [];
@@ -144,7 +144,7 @@ export function useProductsPaginated(
       let countQuery = supabase
         .from('product')
         .select('id', { count: 'exact', head: true })
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Build base query for data
       let dataQuery = supabase
@@ -160,7 +160,7 @@ export function useProductsPaginated(
           group:group_id(id, code, name, color)
         `
         )
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Apply search filter
       if (searchTerm && productIds.length > 0) {
@@ -218,18 +218,18 @@ export function useProductsPaginated(
         currentPage: page,
       };
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 // Fetch items with presentations (for NFe import and stock)
 export function useProductsWithPresentations() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id, 'with-presentations'],
+    queryKey: [QUERY_KEY, companyId, 'with-presentations'],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const { data, error } = await supabase
         .from('product')
@@ -244,24 +244,24 @@ export function useProductsWithPresentations() {
           group:group_id(id, code, name, color)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
       return data as ProductWithPresentations[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useProduct(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('product')
@@ -276,20 +276,21 @@ export function useProduct(id: string | undefined) {
           group:product_group(id, code, name, color)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .filter('id', 'eq', id)
         .single();
 
       if (error) throw error;
       return data as Product;
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 
 export function useCreateProduct() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'product'>, 'company_id'>) => {
@@ -334,6 +335,7 @@ export function useCreateProduct() {
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'product'> & { id: string }) => {
@@ -389,6 +391,7 @@ export function useUpdateProduct() {
 export function useDeleteProduct() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -438,16 +441,16 @@ export function useProductsSearchWithPresentations(
   searchTerm: string = '',
   itemType?: 'medication' | 'material' | 'diet'
 ) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   const {
     data = [],
     isLoading,
     isFetching,
   } = useQuery({
-    queryKey: [QUERY_KEY, company?.id, 'search-with-presentations', searchTerm, itemType],
+    queryKey: [QUERY_KEY, companyId, 'search-with-presentations', searchTerm, itemType],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       let productIds: string[] = [];
       let shouldFilterBySearch = false;
@@ -476,7 +479,7 @@ export function useProductsSearchWithPresentations(
           let productQuery = supabase
             .from('product')
             .select('id, name, concentration')
-            .eq('company_id', company.id)
+            .eq('company_id', companyId)
             .range(productsPage * pageSize, (productsPage + 1) * pageSize - 1);
 
           if (itemType) {
@@ -523,7 +526,7 @@ export function useProductsSearchWithPresentations(
         const { data: allPresentationsData, error: presentationsError } = await supabase
           .from('product_presentation')
           .select('product_id, name, product:product_id(id, item_type)')
-          .eq('company_id', company.id)
+          .eq('company_id', companyId)
           .eq('is_active', true)
           .range(0, pageSize * 10 - 1);
 
@@ -567,7 +570,7 @@ export function useProductsSearchWithPresentations(
           group:group_id(id, code, name, color)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('is_active', true)
         .order('name');
 
@@ -591,7 +594,7 @@ export function useProductsSearchWithPresentations(
       if (error) throw error;
       return data as ProductWithPresentations[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 
   return { data, isLoading, isFetching };

@@ -47,6 +47,7 @@ export function useUnitsOfMeasurePaginated(
   searchTerm: string = ''
 ) {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'paginated', company?.id, page, pageSize, searchTerm],
@@ -106,35 +107,35 @@ export function useUnitsOfMeasurePaginated(
 }
 
 export function useUnitsOfMeasure() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       // Busca unidades globais (company_id IS NULL) e da empresa
       const { data, error } = await supabase
         .from('unit_of_measure')
         .select('*, active:is_active')
-        .or(`company_id.is.null,company_id.eq.${company.id}`)
+        .or(`company_id.is.null,company_id.eq.${companyId}`)
         .eq('is_active', true)
         .order('code');
 
       if (error) throw error;
       return data as UnitOfMeasure[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function useUnitOfMeasure(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       const { data, error } = await supabase
         .from('unit_of_measure')
@@ -145,13 +146,14 @@ export function useUnitOfMeasure(id: string | undefined) {
       if (error) throw error;
       return data as UnitOfMeasure;
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 
 export function useCreateUnitOfMeasure() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (
@@ -198,6 +200,7 @@ export function useCreateUnitOfMeasure() {
 export function useUpdateUnitOfMeasure() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<UnitOfMeasure> & { id: string }) => {
@@ -232,6 +235,7 @@ export function useUpdateUnitOfMeasure() {
 export function useDeleteUnitOfMeasure() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

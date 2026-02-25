@@ -93,6 +93,7 @@ import {
   PowerOff,
   History,
   Printer,
+  CornerDownLeft,
   ChevronDown,
   CalendarDays,
   UserCheck,
@@ -118,6 +119,7 @@ interface ItemFormData {
   product_id: string;
   equipment_id: string;
   procedure_id: string;
+  display_name: string;
   item_order: number | null;
   supplier: PrescriptionItemSupplier | '';
   quantity: number;
@@ -419,6 +421,7 @@ export default function PrescriptionDetailPage() {
       product_id: '',
       equipment_id: '',
       procedure_id: '',
+      display_name: '',
       item_order: null,
       supplier: 'company',
       quantity: 1,
@@ -1046,6 +1049,7 @@ export default function PrescriptionDetailPage() {
       product_id: '',
       equipment_id: '',
       procedure_id: '',
+      display_name: '',
       item_order: null,
       supplier: 'company' as ItemFormData['supplier'],
       quantity: 1,
@@ -1107,6 +1111,7 @@ export default function PrescriptionDetailPage() {
         product_id: item.product_id || '',
         equipment_id: item.equipment_id || '',
         procedure_id: item.procedure_id || '',
+        display_name: item.display_name || '',
         item_order: item.item_order ?? null,
         supplier: item.supplier || 'company',
         quantity: item.quantity || 1,
@@ -1166,6 +1171,7 @@ export default function PrescriptionDetailPage() {
         : null,
       equipment_id: data.item_type === 'equipment' ? data.equipment_id || null : null,
       procedure_id: data.item_type === 'procedure' ? data.procedure_id || null : null,
+      display_name: data.display_name?.trim() || null,
       item_order: data.item_order ?? null,
       supplier: data.supplier || null,
       quantity: data.quantity || null,
@@ -1685,6 +1691,34 @@ export default function PrescriptionDetailPage() {
     label: p.name,
   }));
 
+  const cloneSourceDisplayName = useMemo(() => {
+    const selectedItemData = selectedItem as any;
+
+    if (watchItemType === 'equipment') {
+      return (currentEquipment?.name || selectedItemData?.equipment?.name || '').trim();
+    }
+
+    if (watchItemType === 'procedure') {
+      return (currentProcedure?.name || selectedItemData?.procedure?.name || '').trim();
+    }
+
+    const productName = (currentProduct?.name || selectedItemData?.product?.name || '').trim();
+    const concentration = (
+      currentProduct?.concentration ||
+      selectedItemData?.product?.concentration ||
+      ''
+    ).trim();
+
+    if (!productName) return '';
+    return concentration ? `${productName} ${concentration}` : productName;
+  }, [watchItemType, currentEquipment, currentProcedure, currentProduct, selectedItem]);
+
+  const cloneSourceDisplayNameLabel = useMemo(() => {
+    if (watchItemType === 'equipment') return 'Clonar nome do equipamento';
+    if (watchItemType === 'procedure') return 'Clonar nome do procedimento';
+    return 'Clonar nome do produto (com concentração)';
+  }, [watchItemType]);
+
   const itemTypeOptions = [
     {
       value: 'medication',
@@ -1868,6 +1902,7 @@ export default function PrescriptionDetailPage() {
   const logFieldLabels = useMemo(
     () => ({
       product_id: 'Produto',
+      display_name: 'Nome na prescricao',
       quantity: 'Quantidade',
       route_id: 'Via',
       frequency_mode: 'Frequencia',
@@ -2690,6 +2725,36 @@ export default function PrescriptionDetailPage() {
                     required
                   />
                 )}
+
+                <div className="flex items-end gap-2">
+                  <Input
+                    label="Nome na Prescrição"
+                    placeholder="Opcional: se vazio, usa o nome do cadastro"
+                    maxLength={255}
+                    {...register('display_name')}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mb-[1px] min-w-0 px-2"
+                    disabled={!cloneSourceDisplayName}
+                    aria-label={cloneSourceDisplayNameLabel}
+                    title={
+                      cloneSourceDisplayName
+                        ? `${cloneSourceDisplayNameLabel}: copia o nome do cadastro para edição`
+                        : 'Selecione um item para habilitar a cópia do nome'
+                    }
+                    onClick={() =>
+                      setValue('display_name', cloneSourceDisplayName, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    <CornerDownLeft className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </div>
 
                 {/* Primeira linha: Quantidade + Unidade + Via de administração + Se necessário */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-12">

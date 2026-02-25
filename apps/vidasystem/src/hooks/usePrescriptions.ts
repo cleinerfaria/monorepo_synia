@@ -24,12 +24,12 @@ const PRESCRIPTION_ITEM_COMPONENT_SELECT = `
 `;
 
 export function usePrescriptions() {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, company?.id],
+    queryKey: [QUERY_KEY, companyId],
     queryFn: async () => {
-      if (!company?.id) return [];
+      if (!companyId) return [];
 
       const { data, error } = await supabase
         .from('prescription')
@@ -49,7 +49,7 @@ export function usePrescriptions() {
           professional:professional_id(id, name)
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -62,47 +62,45 @@ export function usePrescriptions() {
         throw error;
       }
       return data as (Prescription & {
-        patient:
-          | {
+        patient: {
+          id: string;
+          name: string;
+          billing_client: {
+            id: string;
+            name: string;
+            color: string | null;
+          } | null;
+          patient_payer: Array<{
+            id: string;
+            is_primary: boolean;
+            client: {
               id: string;
               name: string;
-              billing_client: {
-                id: string;
-                name: string;
-                color: string | null;
-              } | null;
-              patient_payer: Array<{
-                id: string;
-                is_primary: boolean;
-                client: {
-                  id: string;
-                  name: string;
-                  color: string | null;
-                } | null;
-              }>;
-            }
-          | null;
+              color: string | null;
+            } | null;
+          }>;
+        } | null;
         professional: {
           id: string;
           name: string;
         } | null;
       })[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
 export function usePrescription(id: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
     queryFn: async () => {
-      if (!id || !company?.id) return null;
+      if (!id || !companyId) return null;
 
       console.warn('🔍 usePrescription Debug:', {
         prescriptionId: id,
-        companyId: company.id,
+        companyId: companyId,
         timestamp: new Date().toISOString(),
       });
 
@@ -134,7 +132,7 @@ export function usePrescription(id: string | undefined) {
           )
         `
         )
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .filter('id', 'eq', id)
         .single();
 
@@ -188,17 +186,17 @@ export function usePrescription(id: string | undefined) {
         } | null;
       };
     },
-    enabled: !!id && !!company?.id,
+    enabled: !!id && !!companyId,
   });
 }
 
 export function usePrescriptionItems(prescriptionId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [ITEMS_QUERY_KEY, prescriptionId],
     queryFn: async () => {
-      if (!prescriptionId || !company?.id) return [];
+      if (!prescriptionId || !companyId) return [];
 
       const { data, error } = await supabase
         .from('prescription_item')
@@ -212,7 +210,7 @@ export function usePrescriptionItems(prescriptionId: string | undefined) {
         `
         )
         .eq('prescription_id', prescriptionId)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('created_at');
 
       if (error) throw error;
@@ -255,7 +253,7 @@ export function usePrescriptionItems(prescriptionId: string | undefined) {
         }>;
       })[];
     },
-    enabled: !!prescriptionId && !!company?.id,
+    enabled: !!prescriptionId && !!companyId,
   });
 }
 
@@ -314,6 +312,7 @@ export function useCreatePrescription() {
 export function useUpdatePrescription() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'prescription'> & { id: string }) => {
@@ -344,6 +343,7 @@ export function useUpdatePrescription() {
 export function useDeletePrescription() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -371,6 +371,7 @@ export function useDeletePrescription() {
 export function useAddPrescriptionItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -412,6 +413,7 @@ export function useAddPrescriptionItem() {
 export function useUpdatePrescriptionItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -473,6 +475,7 @@ export function useUpdatePrescriptionItem() {
 export function useDeletePrescriptionItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -524,6 +527,7 @@ export function useDeletePrescriptionItem() {
 export function useUploadPrescriptionAttachment() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ prescriptionId, file }: { prescriptionId: string; file: File }) => {
@@ -587,30 +591,31 @@ export interface ComponentWithProduct extends PrescriptionItemComponentRow {
 }
 
 export function usePrescriptionItemComponents(prescriptionItemId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [COMPONENTS_QUERY_KEY, prescriptionItemId],
     queryFn: async () => {
-      if (!prescriptionItemId || !company?.id) return [];
+      if (!prescriptionItemId || !companyId) return [];
 
       const { data, error } = await supabase
         .from('prescription_item_component')
         .select(PRESCRIPTION_ITEM_COMPONENT_SELECT)
         .eq('prescription_item_id', prescriptionItemId)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .order('created_at');
 
       if (error) throw error;
       return data as ComponentWithProduct[];
     },
-    enabled: !!prescriptionItemId && !!company?.id,
+    enabled: !!prescriptionItemId && !!companyId,
   });
 }
 
 export function useAddPrescriptionItemComponent() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -667,6 +672,7 @@ export function useAddPrescriptionItemComponent() {
 export function useUpdatePrescriptionItemComponent() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -739,6 +745,7 @@ export function useUpdatePrescriptionItemComponent() {
 export function useDeletePrescriptionItemComponent() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -794,6 +801,7 @@ export function useDeletePrescriptionItemComponent() {
 export function useTogglePrescriptionItemActive() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -851,6 +859,7 @@ export function useTogglePrescriptionItemActive() {
 export function useSuspendPrescriptionItemWithDate() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -921,12 +930,12 @@ export function useSuspendPrescriptionItemWithDate() {
 
 // Hook para buscar logs de uma prescrição específica
 export function usePrescriptionLogs(prescriptionId: string | undefined) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: ['prescription-logs', prescriptionId],
     queryFn: async () => {
-      if (!prescriptionId || !company?.id) return [];
+      if (!prescriptionId || !companyId) return [];
 
       // Primeiro, buscar todos os itens da prescrição para obter seus IDs
       const { data: items, error: itemsError } = await supabase
@@ -946,7 +955,7 @@ export function usePrescriptionLogs(prescriptionId: string | undefined) {
       const prescriptionQuery = supabase
         .from('user_action_logs')
         .select(selectFields)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .eq('entity', 'prescription')
         .eq('entity_id', prescriptionId);
 
@@ -955,7 +964,7 @@ export function usePrescriptionLogs(prescriptionId: string | undefined) {
           ? supabase
               .from('user_action_logs')
               .select(selectFields)
-              .eq('company_id', company.id)
+              .eq('company_id', companyId)
               .eq('entity', 'prescription_item')
               .in('entity_id', itemIds)
           : null;
@@ -990,13 +999,14 @@ export function usePrescriptionLogs(prescriptionId: string | undefined) {
         };
       }>;
     },
-    enabled: !!prescriptionId && !!company?.id,
+    enabled: !!prescriptionId && !!companyId,
   });
 }
 
 export function useDuplicatePrescriptionItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({

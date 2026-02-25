@@ -15,6 +15,7 @@ export function useUserActionLogs(filters?: {
   limit?: number;
 }) {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: ['user-action-logs', company?.id, filters],
@@ -72,6 +73,7 @@ export function useUserActionLogs(filters?: {
 export function useLogUserAction() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (params: LogActionParams) => {
@@ -112,7 +114,7 @@ export async function logUserAction(
 ): Promise<string | null> {
   try {
     const { data, error } = await supabase.rpc('log_user_action', {
-      p_company_id: params.companyId,
+      p_company_id: params.company?.id,
       p_action: params.action,
       p_entity: params.entity,
       p_entity_id: params.entityId || null,
@@ -138,6 +140,7 @@ export async function logUserAction(
  */
 export function useEntityLogs(entity: string, entityId: string) {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: ['entity-logs', entity, entityId],

@@ -196,7 +196,10 @@ export function buildItemColumns({
         const procedureItem = item.procedure_id
           ? procedures.find((p) => p.id === item.procedure_id)
           : null;
+        const displayName =
+          typeof item.display_name === 'string' ? item.display_name.trim() : '';
         let name =
+          displayName ||
           product?.name ||
           equipmentItem?.name ||
           procedureItem?.name ||
@@ -204,7 +207,7 @@ export function buildItemColumns({
           item.equipment?.name ||
           (item as any).procedure?.name ||
           '-';
-        const concentration = product?.concentration || item.product?.concentration;
+        const concentration = displayName ? '' : (product?.concentration || item.product?.concentration);
         if (concentration) {
           name += ` ${concentration}`;
         }

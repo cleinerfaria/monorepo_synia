@@ -334,9 +334,10 @@ export function useDeleteAccessProfile() {
 // Buscar permissões do usuário atual
 export function useCurrentUserPermissions() {
   const { user, session, isLoading: isAuthLoading, isInitialized } = useAuthStore();
+  const userId = useAuthStore((s) => s.user?.id ?? null);
 
   return useQuery({
-    queryKey: ['user_permissions', user?.id],
+    queryKey: ['user_permissions', userId],
     // Only enable after auth is fully initialized to avoid blocking initial render
     enabled: isInitialized && !isAuthLoading && !!session?.user?.id,
     queryFn: async () => {
