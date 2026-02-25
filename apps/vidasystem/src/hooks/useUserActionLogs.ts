@@ -114,7 +114,7 @@ export async function logUserAction(
 ): Promise<string | null> {
   try {
     const { data, error } = await supabase.rpc('log_user_action', {
-      p_company_id: params.company?.id,
+      p_company_id: params.companyId,
       p_action: params.action,
       p_entity: params.entity,
       p_entity_id: params.entityId || null,

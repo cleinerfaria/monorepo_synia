@@ -345,13 +345,15 @@ export default function DashboardLayout() {
     { value: 'system', label: 'Sistema', icon: Monitor },
   ];
 
-  const defaultCollapsedLogoSrc = resolvedTheme === 'dark'
-    ? (systemSettings?.logo_url_collapsed_dark || '/logo_dark.png')
-    : (systemSettings?.logo_url_collapsed_light || '/logo_light.png');
+  const defaultCollapsedLogoSrc =
+    resolvedTheme === 'dark'
+      ? systemSettings?.logo_url_collapsed_dark || '/logo_dark.png'
+      : systemSettings?.logo_url_collapsed_light || '/logo_light.png';
 
-  const defaultExpandedLogoSrc = resolvedTheme === 'dark'
-    ? (systemSettings?.logo_url_expanded_dark || '/logo_dark.png')
-    : (systemSettings?.logo_url_expanded_light || '/logo_light.png');
+  const defaultExpandedLogoSrc =
+    resolvedTheme === 'dark'
+      ? systemSettings?.logo_url_expanded_dark || '/logo_dark.png'
+      : systemSettings?.logo_url_expanded_light || '/logo_light.png';
 
   const defaultLogoAlt = company?.trade_name || company?.name || 'sistema';
 
@@ -699,13 +701,15 @@ function SidebarContent({
 
   resolvedTheme,
 }: SidebarContentProps) {
-  const collapsedLogoSrc = resolvedTheme === 'dark'
-    ? (company?.logo_url_collapsed_dark || company?.logo_url || null)
-    : (company?.logo_url_collapsed_light || company?.logo_url || null);
+  const collapsedLogoSrc =
+    resolvedTheme === 'dark'
+      ? company?.logo_url_collapsed_dark || company?.logo_url || null
+      : company?.logo_url_collapsed_light || company?.logo_url || null;
 
-  const expandedLogoSrc = resolvedTheme === 'dark'
-    ? (company?.logo_url_expanded_dark || company?.logo_url || null)
-    : (company?.logo_url_expanded_light || company?.logo_url || null);
+  const expandedLogoSrc =
+    resolvedTheme === 'dark'
+      ? company?.logo_url_expanded_dark || company?.logo_url || null
+      : company?.logo_url_expanded_light || company?.logo_url || null;
 
   return (
     <>
