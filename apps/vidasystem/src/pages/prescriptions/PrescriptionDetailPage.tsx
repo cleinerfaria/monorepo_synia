@@ -137,6 +137,19 @@ interface ItemFormData {
   instructions_pharmacy: string;
 }
 
+function normalizePrintLogoUrl(value: unknown): string | null {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized || null;
+}
+
+function pickFirstLogoUrl(...values: unknown[]): string | null {
+  for (const value of values) {
+    const url = normalizePrintLogoUrl(value);
+    if (url) return url;
+  }
+  return null;
+}
+
 export default function PrescriptionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -147,10 +160,35 @@ export default function PrescriptionDetailPage() {
 
   const companyPrintLogoUrl = useMemo(() => {
     if (!company) return null;
+    const companyAny = company as typeof company & Record<string, unknown>;
 
     return resolvedTheme === 'dark'
-      ? company.logo_url_expanded_dark || company.logo_url_expanded_light || null
-      : company.logo_url_expanded_light || company.logo_url_expanded_dark || null;
+      ? pickFirstLogoUrl(
+          company.logo_url_expanded_dark,
+          companyAny.logo_url_dark,
+          companyAny.print_logo_url_dark,
+          companyAny.logo_url_print_dark,
+          company.logo_url_expanded_light,
+          companyAny.logo_url_light,
+          companyAny.print_logo_url_light,
+          companyAny.logo_url_print_light,
+          companyAny.logo_url,
+          companyAny.print_logo_url,
+          companyAny.logo_url_print
+        )
+      : pickFirstLogoUrl(
+          company.logo_url_expanded_light,
+          companyAny.logo_url_light,
+          companyAny.print_logo_url_light,
+          companyAny.logo_url_print_light,
+          company.logo_url_expanded_dark,
+          companyAny.logo_url_dark,
+          companyAny.print_logo_url_dark,
+          companyAny.logo_url_print_dark,
+          companyAny.logo_url,
+          companyAny.print_logo_url,
+          companyAny.logo_url_print
+        );
   }, [company, resolvedTheme]);
 
   // Contexto de navegação protegida
@@ -162,6 +200,23 @@ export default function PrescriptionDetailPage() {
 
   const { data: prescriptionData, isLoading: loadingPrescription } = usePrescription(id);
   const prescription = prescriptionData as Prescription | undefined;
+  const prescriptionPrintLogoUrl = useMemo(() => {
+    const patient = (prescription as any)?.patient;
+    if (!patient) return companyPrintLogoUrl;
+
+    const primaryPayerClient = patient.patient_payer?.find(
+      (payer: any) => payer?.is_primary
+    )?.client;
+    const fallbackPayerClient = patient.patient_payer?.[0]?.client;
+    const operatorClient = primaryPayerClient || fallbackPayerClient || patient.billing_client;
+
+    return pickFirstLogoUrl(
+      operatorClient?.logo_url,
+      operatorClient?.logoUrl,
+      operatorClient?.logo,
+      companyPrintLogoUrl
+    );
+  }, [companyPrintLogoUrl, prescription]);
   const { data: items = [], isLoading: loadingItems } = usePrescriptionItems(id);
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
 
@@ -1377,7 +1432,7 @@ export default function PrescriptionDetailPage() {
       await openPrescriptionPrintPreview(result.snapshot, {
         mode: action,
         targetWindow: previewWindow,
-        companyLogoUrl: companyPrintLogoUrl,
+        companyLogoUrl: prescriptionPrintLogoUrl,
         orientation,
       });
       setIsPrintModalOpen(false);
@@ -1404,7 +1459,7 @@ export default function PrescriptionDetailPage() {
         await openPrescriptionPrintPreview(snapshot, {
           mode: action,
           targetWindow: previewWindow,
-          companyLogoUrl: companyPrintLogoUrl,
+          companyLogoUrl: prescriptionPrintLogoUrl,
         });
       } catch (error) {
         if (previewWindow && !previewWindow.closed) {
@@ -1417,7 +1472,7 @@ export default function PrescriptionDetailPage() {
         );
       }
     },
-    [companyPrintLogoUrl, fetchPrescriptionPrintSnapshot]
+    [fetchPrescriptionPrintSnapshot, prescriptionPrintLogoUrl]
   );
 
   const handleReprintPrescription = useCallback(
@@ -2175,7 +2230,10 @@ export default function PrescriptionDetailPage() {
                       label: 'Anexar documento',
                       icon: <FileUp className="h-4 w-4" />,
                       onClick: () => fileInputRef.current?.click(),
-                      disabled: uploadAttachment.isPending || loadingEditPermission || !hasPrescriptionEditPermission,
+                      disabled:
+                        uploadAttachment.isPending ||
+                        loadingEditPermission ||
+                        !hasPrescriptionEditPermission,
                     },
                     {
                       label: 'Alterar período',

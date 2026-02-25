@@ -275,6 +275,8 @@ function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContex
       }
       .sheet {
         width: 100%;
+        padding-right: 5px;
+        box-sizing: border-box;
       }
       .header {
         padding: 4px 0;
@@ -329,11 +331,13 @@ function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContex
       table {
         margin-top: 0px;
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
         table-layout: fixed;
+        border: 1px solid #111827;
       }
       th, td {
-        border: 1px solid #111827;
+        border: 0;
         padding: 4px 3px;
         vertical-align: top;
         word-break: break-word;
@@ -341,6 +345,22 @@ function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContex
       th {
         text-align: center;
         font-size: ${context.weekColumns.length > 10 ? 9 : 10}px;
+      }
+      thead th {
+        border-right: 0.6px solid #111827;
+        border-bottom: 1px solid #111827;
+      }
+      tbody td {
+        border-right: 0.6px solid #111827;
+      }
+      thead th:last-child,
+      tbody td:last-child {
+        border-right: 0;
+      }
+      tbody tr:nth-child(even) td {
+        background-color: #f3f4f6;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
       .num-cell {
         width: ${widths.num}%;
