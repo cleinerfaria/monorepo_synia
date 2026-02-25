@@ -95,13 +95,13 @@ export function usePatientsPaginated(
   sortColumn: string = 'name',
   sortDirection: 'asc' | 'desc' = 'asc'
 ) {
-  const { company } = useAuthStore();
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [
       QUERY_KEY,
       'paginated',
-      company?.id,
+      companyId,
       page,
       pageSize,
       searchTerm,
@@ -110,13 +110,13 @@ export function usePatientsPaginated(
       sortDirection,
     ],
     queryFn: async (): Promise<PaginatedResult<PatientWithRelations>> => {
-      if (!company?.id) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
+      if (!companyId) return { data: [], totalCount: 0, totalPages: 0, currentPage: page };
 
       // Build base query for count
       let countQuery = supabase
         .from('patient')
         .select('id', { count: 'exact', head: true })
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Build base query for data
       let dataQuery = supabase
@@ -133,7 +133,7 @@ export function usePatientsPaginated(
           )
         `
         )
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       // Apply search filter
       if (searchTerm) {
@@ -149,7 +149,7 @@ export function usePatientsPaginated(
           const { data: patientIdsWithOperators } = await supabase
             .from('patient_payer')
             .select('patient_id')
-            .eq('company_id', company.id)
+            .eq('company_id', companyId)
             .eq('is_primary', true);
 
           if (patientIdsWithOperators && patientIdsWithOperators.length > 0) {
@@ -164,7 +164,7 @@ export function usePatientsPaginated(
             .from('patient_payer')
             .select('patient_id')
             .eq('client_id', filters.clientId)
-            .eq('company_id', company.id);
+            .eq('company_id', companyId);
 
           if (patientIds && patientIds.length > 0) {
             const ids = patientIds.map((p) => p.patient_id);
@@ -211,7 +211,7 @@ export function usePatientsPaginated(
         currentPage: page,
       };
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -251,6 +251,7 @@ export function usePatient(id: string | undefined) {
 export function useCreatePatient() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'patient'>, 'company_id'>) => {
@@ -284,6 +285,7 @@ export function useCreatePatient() {
 export function useUpdatePatient() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'patient'> & { id: string }) => {
@@ -297,7 +299,7 @@ export function useUpdatePatient() {
       const { data: patient, error } = await supabase
         .from('patient')
         .update(payload as any)
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .filter('id', 'eq', id)
         .select('*, active:is_active')
         .single();
@@ -319,6 +321,7 @@ export function useUpdatePatient() {
 export function useDeletePatient() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -327,7 +330,7 @@ export function useDeletePatient() {
       const { error } = await supabase
         .from('patient')
         .delete()
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .filter('id', 'eq', id);
 
       if (error) throw error;
@@ -373,6 +376,7 @@ export function usePatientAddresses(patientId: string | undefined) {
 export function useSavePatientAddresses() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({
@@ -389,7 +393,7 @@ export function useSavePatientAddresses() {
         .from('patient_address')
         .select('id')
         .eq('patient_id', patientId)
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       const existingIds = existing?.map((a) => a.id) || [];
       const currentIds = addresses.filter((a) => !a.id.startsWith('temp-')).map((a) => a.id);
@@ -422,7 +426,7 @@ export function useSavePatientAddresses() {
             .from('patient_address')
             .update(updateData)
             .eq('id', addressId)
-            .eq('company_id', company.id);
+            .eq('company_id', companyId);
         }
       }
     },
@@ -464,6 +468,7 @@ export function usePatientContacts(patientId: string | undefined) {
 export function useSavePatientContacts() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({
@@ -480,7 +485,7 @@ export function useSavePatientContacts() {
         .from('patient_contact')
         .select('id')
         .eq('patient_id', patientId)
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       const existingIds = existing?.map((c) => c.id) || [];
       const currentIds = contacts.filter((c) => !c.id.startsWith('temp-')).map((c) => c.id);
@@ -513,7 +518,7 @@ export function useSavePatientContacts() {
             .from('patient_contact')
             .update(updateData)
             .eq('id', contactId)
-            .eq('company_id', company.id);
+            .eq('company_id', companyId);
         }
       }
     },
@@ -561,6 +566,7 @@ export function usePatientPayers(patientId: string | undefined) {
 export function useSavePatientPayers() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ patientId, payers }: { patientId: string; payers: PatientPayer[] }) => {
@@ -571,7 +577,7 @@ export function useSavePatientPayers() {
         .from('patient_payer')
         .select('id')
         .eq('patient_id', patientId)
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
 
       const existingIds = existing?.map((p) => p.id) || [];
       const currentIds = payers.filter((p) => !p.id.startsWith('temp-')).map((p) => p.id);
@@ -604,7 +610,7 @@ export function useSavePatientPayers() {
             .from('patient_payer')
             .update(updateData)
             .eq('id', payerId)
-            .eq('company_id', company.id);
+            .eq('company_id', companyId);
         }
       }
     },

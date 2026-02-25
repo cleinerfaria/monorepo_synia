@@ -121,6 +121,7 @@ export function usePatientMonthSchedule(
 
 export function useScheduleProfessionals() {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: [SCHEDULE_PROFESSIONALS_KEY, company?.id],
@@ -165,6 +166,7 @@ export function useScheduleProfessionals() {
 export function useSaveSchedule() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (payload: UpsertSchedulePayload) => {
@@ -255,6 +257,7 @@ export function useSaveSchedule() {
 
 export function useSchedulePatient(patientId: string | undefined) {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: ['schedule_patient', company?.id, patientId],

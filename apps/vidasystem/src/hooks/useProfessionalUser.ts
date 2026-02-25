@@ -123,6 +123,7 @@ export function useAvailableAppUsers() {
 export function useLinkProfessionalUser() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ professionalId, userId }: { professionalId: string; userId: string }) => {
@@ -160,6 +161,7 @@ export function useLinkProfessionalUser() {
 export function useUnlinkProfessionalUser() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ professionalId }: { professionalId: string }) => {
@@ -191,6 +193,7 @@ export function useUnlinkProfessionalUser() {
 export function useCreateAndLinkProfessionalUser() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({

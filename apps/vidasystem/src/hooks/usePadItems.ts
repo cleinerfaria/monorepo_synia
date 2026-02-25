@@ -75,6 +75,7 @@ export function usePadItems(padId: string | undefined) {
 export function useCreatePadItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: CreatePadItemData) => {
@@ -108,6 +109,7 @@ export function useCreatePadItem() {
 export function useUpdatePadItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdatePadItemData) => {
@@ -143,6 +145,7 @@ export function useUpdatePadItem() {
 export function useDeletePadItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

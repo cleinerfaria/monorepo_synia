@@ -117,6 +117,7 @@ export function useBusinessPartner(id: string | undefined) {
 export function useCreateBusinessPartner() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'business_partner'>, 'company_id'>) => {
@@ -150,6 +151,7 @@ export function useCreateBusinessPartner() {
 export function useUpdateBusinessPartner() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'business_partner'> & { id: string }) => {
@@ -185,6 +187,7 @@ export function useUpdateBusinessPartner() {
 export function useDeleteBusinessPartner() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

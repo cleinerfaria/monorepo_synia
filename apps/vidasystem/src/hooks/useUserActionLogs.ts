@@ -15,6 +15,7 @@ export function useUserActionLogs(filters?: {
   limit?: number;
 }) {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: ['user-action-logs', company?.id, filters],
@@ -72,6 +73,7 @@ export function useUserActionLogs(filters?: {
 export function useLogUserAction() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (params: LogActionParams) => {
@@ -138,6 +140,7 @@ export async function logUserAction(
  */
 export function useEntityLogs(entity: string, entityId: string) {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: ['entity-logs', entity, entityId],

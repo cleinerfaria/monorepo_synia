@@ -151,6 +151,7 @@ export function usePresentations(productId: string | undefined) {
 export function useCreatePresentation() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'product_presentation'>, 'company_id'>) => {
@@ -189,6 +190,7 @@ export function useCreatePresentation() {
 export function useUpdatePresentation() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'product_presentation'> & { id: string }) => {
@@ -229,6 +231,7 @@ export function useUpdatePresentation() {
 // Buscar apresentação por barcode/EAN
 export function usePresentationByBarcode(barcode: string | null | undefined) {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'by-barcode', barcode],
@@ -311,6 +314,7 @@ export async function findPresentationsByBarcodes(
 export function useDeletePresentation() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, productId }: { id: string; productId: string }) => {

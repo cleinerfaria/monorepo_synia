@@ -55,6 +55,7 @@ export function useClient(id: string | undefined) {
 export function useCreateClient() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -100,6 +101,7 @@ export function useCreateClient() {
 export function useUpdateClient() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -158,6 +160,7 @@ export function useUpdateClient() {
 export function useDeleteClient() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({

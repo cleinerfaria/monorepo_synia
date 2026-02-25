@@ -158,6 +158,7 @@ export function useActiveIngredient(id: string | undefined) {
 export function useCreateActiveIngredient() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'active_ingredient'>, 'company_id'>) => {
@@ -195,6 +196,7 @@ export function useCreateActiveIngredient() {
 export function useUpdateActiveIngredient() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'active_ingredient'> & { id: string }) => {
@@ -234,6 +236,7 @@ export function useUpdateActiveIngredient() {
 export function useToggleActiveIngredientStatus() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {

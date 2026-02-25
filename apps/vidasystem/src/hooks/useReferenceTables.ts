@@ -2575,6 +2575,7 @@ export function useProductRefLinks(productId: string | undefined) {
 
 export function useLinkProductToRefItem() {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -2641,6 +2642,7 @@ export function useLinkProductToRefItem() {
 
 export function useUnlinkProductFromRefItem() {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -2670,6 +2672,7 @@ export function useUnlinkProductFromRefItem() {
 
 export function useSetPrimaryRefLink() {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -2848,6 +2851,7 @@ export function useAbortImport() {
 
 export function useResetStuckImports() {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -2901,6 +2905,7 @@ export function useResetStuckImports() {
 
 export function useDeleteImportBatch() {
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
   const queryClient = useQueryClient();
 
   return useMutation({

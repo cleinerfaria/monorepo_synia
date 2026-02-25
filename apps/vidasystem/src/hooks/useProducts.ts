@@ -218,7 +218,7 @@ export function useProductsPaginated(
         currentPage: page,
       };
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 }
 
@@ -290,6 +290,7 @@ export function useProduct(id: string | undefined) {
 export function useCreateProduct() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'product'>, 'company_id'>) => {
@@ -302,7 +303,7 @@ export function useCreateProduct() {
 
       const { data: item, error } = await supabase
         .from('product')
-        .insert({ ...payload, company_id: companyId } as any)
+        .insert({ ...payload, company_id: company.id } as any)
         .select('*, active:is_active')
         .single();
 
@@ -310,7 +311,7 @@ export function useCreateProduct() {
 
       // Registrar log de criação
       await logUserAction({
-        companyId: companyId,
+        companyId: company.id,
         action: 'create',
         entity: 'product',
         entityId: item.id,
@@ -334,6 +335,7 @@ export function useCreateProduct() {
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'product'> & { id: string }) => {
@@ -348,14 +350,14 @@ export function useUpdateProduct() {
       const { data: oldItem } = await supabase
         .from('product')
         .select('*')
-        .eq('company_id', companyId)
+        .eq('company_id', company.id)
         .filter('id', 'eq', id)
         .single();
 
       const { data: item, error } = await supabase
         .from('product')
         .update(payload as any)
-        .eq('company_id', companyId)
+        .eq('company_id', company.id)
         .filter('id', 'eq', id)
         .select('*, active:is_active')
         .single();
@@ -364,7 +366,7 @@ export function useUpdateProduct() {
 
       // Registrar log de atualização
       await logUserAction({
-        companyId: companyId,
+        companyId: company.id,
         action: 'update',
         entity: 'product',
         entityId: item.id,
@@ -389,6 +391,7 @@ export function useUpdateProduct() {
 export function useDeleteProduct() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -398,14 +401,14 @@ export function useDeleteProduct() {
       const { data: oldItem } = await supabase
         .from('product')
         .select('*')
-        .eq('company_id', companyId)
+        .eq('company_id', company.id)
         .filter('id', 'eq', id)
         .single();
 
       const { error } = await supabase
         .from('product')
         .delete()
-        .eq('company_id', companyId)
+        .eq('company_id', company.id)
         .filter('id', 'eq', id);
 
       if (error) throw error;
@@ -413,7 +416,7 @@ export function useDeleteProduct() {
       // Registrar log de exclusão
       if (oldItem) {
         await logUserAction({
-          companyId: companyId,
+          companyId: company.id,
           action: 'delete',
           entity: 'product',
           entityId: id,
@@ -591,7 +594,7 @@ export function useProductsSearchWithPresentations(
       if (error) throw error;
       return data as ProductWithPresentations[];
     },
-    enabled: !!company?.id,
+    enabled: !!companyId,
   });
 
   return { data, isLoading, isFetching };

@@ -384,6 +384,7 @@ async function checkNfeExistsByNumber(
 export function useImportNfeFromXml() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (file: File): Promise<{ nfe: NfeImport; parsedData: NfeData }> => {
@@ -544,6 +545,7 @@ export function useLinkNfeToSupplier() {
 export function useProcessNfeImport() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({

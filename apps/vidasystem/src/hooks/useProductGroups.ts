@@ -85,6 +85,7 @@ export function useProductGroup(id: string | undefined) {
 export function useCreateProductGroup() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (
@@ -120,6 +121,7 @@ export function useCreateProductGroup() {
 export function useUpdateProductGroup() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<ProductGroup> & { id: string }) => {
@@ -155,6 +157,7 @@ export function useUpdateProductGroup() {
 export function useDeleteProductGroup() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {
