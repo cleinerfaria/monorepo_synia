@@ -211,7 +211,7 @@ describe('prescriptionPrintUtils', () => {
     const description = formatPrescriptionItemDescriptionSnapshot({
       id: 'item-8',
       item_type: 'medication',
-      display_name: 'Dipirona gotas',
+      display_name: 'Dipirona gotas 500mg/ml',
       quantity: 20,
       product: {
         name: 'Dipirona',
@@ -221,6 +221,6 @@ describe('prescriptionPrintUtils', () => {
     });
 
     expect(description).toContain('Dipirona gotas 500mg/ml 20 gts');
-    expect(description).not.toContain('Dipirona 500mg/ml 20 gts');
+    expect(description).not.toContain('Dipirona gotas 500mg/ml 500mg/ml');
   });
 });

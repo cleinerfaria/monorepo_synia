@@ -207,7 +207,7 @@ export function buildItemColumns({
           item.equipment?.name ||
           (item as any).procedure?.name ||
           '-';
-        const concentration = product?.concentration || item.product?.concentration;
+        const concentration = displayName ? '' : (product?.concentration || item.product?.concentration);
         if (concentration) {
           name += ` ${concentration}`;
         }

@@ -336,6 +336,8 @@ function resolveItemName(item: PrescriptionPrintSourceItem): string {
 }
 
 function resolveItemConcentration(item: PrescriptionPrintSourceItem): string {
+  const displayName = typeof item.display_name === 'string' ? item.display_name.trim() : '';
+  if (displayName) return '';
   return item.product?.concentration ? `${item.product.concentration}` : '';
 }
 

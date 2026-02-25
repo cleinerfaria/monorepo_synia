@@ -93,6 +93,7 @@ import {
   PowerOff,
   History,
   Printer,
+  CornerDownLeft,
   ChevronDown,
   CalendarDays,
   UserCheck,
@@ -1690,6 +1691,34 @@ export default function PrescriptionDetailPage() {
     label: p.name,
   }));
 
+  const cloneSourceDisplayName = useMemo(() => {
+    const selectedItemData = selectedItem as any;
+
+    if (watchItemType === 'equipment') {
+      return (currentEquipment?.name || selectedItemData?.equipment?.name || '').trim();
+    }
+
+    if (watchItemType === 'procedure') {
+      return (currentProcedure?.name || selectedItemData?.procedure?.name || '').trim();
+    }
+
+    const productName = (currentProduct?.name || selectedItemData?.product?.name || '').trim();
+    const concentration = (
+      currentProduct?.concentration ||
+      selectedItemData?.product?.concentration ||
+      ''
+    ).trim();
+
+    if (!productName) return '';
+    return concentration ? `${productName} ${concentration}` : productName;
+  }, [watchItemType, currentEquipment, currentProcedure, currentProduct, selectedItem]);
+
+  const cloneSourceDisplayNameLabel = useMemo(() => {
+    if (watchItemType === 'equipment') return 'Clonar nome do equipamento';
+    if (watchItemType === 'procedure') return 'Clonar nome do procedimento';
+    return 'Clonar nome do produto (com concentração)';
+  }, [watchItemType]);
+
   const itemTypeOptions = [
     {
       value: 'medication',
@@ -2697,13 +2726,35 @@ export default function PrescriptionDetailPage() {
                   />
                 )}
 
-                <Input
-                  label="Nome na Prescrição"
-                  placeholder="Opcional: se vazio, usa o nome do cadastro"
-                  hint="Personaliza o nome exibido na prescrição sem alterar o vínculo com o estoque."
-                  maxLength={255}
-                  {...register('display_name')}
-                />
+                <div className="flex items-end gap-2">
+                  <Input
+                    label="Nome na Prescrição"
+                    placeholder="Opcional: se vazio, usa o nome do cadastro"
+                    maxLength={255}
+                    {...register('display_name')}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mb-[1px] min-w-0 px-2"
+                    disabled={!cloneSourceDisplayName}
+                    aria-label={cloneSourceDisplayNameLabel}
+                    title={
+                      cloneSourceDisplayName
+                        ? `${cloneSourceDisplayNameLabel}: copia o nome do cadastro para edição`
+                        : 'Selecione um item para habilitar a cópia do nome'
+                    }
+                    onClick={() =>
+                      setValue('display_name', cloneSourceDisplayName, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    <CornerDownLeft className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </div>
 
                 {/* Primeira linha: Quantidade + Unidade + Via de administração + Se necessário */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
