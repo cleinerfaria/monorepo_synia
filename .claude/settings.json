@@ -4,7 +4,8 @@
       "Bash(npm remove:*)",
       "Bash(xargs -I {} sh -c 'echo \"\"=== {} ===\"\" && ls -la {} 2>/dev/null | head -20')",
       "Bash(xargs:*)",
-      "Read(//c/Apps/monorepo_synia/**)"
+      "Read(//c/Apps/monorepo_synia/**)",
+      "Bash(done)"
     ]
   }
 }
