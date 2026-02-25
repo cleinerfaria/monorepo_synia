@@ -227,11 +227,21 @@ export default function PrescriptionsPage() {
 
       if (term) {
         const patientName = (prescription as any).patient?.name || '';
+        const primaryPayer = (prescription as any).patient?.patient_payer?.find(
+          (payer: any) => payer?.is_primary
+        );
+        const fallbackPayer = (prescription as any).patient?.patient_payer?.[0];
+        const operatorClient =
+          primaryPayer?.client ||
+          fallbackPayer?.client ||
+          (prescription as any).patient?.billing_client ||
+          null;
+        const operatorName = operatorClient?.name || '';
         const professionalName = (prescription as any).professional?.name || '';
         const notes = prescription.notes || '';
         const typeLabel = prescription.type ? getStatusBadgeConfig(prescription.type).label : '';
 
-        const haystack = `${patientName} ${professionalName} ${notes} ${typeLabel}`.toLowerCase();
+        const haystack = `${patientName} ${operatorName} ${professionalName} ${notes} ${typeLabel}`.toLowerCase();
         if (!haystack.includes(term)) return false;
       }
 
@@ -278,16 +288,16 @@ export default function PrescriptionsPage() {
         header: () => <span className="block w-full text-center">Operadora</span>,
         cell: ({ row }) => {
           const patient = row.original.patient;
-          // Buscar o client da fonte pagadora principal
-          const primaryPayer = patient?.patient_payer?.find((payer: any) => payer.is_primary);
+          // Mesmo padrão visual da lista de pacientes: usa a fonte pagadora principal
+          const primaryPayer = patient?.patient_payer?.find((payer: any) => payer?.is_primary);
           const client = primaryPayer?.client;
-          const operatoraName = client?.name;
-          const operatoraColor = client?.color;
+          const operadoraName = client?.name;
+          const operadoraColor = client?.color;
 
           return (
             <div className="flex justify-center">
-              {operatoraName ? (
-                <ColorBadge color={operatoraColor}>{operatoraName}</ColorBadge>
+              {operadoraName ? (
+                <ColorBadge color={operadoraColor}>{operadoraName}</ColorBadge>
               ) : (
                 <span className="text-gray-400 dark:text-gray-500">-</span>
               )}

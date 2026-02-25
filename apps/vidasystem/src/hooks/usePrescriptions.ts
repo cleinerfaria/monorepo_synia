@@ -37,8 +37,14 @@ export function usePrescriptions() {
           `
           *,
           patient:patient_id(
-            id, 
-            name
+            id,
+            name,
+            billing_client:client(id, name, color),
+            patient_payer(
+              id,
+              is_primary,
+              client:client(id, name, color)
+            )
           ),
           professional:professional_id(id, name)
         `
@@ -56,7 +62,26 @@ export function usePrescriptions() {
         throw error;
       }
       return data as (Prescription & {
-        patient: { id: string; name: string } | null;
+        patient:
+          | {
+              id: string;
+              name: string;
+              billing_client: {
+                id: string;
+                name: string;
+                color: string | null;
+              } | null;
+              patient_payer: Array<{
+                id: string;
+                is_primary: boolean;
+                client: {
+                  id: string;
+                  name: string;
+                  color: string | null;
+                } | null;
+              }>;
+            }
+          | null;
         professional: {
           id: string;
           name: string;
@@ -92,11 +117,11 @@ export function usePrescription(id: string | undefined) {
             name,
             cpf,
             birth_date,
-            billing_client:client(id, name, color),
+            billing_client:client(id, name, color, logo_url),
             patient_payer(
               id,
               is_primary,
-              client:client(id, name, color)
+              client:client(id, name, color, logo_url)
             )
           ),
           professional:professional_id(
@@ -136,11 +161,21 @@ export function usePrescription(id: string | undefined) {
           name: string;
           cpf: string | null;
           birth_date: string | null;
-          billing_client: { id: string; name: string; color: string | null } | null;
+          billing_client: {
+            id: string;
+            name: string;
+            color: string | null;
+            logo_url: string | null;
+          } | null;
           patient_payer: Array<{
             id: string;
             is_primary: boolean;
-            client: { id: string; name: string; color: string | null } | null;
+            client: {
+              id: string;
+              name: string;
+              color: string | null;
+              logo_url: string | null;
+            } | null;
           }>;
         } | null;
         professional: {
