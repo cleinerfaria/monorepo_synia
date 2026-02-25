@@ -328,6 +328,8 @@ export function filterPrescriptionItemsForWeek(
 }
 
 function resolveItemName(item: PrescriptionPrintSourceItem): string {
+  const displayName = typeof item.display_name === 'string' ? item.display_name.trim() : '';
+  if (displayName) return displayName;
   if (item.item_type === 'equipment') return item.equipment?.name || 'Equipamento';
   if (item.item_type === 'procedure') return item.procedure?.name || 'Procedimento';
   return item.product?.name || 'Produto';

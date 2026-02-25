@@ -91,7 +91,7 @@ export function useProceduresPaginated(
 
 // Legacy hook - fetches all (with 1000 limit) - use for backward compatibility
 export function useProcedures() {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, companyId],
@@ -112,7 +112,7 @@ export function useProcedures() {
 }
 
 export function useSearchProcedures(searchTerm: string = '') {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'search', companyId, searchTerm],
@@ -142,7 +142,7 @@ export function useSearchProcedures(searchTerm: string = '') {
 }
 
 export function useProcedure(id: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],

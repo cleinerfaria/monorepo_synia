@@ -13,7 +13,7 @@ export type ProfessionalWithRelations = Professional & {
 };
 
 export function useProfessionals() {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, companyId],
@@ -34,7 +34,7 @@ export function useProfessionals() {
 }
 
 export function useProfessional(id: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
@@ -151,7 +151,7 @@ export function useDeleteProfessional() {
 }
 
 export function useProfessions() {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: ['professions', companyId],

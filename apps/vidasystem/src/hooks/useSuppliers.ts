@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 const QUERY_KEY = 'suppliers';
 
 export function useSuppliers() {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, companyId],
@@ -28,7 +28,7 @@ export function useSuppliers() {
 }
 
 export function useSupplier(id: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
@@ -50,7 +50,7 @@ export function useSupplier(id: string | undefined) {
 }
 
 export function useSupplierByDocument(document: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'document', document],

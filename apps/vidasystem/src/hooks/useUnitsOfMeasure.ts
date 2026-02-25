@@ -106,7 +106,7 @@ export function useUnitsOfMeasurePaginated(
 }
 
 export function useUnitsOfMeasure() {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, companyId],
@@ -129,7 +129,7 @@ export function useUnitsOfMeasure() {
 }
 
 export function useUnitOfMeasure(id: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],

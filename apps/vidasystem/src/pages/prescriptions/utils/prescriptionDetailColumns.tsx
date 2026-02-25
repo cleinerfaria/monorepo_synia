@@ -196,7 +196,10 @@ export function buildItemColumns({
         const procedureItem = item.procedure_id
           ? procedures.find((p) => p.id === item.procedure_id)
           : null;
+        const displayName =
+          typeof item.display_name === 'string' ? item.display_name.trim() : '';
         let name =
+          displayName ||
           product?.name ||
           equipmentItem?.name ||
           procedureItem?.name ||

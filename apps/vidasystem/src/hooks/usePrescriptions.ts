@@ -62,26 +62,24 @@ export function usePrescriptions() {
         throw error;
       }
       return data as (Prescription & {
-        patient:
-          | {
+        patient: {
+          id: string;
+          name: string;
+          billing_client: {
+            id: string;
+            name: string;
+            color: string | null;
+          } | null;
+          patient_payer: Array<{
+            id: string;
+            is_primary: boolean;
+            client: {
               id: string;
               name: string;
-              billing_client: {
-                id: string;
-                name: string;
-                color: string | null;
-              } | null;
-              patient_payer: Array<{
-                id: string;
-                is_primary: boolean;
-                client: {
-                  id: string;
-                  name: string;
-                  color: string | null;
-                } | null;
-              }>;
-            }
-          | null;
+              color: string | null;
+            } | null;
+          }>;
+        } | null;
         professional: {
           id: string;
           name: string;

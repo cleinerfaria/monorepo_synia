@@ -49,7 +49,7 @@ export interface RefSourceWithStats extends RefSource {
 }
 
 export function useRefSourcesWithStats() {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'sources-stats', companyId],
@@ -119,7 +119,7 @@ export function useRefSourcesWithStats() {
 // ========================================
 
 export function useRefImportBatches(sourceId?: string) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'batches', companyId, sourceId],
@@ -206,7 +206,7 @@ export interface RefItemFilters {
 }
 
 export function useRefItems(sourceId: string | undefined, filters?: RefItemFilters) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'items', companyId, sourceId, filters],
@@ -349,7 +349,7 @@ export function useRefCurrentPrices(itemId: string | undefined) {
 // ========================================
 
 export function useRefCategories(sourceId: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'categories', companyId, sourceId],
@@ -1930,7 +1930,7 @@ export function useProcessRefImport() {
 // ========================================
 
 export function useSearchRefItems(searchTerm: string, sourceCode?: string) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'search-items', companyId, searchTerm, sourceCode],
@@ -2501,7 +2501,7 @@ export async function searchRefItemsByEans(
  * Hook to search ref_item by EAN
  */
 export function useRefItemByEan(ean: string | null | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'ref-item-by-ean', companyId, ean],
@@ -2519,7 +2519,7 @@ export function useRefItemByEan(ean: string | null | undefined) {
 // ========================================
 
 export function useProductRefLinks(productId: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'product-links', productId],

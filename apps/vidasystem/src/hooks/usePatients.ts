@@ -216,7 +216,7 @@ export function usePatientsPaginated(
 }
 
 export function usePatient(id: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
@@ -348,7 +348,7 @@ export function useDeletePatient() {
 // ========================================
 
 export function usePatientAddresses(patientId: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'addresses', patientId],
@@ -439,7 +439,7 @@ export function useSavePatientAddresses() {
 // ========================================
 
 export function usePatientContacts(patientId: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'contacts', patientId],
@@ -530,7 +530,7 @@ export function useSavePatientContacts() {
 // ========================================
 
 export function usePatientPayers(patientId: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, 'payers', patientId],

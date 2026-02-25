@@ -241,7 +241,8 @@ export default function PrescriptionsPage() {
         const notes = prescription.notes || '';
         const typeLabel = prescription.type ? getStatusBadgeConfig(prescription.type).label : '';
 
-        const haystack = `${patientName} ${operatorName} ${professionalName} ${notes} ${typeLabel}`.toLowerCase();
+        const haystack =
+          `${patientName} ${operatorName} ${professionalName} ${notes} ${typeLabel}`.toLowerCase();
         if (!haystack.includes(term)) return false;
       }
 

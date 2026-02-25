@@ -106,7 +106,15 @@ export default function PatientsPage() {
     if (sortColumn !== 'name') params.set('sort', sortColumn);
     if (sortDirection !== 'asc') params.set('dir', sortDirection);
     return params.toString();
-  }, [searchTerm, currentPage, clientFilter, genderFilter, statusFilter, sortColumn, sortDirection]);
+  }, [
+    searchTerm,
+    currentPage,
+    clientFilter,
+    genderFilter,
+    statusFilter,
+    sortColumn,
+    sortDirection,
+  ]);
 
   useEffect(() => {
     if (listParamsString !== searchParamsString) {

@@ -39,7 +39,7 @@ const QUERY_KEY = 'professional_user';
  * Busca o vínculo professional_user para um profissional específico
  */
 export function useProfessionalUser(professionalId: string | undefined) {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: [QUERY_KEY, professionalId],
@@ -80,7 +80,7 @@ export function useProfessionalUser(professionalId: string | undefined) {
  * Lista app_users da empresa que NÃO estão vinculados a nenhum profissional
  */
 export function useAvailableAppUsers() {
-  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);;
+  const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
     queryKey: ['available_app_users', companyId],

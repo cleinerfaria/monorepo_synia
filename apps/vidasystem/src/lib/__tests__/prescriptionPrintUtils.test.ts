@@ -206,4 +206,21 @@ describe('prescriptionPrintUtils', () => {
     expect(description).toContain('* Componente A 1mg - 10 ml');
     expect(description).not.toContain('Bromoprida - 4mg/ml');
   });
+
+  it('uses display_name override in description snapshot', () => {
+    const description = formatPrescriptionItemDescriptionSnapshot({
+      id: 'item-8',
+      item_type: 'medication',
+      display_name: 'Dipirona gotas',
+      quantity: 20,
+      product: {
+        name: 'Dipirona',
+        concentration: '500mg/ml',
+        unit_prescription: { symbol: 'gts' },
+      },
+    });
+
+    expect(description).toContain('Dipirona gotas 500mg/ml 20 gts');
+    expect(description).not.toContain('Dipirona 500mg/ml 20 gts');
+  });
 });

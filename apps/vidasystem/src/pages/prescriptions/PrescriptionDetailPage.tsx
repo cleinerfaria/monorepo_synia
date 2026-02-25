@@ -118,6 +118,7 @@ interface ItemFormData {
   product_id: string;
   equipment_id: string;
   procedure_id: string;
+  display_name: string;
   item_order: number | null;
   supplier: PrescriptionItemSupplier | '';
   quantity: number;
@@ -419,6 +420,7 @@ export default function PrescriptionDetailPage() {
       product_id: '',
       equipment_id: '',
       procedure_id: '',
+      display_name: '',
       item_order: null,
       supplier: 'company',
       quantity: 1,
@@ -1046,6 +1048,7 @@ export default function PrescriptionDetailPage() {
       product_id: '',
       equipment_id: '',
       procedure_id: '',
+      display_name: '',
       item_order: null,
       supplier: 'company' as ItemFormData['supplier'],
       quantity: 1,
@@ -1107,6 +1110,7 @@ export default function PrescriptionDetailPage() {
         product_id: item.product_id || '',
         equipment_id: item.equipment_id || '',
         procedure_id: item.procedure_id || '',
+        display_name: item.display_name || '',
         item_order: item.item_order ?? null,
         supplier: item.supplier || 'company',
         quantity: item.quantity || 1,
@@ -1166,6 +1170,7 @@ export default function PrescriptionDetailPage() {
         : null,
       equipment_id: data.item_type === 'equipment' ? data.equipment_id || null : null,
       procedure_id: data.item_type === 'procedure' ? data.procedure_id || null : null,
+      display_name: data.display_name?.trim() || null,
       item_order: data.item_order ?? null,
       supplier: data.supplier || null,
       quantity: data.quantity || null,
@@ -1868,6 +1873,7 @@ export default function PrescriptionDetailPage() {
   const logFieldLabels = useMemo(
     () => ({
       product_id: 'Produto',
+      display_name: 'Nome na prescricao',
       quantity: 'Quantidade',
       route_id: 'Via',
       frequency_mode: 'Frequencia',
@@ -2690,6 +2696,14 @@ export default function PrescriptionDetailPage() {
                     required
                   />
                 )}
+
+                <Input
+                  label="Nome na Prescrição"
+                  placeholder="Opcional: se vazio, usa o nome do cadastro"
+                  hint="Personaliza o nome exibido na prescrição sem alterar o vínculo com o estoque."
+                  maxLength={255}
+                  {...register('display_name')}
+                />
 
                 {/* Primeira linha: Quantidade + Unidade + Via de administração + Se necessário */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-12">

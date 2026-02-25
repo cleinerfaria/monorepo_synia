@@ -82,6 +82,7 @@ export interface PrescriptionPrintSourceItem {
   product_id?: string | null;
   equipment_id?: string | null;
   procedure_id?: string | null;
+  display_name?: string | null;
   quantity?: number | null;
   frequency_mode?: 'every' | 'times_per' | 'shift' | null;
   times_value?: number | null;
