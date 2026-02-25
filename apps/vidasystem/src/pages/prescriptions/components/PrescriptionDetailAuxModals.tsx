@@ -27,7 +27,7 @@ interface PrescriptionDetailAuxModalsProps {
   isPrintModalOpen: boolean;
   setIsPrintModalOpen: (value: boolean) => void;
   setPrintActionInProgress: (value: PrescriptionPrintAction | null) => void;
-  canPrintPrescription: boolean;
+  canOpenPrintAction: boolean;
   handleGeneratePrescriptionPrint: (params: any) => Promise<void>;
   createPrescriptionPrintIsPending: boolean;
   printActionInProgress: PrescriptionPrintAction | null;
@@ -57,7 +57,7 @@ export function PrescriptionDetailAuxModals({
   isPrintModalOpen,
   setIsPrintModalOpen,
   setPrintActionInProgress,
-  canPrintPrescription,
+  canOpenPrintAction,
   handleGeneratePrescriptionPrint,
   createPrescriptionPrintIsPending,
   printActionInProgress,
@@ -205,7 +205,7 @@ export function PrescriptionDetailAuxModals({
           setIsPrintModalOpen(false);
           setPrintActionInProgress(null);
         }}
-        canPrint={canPrintPrescription}
+        canPrint={canOpenPrintAction}
         onGenerate={handleGeneratePrescriptionPrint}
         isGenerating={createPrescriptionPrintIsPending}
         generatingAction={printActionInProgress}

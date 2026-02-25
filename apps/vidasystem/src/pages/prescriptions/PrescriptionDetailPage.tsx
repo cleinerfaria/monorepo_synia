@@ -210,6 +210,7 @@ export default function PrescriptionDetailPage() {
   const { hasPermission: hasPrescriptionEditPermission, isLoading: loadingEditPermission } =
     useHasPermission('prescriptions', 'edit');
   const canPrintPrescription = hasPrescriptionPrintPermission || hasPrescriptionEditPermission;
+  const canOpenPrintAction = !!prescription && !loadingPrescription;
   const loadingPermissionCheck = loadingPrintPermission || loadingEditPermission;
   const { data: prescriptionPrintHistory = [], isLoading: loadingPrescriptionPrintHistory } =
     usePrescriptionPrintHistory(id, !loadingPermissionCheck && canPrintPrescription);
@@ -2174,12 +2175,13 @@ export default function PrescriptionDetailPage() {
                       label: 'Anexar documento',
                       icon: <FileUp className="h-4 w-4" />,
                       onClick: () => fileInputRef.current?.click(),
-                      disabled: uploadAttachment.isPending,
+                      disabled: uploadAttachment.isPending || loadingEditPermission || !hasPrescriptionEditPermission,
                     },
                     {
                       label: 'Alterar período',
                       icon: <CalendarDays className="h-4 w-4" />,
                       onClick: openPeriodModal,
+                      disabled: loadingEditPermission || !hasPrescriptionEditPermission,
                     },
                     {
                       label: canTogglePrescriptionStatus
@@ -2194,7 +2196,7 @@ export default function PrescriptionDetailPage() {
                     },
                   ]}
                   dropdownPortal
-                  disabled={loadingPermissionCheck || !canPrintPrescription}
+                  disabled={!canOpenPrintAction}
                 />
 
                 <input
@@ -3101,7 +3103,7 @@ export default function PrescriptionDetailPage() {
         isPrintModalOpen={isPrintModalOpen}
         setIsPrintModalOpen={setIsPrintModalOpen}
         setPrintActionInProgress={setPrintActionInProgress}
-        canPrintPrescription={canPrintPrescription}
+        canOpenPrintAction={canOpenPrintAction}
         handleGeneratePrescriptionPrint={handleGeneratePrescriptionPrint}
         createPrescriptionPrintIsPending={createPrescriptionPrint.isPending}
         printActionInProgress={printActionInProgress}
