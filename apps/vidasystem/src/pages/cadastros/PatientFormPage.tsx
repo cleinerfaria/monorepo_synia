@@ -1,5 +1,5 @@
-﻿import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import {
   Card,
@@ -103,7 +103,12 @@ interface PatientFormData {
 export default function PatientFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const isEditing = id && id !== 'novo';
+
+  const patientsListPath = useMemo(() => {
+    return location.search ? `/pacientes${location.search}` : '/pacientes';
+  }, [location.search]);
 
   // Contexto de navegação protegida
   const {
@@ -501,18 +506,18 @@ export default function PatientFormPage() {
 
       setLocalUnsavedChanges(false);
       setGlobalUnsavedChanges(false);
-      navigate('/pacientes');
+      navigate(patientsListPath);
     } catch {
       // Erro já tratado pelo hook
     }
   };
 
   const handleBack = () => {
-    safeNavigate('/pacientes');
+    safeNavigate(patientsListPath);
   };
 
   const breadcrumbItems = [
-    { label: 'Pacientes', href: '/pacientes' },
+    { label: 'Pacientes', href: patientsListPath },
     { label: isEditing ? patient?.name || 'Carregando...' : 'Novo Paciente' },
   ];
 
