@@ -24,9 +24,24 @@ const mimeTypes = {
   '.map': 'application/json; charset=utf-8',
 };
 
-function sendText(res, statusCode, body, contentType = 'text/plain; charset=utf-8') {
-  res.writeHead(statusCode, { 'Content-Type': contentType });
+function sendText(res, statusCode, body, contentType = 'text/plain; charset=utf-8', cacheControl = null) {
+  const headers = { 'Content-Type': contentType };
+  if (cacheControl) {
+    headers['Cache-Control'] = cacheControl;
+  }
+  res.writeHead(statusCode, headers);
   res.end(body);
+}
+
+function getCacheHeaders(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  // Assets com hash no nome: cache imutável de 1 ano
+  const immutableExts = ['.js', '.css', '.woff', '.woff2', '.ttf', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico'];
+  if (immutableExts.includes(ext) && filePath.includes('/assets/')) {
+    return 'public, max-age=31536000, immutable';
+  }
+  // HTML e demais: sempre revalidar
+  return 'no-cache';
 }
 
 function sendFile(res, filePath) {
@@ -38,7 +53,8 @@ function sendFile(res, filePath) {
 
     const ext = path.extname(filePath).toLowerCase();
     const contentType = mimeTypes[ext] || 'application/octet-stream';
-    res.writeHead(200, { 'Content-Type': contentType });
+    const cacheControl = getCacheHeaders(filePath);
+    res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': cacheControl });
     res.end(data);
   });
 }
@@ -57,7 +73,7 @@ const server = http.createServer((req, res) => {
       VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || '',
     };
     const payload = `window.__APP_CONFIG__ = ${JSON.stringify(runtimeEnv)};`;
-    sendText(res, 200, payload, 'application/javascript; charset=utf-8');
+    sendText(res, 200, payload, 'application/javascript; charset=utf-8', 'no-cache');
     return;
   }
 
