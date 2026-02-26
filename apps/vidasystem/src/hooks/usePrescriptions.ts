@@ -949,7 +949,7 @@ export function usePrescriptionLogs(prescriptionId: string | undefined) {
 
       const selectFields = `
           *,
-          app_user:user_id(name, email)
+          app_user(name, email)
         `;
 
       const prescriptionQuery = supabase
