@@ -369,6 +369,17 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
 
         if (session?.user) {
+          // Se os dados do usuário já estão carregados para esta sessão, não recarregar.
+          // Evita re-fetch desnecessário ao voltar de outra aba (Supabase re-dispara SIGNED_IN
+          // quando o token é renovado automaticamente).
+          const currentState = useAuthStore.getState();
+          if (
+            currentState.appUser?.auth_user_id === session.user.id &&
+            currentState.company
+          ) {
+            return;
+          }
+
           setLoading(true);
           // Defer REST calls to next tick to break the deadlock with _initialize()
           setTimeout(async () => {
