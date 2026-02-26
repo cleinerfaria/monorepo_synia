@@ -324,6 +324,7 @@ export default function InstancesPage() {
         {canManageInstances && (
           <Button
             icon={<Plus className="mr-1 h-4 w-4" />}
+            onClick={handleNewInstance}
             disabled={!company?.id || isLimitReached}
             data-testid="new-instance-btn"
           >

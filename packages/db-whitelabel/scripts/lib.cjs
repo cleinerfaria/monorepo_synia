@@ -18,8 +18,20 @@ const SUPABASE_URL_ENV = 'VITE_SUPABASE_URL';
 const SERVICE_ROLE_ENV = 'SUPABASE_SERVICE_ROLE_KEY';
 const SUPABASE_ACCESS_TOKEN_ENV = 'SUPABASE_ACCESS_TOKEN';
 const PROJECT_REF_ENV = 'WHITELABEL_SUPABASE_PROJECT_REF';
+const UAZAPI_URL_ENV = 'UAZAPI_URL';
+const UAZAPI_ADMINTOKEN_ENV = 'UAZAPI_ADMINTOKEN';
+const LEGACY_UAZAPI_URL_ENV = 'VITE_UAZAPI_URL';
+const LEGACY_UAZAPI_ADMINTOKEN_ENV = 'VITE_UAZAPI_ADMINTOKEN';
+const UAZAPI_PROXY_ALLOW_INVALID_JWT_ENV = 'UAZAPI_PROXY_ALLOW_INVALID_JWT';
 const APP_DIR = path.resolve(__dirname, '..');
 const FUNCTIONS_DIR = path.resolve(APP_DIR, 'supabase/functions');
+const FUNCTIONS_WITH_INTERNAL_JWT_VERIFICATION = new Set([
+  'manage-user',
+  'uazapi-proxy',
+  'sync-conversations',
+  'sync-contacts',
+  'sync-messages',
+]);
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -63,6 +75,56 @@ function run(command, args, options = {}) {
       reject(error);
     });
   });
+}
+
+function runWithDisplayArgs(command, args, displayArgs, options = {}) {
+  process.stdout.write(`\nâš™ï¸  Running: ${command} ${displayArgs.join(' ')}\n`);
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd || process.cwd(),
+      stdio: ['inherit', 'inherit', 'inherit'],
+      env: options.env || process.env,
+      timeout: options.timeout || 60_000,
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command failed with exit code ${code}`));
+      } else {
+        resolve();
+      }
+    });
+
+    child.on('error', (error) => {
+      reject(error);
+    });
+  });
+}
+
+function getEnvTrimmed(name) {
+  const value = process.env[name];
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value.trim();
+}
+
+function resolveUazapiSecretsFromEnv() {
+  const currentUrl = getEnvTrimmed(UAZAPI_URL_ENV);
+  const currentAdminToken = getEnvTrimmed(UAZAPI_ADMINTOKEN_ENV);
+  const legacyUrl = getEnvTrimmed(LEGACY_UAZAPI_URL_ENV);
+  const legacyAdminToken = getEnvTrimmed(LEGACY_UAZAPI_ADMINTOKEN_ENV);
+  const allowInvalidJwtBypass = getEnvTrimmed(UAZAPI_PROXY_ALLOW_INVALID_JWT_ENV);
+
+  return {
+    uazapiUrl: currentUrl || legacyUrl,
+    uazapiAdminToken: currentAdminToken || legacyAdminToken,
+    allowInvalidJwtBypass,
+    usedLegacyNames:
+      (!currentUrl && !!legacyUrl) || (!currentAdminToken && !!legacyAdminToken),
+  };
 }
 
 async function requestJson(url, { method = 'GET', headers = {}, body } = {}) {
@@ -206,7 +268,7 @@ async function deployWhiteLabelFunctions() {
   for (const fnName of functions) {
     const args = ['functions', 'deploy', fnName, '--project-ref', projectRef, '--workdir', APP_DIR];
 
-    if (fnName === 'manage-user') {
+    if (FUNCTIONS_WITH_INTERNAL_JWT_VERIFICATION.has(fnName)) {
       args.push('--no-verify-jwt');
     }
 
@@ -215,6 +277,59 @@ async function deployWhiteLabelFunctions() {
     });
   }
   process.stdout.write('✅ white label edge functions deployed\n');
+}
+
+async function syncWhiteLabelFunctionSecrets() {
+  if (!hasSupabaseAccessToken()) {
+    process.stdout.write(
+      `\nâš ï¸  Skipping white label function secrets sync: missing ${SUPABASE_ACCESS_TOKEN_ENV}.\n`
+    );
+    return;
+  }
+
+  const { uazapiUrl, uazapiAdminToken, allowInvalidJwtBypass, usedLegacyNames } =
+    resolveUazapiSecretsFromEnv();
+
+  if (!uazapiUrl && !uazapiAdminToken && !allowInvalidJwtBypass) {
+    process.stdout.write(
+      `\nâš ï¸  Skipping white label function secrets sync: no ${UAZAPI_URL_ENV}/${UAZAPI_ADMINTOKEN_ENV} configured.\n`
+    );
+    return;
+  }
+
+  if (!uazapiUrl || !uazapiAdminToken) {
+    process.stdout.write(
+      `\nâš ï¸  Skipping white label function secrets sync: configure both ${UAZAPI_URL_ENV} and ${UAZAPI_ADMINTOKEN_ENV}.\n`
+    );
+    return;
+  }
+
+  if (usedLegacyNames) {
+    process.stdout.write(
+      `\nâš ï¸  Using legacy env names (${LEGACY_UAZAPI_URL_ENV}/${LEGACY_UAZAPI_ADMINTOKEN_ENV}). Prefer ${UAZAPI_URL_ENV}/${UAZAPI_ADMINTOKEN_ENV}.\n`
+    );
+  }
+
+  const projectRef = resolveProjectRef();
+  const secretArgs = [
+    `${UAZAPI_URL_ENV}=${uazapiUrl}`,
+    `${UAZAPI_ADMINTOKEN_ENV}=${uazapiAdminToken}`,
+  ];
+  const displaySecretArgs = [`${UAZAPI_URL_ENV}=***`, `${UAZAPI_ADMINTOKEN_ENV}=***`];
+
+  if (allowInvalidJwtBypass) {
+    secretArgs.push(`${UAZAPI_PROXY_ALLOW_INVALID_JWT_ENV}=${allowInvalidJwtBypass}`);
+    displaySecretArgs.push(`${UAZAPI_PROXY_ALLOW_INVALID_JWT_ENV}=***`);
+  }
+
+  process.stdout.write('\nðŸ” Syncing white label edge function secrets...\n');
+  await runWithDisplayArgs(
+    'supabase',
+    ['secrets', 'set', ...secretArgs, '--project-ref', projectRef, '--workdir', APP_DIR],
+    ['secrets', 'set', ...displaySecretArgs, '--project-ref', projectRef, '--workdir', APP_DIR],
+    { timeout: 180_000 }
+  );
+  process.stdout.write('âœ… white label edge function secrets synced\n');
 }
 
 async function dbReset() {
@@ -229,6 +344,7 @@ async function dbReset() {
   );
   await seedWhiteLabelDev();
   await runSqlSeed();
+  await syncWhiteLabelFunctionSecrets();
   await deployWhiteLabelFunctions();
 }
 
@@ -546,4 +662,5 @@ module.exports = {
   dbMigrate,
   seedWhiteLabelDev,
   ensureDevEnv,
+  syncWhiteLabelFunctionSecrets,
 };
