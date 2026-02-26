@@ -290,7 +290,7 @@ export function useProduct(id: string | undefined) {
 export function useCreateProduct() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'product'>, 'company_id'>) => {
@@ -335,7 +335,7 @@ export function useCreateProduct() {
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'product'> & { id: string }) => {
@@ -391,7 +391,7 @@ export function useUpdateProduct() {
 export function useDeleteProduct() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

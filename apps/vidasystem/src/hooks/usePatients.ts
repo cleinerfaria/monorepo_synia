@@ -251,7 +251,7 @@ export function usePatient(id: string | undefined) {
 export function useCreatePatient() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'patient'>, 'company_id'>) => {

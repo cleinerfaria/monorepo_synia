@@ -166,7 +166,7 @@ export function useProcedure(id: string | undefined) {
 export function useCreateProcedure() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: ProcedureInsert) => {
@@ -204,7 +204,7 @@ export function useCreateProcedure() {
 export function useUpdateProcedure() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: ProcedureUpdate & { id: string }) => {
@@ -244,7 +244,7 @@ export function useUpdateProcedure() {
 export function useToggleProcedureStatus() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {

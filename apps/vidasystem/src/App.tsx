@@ -373,10 +373,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           // Evita re-fetch desnecessário ao voltar de outra aba (Supabase re-dispara SIGNED_IN
           // quando o token é renovado automaticamente).
           const currentState = useAuthStore.getState();
-          if (
-            currentState.appUser?.auth_user_id === session.user.id &&
-            currentState.company
-          ) {
+          if (currentState.appUser?.auth_user_id === session.user.id && currentState.company) {
             return;
           }
 

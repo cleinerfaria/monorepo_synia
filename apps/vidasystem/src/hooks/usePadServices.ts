@@ -65,7 +65,7 @@ export function usePadServices(includeInactive = false) {
 export function useCreatePadService() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (input: CreatePadServiceInput) => {
@@ -105,7 +105,7 @@ export function useCreatePadService() {
 export function useUpdatePadService() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: UpdatePadServiceInput) => {
@@ -148,7 +148,7 @@ export function useUpdatePadService() {
 export function useTogglePadServiceStatus() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {

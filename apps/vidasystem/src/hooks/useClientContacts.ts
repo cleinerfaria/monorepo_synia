@@ -32,7 +32,7 @@ export function useClientContacts(clientId: string | undefined) {
 export function useSaveClientContacts() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ clientId, contacts }: { clientId: string; contacts: ClientContact[] }) => {

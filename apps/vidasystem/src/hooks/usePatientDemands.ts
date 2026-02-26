@@ -89,7 +89,7 @@ export function usePatientDemands(patientId?: string) {
 
 export function usePatientDemand(demandId: string | undefined) {
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: [QUERY_KEY, demandId],
@@ -117,7 +117,7 @@ export function usePatientDemand(demandId: string | undefined) {
 
 export function useDemandShifts(demandId: string | undefined, from: string, to: string) {
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'shifts', demandId, from, to],
@@ -165,7 +165,7 @@ export function useDemandShifts(demandId: string | undefined, from: string, to: 
 export function useCreateDemand() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: CreatePadData) => {
@@ -199,7 +199,7 @@ export function useCreateDemand() {
 export function useUpdateDemand() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdatePadData) => {
@@ -235,7 +235,7 @@ export function useUpdateDemand() {
 export function useDeleteDemand() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

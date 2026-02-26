@@ -50,7 +50,7 @@ describe('useCreatePrescription', () => {
     mockToastError.mockReset();
   });
 
-  it('creates prescription using create_or_upsert_prescription RPC and defaults end date', async () => {
+  it('creates prescription using create_or_upsert_prescription RPC and keeps end date null when omitted', async () => {
     mockRpc.mockResolvedValue({
       data: [{ prescription_id: 'prescription-1', upserted: false }],
       error: null,
@@ -74,7 +74,7 @@ describe('useCreatePrescription', () => {
       p_patient_id: 'patient-1',
       p_type: 'medical',
       p_start_date: '2026-02-08',
-      p_end_date: '2026-02-08',
+      p_end_date: null,
       p_status: 'draft',
       p_notes: 'Observacao',
       p_professional_id: null,

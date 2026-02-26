@@ -47,7 +47,7 @@ export function useUnitsOfMeasurePaginated(
   searchTerm: string = ''
 ) {
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useQuery({
     queryKey: [QUERY_KEY, 'paginated', company?.id, page, pageSize, searchTerm],
@@ -153,7 +153,7 @@ export function useUnitOfMeasure(id: string | undefined) {
 export function useCreateUnitOfMeasure() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (
@@ -200,7 +200,7 @@ export function useCreateUnitOfMeasure() {
 export function useUpdateUnitOfMeasure() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<UnitOfMeasure> & { id: string }) => {
@@ -235,7 +235,7 @@ export function useUpdateUnitOfMeasure() {
 export function useDeleteUnitOfMeasure() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

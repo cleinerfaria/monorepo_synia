@@ -1442,7 +1442,8 @@ export default function PrescriptionDetailPage() {
         targetWindow: previewWindow,
         companyLogoUrl: prescriptionPrintLogoUrl,
         orientation,
-        prescriptionType: (prescription as any)?.type ?? (prescription as any)?.prescription_type ?? null,
+        prescriptionType:
+          (prescription as any)?.type ?? (prescription as any)?.prescription_type ?? null,
       });
       setIsPrintModalOpen(false);
     } catch (error) {
@@ -1469,7 +1470,8 @@ export default function PrescriptionDetailPage() {
           mode: action,
           targetWindow: previewWindow,
           companyLogoUrl: prescriptionPrintLogoUrl,
-          prescriptionType: (prescription as any)?.type ?? (prescription as any)?.prescription_type ?? null,
+          prescriptionType:
+            (prescription as any)?.type ?? (prescription as any)?.prescription_type ?? null,
         });
       } catch (error) {
         if (previewWindow && !previewWindow.closed) {

@@ -58,7 +58,7 @@ export function useProfessional(id: string | undefined) {
 export function useCreateProfessional() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'professional'>, 'company_id'>) => {
@@ -92,7 +92,7 @@ export function useCreateProfessional() {
 export function useUpdateProfessional() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'professional'> & { id: string }) => {
@@ -128,7 +128,7 @@ export function useUpdateProfessional() {
 export function useDeleteProfessional() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {
