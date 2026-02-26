@@ -26,6 +26,7 @@ const PRINT_SNAPSHOT_QUERY_KEY = 'prescription-print-snapshot';
 
 interface PrescriptionPrintContext {
   id: string;
+  type?: string | null;
   notes?: string | null;
   patient?: {
     name?: string | null;
@@ -221,6 +222,7 @@ export function useCreatePrescriptionPrint() {
       );
 
       const metadataSnapshot = {
+        prescription_type: input.prescription.type || null,
         professional_name: input.prescription.professional?.name || null,
         professional_title: input.prescription.professional?.role || null,
         professional_council: buildProfessionalCouncil(input.prescription.professional) || null,

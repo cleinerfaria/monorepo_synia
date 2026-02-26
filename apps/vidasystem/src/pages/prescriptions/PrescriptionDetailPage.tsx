@@ -262,15 +262,16 @@ export default function PrescriptionDetailPage() {
   const createPrescriptionPrint = useCreatePrescriptionPrint();
   const deletePrescriptionPrint = useDeletePrescriptionPrint();
   const fetchPrescriptionPrintSnapshot = useFetchPrescriptionPrintSnapshot();
-  const { hasPermission: hasPrescriptionPrintPermission, isLoading: loadingPrintPermission } =
-    useHasPermission('prescriptions', 'print');
+  const { hasPermission: hasPrescriptionPrintPermission } = useHasPermission(
+    'prescriptions',
+    'print'
+  );
   const { hasPermission: hasPrescriptionEditPermission, isLoading: loadingEditPermission } =
     useHasPermission('prescriptions', 'edit');
   const canPrintPrescription = hasPrescriptionPrintPermission || hasPrescriptionEditPermission;
   const canOpenPrintAction = !!prescription && !loadingPrescription;
-  const loadingPermissionCheck = loadingPrintPermission || loadingEditPermission;
   const { data: prescriptionPrintHistory = [], isLoading: loadingPrescriptionPrintHistory } =
-    usePrescriptionPrintHistory(id, !loadingPermissionCheck && canPrintPrescription);
+    usePrescriptionPrintHistory(id);
 
   const logProductIds = useMemo(() => {
     const ids = new Set<string>();
@@ -1419,6 +1420,7 @@ export default function PrescriptionDetailPage() {
       const result = await createPrescriptionPrint.mutateAsync({
         prescription: {
           id,
+          type: (prescription as any)?.type ?? (prescription as any)?.prescription_type ?? null,
           notes: prescription.notes || null,
           patient: (prescription as any).patient || null,
           professional: (prescription as any).professional || null,
@@ -1440,6 +1442,7 @@ export default function PrescriptionDetailPage() {
         targetWindow: previewWindow,
         companyLogoUrl: prescriptionPrintLogoUrl,
         orientation,
+        prescriptionType: (prescription as any)?.type ?? (prescription as any)?.prescription_type ?? null,
       });
       setIsPrintModalOpen(false);
     } catch (error) {
@@ -1466,6 +1469,7 @@ export default function PrescriptionDetailPage() {
           mode: action,
           targetWindow: previewWindow,
           companyLogoUrl: prescriptionPrintLogoUrl,
+          prescriptionType: (prescription as any)?.type ?? (prescription as any)?.prescription_type ?? null,
         });
       } catch (error) {
         if (previewWindow && !previewWindow.closed) {
@@ -1478,7 +1482,7 @@ export default function PrescriptionDetailPage() {
         );
       }
     },
-    [fetchPrescriptionPrintSnapshot, prescriptionPrintLogoUrl]
+    [fetchPrescriptionPrintSnapshot, prescription, prescriptionPrintLogoUrl]
   );
 
   const handleReprintPrescription = useCallback(
@@ -1576,6 +1580,7 @@ export default function PrescriptionDetailPage() {
         deletingPrintId,
         handleDeletePrescriptionPrint,
         hasPrescriptionEditPermission,
+        canPrintPrescription,
       }),
     [
       printHistoryActionInProgress,
@@ -1583,6 +1588,7 @@ export default function PrescriptionDetailPage() {
       deletingPrintId,
       handleDeletePrescriptionPrint,
       hasPrescriptionEditPermission,
+      canPrintPrescription,
     ]
   );
 
@@ -2595,22 +2601,19 @@ export default function PrescriptionDetailPage() {
         {/* Print History Tab */}
         {mainTab === 'printHistory' && (
           <div className="p-6">
-            {loadingPermissionCheck || loadingPrescriptionPrintHistory ? (
+            {loadingPrescriptionPrintHistory ? (
               <div className="flex items-center justify-center py-8">
                 <Loading />
               </div>
-            ) : !canPrintPrescription ? (
-              <EmptyState
-                title="Sem permissão para histórico"
-                description="Seu perfil não possui permissão para visualizar as prescrições impressas."
-              />
             ) : (
               <DataTable
                 data={prescriptionPrintHistory}
                 columns={printHistoryColumns}
                 searchKeys={['print_number', 'created_by_name', 'period_start', 'period_end']}
                 searchPlaceholder="Buscar por número, usuário ou período..."
-                onRowClick={(row) => handleReprintPrescription(row.id)}
+                onRowClick={
+                  canPrintPrescription ? (row) => handleReprintPrescription(row.id) : undefined
+                }
                 emptyState={
                   <EmptyState
                     title="Nenhuma prescrição impressa"

@@ -275,7 +275,7 @@ export function useCreatePrescription() {
         p_patient_id: data.patient_id,
         p_type: data.type,
         p_start_date: data.start_date,
-        p_end_date: data.end_date || data.start_date,
+        p_end_date: data.end_date || null,
         p_status: data.status || 'draft',
         p_notes: data.notes || null,
         p_professional_id: data.professional_id || null,
@@ -949,7 +949,7 @@ export function usePrescriptionLogs(prescriptionId: string | undefined) {
 
       const selectFields = `
           *,
-          app_user:user_id(name, email)
+          app_user(name, email)
         `;
 
       const prescriptionQuery = supabase
