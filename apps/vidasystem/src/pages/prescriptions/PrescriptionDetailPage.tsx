@@ -1440,6 +1440,7 @@ export default function PrescriptionDetailPage() {
         targetWindow: previewWindow,
         companyLogoUrl: prescriptionPrintLogoUrl,
         orientation,
+        prescriptionType: (prescription as any)?.type,
       });
       setIsPrintModalOpen(false);
     } catch (error) {
@@ -1466,6 +1467,7 @@ export default function PrescriptionDetailPage() {
           mode: action,
           targetWindow: previewWindow,
           companyLogoUrl: prescriptionPrintLogoUrl,
+          prescriptionType: (prescription as any)?.type,
         });
       } catch (error) {
         if (previewWindow && !previewWindow.closed) {
@@ -1478,7 +1480,7 @@ export default function PrescriptionDetailPage() {
         );
       }
     },
-    [fetchPrescriptionPrintSnapshot, prescriptionPrintLogoUrl]
+    [fetchPrescriptionPrintSnapshot, prescription, prescriptionPrintLogoUrl]
   );
 
   const handleReprintPrescription = useCallback(

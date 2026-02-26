@@ -13,6 +13,7 @@ interface OpenPrescriptionPrintPreviewOptions {
   targetWindow?: Window | null;
   companyLogoUrl?: string | null;
   orientation?: PrescriptionPrintOrientation;
+  prescriptionType?: string | null;
 }
 
 interface ResolvedWeekColumn {
@@ -36,7 +37,10 @@ interface HtmlContext {
   professionalSignatureUrl: string | null;
   companyLogoUrl: string | null;
   orientation: PrescriptionPrintOrientation;
+  prescriptionHeaderTitle: string;
 }
+
+type PrescriptionTypeValue = 'medical' | 'nursing' | 'nutrition';
 
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -88,6 +92,34 @@ function renderGridCell(value: string): string {
     return '<td class="day-cell day-cell-hatched"></td>';
   }
   return `<td class="day-cell">${escapeHtml(value)}</td>`;
+}
+
+function normalizePrescriptionType(value: unknown): PrescriptionTypeValue | null {
+  if (value === 'medical' || value === 'nursing' || value === 'nutrition') {
+    return value;
+  }
+  return null;
+}
+
+function resolvePrescriptionHeaderTitle(
+  snapshot: PrescriptionPrintSnapshot,
+  providedType?: string | null
+): string {
+  const resolvedType =
+    normalizePrescriptionType(providedType) ??
+    normalizePrescriptionType(snapshot.metadata_snapshot?.['prescription_type']) ??
+    normalizePrescriptionType(snapshot.metadata_snapshot?.['prescriptionType']) ??
+    normalizePrescriptionType(snapshot.metadata_snapshot?.['type']);
+
+  switch (resolvedType) {
+    case 'nursing':
+      return 'PRESCRIÇÃO DE ENFERMAGEM';
+    case 'nutrition':
+      return 'PRESCRIÇÃO NUTRICIONAL';
+    case 'medical':
+    default:
+      return 'PRESCRIÇÃO MÉDICA';
+  }
 }
 
 function buildProfessionalIdentityLine(
@@ -454,7 +486,7 @@ function buildPrintHtml(snapshot: PrescriptionPrintSnapshot, context: HtmlContex
                 : '<div class="brand-logo-fallback"></div>'
             }
           </div>
-          <div class="title">PRESCRIÇÃO MÉDICA</div>
+          <div class="title">${escapeHtml(context.prescriptionHeaderTitle)}</div>
           <div class="number">N&ordm;: ${escapeHtml(snapshot.print_number)}</div>
         </div>
         <div class="meta-grid">
@@ -564,6 +596,10 @@ export async function openPrescriptionPrintPreview(
   );
   const professionalSignatureUrl = await resolveProfessionalSignatureUrl(snapshot);
   const companyLogoUrl = resolveCompanyLogoUrl(options?.companyLogoUrl);
+  const prescriptionHeaderTitle = resolvePrescriptionHeaderTitle(
+    snapshot,
+    options?.prescriptionType
+  );
 
   const html = buildPrintHtml(snapshot, {
     weekColumns,
@@ -572,6 +608,7 @@ export async function openPrescriptionPrintPreview(
     professionalSignatureUrl,
     companyLogoUrl,
     orientation,
+    prescriptionHeaderTitle,
   });
   // Keep visual parity: download reuses the exact same HTML/CSS print layout.
   const shouldAutoPrint = mode === 'print' || mode === 'download';
