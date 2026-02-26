@@ -107,7 +107,7 @@ function normalizePrescriptionType(value: unknown): PrescriptionTypeValue | null
   if (
     normalizedValue === 'medical' ||
     normalizedValue === 'medica' ||
-    normalizedValue === 'prescricao_medica'
+    normalizedValue === 'prescricao_mdedica'
   ) {
     return 'medical';
   }
