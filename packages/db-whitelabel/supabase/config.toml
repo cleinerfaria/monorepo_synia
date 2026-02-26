@@ -395,3 +395,19 @@ verify_jwt = false
 # Disable JWT verification for company-database (uses manual verification inside function via getUser())
 [functions.company-database]
 verify_jwt = false
+
+# Disable JWT verification for uazapi-proxy (uses manual verification inside function via getUser())
+[functions.uazapi-proxy]
+verify_jwt = false
+
+# Disable JWT verification for sync-conversations (uses manual verification inside function via getUser())
+[functions.sync-conversations]
+verify_jwt = false
+
+# Disable JWT verification for sync-contacts (uses manual verification inside function via getUser())
+[functions.sync-contacts]
+verify_jwt = false
+
+# Disable JWT verification for sync-messages (uses manual verification inside function via getUser())
+[functions.sync-messages]
+verify_jwt = false
