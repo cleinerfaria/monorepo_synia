@@ -46,6 +46,7 @@ interface BuildItemColumnsParams {
   items: PrescriptionItem[];
   duplicateItem: (payload: { item: any; prescriptionId: string; components: any[] }) => void;
   openDeleteItemModal: (item: PrescriptionItem) => void;
+  canDeleteItems: boolean;
 }
 
 export function buildPrintHistoryColumns({
@@ -171,6 +172,7 @@ export function buildItemColumns({
   items,
   duplicateItem,
   openDeleteItemModal,
+  canDeleteItems,
 }: BuildItemColumnsParams): ColumnDef<any>[] {
   return [
     {
@@ -540,7 +542,10 @@ export function buildItemColumns({
 
               <DropdownMenuItem
                 onClick={() => openDeleteItemModal(row.original)}
-                className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                disabled={!canDeleteItems}
+                className={`flex items-center gap-2 ${
+                  canDeleteItems ? 'text-red-600 hover:text-red-700' : 'text-gray-400'
+                }`}
               >
                 <Trash2 className="h-4 w-4" />
                 Excluir
