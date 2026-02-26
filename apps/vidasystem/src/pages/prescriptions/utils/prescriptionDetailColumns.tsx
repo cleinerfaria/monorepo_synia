@@ -27,6 +27,7 @@ interface BuildPrintHistoryColumnsParams {
   deletingPrintId: string | null;
   handleDeletePrescriptionPrint: (item: PrescriptionPrintHistoryItem) => void;
   hasPrescriptionEditPermission: boolean;
+  canPrintPrescription: boolean;
 }
 
 interface BuildItemColumnsParams {
@@ -53,6 +54,7 @@ export function buildPrintHistoryColumns({
   deletingPrintId,
   handleDeletePrescriptionPrint,
   hasPrescriptionEditPermission,
+  canPrintPrescription,
 }: BuildPrintHistoryColumnsParams): ColumnDef<PrescriptionPrintHistoryItem>[] {
   return [
     {
@@ -128,7 +130,7 @@ export function buildPrintHistoryColumns({
                 event.stopPropagation();
                 void handlePrintHistoryAction(row.original.id, 'print');
               }}
-              disabled={isPrintLoading}
+              disabled={!canPrintPrescription || isPrintLoading}
               title="Imprimir"
               aria-label="Imprimir"
             >

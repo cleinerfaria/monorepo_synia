@@ -46,7 +46,7 @@ export function useReferenceTablesStatus() {
 export function useSyncManufacturersFromReference() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async () => {
@@ -259,7 +259,7 @@ export function useManufacturer(id: string | undefined) {
 export function useCreateManufacturer() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'manufacturer'>, 'company_id'>) => {
@@ -293,7 +293,7 @@ export function useCreateManufacturer() {
 export function useUpdateManufacturer() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'manufacturer'> & { id: string }) => {
@@ -329,7 +329,7 @@ export function useUpdateManufacturer() {
 export function useDeleteManufacturer() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

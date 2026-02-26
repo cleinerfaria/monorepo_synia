@@ -74,7 +74,7 @@ export function useSupplierByDocument(document: string | undefined) {
 export function useCreateSupplier() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'supplier'>, 'company_id'>) => {
@@ -108,7 +108,7 @@ export function useCreateSupplier() {
 export function useUpsertSupplierByDocument() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'supplier'>, 'company_id'>) => {
@@ -161,7 +161,7 @@ export function useUpsertSupplierByDocument() {
 export function useUpdateSupplier() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'supplier'> & { id: string }) => {
@@ -197,7 +197,7 @@ export function useUpdateSupplier() {
 export function useDeleteSupplier() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

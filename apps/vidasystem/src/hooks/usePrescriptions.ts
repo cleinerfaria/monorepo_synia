@@ -275,7 +275,7 @@ export function useCreatePrescription() {
         p_patient_id: data.patient_id,
         p_type: data.type,
         p_start_date: data.start_date,
-        p_end_date: data.end_date || data.start_date,
+        p_end_date: data.end_date || null,
         p_status: data.status || 'draft',
         p_notes: data.notes || null,
         p_professional_id: data.professional_id || null,
@@ -312,7 +312,7 @@ export function useCreatePrescription() {
 export function useUpdatePrescription() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'prescription'> & { id: string }) => {
@@ -343,7 +343,7 @@ export function useUpdatePrescription() {
 export function useDeletePrescription() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -371,7 +371,7 @@ export function useDeletePrescription() {
 export function useAddPrescriptionItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -413,7 +413,7 @@ export function useAddPrescriptionItem() {
 export function useUpdatePrescriptionItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -475,7 +475,7 @@ export function useUpdatePrescriptionItem() {
 export function useDeletePrescriptionItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -527,7 +527,7 @@ export function useDeletePrescriptionItem() {
 export function useUploadPrescriptionAttachment() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ prescriptionId, file }: { prescriptionId: string; file: File }) => {
@@ -615,7 +615,7 @@ export function usePrescriptionItemComponents(prescriptionItemId: string | undef
 export function useAddPrescriptionItemComponent() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -672,7 +672,7 @@ export function useAddPrescriptionItemComponent() {
 export function useUpdatePrescriptionItemComponent() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -745,7 +745,7 @@ export function useUpdatePrescriptionItemComponent() {
 export function useDeletePrescriptionItemComponent() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -801,7 +801,7 @@ export function useDeletePrescriptionItemComponent() {
 export function useTogglePrescriptionItemActive() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -859,7 +859,7 @@ export function useTogglePrescriptionItemActive() {
 export function useSuspendPrescriptionItemWithDate() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({
@@ -1006,7 +1006,7 @@ export function usePrescriptionLogs(prescriptionId: string | undefined) {
 export function useDuplicatePrescriptionItem() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
   const logAction = useLogAction();
 
   return useMutation({

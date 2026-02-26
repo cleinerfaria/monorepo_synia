@@ -90,6 +90,8 @@ export default function PrescriptionsPage() {
   const watchType = watch('type');
   const watchPatientId = watch('patient_id');
   const watchProfessionalId = watch('professional_id');
+  const watchStartDate = watch('start_date');
+  const watchEndDate = watch('end_date');
 
   const {
     ref: startDateRef,
@@ -152,7 +154,7 @@ export default function PrescriptionsPage() {
         ...data,
         type: data.type || null,
         professional_id: data.professional_id || null,
-        end_date: data.end_date || data.start_date,
+        end_date: data.end_date || null,
       });
       setIsModalOpen(false);
       setEditingPrescription(null);
@@ -164,7 +166,7 @@ export default function PrescriptionsPage() {
       type: (data.type || 'medical') as PrescriptionType,
       status: data.status,
       start_date: data.start_date,
-      end_date: data.end_date || data.start_date,
+      end_date: data.end_date || null,
       professional_id: data.professional_id || null,
       notes: data.notes || null,
     });
@@ -672,8 +674,18 @@ export default function PrescriptionsPage() {
           />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <DatePicker label="Data de Início" {...startDateField} ref={startDateRef} />
-            <DatePicker label="Data de Término" {...endDateField} ref={endDateRef} />
+            <DatePicker
+              label="Data de Início"
+              value={watchStartDate || ''}
+              {...startDateField}
+              ref={startDateRef}
+            />
+            <DatePicker
+              label="Data de Término"
+              value={watchEndDate || ''}
+              {...endDateField}
+              ref={endDateRef}
+            />
           </div>
 
           <Select label="Status" options={statusOptions} {...register('status')} />

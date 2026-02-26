@@ -101,7 +101,7 @@ export function useStockBatch(id: string | undefined) {
 export function useCreateStockBatch() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'stock_batch'>, 'company_id'>) => {
@@ -130,7 +130,7 @@ export function useCreateStockBatch() {
 export function useUpdateStockBatch() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ id, ...data }: UpdateTables<'stock_batch'> & { id: string }) => {
@@ -161,7 +161,7 @@ export function useUpdateStockBatch() {
 export function useDeleteStockBatch() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const companyId = company?.id ?? null;
+  const _companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async (id: string) => {

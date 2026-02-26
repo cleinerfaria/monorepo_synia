@@ -95,9 +95,42 @@ function renderGridCell(value: string): string {
 }
 
 function normalizePrescriptionType(value: unknown): PrescriptionTypeValue | null {
-  if (value === 'medical' || value === 'nursing' || value === 'nutrition') {
-    return value;
+  const rawValue = String(value ?? '').trim();
+  if (!rawValue) return null;
+
+  const normalizedValue = rawValue
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s-]+/g, '_');
+
+  if (
+    normalizedValue === 'medical' ||
+    normalizedValue === 'medica' ||
+    normalizedValue === 'prescricao_mdedica'
+  ) {
+    return 'medical';
   }
+
+  if (
+    normalizedValue === 'nursing' ||
+    normalizedValue === 'enfermagem' ||
+    normalizedValue === 'prescricao_enfermagem' ||
+    normalizedValue === 'prescricao_de_enfermagem'
+  ) {
+    return 'nursing';
+  }
+
+  if (
+    normalizedValue === 'nutrition' ||
+    normalizedValue === 'nutritional' ||
+    normalizedValue === 'nutricional' ||
+    normalizedValue === 'nutricao' ||
+    normalizedValue === 'prescricao_nutricional'
+  ) {
+    return 'nutrition';
+  }
+
   return null;
 }
 
