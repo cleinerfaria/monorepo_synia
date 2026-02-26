@@ -138,6 +138,7 @@ export default function PrescriptionsPage() {
   );
 
   const openDeleteModal = (prescription: Prescription) => {
+    if (prescription.status !== 'draft') return;
     setSelectedPrescription(prescription);
     setIsDeleteModalOpen(true);
   };
@@ -178,6 +179,10 @@ export default function PrescriptionsPage() {
   };
 
   const handleDelete = async () => {
+    if (selectedPrescription?.status !== 'draft') {
+      setIsDeleteModalOpen(false);
+      return;
+    }
     if (selectedPrescription) {
       await deletePrescription.mutateAsync(selectedPrescription.id);
       setIsDeleteModalOpen(false);
@@ -383,6 +388,12 @@ export default function PrescriptionsPage() {
                 e.stopPropagation();
                 openDeleteModal(row.original);
               }}
+              disabled={row.original.status !== 'draft'}
+              title={
+                row.original.status === 'draft'
+                  ? 'Excluir'
+                  : 'Exclusão permitida apenas em rascunho'
+              }
             >
               <Trash2 className="h-4 w-4" />
             </IconButton>
@@ -723,8 +734,9 @@ export default function PrescriptionsPage() {
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja excluir esta prescrição? Todos os itens também serão removidos.
-          Esta ação não pode ser desfeita.
+          {selectedPrescription?.status === 'draft'
+            ? 'Tem certeza que deseja excluir esta prescrição? Todos os itens também serão removidos. Esta ação não pode ser desfeita.'
+            : 'Exclusão permitida apenas para prescrições em rascunho.'}
         </p>
 
         <ModalFooter>
@@ -739,9 +751,9 @@ export default function PrescriptionsPage() {
             type="button"
             variant="danger"
             onClick={handleDelete}
-            disabled={deletePrescription.isPending}
+            disabled={deletePrescription.isPending || selectedPrescription?.status !== 'draft'}
             showIcon={false}
-            label={deletePrescription.isPending ? 'Excluindo...' : 'Excluir'}
+            label="Excluir"
           />
         </ModalFooter>
       </Modal>

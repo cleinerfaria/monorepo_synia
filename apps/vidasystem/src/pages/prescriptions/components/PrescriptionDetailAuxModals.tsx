@@ -18,12 +18,22 @@ interface PrescriptionDetailAuxModalsProps {
   setIsDeleteItemModalOpen: (value: boolean) => void;
   handleDeleteItem: () => void;
   deleteItemIsPending: boolean;
+  canDeleteItem: boolean;
   isSuspendItemModalOpen: boolean;
   setIsSuspendItemModalOpen: (value: boolean) => void;
   suspensionEndDate: string;
   setSuspensionEndDate: (value: string) => void;
   handleSuspendItem: () => void;
   suspendItemWithDateIsPending: boolean;
+  isEditEffectiveDateModalOpen: boolean;
+  setIsEditEffectiveDateModalOpen: (value: boolean) => void;
+  editEffectiveStartDate: string;
+  setEditEffectiveStartDate: (value: string) => void;
+  editEffectiveDateError: string;
+  setEditEffectiveDateError: (value: string) => void;
+  handleConfirmEditEffectiveDate: () => void;
+  handleCancelEditEffectiveDate: () => void;
+  confirmEditEffectiveDateIsPending: boolean;
   isPrintModalOpen: boolean;
   setIsPrintModalOpen: (value: boolean) => void;
   setPrintActionInProgress: (value: PrescriptionPrintAction | null) => void;
@@ -48,12 +58,22 @@ export function PrescriptionDetailAuxModals({
   setIsDeleteItemModalOpen,
   handleDeleteItem,
   deleteItemIsPending,
+  canDeleteItem,
   isSuspendItemModalOpen,
   setIsSuspendItemModalOpen,
   suspensionEndDate,
   setSuspensionEndDate,
   handleSuspendItem,
   suspendItemWithDateIsPending,
+  isEditEffectiveDateModalOpen,
+  setIsEditEffectiveDateModalOpen,
+  editEffectiveStartDate,
+  setEditEffectiveStartDate,
+  editEffectiveDateError,
+  setEditEffectiveDateError,
+  handleConfirmEditEffectiveDate,
+  handleCancelEditEffectiveDate,
+  confirmEditEffectiveDateIsPending,
   isPrintModalOpen,
   setIsPrintModalOpen,
   setPrintActionInProgress,
@@ -149,9 +169,9 @@ export function PrescriptionDetailAuxModals({
             type="button"
             variant="danger"
             onClick={handleDeleteItem}
-            disabled={deleteItemIsPending}
+            disabled={deleteItemIsPending || !canDeleteItem}
             showIcon={false}
-            label={deleteItemIsPending ? 'Removendo...' : 'Remover'}
+            label="Excluir"
           />
         </ModalFooter>
       </Modal>
@@ -195,6 +215,60 @@ export function PrescriptionDetailAuxModals({
             showIcon={false}
             disabled={suspendItemWithDateIsPending || !suspensionEndDate}
             label={suspendItemWithDateIsPending ? 'Suspendendo...' : 'Suspender'}
+          />
+        </ModalFooter>
+      </Modal>
+
+      <Modal
+        isOpen={isEditEffectiveDateModalOpen}
+        onClose={() => {
+          setIsEditEffectiveDateModalOpen(false);
+          handleCancelEditEffectiveDate();
+        }}
+        title="Data da Alteração"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600 dark:text-gray-400">
+            Informe a partir de que data a alteração da medicação deve valer.
+          </p>
+
+          <DatePicker
+            label="Data de início da alteração"
+            value={editEffectiveStartDate}
+            onChange={(event: any) => {
+              const nextValue = typeof event === 'string' ? event : event.target.value;
+              setEditEffectiveStartDate(nextValue);
+              if (editEffectiveDateError) setEditEffectiveDateError('');
+            }}
+            required
+          />
+
+          {editEffectiveDateError && (
+            <p className="text-sm text-red-500">{editEffectiveDateError}</p>
+          )}
+        </div>
+
+        <ModalFooter>
+          <Button
+            type="button"
+            variant="neutral"
+            onClick={() => {
+              setIsEditEffectiveDateModalOpen(false);
+              handleCancelEditEffectiveDate();
+            }}
+            showIcon={false}
+            label="Cancelar"
+          />
+          <Button
+            type="button"
+            variant="neutral"
+            onClick={handleConfirmEditEffectiveDate}
+            showIcon={false}
+            disabled={confirmEditEffectiveDateIsPending || !editEffectiveStartDate}
+            label={
+              confirmEditEffectiveDateIsPending ? 'Salvando alteração...' : 'Confirmar alteração'
+            }
           />
         </ModalFooter>
       </Modal>

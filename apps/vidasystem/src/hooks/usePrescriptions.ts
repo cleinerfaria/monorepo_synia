@@ -23,6 +23,13 @@ const PRESCRIPTION_ITEM_COMPONENT_SELECT = `
   prescription_item:prescription_item_id(start_date, end_date)
 `;
 
+function getLocalDateKey(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function usePrescriptions() {
   const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
@@ -349,6 +356,19 @@ export function useDeletePrescription() {
     mutationFn: async (id: string) => {
       if (!company?.id) throw new Error('No company');
 
+      const { data: prescription, error: fetchError } = await supabase
+        .from('prescription')
+        .select('id, status')
+        .eq('company_id', company.id)
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (prescription.status !== 'draft') {
+        throw new Error('Exclusão permitida apenas para prescrições em rascunho.');
+      }
+
       const { error } = await supabase
         .from('prescription')
         .delete()
@@ -363,7 +383,7 @@ export function useDeletePrescription() {
     },
     onError: (error) => {
       console.error('Error deleting prescription:', error);
-      toast.error('Erro ao excluir prescrição');
+      toast.error(error instanceof Error ? error.message : 'Erro ao excluir prescrição');
     },
   });
 }
@@ -420,10 +440,12 @@ export function useUpdatePrescriptionItem() {
     mutationFn: async ({
       id,
       prescriptionId,
+      effectiveStartDate,
       ...data
     }: UpdateTables<'prescription_item'> & {
       id: string;
       prescriptionId: string;
+      effectiveStartDate?: string | null;
     }) => {
       if (!company?.id) throw new Error('No company');
 
@@ -437,6 +459,104 @@ export function useUpdatePrescriptionItem() {
 
       if (fetchError) throw fetchError;
 
+      const { data: prescription, error: prescriptionError } = await supabase
+        .from('prescription')
+        .select('status')
+        .eq('id', prescriptionId)
+        .eq('company_id', company.id)
+        .single();
+
+      if (prescriptionError) throw prescriptionError;
+
+      const shouldCreateHistoryVersion =
+        prescription?.status === 'active' && currentItem.item_type === 'medication';
+
+      const todayDateKey = getLocalDateKey(new Date());
+      const currentItemCreatedDateKey = currentItem.created_at?.split('T')[0] ?? null;
+      const currentItemStartDateKey = currentItem.start_date?.split('T')[0] ?? null;
+      const isCurrentVersionFromToday =
+        currentItemCreatedDateKey === todayDateKey || currentItemStartDateKey === todayDateKey;
+      const isEditingForToday = (effectiveStartDate ?? todayDateKey) === todayDateKey;
+
+      if (shouldCreateHistoryVersion && !(isCurrentVersionFromToday && isEditingForToday)) {
+        if (!effectiveStartDate) {
+          throw new Error('Informe a data de início da alteração.');
+        }
+
+        const previousItemUpdateData: any = {
+          is_continuous_use: false,
+          end_date: effectiveStartDate,
+        };
+
+        if (!currentItem.start_date && currentItem.created_at) {
+          previousItemUpdateData.start_date = currentItem.created_at.split('T')[0];
+        }
+
+        const { data: previousItem, error: previousItemError } = await supabase
+          .from('prescription_item')
+          .update(previousItemUpdateData)
+          .eq('company_id', company.id)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (previousItemError) throw previousItemError;
+
+        const { data: existingComponents, error: existingComponentsError } = await supabase
+          .from('prescription_item_component')
+          .select('product_id, quantity')
+          .eq('company_id', company.id)
+          .eq('prescription_item_id', id);
+
+        if (existingComponentsError) throw existingComponentsError;
+
+        const {
+          id: _oldId,
+          created_at: _oldCreatedAt,
+          updated_at: _oldUpdatedAt,
+          ...currentItemBase
+        } = currentItem as any;
+
+        const newItemPayload: any = {
+          ...currentItemBase,
+          ...data,
+          company_id: company.id,
+          prescription_id: prescriptionId,
+          start_date: effectiveStartDate,
+        };
+
+        const { data: newItem, error: newItemError } = await supabase
+          .from('prescription_item')
+          .insert(newItemPayload)
+          .select()
+          .single();
+
+        if (newItemError) throw newItemError;
+
+        if ((existingComponents?.length ?? 0) > 0) {
+          const clonedComponents = existingComponents.map((component) => ({
+            company_id: company.id,
+            prescription_item_id: newItem.id,
+            product_id: component.product_id,
+            quantity: component.quantity,
+          }));
+
+          const { error: cloneComponentsError } = await supabase
+            .from('prescription_item_component')
+            .insert(clonedComponents as any);
+
+          if (cloneComponentsError) throw cloneComponentsError;
+        }
+
+        return {
+          item: newItem as PrescriptionItem,
+          prescriptionId,
+          currentItem,
+          previousItem: previousItem as PrescriptionItem,
+          historyVersionCreated: true,
+        };
+      }
+
       const { data: item, error } = await supabase
         .from('prescription_item')
         .update(data as any)
@@ -446,12 +566,43 @@ export function useUpdatePrescriptionItem() {
         .single();
 
       if (error) throw error;
-      return { item: item as PrescriptionItem, prescriptionId, currentItem };
+      return {
+        item: item as PrescriptionItem,
+        prescriptionId,
+        currentItem,
+        previousItem: null,
+        historyVersionCreated: false,
+      };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: [ITEMS_QUERY_KEY, data.prescriptionId],
       });
+      queryClient.invalidateQueries({
+        queryKey: [COMPONENTS_QUERY_KEY],
+      });
+
+      if (data.historyVersionCreated && data.previousItem) {
+        logAction.mutate({
+          action: 'update',
+          entity: 'prescription_item',
+          entityId: data.previousItem.id,
+          entityName: `Item ${data.previousItem.item_type} - Suspenso por edição`,
+          oldData: buildLogSnapshot(data.currentItem, { exclude: ['updated_at'] }),
+          newData: buildLogSnapshot(data.previousItem, { exclude: ['updated_at'] }),
+        });
+
+        logAction.mutate({
+          action: 'create',
+          entity: 'prescription_item',
+          entityId: data.item.id,
+          entityName: `Item ${data.item.item_type} - Nova versão`,
+          newData: buildLogSnapshot(data.item, { exclude: ['created_at', 'updated_at'] }),
+        });
+
+        toast.success('Item atualizado com histórico!');
+        return;
+      }
 
       // Registrar log da atualização
       logAction.mutate({
@@ -467,7 +618,7 @@ export function useUpdatePrescriptionItem() {
     },
     onError: (error) => {
       console.error('Error updating prescription item:', error);
-      toast.error('Erro ao atualizar item');
+      toast.error(error instanceof Error ? error.message : 'Erro ao atualizar item');
     },
   });
 }
@@ -481,6 +632,19 @@ export function useDeletePrescriptionItem() {
   return useMutation({
     mutationFn: async ({ id, prescriptionId }: { id: string; prescriptionId: string }) => {
       if (!company?.id) throw new Error('No company');
+
+      const { data: prescription, error: prescriptionError } = await supabase
+        .from('prescription')
+        .select('id, status')
+        .eq('company_id', company.id)
+        .eq('id', prescriptionId)
+        .single();
+
+      if (prescriptionError) throw prescriptionError;
+
+      if (prescription.status !== 'draft') {
+        throw new Error('Exclusão de item permitida apenas em prescrição rascunho.');
+      }
 
       // Buscar item atual para log
       const { data: currentItem, error: fetchError } = await supabase
@@ -519,7 +683,7 @@ export function useDeletePrescriptionItem() {
     },
     onError: (error) => {
       console.error('Error deleting prescription item:', error);
-      toast.error('Erro ao remover item');
+      toast.error(error instanceof Error ? error.message : 'Erro ao remover item');
     },
   });
 }

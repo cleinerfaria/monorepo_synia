@@ -101,6 +101,7 @@ import {
   Activity,
 } from 'lucide-react';
 import type {
+  InsertTables,
   PrescriptionItem,
   Prescription,
   Product,
@@ -138,6 +139,8 @@ interface ItemFormData {
   instructions_use: string;
   instructions_pharmacy: string;
 }
+
+type PrescriptionItemMutationPayload = Omit<InsertTables<'prescription_item'>, 'company_id'>;
 
 function normalizePrintLogoUrl(value: unknown): string | null {
   const normalized = typeof value === 'string' ? value.trim() : '';
@@ -339,13 +342,20 @@ export default function PrescriptionDetailPage() {
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [isDeleteItemModalOpen, setIsDeleteItemModalOpen] = useState(false);
   const [isSuspendItemModalOpen, setIsSuspendItemModalOpen] = useState(false);
+  const [isEditEffectiveDateModalOpen, setIsEditEffectiveDateModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<PrescriptionItem | null>(null);
   const [suspensionEndDate, setSuspensionEndDate] = useState('');
+  const [editEffectiveStartDate, setEditEffectiveStartDate] = useState('');
+  const [editEffectiveDateError, setEditEffectiveDateError] = useState('');
   const [periodStartDate, setPeriodStartDate] = useState('');
   const [periodEndDate, setPeriodEndDate] = useState('');
   const [periodModalError, setPeriodModalError] = useState('');
+  const [pendingEditSubmission, setPendingEditSubmission] = useState<{
+    itemData: PrescriptionItemMutationPayload;
+    options?: { addAnother?: boolean };
+  } | null>(null);
   const [timeChecks, setTimeChecks] = useState<string[]>([]);
   const [selectedShifts, setSelectedShifts] = useState<string[]>([]);
   const [weekDaysSelected, setWeekDaysSelected] = useState<number[]>([]);
@@ -1139,10 +1149,14 @@ export default function PrescriptionDetailPage() {
     [dayUnitId, reset, mapTimesUnitToUnitId]
   );
 
-  const openDeleteItemModal = useCallback((item: PrescriptionItem) => {
-    setSelectedItem(item);
-    setIsDeleteItemModalOpen(true);
-  }, []);
+  const openDeleteItemModal = useCallback(
+    (item: PrescriptionItem) => {
+      if (prescription?.status !== 'draft') return;
+      setSelectedItem(item);
+      setIsDeleteItemModalOpen(true);
+    },
+    [prescription?.status]
+  );
 
   const openSuspendItemModal = useCallback((item: PrescriptionItem) => {
     setSelectedItem(item);
@@ -1159,6 +1173,87 @@ export default function PrescriptionDetailPage() {
       setIsSuspendItemModalOpen(false);
     }
   };
+
+  const closeEditEffectiveDateModal = useCallback(() => {
+    setIsEditEffectiveDateModalOpen(false);
+    setEditEffectiveDateError('');
+    setPendingEditSubmission(null);
+  }, []);
+
+  const persistItemChanges = useCallback(
+    async (
+      itemData: PrescriptionItemMutationPayload,
+      options?: { addAnother?: boolean },
+      effectiveStartDate?: string
+    ) => {
+      if (!id) throw new Error('Prescrição inválida.');
+
+      let savedItemId: string | null = null;
+
+      if (selectedItem) {
+        const result = await updateItem.mutateAsync({
+          id: selectedItem.id,
+          prescriptionId: id,
+          ...itemData,
+          effectiveStartDate: effectiveStartDate || undefined,
+        });
+        savedItemId = result?.item?.id || selectedItem.id;
+      } else {
+        const result = await addItem.mutateAsync(itemData);
+        savedItemId = result?.id || null;
+      }
+
+      if (savedItemId && localComponents.length > 0) {
+        for (const component of localComponents) {
+          if (component.isNew) {
+            await addComponent.mutateAsync({
+              prescription_item_id: savedItemId,
+              product_id: component.product_id || null,
+              quantity: component.quantity,
+            });
+          }
+        }
+      }
+
+      if (options?.addAnother) {
+        openAddItemModal();
+        return;
+      }
+
+      setIsItemModalOpen(false);
+    },
+    [selectedItem, updateItem, id, addItem, localComponents, addComponent, openAddItemModal]
+  );
+
+  const handleConfirmEditEffectiveDate = useCallback(async () => {
+    if (!pendingEditSubmission) return;
+    if (!editEffectiveStartDate) {
+      setEditEffectiveDateError('Informe a data de início da alteração.');
+      return;
+    }
+    if (editEffectiveStartDate > format(new Date(), 'yyyy-MM-dd')) {
+      setEditEffectiveDateError('A data da alteração não pode ser futura.');
+      return;
+    }
+
+    setEditEffectiveDateError('');
+
+    try {
+      await persistItemChanges(
+        pendingEditSubmission.itemData,
+        pendingEditSubmission.options,
+        editEffectiveStartDate
+      );
+      closeEditEffectiveDateModal();
+    } catch {
+      // Erro já tratado nas mutations; mantém modal aberto para ajuste/reenvio.
+    }
+  }, [
+    pendingEditSubmission,
+    editEffectiveStartDate,
+    persistItemChanges,
+    closeEditEffectiveDateModal,
+  ]);
 
   const onSubmitItem = async (data: ItemFormData, options?: { addAnother?: boolean }) => {
     if (!id) return;
@@ -1314,45 +1409,34 @@ export default function PrescriptionDetailPage() {
     }
 
     // console.log('Sending item data:', itemData)
+    const todayDateKey = format(new Date(), 'yyyy-MM-dd');
+    const selectedItemCreatedDateKey = selectedItem?.created_at?.split('T')[0] ?? null;
+    const selectedItemStartDateKey = selectedItem?.start_date?.split('T')[0] ?? null;
+    const selectedItemIsTodayVersion =
+      selectedItemCreatedDateKey === todayDateKey || selectedItemStartDateKey === todayDateKey;
 
-    let savedItemId: string | null = null;
+    const requiresEffectiveDateOnEdit =
+      !!selectedItem &&
+      prescription?.status === 'active' &&
+      itemData.item_type === 'medication' &&
+      !selectedItemIsTodayVersion;
 
-    if (selectedItem) {
-      await updateItem.mutateAsync({
-        id: selectedItem.id,
-        prescriptionId: id,
-        ...itemData,
-      });
-      savedItemId = selectedItem.id;
-    } else {
-      const result = await addItem.mutateAsync(itemData);
-      savedItemId = result?.id || null;
-    }
-
-    // Handle components if we have a saved item ID
-    if (savedItemId && localComponents.length > 0) {
-      // For new items, save all local components
-      // For existing items, the components are managed inline
-      for (const component of localComponents) {
-        if (component.isNew) {
-          await addComponent.mutateAsync({
-            prescription_item_id: savedItemId,
-            product_id: component.product_id || null,
-            quantity: component.quantity,
-          });
-        }
-      }
-    }
-
-    if (options?.addAnother) {
-      openAddItemModal();
+    if (requiresEffectiveDateOnEdit) {
+      setPendingEditSubmission({ itemData, options });
+      setEditEffectiveDateError('');
+      setEditEffectiveStartDate(format(new Date(), 'yyyy-MM-dd'));
+      setIsEditEffectiveDateModalOpen(true);
       return;
     }
 
-    setIsItemModalOpen(false);
+    await persistItemChanges(itemData, options);
   };
 
   const handleDeleteItem = async () => {
+    if (prescription?.status !== 'draft') {
+      setIsDeleteItemModalOpen(false);
+      return;
+    }
     if (selectedItem && id) {
       await deleteItem.mutateAsync({ id: selectedItem.id, prescriptionId: id });
       setIsDeleteItemModalOpen(false);
@@ -1530,7 +1614,7 @@ export default function PrescriptionDetailPage() {
       const endDateKey = getDateKey(item.end_date);
       if (!endDateKey) return false;
 
-      return endDateKey < todayDateKey;
+      return endDateKey <= todayDateKey;
     },
     [getDateKey, todayDateKey]
   );
@@ -1612,6 +1696,7 @@ export default function PrescriptionDetailPage() {
         items,
         duplicateItem: (payload) => duplicateItem.mutate(payload as any),
         openDeleteItemModal,
+        canDeleteItems: prescription?.status === 'draft',
       }),
     [
       itemNumbers,
@@ -1629,6 +1714,7 @@ export default function PrescriptionDetailPage() {
       items,
       duplicateItem,
       openDeleteItemModal,
+      prescription?.status,
     ]
   );
   // Garantir que o produto atualmente selecionado sempre apareça nas opções
@@ -2315,13 +2401,11 @@ export default function PrescriptionDetailPage() {
 
       {/* Notes */}
       {prescription.notes && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Observações</CardTitle>
-          </CardHeader>
+        <Card padding="sm">
           <CardContent>
-            <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-              {prescription.notes}
+            <p className="text-gray-700 dark:text-gray-300">
+              <span className="font-medium">Observações:</span>{' '}
+              <span className="whitespace-pre-wrap">{prescription.notes}</span>
             </p>
           </CardContent>
         </Card>
@@ -3222,12 +3306,22 @@ export default function PrescriptionDetailPage() {
         setIsDeleteItemModalOpen={setIsDeleteItemModalOpen}
         handleDeleteItem={handleDeleteItem}
         deleteItemIsPending={deleteItem.isPending}
+        canDeleteItem={prescription?.status === 'draft'}
         isSuspendItemModalOpen={isSuspendItemModalOpen}
         setIsSuspendItemModalOpen={setIsSuspendItemModalOpen}
         suspensionEndDate={suspensionEndDate}
         setSuspensionEndDate={setSuspensionEndDate}
         handleSuspendItem={handleSuspendItem}
         suspendItemWithDateIsPending={suspendItemWithDate.isPending}
+        isEditEffectiveDateModalOpen={isEditEffectiveDateModalOpen}
+        setIsEditEffectiveDateModalOpen={setIsEditEffectiveDateModalOpen}
+        editEffectiveStartDate={editEffectiveStartDate}
+        setEditEffectiveStartDate={setEditEffectiveStartDate}
+        editEffectiveDateError={editEffectiveDateError}
+        setEditEffectiveDateError={setEditEffectiveDateError}
+        handleConfirmEditEffectiveDate={handleConfirmEditEffectiveDate}
+        handleCancelEditEffectiveDate={closeEditEffectiveDateModal}
+        confirmEditEffectiveDateIsPending={updateItem.isPending}
         isPrintModalOpen={isPrintModalOpen}
         setIsPrintModalOpen={setIsPrintModalOpen}
         setPrintActionInProgress={setPrintActionInProgress}
