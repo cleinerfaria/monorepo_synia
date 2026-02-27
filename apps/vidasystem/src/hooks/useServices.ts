@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
+import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import toast from 'react-hot-toast';
 
-const QUERY_KEY = 'service_packages';
+const QUERY_KEY = 'services';
 
-export interface PadService {
+export interface Service {
   id: string;
   company_id: string;
   code: string;
@@ -17,7 +18,7 @@ export interface PadService {
   updated_at: string;
 }
 
-export interface CreatePadServiceInput {
+export interface CreateServiceInput {
   code: string;
   name: string;
   description?: string | null;
@@ -25,8 +26,16 @@ export interface CreatePadServiceInput {
   active?: boolean;
 }
 
-export interface UpdatePadServiceInput extends Partial<CreatePadServiceInput> {
+export interface UpdateServiceInput extends Partial<CreateServiceInput> {
   id: string;
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 const toNullable = (value: string | null | undefined) => {
@@ -34,45 +43,76 @@ const toNullable = (value: string | null | undefined) => {
   return normalized ? normalized : null;
 };
 
-export function usePadServices(includeInactive = false) {
+export function useServicesPaginated(
+  page: number = 1,
+  pageSize: number = DEFAULT_LIST_PAGE_SIZE,
+  searchTerm: string = ''
+) {
   const companyId = useAuthStore((s) => s.appUser?.company_id ?? s.company?.id ?? null);
 
   return useQuery({
-    queryKey: [QUERY_KEY, companyId, includeInactive],
-    queryFn: async () => {
-      if (!companyId) return [];
+    queryKey: [QUERY_KEY, 'paginated', companyId, page, pageSize, searchTerm],
+    queryFn: async (): Promise<PaginatedResult<Service>> => {
+      if (!companyId) {
+        return { data: [], totalCount: 0, page, pageSize, totalPages: 0 };
+      }
 
-      let query = supabase
-        .from('service_package')
+      let countQuery = supabase
+        .from('service')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', companyId);
+
+      let dataQuery = supabase
+        .from('service')
         .select('*, active:is_active')
         .eq('company_id', companyId)
         .order('sort_order', { ascending: true })
         .order('name', { ascending: true });
 
-      if (!includeInactive) {
-        query = query.eq('is_active', true);
+      if (searchTerm?.trim()) {
+        const searchFilter = `%${searchTerm.trim()}%`;
+        countQuery = countQuery.or(
+          `name.ilike.${searchFilter},code.ilike.${searchFilter},description.ilike.${searchFilter}`
+        );
+        dataQuery = dataQuery.or(
+          `name.ilike.${searchFilter},code.ilike.${searchFilter},description.ilike.${searchFilter}`
+        );
       }
 
-      const { data, error } = await query;
+      const { count, error: countError } = await countQuery;
+      if (countError) throw countError;
+
+      const totalCount = count || 0;
+      const totalPages = Math.ceil(totalCount / pageSize);
+      const offset = (page - 1) * pageSize;
+
+      dataQuery = dataQuery.range(offset, offset + pageSize - 1);
+
+      const { data, error } = await dataQuery;
       if (error) throw error;
 
-      return (data || []) as PadService[];
+      return {
+        data: (data || []) as Service[],
+        totalCount,
+        page,
+        pageSize,
+        totalPages,
+      };
     },
     enabled: !!companyId,
   });
 }
 
-export function useCreatePadService() {
+export function useCreateService() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const _companyId = company?.id ?? null;
 
   return useMutation({
-    mutationFn: async (input: CreatePadServiceInput) => {
+    mutationFn: async (input: CreateServiceInput) => {
       if (!company?.id) throw new Error('No company');
 
       const { data, error } = await supabase
-        .from('service_package')
+        .from('service')
         .insert({
           company_id: company.id,
           code: input.code.trim(),
@@ -85,30 +125,29 @@ export function useCreatePadService() {
         .single();
 
       if (error) throw error;
-      return data as PadService;
+      return data as Service;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
-      toast.success('Serviço PAD cadastrado com sucesso!');
+      toast.success('Serviço cadastrado com sucesso!');
     },
     onError: (error: any) => {
-      console.error('Error creating PAD service:', error);
+      console.error('Error creating service:', error);
       if (error?.code === '23505') {
         toast.error('Já existe um serviço com este código ou nome');
       } else {
-        toast.error('Erro ao cadastrar serviço PAD');
+        toast.error('Erro ao cadastrar serviço');
       }
     },
   });
 }
 
-export function useUpdatePadService() {
+export function useUpdateService() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const _companyId = company?.id ?? null;
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: UpdatePadServiceInput) => {
+    mutationFn: async ({ id, ...updates }: UpdateServiceInput) => {
       if (!company?.id) throw new Error('No company');
 
       const payload: Record<string, any> = {};
@@ -120,7 +159,7 @@ export function useUpdatePadService() {
       if (updates.active !== undefined) payload.is_active = updates.active;
 
       const { data, error } = await supabase
-        .from('service_package')
+        .from('service')
         .update(payload)
         .eq('id', id)
         .eq('company_id', company.id)
@@ -128,52 +167,19 @@ export function useUpdatePadService() {
         .single();
 
       if (error) throw error;
-      return data as PadService;
+      return data as Service;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
-      toast.success('Serviço PAD atualizado com sucesso!');
+      toast.success('Serviço atualizado com sucesso!');
     },
     onError: (error: any) => {
-      console.error('Error updating PAD service:', error);
+      console.error('Error updating service:', error);
       if (error?.code === '23505') {
         toast.error('Já existe um serviço com este código ou nome');
       } else {
-        toast.error('Erro ao atualizar serviço PAD');
+        toast.error('Erro ao atualizar serviço');
       }
-    },
-  });
-}
-
-export function useTogglePadServiceStatus() {
-  const queryClient = useQueryClient();
-  const { company } = useAuthStore();
-  const _companyId = company?.id ?? null;
-
-  return useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      if (!company?.id) throw new Error('No company');
-
-      const { data, error } = await supabase
-        .from('service_package')
-        .update({ is_active: active })
-        .eq('id', id)
-        .eq('company_id', company.id)
-        .select('*, active:is_active')
-        .single();
-
-      if (error) throw error;
-      return data as PadService;
-    },
-    onSuccess: (service) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
-      toast.success(
-        service.active ? 'Serviço PAD ativado com sucesso!' : 'Serviço PAD inativado com sucesso!'
-      );
-    },
-    onError: (error) => {
-      console.error('Error toggling PAD service status:', error);
-      toast.error('Erro ao alterar status do serviço PAD');
     },
   });
 }

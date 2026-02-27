@@ -28,6 +28,7 @@ const ClientsPage = lazy(() => import('@/pages/cadastros/ClientsPage'));
 const ProfessionalsPage = lazy(() => import('@/pages/cadastros/ProfessionalsPage'));
 const ProfessionalFormPage = lazy(() => import('@/pages/cadastros/ProfessionalFormPage'));
 const ProceduresPage = lazy(() => import('@/pages/cadastros/ProceduresPage'));
+const ServicesPage = lazy(() => import('@/pages/cadastros/ServicesPage'));
 const ProductsPage = lazy(() => import('@/pages/cadastros/ProductsPage'));
 const ProductFormPage = lazy(() => import('@/pages/cadastros/ProductFormPage'));
 const EquipmentPage = lazy(() => import('@/pages/cadastros/EquipmentPage'));
@@ -515,6 +516,14 @@ function App() {
                   element={
                     <Suspense fallback={<RouteLoader />}>
                       <ProceduresPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="servicos"
+                  element={
+                    <Suspense fallback={<RouteLoader />}>
+                      <ServicesPage />
                     </Suspense>
                   }
                 />
