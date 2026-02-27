@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import { useLogAction } from '@/hooks/useLogs';
 import { buildLogDiff, buildLogSnapshot } from '@/lib/logging';
+import { normalizePhoneForDatabase } from '@/lib/phone';
 import type { Client, InsertTables, UpdateTables } from '@/types/database';
 import toast from 'react-hot-toast';
 
@@ -66,6 +67,9 @@ export function useCreateClient() {
         payload.is_active = payload.active;
         delete payload.active;
       }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
+      }
 
       const { data: client, error } = await supabase
         .from('client')
@@ -119,6 +123,9 @@ export function useUpdateClient() {
       if (payload.active !== undefined) {
         payload.is_active = payload.active;
         delete payload.active;
+      }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
       }
 
       const { data: client, error } = await supabase

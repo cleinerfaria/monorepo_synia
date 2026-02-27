@@ -20,9 +20,9 @@ BEGIN
   INSERT INTO public.patient
     (company_id, code, name, cpf, birth_date, gender, phone, email, is_active)
   VALUES
-    (v_company_id, 'E2E-PAT-001', 'João da Silva', '12345678900', '1960-05-15', 'male', '(11) 98888-0001', 'joao.silva@e2e.local', TRUE),
-    (v_company_id, 'E2E-PAT-002', 'Maria dos Santos', '23456789011', '1965-08-22', 'female', '(11) 98888-0002', 'maria.santos@e2e.local', TRUE),
-    (v_company_id, 'E2E-PAT-003', 'Pedro Costa', '34567890122', '1955-12-10', 'male', '(11) 98888-0003', 'pedro.costa@e2e.local', TRUE)
+    (v_company_id, 'E2E-PAT-001', 'João da Silva', '12345678900', '1960-05-15', 'male', '11988880001', 'joao.silva@e2e.local', TRUE),
+    (v_company_id, 'E2E-PAT-002', 'Maria dos Santos', '23456789011', '1965-08-22', 'female', '11988880002', 'maria.santos@e2e.local', TRUE),
+    (v_company_id, 'E2E-PAT-003', 'Pedro Costa', '34567890122', '1955-12-10', 'male', '11988880003', 'pedro.costa@e2e.local', TRUE)
   ON CONFLICT (company_id, code) WHERE code IS NOT NULL DO NOTHING;
 
 END $$;

@@ -11,6 +11,7 @@ import type {
 } from '@/types/database';
 import toast from 'react-hot-toast';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
+import { normalizePhoneForDatabase } from '@/lib/phone';
 
 const QUERY_KEY = 'patients';
 
@@ -21,6 +22,9 @@ const sanitizePatientPayload = (data: Record<string, any>) => {
   delete payload.patient_address;
   delete payload.patient_contact;
   delete payload.patient_payer;
+  if (payload.phone !== undefined) {
+    payload.phone = normalizePhoneForDatabase(payload.phone);
+  }
   return payload;
 };
 

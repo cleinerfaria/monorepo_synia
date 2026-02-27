@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { normalizePhoneForDatabase } from '@/lib/phone';
 import { useAuthStore } from '@/stores/authStore';
 import type { Supplier, InsertTables, UpdateTables } from '@/types/database';
 import toast from 'react-hot-toast';
@@ -84,6 +85,12 @@ export function useCreateSupplier() {
         payload.is_active = payload.active;
         delete payload.active;
       }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
+      }
+      if (payload.contact_phone !== undefined) {
+        payload.contact_phone = normalizePhoneForDatabase(payload.contact_phone);
+      }
 
       const { data: supplier, error } = await supabase
         .from('supplier')
@@ -126,6 +133,12 @@ export function useUpsertSupplierByDocument() {
       if (payload.active !== undefined) {
         payload.is_active = payload.active;
         delete payload.active;
+      }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
+      }
+      if (payload.contact_phone !== undefined) {
+        payload.contact_phone = normalizePhoneForDatabase(payload.contact_phone);
       }
 
       if (existing) {
@@ -170,6 +183,12 @@ export function useUpdateSupplier() {
       if (payload.active !== undefined) {
         payload.is_active = payload.active;
         delete payload.active;
+      }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
+      }
+      if (payload.contact_phone !== undefined) {
+        payload.contact_phone = normalizePhoneForDatabase(payload.contact_phone);
       }
 
       const { data: supplier, error } = await supabase

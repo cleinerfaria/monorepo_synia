@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
+import { normalizePhoneForDatabase } from '@/lib/phone';
 import type { Professional, InsertTables, UpdateTables } from '@/types/database';
 import toast from 'react-hot-toast';
 
@@ -68,6 +69,9 @@ export function useCreateProfessional() {
         payload.is_active = payload.active;
         delete payload.active;
       }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
+      }
 
       const { data: professional, error } = await supabase
         .from('professional')
@@ -101,6 +105,9 @@ export function useUpdateProfessional() {
       if (payload.active !== undefined) {
         payload.is_active = payload.active;
         delete payload.active;
+      }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
       }
 
       const { data: professional, error } = await supabase

@@ -91,18 +91,18 @@ BEGIN
   INSERT INTO public.professional 
     (company_id, code, name, profession_id, council_type, council_number, council_uf, phone, email, is_active)
   VALUES 
-    (v_company_id, 'E2E-PRO-001', 'Ana Maria Silva', v_medico_id, 'CRM', '123456', 'RN', '(84) 99999-0001', 'ana.silva@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-002', 'Carlos Alexandre Santos', v_enfermeiro_id, 'COREN', '654321', 'RN', '(84) 99999-0002', 'carlos.santos@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-003', 'Maria Silva Oliveira', v_fisioterapeuta_id, 'CREFITO', '987654', 'RN', '(84) 99999-0003', 'maria.oliveira@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-001', 'Ana Maria Silva', v_medico_id, 'CRM', '123456', 'RN', '84999990001', 'ana.silva@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-002', 'Carlos Alexandre Santos', v_enfermeiro_id, 'COREN', '654321', 'RN', '84999990002', 'carlos.santos@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-003', 'Maria Silva Oliveira', v_fisioterapeuta_id, 'CREFITO', '987654', 'RN', '84999990003', 'maria.oliveira@e2e.local', TRUE),
     -- Técnicos de Enfermagem
-    (v_company_id, 'E2E-PRO-004', 'Juliana Melo Lima', v_tec_enfermagem_id, 'COREN', '111111', 'RN', '(84) 99999-0004', 'juliana.lima@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-005', 'Roberto Carlos de Souza', v_tec_enfermagem_id, 'COREN', '222222', 'RN', '(84) 99999-0005', 'roberto.souza@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-006', 'Fernanda Silva da Costa', v_tec_enfermagem_id, 'COREN', '333333', 'RN', '(84) 99999-0006', 'fernanda.costa@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-007', 'Ricardo Emanuel Alves', v_tec_enfermagem_id, 'COREN', '444444', 'RN', '(84) 99999-0007', 'ricardo.alves@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-008', 'Maria de Fátima Costa e Silva', v_tec_enfermagem_id, 'COREN', '555555', 'RN', '(84) 99999-0008', 'maria.costa@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-009', 'Pedro Emanuel Lobo Alves', v_tec_enfermagem_id, 'COREN', '666666', 'RN', '(84) 99999-0009', 'pedro.alves@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-010', 'Rafaela Faria', v_tec_enfermagem_id, 'COREN', '777777', 'RN', '(84) 99999-0010', 'rafaela.faria@e2e.local', TRUE),
-    (v_company_id, 'E2E-PRO-011', 'Helena Santos', v_tec_enfermagem_id, 'COREN', '888888', 'RN', '(84) 99999-0011', 'helena.santos@e2e.local', TRUE)
+    (v_company_id, 'E2E-PRO-004', 'Juliana Melo Lima', v_tec_enfermagem_id, 'COREN', '111111', 'RN', '84999990004', 'juliana.lima@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-005', 'Roberto Carlos de Souza', v_tec_enfermagem_id, 'COREN', '222222', 'RN', '84999990005', 'roberto.souza@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-006', 'Fernanda Silva da Costa', v_tec_enfermagem_id, 'COREN', '333333', 'RN', '84999990006', 'fernanda.costa@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-007', 'Ricardo Emanuel Alves', v_tec_enfermagem_id, 'COREN', '444444', 'RN', '84999990007', 'ricardo.alves@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-008', 'Maria de Fátima Costa e Silva', v_tec_enfermagem_id, 'COREN', '555555', 'RN', '84999990008', 'maria.costa@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-009', 'Pedro Emanuel Lobo Alves', v_tec_enfermagem_id, 'COREN', '666666', 'RN', '84999990009', 'pedro.alves@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-010', 'Rafaela Faria', v_tec_enfermagem_id, 'COREN', '777777', 'RN', '84999990010', 'rafaela.faria@e2e.local', TRUE),
+    (v_company_id, 'E2E-PRO-011', 'Helena Santos', v_tec_enfermagem_id, 'COREN', '888888', 'RN', '84999990011', 'helena.santos@e2e.local', TRUE)
   ON CONFLICT (company_id, code) WHERE code IS NOT NULL DO NOTHING;
 
   -- =====================================================
@@ -111,9 +111,9 @@ BEGIN
   INSERT INTO public.patient 
     (company_id, code, name, cpf, birth_date, gender, phone, email, is_active)
   VALUES 
-    (v_company_id, 'E2E-PAT-001', 'João da Silva', '12345678900', '1960-05-15', 'male', '(11) 98888-0001', 'joao.silva@e2e.local', TRUE),
-    (v_company_id, 'E2E-PAT-002', 'Maria dos Santos', '23456789011', '1965-08-22', 'female', '(11) 98888-0002', 'maria.santos@e2e.local', TRUE),
-    (v_company_id, 'E2E-PAT-003', 'Pedro Costa', '34567890122', '1955-12-10', 'male', '(11) 98888-0003', 'pedro.costa@e2e.local', TRUE)
+    (v_company_id, 'E2E-PAT-001', 'João da Silva', '12345678900', '1960-05-15', 'male', '11988880001', 'joao.silva@e2e.local', TRUE),
+    (v_company_id, 'E2E-PAT-002', 'Maria dos Santos', '23456789011', '1965-08-22', 'female', '11988880002', 'maria.santos@e2e.local', TRUE),
+    (v_company_id, 'E2E-PAT-003', 'Pedro Costa', '34567890122', '1955-12-10', 'male', '11988880003', 'pedro.costa@e2e.local', TRUE)
   ON CONFLICT (company_id, code) WHERE code IS NOT NULL DO NOTHING;
 
   -- =====================================================
