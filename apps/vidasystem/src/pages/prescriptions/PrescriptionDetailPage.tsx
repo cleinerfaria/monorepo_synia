@@ -5,8 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   Button,
   DataTable,
@@ -99,6 +97,10 @@ import {
   UserCheck,
   FileText,
   Activity,
+  Search,
+  Funnel,
+  FunnelX,
+  X,
 } from 'lucide-react';
 import type {
   InsertTables,
@@ -361,6 +363,13 @@ export default function PrescriptionDetailPage() {
   const [weekDaysSelected, setWeekDaysSelected] = useState<number[]>([]);
   const [weekTimeSelected, setWeekTimeSelected] = useState<string>('');
   const [mainTab, setMainTab] = useState<'items' | 'logs' | 'printHistory'>('items');
+  const [itemSearchTerm, setItemSearchTerm] = useState('');
+  const [itemSearchInput, setItemSearchInput] = useState('');
+  const [showItemFilters, setShowItemFilters] = useState(false);
+  const [itemTypeFilter, setItemTypeFilter] = useState('');
+  const [itemRouteFilter, setItemRouteFilter] = useState('');
+  const [itemSupplierFilter, setItemSupplierFilter] = useState('');
+  const [itemStatusFilter, setItemStatusFilter] = useState('');
   const [printActionInProgress, setPrintActionInProgress] =
     useState<PrescriptionPrintAction | null>(null);
   const [printHistoryActionInProgress, setPrintHistoryActionInProgress] = useState<{
@@ -1042,7 +1051,7 @@ export default function PrescriptionDetailPage() {
     }
   }, [watchFrequencyMode, selectedShifts, dayUnitId, setValue, isItemModalOpen]);
 
-  const openAddItemModal = () => {
+  const openAddItemModal = useCallback(() => {
     setSelectedItem(null);
     setTimeChecks([]);
     setSelectedShifts([]);
@@ -1093,7 +1102,7 @@ export default function PrescriptionDetailPage() {
         productFieldRef.current.focus();
       }
     }, 100);
-  };
+  }, [reset]);
 
   const openEditItemModal = useCallback(
     (item: any) => {
@@ -1856,6 +1865,138 @@ export default function PrescriptionDetailPage() {
     [supplierOptions]
   );
 
+  const itemTypeFilterOptions = useMemo(
+    () => [
+      { value: '', label: 'Todos' },
+      { value: 'medication', label: 'Medicamento' },
+      { value: 'material', label: 'Material' },
+      { value: 'diet', label: 'Dieta' },
+      { value: 'procedure', label: 'Procedimento' },
+      { value: 'equipment', label: 'Equipamento' },
+    ],
+    []
+  );
+
+  const itemRouteFilterOptions = useMemo(
+    () => [
+      { value: '', label: 'Todas' },
+      ...administrationRoutes.map((route) => ({
+        value: route.id,
+        label: route.abbreviation ? `${route.abbreviation} - ${route.name}` : route.name,
+      })),
+    ],
+    [administrationRoutes]
+  );
+
+  const itemSupplierFilterOptions = useMemo(
+    () => [
+      { value: '', label: 'Todos' },
+      ...supplierOptions
+        .filter((option) => option.value)
+        .map((option) => ({ value: option.value, label: option.label })),
+    ],
+    [supplierOptions]
+  );
+
+  const itemStatusFilterOptions = useMemo(
+    () => [
+      { value: '', label: 'Todos' },
+      { value: 'active', label: 'Ativo' },
+      { value: 'suspended', label: 'Suspenso' },
+    ],
+    []
+  );
+
+  const handleItemSearch = useCallback(() => {
+    setItemSearchTerm(itemSearchInput.trim());
+  }, [itemSearchInput]);
+
+  const handleItemSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleItemSearch();
+    }
+  };
+
+  const clearItemFilters = useCallback(() => {
+    setItemSearchInput('');
+    setItemSearchTerm('');
+    setItemTypeFilter('');
+    setItemRouteFilter('');
+    setItemSupplierFilter('');
+    setItemStatusFilter('');
+  }, []);
+
+  const hasActiveItemFilters =
+    itemSearchTerm || itemTypeFilter || itemRouteFilter || itemSupplierFilter || itemStatusFilter;
+
+  const filteredItems = useMemo(() => {
+    const normalizedTerm = normalizeText(itemSearchTerm.trim());
+    const itemTypeLabels: Record<string, string> = {
+      medication: 'Medicamento',
+      material: 'Material',
+      diet: 'Dieta',
+      procedure: 'Procedimento',
+      equipment: 'Equipamento',
+    };
+
+    return sortedItems.filter((item) => {
+      if (itemTypeFilter && item.item_type !== itemTypeFilter) return false;
+      if (itemRouteFilter && item.route_id !== itemRouteFilter) return false;
+
+      const supplier = item.supplier || 'company';
+      if (itemSupplierFilter && supplier !== itemSupplierFilter) return false;
+
+      const isActive = isItemEffectivelyActive(item);
+      if (itemStatusFilter === 'active' && !isActive) return false;
+      if (itemStatusFilter === 'suspended' && isActive) return false;
+
+      if (!normalizedTerm) return true;
+
+      const itemAny = item as any;
+      const route = routeById.get(item.route_id || '');
+      const routeLabel = route ? `${route.abbreviation || ''} ${route.name || ''}`.trim() : '';
+      const componentsText = Array.isArray(itemAny.components)
+        ? itemAny.components
+            .map(
+              (component: any) => `${component?.product?.name || ''} ${component?.quantity || ''}`
+            )
+            .join(' ')
+        : '';
+
+      const searchText = normalizeText(
+        [
+          itemAny.display_name || '',
+          itemAny.product?.name || '',
+          itemAny.product?.concentration || '',
+          itemAny.equipment?.name || '',
+          itemAny.procedure?.name || '',
+          routeLabel,
+          itemAny.instructions_use || '',
+          itemAny.instructions_pharmacy || '',
+          supplierLabelByValue.get(supplier) || '',
+          itemTypeLabels[item.item_type] || '',
+          isActive ? 'Ativo' : 'Suspenso',
+          componentsText,
+          formatFrequencyDisplay(item),
+        ].join(' ')
+      );
+
+      return searchText.includes(normalizedTerm);
+    });
+  }, [
+    itemSearchTerm,
+    itemTypeFilter,
+    itemRouteFilter,
+    itemSupplierFilter,
+    itemStatusFilter,
+    normalizeText,
+    sortedItems,
+    isItemEffectivelyActive,
+    routeById,
+    supplierLabelByValue,
+    formatFrequencyDisplay,
+  ]);
+
   const logEntityOptions = [
     { value: 'all', label: 'Todas' },
     { value: 'prescription', label: 'Prescricao' },
@@ -2453,25 +2594,142 @@ export default function PrescriptionDetailPage() {
 
         {/* Items Tab */}
         {mainTab === 'items' && (
-          <div className="p-6">
+          <div className="space-y-4 p-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar por item, via, frequência ou instruções..."
+                  value={itemSearchInput}
+                  onChange={(event) => setItemSearchInput(event.target.value)}
+                  onKeyDown={handleItemSearchKeyDown}
+                  className="focus:ring-primary-500 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleItemSearch}
+                  variant="outline"
+                  size="md"
+                  showIcon
+                  icon={<Search className="h-4 w-4" />}
+                  label=""
+                  className="w-9 justify-center pr-3"
+                />
+                <Button
+                  variant="filter"
+                  active={Boolean(showItemFilters || hasActiveItemFilters)}
+                  onClick={() => setShowItemFilters(!showItemFilters)}
+                  icon={<Funnel className="h-4 w-4" />}
+                  count={
+                    [
+                      itemSearchTerm,
+                      itemTypeFilter,
+                      itemRouteFilter,
+                      itemSupplierFilter,
+                      itemStatusFilter,
+                    ].filter(Boolean).length
+                  }
+                />
+                {hasActiveItemFilters && (
+                  <Button
+                    onClick={clearItemFilters}
+                    variant="outline"
+                    size="md"
+                    showIcon
+                    icon={<FunnelX className="h-4 w-4" />}
+                    label=""
+                    title="Limpar filtros"
+                    aria-label="Limpar filtros"
+                    className="w-9 justify-center pr-3"
+                  />
+                )}
+              </div>
+            </div>
+
+            {showItemFilters && (
+              <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <SearchableSelect
+                    label="Tipo"
+                    options={itemTypeFilterOptions}
+                    placeholder="Selecione..."
+                    searchPlaceholder="Buscar tipo..."
+                    value={itemTypeFilter}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setItemTypeFilter(event.target.value);
+                    }}
+                  />
+                  <SearchableSelect
+                    label="Via"
+                    options={itemRouteFilterOptions}
+                    placeholder="Selecione..."
+                    searchPlaceholder="Buscar via..."
+                    value={itemRouteFilter}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setItemRouteFilter(event.target.value);
+                    }}
+                  />
+                  <SearchableSelect
+                    label="Fornecedor"
+                    options={itemSupplierFilterOptions}
+                    placeholder="Selecione..."
+                    searchPlaceholder="Buscar fornecedor..."
+                    value={itemSupplierFilter}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setItemSupplierFilter(event.target.value);
+                    }}
+                  />
+                  <SearchableSelect
+                    label="Status"
+                    options={itemStatusFilterOptions}
+                    placeholder="Selecione..."
+                    searchPlaceholder="Buscar status..."
+                    value={itemStatusFilter}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setItemStatusFilter(event.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             <DataTable
-              data={sortedItems}
+              data={filteredItems}
               columns={itemColumns}
               isLoading={loadingItems}
               onRowClick={(row) => openEditItemModal(row)}
               emptyState={
-                <EmptyState
-                  title="Nenhum item na prescrição"
-                  description="Adicione medicamentos, materiais, dietas ou equipamentos"
-                  action={
-                    <Button
-                      onClick={openAddItemModal}
-                      size="sm"
-                      variant="solid"
-                      label="Adicionar Item"
-                    />
-                  }
-                />
+                hasActiveItemFilters ? (
+                  <EmptyState
+                    icon={<Funnel className="h-12 w-12 text-gray-400" />}
+                    title="Nenhum item encontrado"
+                    description="Nenhum item corresponde aos filtros selecionados"
+                    action={
+                      <Button
+                        onClick={clearItemFilters}
+                        variant="solid"
+                        size="sm"
+                        icon={<X className="h-4 w-4" />}
+                        label="Limpar filtros"
+                      />
+                    }
+                  />
+                ) : (
+                  <EmptyState
+                    title="Nenhum item na prescrição"
+                    description="Adicione medicamentos, materiais, dietas ou equipamentos"
+                    action={
+                      <Button
+                        onClick={openAddItemModal}
+                        size="sm"
+                        variant="solid"
+                        label="Adicionar Item"
+                      />
+                    }
+                  />
+                )
               }
             />
           </div>
