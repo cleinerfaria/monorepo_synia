@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { normalizePhoneForDatabase } from '@/lib/phone';
 import { useAuthStore } from '@/stores/authStore';
 import type { BusinessPartner, InsertTables, UpdateTables } from '@/types/database';
 import toast from 'react-hot-toast';
@@ -127,6 +128,9 @@ export function useCreateBusinessPartner() {
         payload.is_active = payload.active;
         delete payload.active;
       }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
+      }
 
       const { data: businessPartner, error } = await supabase
         .from('business_partner')
@@ -160,6 +164,9 @@ export function useUpdateBusinessPartner() {
       if (payload.active !== undefined) {
         payload.is_active = payload.active;
         delete payload.active;
+      }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
       }
 
       const { data: businessPartner, error } = await supabase

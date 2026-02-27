@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { normalizePhoneForDatabase } from '@/lib/phone';
 import { useAuthStore } from '@/stores/authStore';
 import type { Manufacturer, InsertTables, UpdateTables } from '@/types/database';
 import toast from 'react-hot-toast';
@@ -269,6 +270,9 @@ export function useCreateManufacturer() {
         payload.is_active = payload.active;
         delete payload.active;
       }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
+      }
 
       const { data: manufacturer, error } = await supabase
         .from('manufacturer')
@@ -302,6 +306,9 @@ export function useUpdateManufacturer() {
       if (payload.active !== undefined) {
         payload.is_active = payload.active;
         delete payload.active;
+      }
+      if (payload.phone !== undefined) {
+        payload.phone = normalizePhoneForDatabase(payload.phone);
       }
 
       const { data: manufacturer, error } = await supabase
