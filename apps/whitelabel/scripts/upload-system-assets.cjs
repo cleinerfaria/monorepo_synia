@@ -14,26 +14,6 @@ const path = require('path');
 
 const ASSETS_TO_UPLOAD = [
   {
-    source: 'public/logo_light.png',
-    destination: 'logo_light.png',
-    description: 'Logo principal - tema claro',
-  },
-  {
-    source: 'public/logo_dark.png',
-    destination: 'logo_dark.png',
-    description: 'Logo principal - tema escuro',
-  },
-  {
-    source: 'public/logo_light_small.png',
-    destination: 'logo_light_small.png',
-    description: 'Logo compacta - tema claro',
-  },
-  {
-    source: 'public/logo_dark_small.png',
-    destination: 'logo_dark_small.png',
-    description: 'Logo compacta - tema escuro',
-  },
-  {
     source: 'public/favicon.svg',
     destination: 'favicon.svg',
     description: 'Favicon do sistema',
@@ -90,15 +70,7 @@ async function uploadAssets() {
         console.log(`   URL: ${publicUrl}\n`);
 
         // Armazenar URL para atualização posterior
-        if (asset.destination.includes('logo_light_small')) {
-          uploadedUrls.logo_light_small = publicUrl;
-        } else if (asset.destination.includes('logo_dark_small')) {
-          uploadedUrls.logo_dark_small = publicUrl;
-        } else if (asset.destination.includes('logo_light')) {
-          uploadedUrls.logo_light = publicUrl;
-        } else if (asset.destination.includes('logo_dark')) {
-          uploadedUrls.logo_dark = publicUrl;
-        } else if (asset.destination.includes('favicon')) {
+        if (asset.destination.includes('favicon')) {
           uploadedUrls.favicon = publicUrl;
         }
       }
