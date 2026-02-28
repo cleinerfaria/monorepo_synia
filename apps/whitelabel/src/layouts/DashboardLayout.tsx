@@ -347,13 +347,13 @@ export default function DashboardLayout() {
 
   const defaultCollapsedLogoSrc =
     resolvedTheme === 'dark'
-      ? systemSettings?.logo_url_collapsed_dark || '/logo_dark.png'
-      : systemSettings?.logo_url_collapsed_light || '/logo_light.png';
+      ? systemSettings?.logo_url_collapsed_dark || null
+      : systemSettings?.logo_url_collapsed_light || null;
 
   const defaultExpandedLogoSrc =
     resolvedTheme === 'dark'
-      ? systemSettings?.logo_url_expanded_dark || '/logo_dark.png'
-      : systemSettings?.logo_url_expanded_light || '/logo_light.png';
+      ? systemSettings?.logo_url_expanded_dark || null
+      : systemSettings?.logo_url_expanded_light || null;
 
   const defaultLogoAlt = company?.trade_name || company?.name || 'sistema';
 

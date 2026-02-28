@@ -88,6 +88,8 @@ export default function LoginPage() {
     systemSettings?.name ||
     localStorage.getItem('system_settings_name') ||
     window.location.hostname;
+  const loginLogoLight = systemSettings?.logo_url_expanded_light || null;
+  const loginLogoDark = systemSettings?.logo_url_expanded_dark || null;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 1024px)');
@@ -152,16 +154,20 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="mb-8 text-center">
-            <img
-              src={systemSettings?.logo_url_expanded_light || '/logo_light.png'}
-              alt={systemName}
-              className="mx-auto block h-20 w-auto dark:hidden"
-            />
-            <img
-              src={systemSettings?.logo_url_expanded_dark || '/logo_dark.png'}
-              alt={systemName}
-              className="mx-auto hidden h-20 w-auto dark:block"
-            />
+            {loginLogoLight ? (
+              <img
+                src={loginLogoLight}
+                alt={systemName}
+                className="mx-auto block h-20 w-auto dark:hidden"
+              />
+            ) : null}
+            {loginLogoDark ? (
+              <img
+                src={loginLogoDark}
+                alt={systemName}
+                className="mx-auto hidden h-20 w-auto dark:block"
+              />
+            ) : null}
             <p className="mt-4 text-gray-500 dark:text-gray-400">
               {systemSettings?.login_frase || 'Sistema de gestão de empresas'}
             </p>

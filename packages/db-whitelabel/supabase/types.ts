@@ -64,10 +64,10 @@ export interface SystemSettings {
   basic_color?: string;
   allow_client_color_adjustment?: boolean;
   allow_client_logo_adjustment?: boolean;
-  logo_light?: string;
-  logo_light_small?: string;
-  logo_dark?: string;
-  logo_dark_small?: string;
+  logo_url_expanded_light?: string;
+  logo_url_collapsed_light?: string;
+  logo_url_expanded_dark?: string;
+  logo_url_collapsed_dark?: string;
   login_frase?: string;
   favicon?: string;
   created_at: string;
