@@ -24,7 +24,7 @@ import { useListPageState } from '@/hooks/useListPageState';
 import { DEFAULT_LIST_PAGE_SIZE } from '@/constants/pagination';
 import { useForm } from 'react-hook-form';
 import type { ActiveIngredient } from '@/types/database';
-import { ImportActiveIngredientsFromCmedModal } from '@/components/catalog/ImportActiveIngredientsFromCmedModal';
+import { CmedActiveIngredientImportModal } from '@/components/active-ingredients/CmedActiveIngredientImportModal';
 
 interface ActiveIngredientFormData {
   code: string;
@@ -357,7 +357,7 @@ export default function ActiveIngredientsPage() {
       </Modal>
 
       {/* Import from CMED Modal */}
-      <ImportActiveIngredientsFromCmedModal
+      <CmedActiveIngredientImportModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
       />

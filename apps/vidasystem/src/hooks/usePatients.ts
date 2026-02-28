@@ -28,6 +28,12 @@ const sanitizePatientPayload = (data: Record<string, any>) => {
   return payload;
 };
 
+const isDuplicatePatientCpfError = (error: { code?: string; message?: string } | null | undefined) =>
+  error?.code === '23505' && error?.message?.includes('idx_patient_cpf_unique');
+
+const isDuplicatePatientCodeError = (error: { code?: string; message?: string } | null | undefined) =>
+  error?.code === '23505' && error?.message?.includes('uq_patient_company_code');
+
 // Extended type with relations
 export type PatientWithRelations = Patient & {
   billing_client: { id: string; name: string } | null;
@@ -279,9 +285,15 @@ export function useCreatePatient() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
       toast.success('Paciente cadastrado com sucesso!');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error creating patient:', error);
-      toast.error('Erro ao cadastrar paciente');
+      if (isDuplicatePatientCpfError(error)) {
+        toast.error('O CPF informado já está cadastrado para outro paciente');
+      } else if (isDuplicatePatientCodeError(error)) {
+        toast.error('O código informado já está em uso para outro paciente');
+      } else {
+        toast.error('Erro ao cadastrar paciente');
+      }
     },
   });
 }
@@ -315,9 +327,15 @@ export function useUpdatePatient() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
       toast.success('Paciente atualizado com sucesso!');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error updating patient:', error);
-      toast.error('Erro ao atualizar paciente');
+      if (isDuplicatePatientCpfError(error)) {
+        toast.error('O CPF informado já está cadastrado para outro paciente');
+      } else if (isDuplicatePatientCodeError(error)) {
+        toast.error('O código informado já está em uso para outro paciente');
+      } else {
+        toast.error('Erro ao atualizar paciente');
+      }
     },
   });
 }
