@@ -384,7 +384,7 @@ function CompaniesTab({
             placeholder="Buscar empresa..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10"
+            className="!pl-10"
           />
         </div>
         {!readOnly && <Button onClick={onNew}>Nova Empresa</Button>}
@@ -523,7 +523,7 @@ function UsersTab({
               placeholder="Buscar usuário..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10"
+              className="!pl-10"
             />
           </div>
           <select
@@ -734,7 +734,7 @@ function ProfilesTab({
               placeholder="Buscar perfil..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10"
+              className="!pl-10"
             />
           </div>
           <select

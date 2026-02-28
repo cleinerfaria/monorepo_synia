@@ -28,17 +28,17 @@ interface SubstanceStats {
   existingCount: number;
 }
 
-interface ImportActiveIngredientsFromCmedModalProps {
+interface CmedActiveIngredientImportModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
 
-export function ImportActiveIngredientsFromCmedModal({
+export function CmedActiveIngredientImportModal({
   isOpen,
   onClose,
-}: ImportActiveIngredientsFromCmedModalProps) {
+}: CmedActiveIngredientImportModalProps) {
   const { company } = useAuthStore();
   const queryClient = useQueryClient();
 

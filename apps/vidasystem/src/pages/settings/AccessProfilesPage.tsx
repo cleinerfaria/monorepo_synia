@@ -186,8 +186,11 @@ export default function AccessProfilesPage() {
                   title="Nenhum perfil cadastrado"
                   description="Comece criando seu primeiro perfil de acesso"
                   action={
-                    <Button onClick={handleNewProfile} size="sm">
-                      <Plus className="h-4 w-4" />
+                    <Button
+                      icon={<Plus className="h-4 w-4" />}
+                      onClick={handleNewProfile}
+                      size="sm"
+                    >
                       Novo Perfil
                     </Button>
                   }

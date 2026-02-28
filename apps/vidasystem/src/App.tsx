@@ -58,6 +58,7 @@ const UsersSettingsPage = lazy(() => import('@/pages/settings/UsersPage'));
 const AccessProfilesPage = lazy(() => import('@/pages/settings/AccessProfilesPage'));
 const LogsPage = lazy(() => import('@/pages/settings/LogsPage'));
 const NoAccessPage = lazy(() => import('@/pages/auth/NoAccessPage'));
+const AdminPage = lazy(() => import('@/pages/admin/AdminPage'));
 const MyShiftsPage = lazy(() => import('@/pages/shift/MyShiftsPage'));
 const ActiveShiftPage = lazy(() => import('@/pages/shift/ActiveShiftPage'));
 
@@ -165,6 +166,28 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
   if (session) {
     return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { session, isLoading, systemUser, hasAnySystemUser } = useAuthStore();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Loading size="lg" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (hasAnySystemUser && !systemUser) {
+    return <Navigate to="/sem-acesso" replace />;
   }
 
   return <>{children}</>;
@@ -782,7 +805,16 @@ function App() {
               />
 
               {/* Administração - Rota separada que permite acesso sem empresa */}
-              <Route path="/admin" element={<Navigate to="/" replace />} />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <Suspense fallback={<RouteLoader />}>
+                      <AdminPage />
+                    </Suspense>
+                  </AdminRoute>
+                }
+              />
 
               {/* Meu Plantão - Layout dedicado para shift_only */}
               <Route

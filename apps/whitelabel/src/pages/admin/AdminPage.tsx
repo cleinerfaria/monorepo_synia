@@ -1211,8 +1211,11 @@ function ProfilesTab({
             ))}
           </select>
         </div>
-        <Button onClick={onNew} disabled={companies.length === 0 && !selectedCompanyFilter}>
-          <Plus className="mr-2 h-5 w-5" />
+        <Button
+          icon={<Plus className="mr-1 h-4 w-4" />}
+          onClick={onNew}
+          disabled={companies.length === 0 && !selectedCompanyFilter}
+        >
           Novo Perfil
         </Button>
       </div>
@@ -1225,8 +1228,7 @@ function ProfilesTab({
           description="Os perfis de acesso definem as permissões dos usuários"
           action={
             companies.length > 0 ? (
-              <Button onClick={onNew}>
-                <Plus className="mr-2 h-5 w-5" />
+              <Button icon={<Plus className="mr-1 h-4 w-4" />} onClick={onNew}>
                 Novo Perfil
               </Button>
             ) : undefined

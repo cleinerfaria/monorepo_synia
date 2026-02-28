@@ -285,8 +285,8 @@ vi.mock('@/stores/authStore', () => ({
   useAuthStore: () => ({ company: { id: 'company-1' } }),
 }));
 
-vi.mock('@/components/catalog/ImportActiveIngredientsFromCmedModal', () => ({
-  ImportActiveIngredientsFromCmedModal: () => null,
+vi.mock('@/components/active-ingredients/CmedActiveIngredientImportModal', () => ({
+  CmedActiveIngredientImportModal: () => null,
 }));
 
 vi.mock('@/components/product/PresentationSearchModal', () => ({
