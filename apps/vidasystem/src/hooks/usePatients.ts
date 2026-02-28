@@ -28,11 +28,13 @@ const sanitizePatientPayload = (data: Record<string, any>) => {
   return payload;
 };
 
-const isDuplicatePatientCpfError = (error: { code?: string; message?: string } | null | undefined) =>
-  error?.code === '23505' && error?.message?.includes('idx_patient_cpf_unique');
+const isDuplicatePatientCpfError = (
+  error: { code?: string; message?: string } | null | undefined
+) => error?.code === '23505' && error?.message?.includes('idx_patient_cpf_unique');
 
-const isDuplicatePatientCodeError = (error: { code?: string; message?: string } | null | undefined) =>
-  error?.code === '23505' && error?.message?.includes('uq_patient_company_code');
+const isDuplicatePatientCodeError = (
+  error: { code?: string; message?: string } | null | undefined
+) => error?.code === '23505' && error?.message?.includes('uq_patient_company_code');
 
 // Extended type with relations
 export type PatientWithRelations = Patient & {

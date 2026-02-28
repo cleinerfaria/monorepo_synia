@@ -13,7 +13,10 @@ function normalizeLegacyAssetReference(assetPathOrUrl: string) {
 
   Object.entries(LEGACY_SYSTEM_ASSET_PATHS).forEach(([legacyPath, nextPath]) => {
     normalizedValue = normalizedValue.replace(
-      new RegExp(`/storage/v1/object/public/system_assets/${legacyPath.replace(/\//g, '\\/')}$`, 'i'),
+      new RegExp(
+        `/storage/v1/object/public/system_assets/${legacyPath.replace(/\//g, '\\/')}$`,
+        'i'
+      ),
       `/storage/v1/object/public/system_assets/${nextPath}`
     );
   });
@@ -62,7 +65,9 @@ function normalizeSystemSettings(data: any) {
   const logoExpandedLight = resolvePublicAssetUrl(
     data.logo_url_expanded_light ?? data.logo_light ?? null
   );
-  const logoExpandedDark = resolvePublicAssetUrl(data.logo_url_expanded_dark ?? data.logo_dark ?? null);
+  const logoExpandedDark = resolvePublicAssetUrl(
+    data.logo_url_expanded_dark ?? data.logo_dark ?? null
+  );
   const logoCollapsedLight = resolvePublicAssetUrl(
     data.logo_url_collapsed_light ?? data.logo_light_small ?? null
   );
