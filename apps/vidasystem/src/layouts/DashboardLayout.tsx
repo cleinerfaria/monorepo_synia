@@ -47,6 +47,7 @@ const navigation: NavItem[] = [
       { name: 'Parceiros de Negócio', href: '/parceiros-negocio' },
       { name: 'Princípios Ativos', href: '/principios-ativos' },
       { name: 'Procedimentos', href: '/procedimentos' },
+      { name: 'Serviços', href: '/servicos' },
       { name: 'Produtos', href: '/produtos' },
       { name: 'Produtos Apresentação', href: '/produto-apresentacao' },
       { name: 'Profissionais', href: '/profissionais' },

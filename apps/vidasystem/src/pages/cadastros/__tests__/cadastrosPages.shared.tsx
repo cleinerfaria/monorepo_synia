@@ -11,6 +11,7 @@ import ManufacturersPage from '@/pages/cadastros/ManufacturersPage';
 import SuppliersPage from '@/pages/cadastros/SuppliersPage';
 import PatientsPage from '@/pages/cadastros/PatientsPage';
 import ProceduresPage from '@/pages/cadastros/ProceduresPage';
+import ServicesPage from '@/pages/cadastros/ServicesPage';
 import ProductsPage from '@/pages/cadastros/ProductsPage';
 import PresentationsPage from '@/pages/cadastros/PresentationsPage';
 import ProfessionalsPage from '@/pages/cadastros/ProfessionalsPage';
@@ -52,6 +53,8 @@ const mocks = vi.hoisted(() => ({
 
   createProcedure: vi.fn().mockResolvedValue({ id: 'procedure-created' }),
   updateProcedure: vi.fn().mockResolvedValue({}),
+  createService: vi.fn().mockResolvedValue({ id: 'service-created' }),
+  updateService: vi.fn().mockResolvedValue({}),
 
   updateProduct: vi.fn().mockResolvedValue({}),
 
@@ -188,6 +191,16 @@ const mocks = vi.hoisted(() => ({
       category: 'care',
       unit_id: 'unit-1',
       description: null,
+      active: true,
+    },
+  ],
+  services: [
+    {
+      id: 'service-1',
+      code: 'internacao_domiciliar',
+      name: 'Internação Domiciliar',
+      description: null,
+      sort_order: 1,
       active: true,
     },
   ],
@@ -375,6 +388,15 @@ vi.mock('@/hooks/useProcedures', () => ({
   }),
   useCreateProcedure: () => ({ mutateAsync: mocks.createProcedure, isPending: false }),
   useUpdateProcedure: () => ({ mutateAsync: mocks.updateProcedure, isPending: false }),
+}));
+
+vi.mock('@/hooks/useServices', () => ({
+  useServicesPaginated: () => ({
+    data: { data: mocks.services, totalCount: mocks.services.length, totalPages: 1 },
+    isLoading: false,
+  }),
+  useCreateService: () => ({ mutateAsync: mocks.createService, isPending: false }),
+  useUpdateService: () => ({ mutateAsync: mocks.updateService, isPending: false }),
 }));
 
 vi.mock('@/hooks/useProducts', () => ({
@@ -792,6 +814,21 @@ export const modalPages: ModalPageCase[] = [
     fillCreate: async (user) => {
       await user.type(screen.getByLabelText('Nome'), 'Procedimento Teste');
       await user.selectOptions(screen.getByLabelText('Unidade de Medida'), 'unit-1');
+    },
+  },
+  {
+    name: 'servicos',
+    heading: 'Serviços',
+    Component: ServicesPage,
+    createButton: /novo servi/i,
+    createDialogTitle: 'Novo Serviço',
+    editDialogTitle: 'Editar Serviço',
+    rowId: 'service-1',
+    createSpy: mocks.createService,
+    updateSpy: mocks.updateService,
+    fillCreate: async (user) => {
+      await user.type(screen.getByLabelText('Código'), 'servico_teste');
+      await user.type(screen.getByLabelText('Nome'), 'Serviço Teste');
     },
   },
   {
