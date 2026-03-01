@@ -40,7 +40,11 @@ export default function ServicesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchInput, setSearchInput] = useState('');
 
-  const { data: paginatedData, isLoading } = useServicesPaginated(currentPage, PAGE_SIZE, searchTerm);
+  const { data: paginatedData, isLoading } = useServicesPaginated(
+    currentPage,
+    PAGE_SIZE,
+    searchTerm
+  );
 
   const services = paginatedData?.data ?? [];
   const totalCount = paginatedData?.totalCount ?? 0;
@@ -247,7 +251,9 @@ export default function ServicesPage() {
               <EmptyState
                 title={searchTerm ? 'Nenhum resultado encontrado' : 'Nenhum serviço cadastrado'}
                 description={
-                  searchTerm ? 'Tente uma busca diferente' : 'Comece cadastrando seu primeiro serviço'
+                  searchTerm
+                    ? 'Tente uma busca diferente'
+                    : 'Comece cadastrando seu primeiro serviço'
                 }
                 action={
                   !searchTerm && (
