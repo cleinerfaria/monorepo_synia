@@ -207,6 +207,32 @@ export default function SalesOverviewPage() {
   // Estado de loading
   const isLoadingData = isLoading || isFetching;
 
+  const currentMonthProgress = useMemo(() => {
+    if (selectedPeriod.start !== selectedPeriod.end) {
+      return null;
+    }
+
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    if (selectedPeriod.start !== currentMonthKey) {
+      return null;
+    }
+
+    const currentDay = now.getDate();
+    const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const metaProporcional = kpis.metaMes > 0 ? (kpis.metaMes / totalDaysInMonth) * currentDay : 0;
+    const atingimentoMetaProporcionalPct =
+      metaProporcional > 0 ? (kpis.faturamento / metaProporcional) * 100 : null;
+
+    return {
+      currentDay,
+      totalDaysInMonth,
+      metaProporcional,
+      atingimentoMetaProporcionalPct,
+    };
+  }, [kpis.faturamento, kpis.metaMes, selectedPeriod.end, selectedPeriod.start]);
+
   // Colunas da tabela de detalhamento mensal
   const tableColumns = useMemo(
     () => [
@@ -430,6 +456,7 @@ export default function SalesOverviewPage() {
     isPrimary = false,
     mom,
     yoy,
+    footer,
     isLoading: loading = false,
   }: {
     label: string;
@@ -438,6 +465,7 @@ export default function SalesOverviewPage() {
     isPrimary?: boolean;
     mom?: number | null;
     yoy?: number | null;
+    footer?: React.ReactNode;
     isLoading?: boolean;
   }) => (
     <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700/50 dark:bg-gray-800/50">
@@ -464,6 +492,7 @@ export default function SalesOverviewPage() {
               {yoy !== undefined && renderGrowthBadge(yoy, 'YoY')}
             </div>
           )}
+          {footer && <div className="mt-2 space-y-1">{footer}</div>}
         </div>
         <div
           className={`flex h-10 w-10 items-center justify-center ${
@@ -528,7 +557,11 @@ export default function SalesOverviewPage() {
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${
+          currentMonthProgress ? 'lg:grid-cols-4' : 'lg:grid-cols-3'
+        }`}
+      >
         {/* Faturamento */}
         <KpiCardCustom
           label="Faturamento Total"
@@ -575,6 +608,26 @@ export default function SalesOverviewPage() {
           isLoading={isLoadingData}
         />
 
+        {currentMonthProgress && (
+          <KpiCardCustom
+            label="Faturamento Atual"
+            value={toBRL(kpis.faturamento)}
+            icon={Target}
+            footer={
+              <>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Meta proporcional ({currentMonthProgress.currentDay}/
+                  {currentMonthProgress.totalDaysInMonth}):{' '}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {toBRL(currentMonthProgress.metaProporcional)}
+                  </span>
+                </p>
+                {renderMetaBadge(currentMonthProgress.atingimentoMetaProporcionalPct)}
+              </>
+            }
+            isLoading={isLoadingData}
+          />
+        )}
       </div>
 
       {/* Gráfico de Faturamento (sempre últimos 12 meses - FIXO) */}

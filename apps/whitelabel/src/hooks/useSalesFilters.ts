@@ -3,15 +3,45 @@ import { useSearchParams } from 'react-router-dom';
 import type { SalesFilters } from '@/types/sales';
 import { getDateRange } from '@/utils/metrics';
 
+function getCurrentPeriodValue(referenceDate = new Date()): string {
+  return `${referenceDate.getFullYear()}-${String(referenceDate.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function formatPeriodLabel(period: string): string {
+  const [year, month] = period.split('-').map(Number);
+  const formatted = new Intl.DateTimeFormat('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
+
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
+function buildPeriodOptions(referenceDate = new Date()) {
+  return Array.from({ length: 12 }, (_, index) => {
+    const optionDate = new Date(
+      Date.UTC(referenceDate.getFullYear(), referenceDate.getMonth() - index, 1)
+    );
+    const value = getCurrentPeriodValue(optionDate);
+
+    return {
+      value,
+      label: formatPeriodLabel(value),
+    };
+  });
+}
+
+export const DEFAULT_PERIOD = getCurrentPeriodValue();
+export const periodOptions = buildPeriodOptions();
+
 /**
  * Hook para gerenciar filtros globais do dashboard de vendas
  */
 export function useSalesFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Helper para garantir que o valor é uma string válida
-  // Estado dos filtros aplicados (atuais)
-  const [period, setPeriod] = useState<string>(searchParams.get('period') || '2026-02');
+  const [period, setPeriod] = useState<string>(searchParams.get('period') || DEFAULT_PERIOD);
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
   const [filial, setFilial] = useState<string[]>(
@@ -27,19 +57,16 @@ export function useSalesFilters() {
     searchParams.get('regional') ? searchParams.get('regional')!.split(',') : []
   );
 
-  // Estado dos filtros temporários (antes da confirmação)
   const [clientesTemp, setClientesTemp] = useState<string[]>(clientesAplicados);
   const [filialTemp, setFilialTemp] = useState<string[]>(filial);
   const [grupoTemp, setGrupoTemp] = useState<string[]>(grupo);
   const [regionalTemp, setRegionalTemp] = useState<string[]>(regional);
 
-  // Refs para rastrear o tamanho anterior dos arrays (detecção de remoção)
   const prevClientesTempLengthRef = useRef(clientesTemp.length);
   const prevFilialTempLengthRef = useRef(filialTemp.length);
   const prevGrupoTempLengthRef = useRef(grupoTemp.length);
   const prevRegionalTempLengthRef = useRef(regionalTemp.length);
 
-  // Calcula as datas baseado no período
   const { startDate, endDate } = useMemo(() => {
     if (period === 'custom' && customStartDate && customEndDate) {
       return { startDate: customStartDate, endDate: customEndDate };
@@ -48,7 +75,6 @@ export function useSalesFilters() {
     return getDateRange(period);
   }, [period, customStartDate, customEndDate]);
 
-  // Atualiza URL com os filtros
   const updateSearchParams = useCallback(
     (
       newFilters: Partial<
@@ -81,10 +107,8 @@ export function useSalesFilters() {
     [searchParams, setSearchParams]
   );
 
-  // Auto-apply quando um filtro é removido (tamanho do array diminui)
   useEffect(() => {
     if (clientesTemp.length < prevClientesTempLengthRef.current) {
-      // Usuário removeu um cliente - aplicar automaticamente
       setClientesAplicados(clientesTemp);
       updateSearchParams({ clientes: clientesTemp });
     }
@@ -93,7 +117,6 @@ export function useSalesFilters() {
 
   useEffect(() => {
     if (filialTemp.length < prevFilialTempLengthRef.current) {
-      // Usuário removeu uma filial - aplicar automaticamente
       setFilial(filialTemp);
       updateSearchParams({ filial: filialTemp });
     }
@@ -102,7 +125,6 @@ export function useSalesFilters() {
 
   useEffect(() => {
     if (grupoTemp.length < prevGrupoTempLengthRef.current) {
-      // Usuário removeu um produto - aplicar automaticamente
       setGrupo(grupoTemp);
       updateSearchParams({ grupo: grupoTemp });
     }
@@ -117,17 +139,16 @@ export function useSalesFilters() {
     prevRegionalTempLengthRef.current = regionalTemp.length;
   }, [regionalTemp, updateSearchParams]);
 
-  // Handlers - sanitizam o valor antes de armazenar
   const handlePeriodChange = useCallback(
     (newPeriod: string | { target: { value: string } }) => {
-      // Extrair valor se for um evento, ou usar diretamente se for string
       let finalPeriod: string;
+
       if (typeof newPeriod === 'string') {
-        finalPeriod = newPeriod || '2026-02';
+        finalPeriod = newPeriod || DEFAULT_PERIOD;
       } else if (newPeriod && typeof newPeriod === 'object' && 'target' in newPeriod) {
-        finalPeriod = newPeriod.target.value || '2026-02';
+        finalPeriod = newPeriod.target.value || DEFAULT_PERIOD;
       } else {
-        finalPeriod = '2026-02';
+        finalPeriod = DEFAULT_PERIOD;
       }
 
       setPeriod(finalPeriod);
@@ -150,7 +171,6 @@ export function useSalesFilters() {
   }, [filial]);
 
   const handleClientesTempChange = useCallback((value: string[]) => {
-    // Garantir que value seja sempre um array com valores válidos
     const sanitizedValue = value.filter(
       (v) => typeof v === 'string' && v.trim() !== '' && v !== '[object Object]'
     );
@@ -200,7 +220,7 @@ export function useSalesFilters() {
   }, []);
 
   const clearFilters = useCallback(() => {
-    setPeriod('2026-02'); // Padrão para fevereiro 2026
+    setPeriod(DEFAULT_PERIOD);
     setFilial([]);
     setFilialTemp([]);
     setClientesAplicados([]);
@@ -214,9 +234,7 @@ export function useSalesFilters() {
     setSearchParams(new URLSearchParams());
   }, [setSearchParams]);
 
-  // Retorno
   return {
-    // Estado
     period,
     startDate,
     endDate,
@@ -229,7 +247,6 @@ export function useSalesFilters() {
     regional,
     regionalTemp,
 
-    // Handlers
     handlePeriodChange,
     handleFilialChange,
     handleApplyFilialFilter,
@@ -246,13 +263,11 @@ export function useSalesFilters() {
     handleCustomDateChange,
     clearFilters,
 
-    // Estados de controle
     hasClientesPendingChanges: JSON.stringify(clientesTemp) !== JSON.stringify(clientesAplicados),
     hasFilialPendingChanges: JSON.stringify(filialTemp) !== JSON.stringify(filial),
     hasGrupoPendingChanges: JSON.stringify(grupoTemp) !== JSON.stringify(grupo),
     hasRegionalPendingChanges: JSON.stringify(regionalTemp) !== JSON.stringify(regional),
 
-    // Filtros para a query
     queryFilters: {
       filial: filial.length > 0 ? filial : undefined,
       clientes: clientesAplicados.length > 0 ? clientesAplicados : undefined,
@@ -261,20 +276,3 @@ export function useSalesFilters() {
     },
   };
 }
-
-// Opções de período disponíveis - últimos 12 meses (ordem decrescente começando do atual)
-export const periodOptions = [
-  // Últimos 12 meses a partir de fevereiro/2026
-  { value: '2026-02', label: 'Fevereiro 2026' },
-  { value: '2026-01', label: 'Janeiro 2026' },
-  { value: '2025-12', label: 'Dezembro 2025' },
-  { value: '2025-11', label: 'Novembro 2025' },
-  { value: '2025-10', label: 'Outubro 2025' },
-  { value: '2025-09', label: 'Setembro 2025' },
-  { value: '2025-08', label: 'Agosto 2025' },
-  { value: '2025-07', label: 'Julho 2025' },
-  { value: '2025-06', label: 'Junho 2025' },
-  { value: '2025-05', label: 'Maio 2025' },
-  { value: '2025-04', label: 'Abril 2025' },
-  { value: '2025-03', label: 'Março 2025' },
-];
