@@ -33,6 +33,11 @@ interface _ProdutoData {
   nome_produto: string;
 }
 
+interface _VendedorData {
+  value: string;
+  label: string;
+}
+
 /**
  * Executa uma query no banco de dados da empresa com fallback
  */
@@ -414,6 +419,60 @@ export function useProdutoOptions() {
     },
     enabled: !!company,
     staleTime: 1000 * 60 * 60, // 1 hora
+  });
+}
+
+/**
+ * Hook para buscar opções de vendedor
+ */
+export function useVendedorOptions(enabled = true) {
+  const { company } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['filter-options', 'vendedor', company?.id],
+    queryFn: async (): Promise<FilterOption[]> => {
+      if (!company) {
+        throw new Error('Nenhuma empresa selecionada');
+      }
+
+      const primaryQuery = `
+        SELECT DISTINCT
+          trim(m.nome_vendedor) as value,
+          trim(m.nome_vendedor) as label
+        FROM public.movimentacao m
+        WHERE m.nome_vendedor IS NOT NULL
+          AND trim(m.nome_vendedor) <> ''
+        ORDER BY trim(m.nome_vendedor)
+      `;
+
+      const fallbackQuery = `
+        SELECT DISTINCT
+          trim(nome_vendedor) as value,
+          trim(nome_vendedor) as label
+        FROM movimentos
+        WHERE nome_vendedor IS NOT NULL
+          AND trim(nome_vendedor) <> ''
+        ORDER BY trim(nome_vendedor)
+      `;
+
+      try {
+        const rows = await executeCompanyQueryWithFallback<_VendedorData[]>(
+          company.id,
+          primaryQuery,
+          fallbackQuery
+        );
+
+        return rows.map((row) => ({
+          value: String(row.value || ''),
+          label: String(row.label || ''),
+        }));
+      } catch (error) {
+        console.error('❌ [Vendedor] Erro ao buscar vendedores:', error);
+        throw new Error('Erro ao buscar vendedores da empresa');
+      }
+    },
+    enabled: !!company && enabled,
+    staleTime: 1000 * 60 * 60,
   });
 }
 

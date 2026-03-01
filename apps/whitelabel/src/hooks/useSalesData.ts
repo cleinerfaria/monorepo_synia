@@ -906,10 +906,20 @@ async function fetchOverviewData(
     filters?.regional && filters.regional.length > 0
       ? `'${filters.regional.map(escapeSqlValue).join("','")}'`
       : null;
+  const vendedorFilter =
+    filters?.vendedor && filters.vendedor.length > 0
+      ? `'${filters.vendedor.map(escapeSqlValue).join("','")}'`
+      : null;
 
   // Query otimizada com CTEs - FONTE ÚNICA DE DADOS
   // Sempre busca últimos 12 meses + 12 anteriores para YoY
-  const query = buildOverviewDataQuery(filialFilter, clienteFilter, grupoFilter, regionalFilter);
+  const query = buildOverviewDataQuery(
+    filialFilter,
+    clienteFilter,
+    grupoFilter,
+    regionalFilter,
+    vendedorFilter
+  );
 
   const queryResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
     method: 'POST',
@@ -987,6 +997,7 @@ export function useOverviewData(filters?: {
   clientes?: string[];
   grupo?: string[];
   regional?: string[];
+  vendedor?: string[];
 }) {
   const { company } = useAuthStore();
 
@@ -1984,6 +1995,10 @@ async function fetchRevenueByState(
     filters?.regional && filters.regional.length > 0
       ? filters.regional.map((r) => `'${escapeSqlValue(r)}'`).join(',')
       : null;
+  const vendedorFilter =
+    filters?.vendedor && filters.vendedor.length > 0
+      ? filters.vendedor.map((v) => `'${escapeSqlValue(v)}'`).join(',')
+      : null;
 
   // Query para faturamento por UF nos últimos 12 meses
   const query = `
@@ -2007,6 +2022,7 @@ async function fetchRevenueByState(
       ${filialFilter ? `AND m.cod_filial IN (${filialFilter})` : ''}
       ${grupoFilter ? `AND gr.id IN (${grupoFilter})` : ''}
       ${regionalFilter ? `AND gr.regional_id IN (${regionalFilter})` : ''}
+      ${vendedorFilter ? `AND m.nome_vendedor IN (${vendedorFilter})` : ''}
     GROUP BY 1
     ORDER BY faturamento DESC
   `;
@@ -2051,6 +2067,7 @@ export function useRevenueByState(filters?: {
   clientes?: string[];
   grupo?: string[];
   regional?: string[];
+  vendedor?: string[];
 }) {
   const { company } = useAuthStore();
 

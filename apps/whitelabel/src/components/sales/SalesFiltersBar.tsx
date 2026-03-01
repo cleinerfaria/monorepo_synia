@@ -1,13 +1,14 @@
 import { Select, MultiSelect } from '@synia/ui';
-import { periodOptions } from '@/hooks/useSalesFilters';
+import { Calendar, X } from 'lucide-react';
+import { clsx } from 'clsx';
+import { getPeriodOptions } from '@/hooks/useSalesFilters';
 import {
   useFilialOptions,
   useClienteOptions,
   useGrupoOptions,
   useRegionalOptions,
+  useVendedorOptions,
 } from '@/hooks/useFilterOptions';
-import { Calendar, X } from 'lucide-react';
-import { clsx } from 'clsx';
 
 interface SalesFiltersBarProps {
   period: string;
@@ -35,6 +36,12 @@ interface SalesFiltersBarProps {
   onApplyRegionalFilter: () => void;
   onCancelRegionalFilter: () => void;
   hasRegionalPendingChanges: boolean;
+  vendedor?: string[];
+  vendedorTemp?: string[];
+  onVendedorChange?: (value: string[]) => void;
+  onApplyVendedorFilter?: () => void;
+  onCancelVendedorFilter?: () => void;
+  hasVendedorPendingChanges?: boolean;
   onClearFilters: () => void;
   className?: string;
   showPeriodFilter?: boolean;
@@ -70,11 +77,21 @@ export default function SalesFiltersBar({
   onCancelRegionalFilter,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hasRegionalPendingChanges,
+  vendedor = [],
+  vendedorTemp = [],
+  onVendedorChange,
+  onApplyVendedorFilter,
+  onCancelVendedorFilter,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hasVendedorPendingChanges,
   onClearFilters,
   className,
   showPeriodFilter = true,
 }: SalesFiltersBarProps) {
-  // Buscar opções dos filtros
+  const showVendedorFilter =
+    !!onVendedorChange && !!onApplyVendedorFilter && !!onCancelVendedorFilter;
+
+  const periodOptions = getPeriodOptions(period);
   const { data: filialOptions = [], isLoading: isLoadingFiliais } = useFilialOptions();
   const {
     data: clienteOptions = [],
@@ -86,27 +103,37 @@ export default function SalesFiltersBar({
   } = useClienteOptions();
   const { data: grupoOptions = [], isLoading: isLoadingGrupos } = useGrupoOptions();
   const { data: regionalOptions = [], isLoading: isLoadingRegionais } = useRegionalOptions();
+  const { data: vendedorOptions = [], isLoading: isLoadingVendedores } =
+    useVendedorOptions(showVendedorFilter);
 
   const hasActiveFilters =
-    filial.length > 0 || clientesTemp.length > 0 || grupo.length > 0 || regional.length > 0;
+    filial.length > 0 ||
+    clientesTemp.length > 0 ||
+    grupo.length > 0 ||
+    regional.length > 0 ||
+    vendedor.length > 0;
 
   return (
     <div
       className={clsx(
-        'flex items-center gap-3 rounded-xl border border-gray-100 bg-white/80 p-3',
+        'relative flex items-center gap-3 rounded-xl border border-gray-100 bg-white/80 p-3',
+        'shadow-sm backdrop-blur-sm',
         'dark:border-gray-700/50 dark:bg-gray-800/50',
-        'relative shadow-sm backdrop-blur-sm',
         className
       )}
     >
-      {/* Grid com filtros */}
       <div
         className={clsx(
           'grid flex-1 grid-cols-1 gap-3',
-          showPeriodFilter ? 'md:grid-cols-5' : 'md:grid-cols-4'
+          showPeriodFilter
+            ? showVendedorFilter
+              ? 'md:grid-cols-6'
+              : 'md:grid-cols-5'
+            : showVendedorFilter
+              ? 'md:grid-cols-5'
+              : 'md:grid-cols-4'
         )}
       >
-        {/* Período */}
         {showPeriodFilter && (
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Período</label>
@@ -123,7 +150,6 @@ export default function SalesFiltersBar({
           </div>
         )}
 
-        {/* Filial */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Filial</label>
           <div className="relative">
@@ -140,7 +166,6 @@ export default function SalesFiltersBar({
           </div>
         </div>
 
-        {/* Regional */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Regional</label>
           <div className="relative">
@@ -157,7 +182,6 @@ export default function SalesFiltersBar({
           </div>
         </div>
 
-        {/* Grupo */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Grupo</label>
           <div className="relative">
@@ -174,7 +198,6 @@ export default function SalesFiltersBar({
           </div>
         </div>
 
-        {/* Cliente */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Cliente</label>
           <div className="relative">
@@ -196,9 +219,26 @@ export default function SalesFiltersBar({
             />
           </div>
         </div>
+
+        {showVendedorFilter && (
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Vendedor</label>
+            <div className="relative">
+              <MultiSelect
+                options={vendedorOptions}
+                value={vendedorTemp}
+                onChange={onVendedorChange!}
+                onApply={onApplyVendedorFilter!}
+                onCancel={onCancelVendedorFilter!}
+                placeholder={isLoadingVendedores ? 'Carregando...' : 'Todos os vendedores'}
+                disabled={isLoadingVendedores}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Ações */}
       <div className="flex flex-shrink-0 items-center gap-2">
         {hasActiveFilters && (
           <button

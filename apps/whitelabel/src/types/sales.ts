@@ -37,6 +37,7 @@ export interface SalesFilters {
   clientes?: string[];
   grupo?: string[];
   regional?: string[];
+  vendedor?: string[];
 }
 
 export interface DashboardQueryFilters {
@@ -44,6 +45,7 @@ export interface DashboardQueryFilters {
   clientes?: string[];
   grupo?: string[];
   regional?: string[];
+  vendedor?: string[];
 }
 
 // KPI Card data

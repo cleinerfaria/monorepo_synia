@@ -6,7 +6,8 @@ export function buildOverviewDataQuery(
   filialFilter: string | null,
   clienteFilter: string | null,
   grupoFilter: string | null,
-  regionalFilter: string | null
+  regionalFilter: string | null,
+  vendedorFilter: string | null
 ): string {
   const mesesRefSubquery = `
     SELECT generate_series(
@@ -39,6 +40,7 @@ export function buildOverviewDataQuery(
       ${clienteFilter ? `AND m.cod_cliente IN (${clienteFilter})` : ''}
       ${grupoFilter ? `AND gr.id IN (${grupoFilter})` : ''}
       ${regionalFilter ? `AND gr.regional_id IN (${regionalFilter})` : ''}
+      ${vendedorFilter ? `AND m.nome_vendedor IN (${vendedorFilter})` : ''}
   `;
 
   const totaisMesSubquery = `
