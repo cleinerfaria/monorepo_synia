@@ -2342,6 +2342,7 @@ export default function NfeImportDetailPage() {
           <Input
             label="Razão Social"
             placeholder="Nome completo da empresa"
+            autoUppercase={true}
             {...registerNewManufacturer('name', { required: 'Razão social é obrigatória' })}
             error={newManufacturerErrors.name?.message}
             required
@@ -2349,6 +2350,7 @@ export default function NfeImportDetailPage() {
 
           <Input
             label="Nome Fantasia (opcional)"
+            autoUppercase={true}
             placeholder="Nome comercial da empresa"
             {...registerNewManufacturer('trade_name')}
           />

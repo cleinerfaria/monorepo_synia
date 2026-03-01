@@ -603,7 +603,7 @@ export default function ProductsPage() {
                   action={
                     <Button
                       onClick={() => navigate(newProductUrl)}
-                      icon={<Plus className="h-4 w-4" />}
+                      size="sm"
                       variant="solid"
                       label="Novo Produto"
                     />

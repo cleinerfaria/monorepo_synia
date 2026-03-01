@@ -414,11 +414,7 @@ export default function BusinessPartnersPage() {
             <form className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                 <div className="md:col-span-2">
-                  <Input
-                    label="Código"
-                    placeholder="Código do sistema externo"
-                    {...register('code')}
-                  />
+                  <Input label="Código" placeholder="Código" {...register('code')} />
                 </div>
                 <div className="md:col-span-5">
                   <Input

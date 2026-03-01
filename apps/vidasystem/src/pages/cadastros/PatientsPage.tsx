@@ -569,7 +569,7 @@ export default function PatientsPage() {
                     <Button
                       onClick={() => navigate(newPatientUrl)}
                       variant="solid"
-                      icon={<Plus className="h-4 w-4" />}
+                      size="sm"
                       label="Novo Paciente"
                     />
                   }

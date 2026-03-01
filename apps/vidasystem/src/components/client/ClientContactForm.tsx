@@ -35,7 +35,7 @@ export default function ClientContactForm({
   onSave,
   isSaving,
 }: ClientContactFormProps) {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(contacts.length > 0 ? 0 : null);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const handleAddContact = () => {
     const newContact: Partial<ClientContact> = {

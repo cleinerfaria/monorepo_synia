@@ -522,6 +522,7 @@ export default function SuppliersPage() {
               <div className="col-span-12">
                 <Input
                   label="Razão Social"
+                  autoUppercase={true}
                   placeholder="Nome oficial da empresa"
                   {...register('name', { required: 'Razão social é obrigatória' })}
                   error={errors.name?.message}
@@ -531,6 +532,7 @@ export default function SuppliersPage() {
               <div className="col-span-8">
                 <Input
                   label="Nome Fantasia"
+                  autoUppercase={true}
                   placeholder="Nome comercial"
                   {...register('trade_name')}
                 />

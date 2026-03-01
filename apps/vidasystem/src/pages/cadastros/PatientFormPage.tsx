@@ -228,12 +228,6 @@ export default function PatientFormPage() {
     ...birthDateField
   } = register('birth_date', { required: 'Data de nascimento é obrigatória' });
 
-  const {
-    ref: nameRef,
-    onChange: nameOnChange,
-    ...nameField
-  } = register('name', { required: 'Nome é obrigatório' });
-
   // Assistir mudanças na data de nascimento
   const birthDate = watch('birth_date');
   const gender = watch('gender');
@@ -267,17 +261,6 @@ export default function PatientFormPage() {
       setCpfError(undefined);
     }
   }, [cpfValue]);
-
-  const handleNameChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const normalizedValue = normalizePatientName(e.target.value);
-      if (e.target.value !== normalizedValue) {
-        e.target.value = normalizedValue;
-      }
-      nameOnChange(e);
-    },
-    [nameOnChange]
-  );
 
   // Funções para salvar dados relacionados individualmente
   const handleSaveAddresses = async (addressesToSave: PatientAddress[]) => {
@@ -584,9 +567,8 @@ export default function PatientFormPage() {
                     <Input
                       label="Nome Completo"
                       placeholder="Nome do paciente"
-                      {...nameField}
-                      ref={nameRef}
-                      onChange={handleNameChange}
+                      {...register('name', { required: 'Nome é obrigatório' })}
+                      autoUppercase
                       error={errors.name?.message}
                       required
                     />

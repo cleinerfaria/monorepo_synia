@@ -390,42 +390,55 @@ export default function EquipmentPage() {
         size="lg"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input label="Código" placeholder="Código do sistema externo" {...register('code')} />
-            <Input
-              label="Nome do Equipamento"
-              placeholder="Ex: Concentrador de O2, CPAP, BiPAP..."
-              {...register('name', { required: 'Nome é obrigatório' })}
-              error={errors.name?.message}
-              required
-            />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+            <div className="md:col-span-3">
+              <Input label="Código" placeholder="Código" {...register('code')} />
+            </div>
+
+            <div className="md:col-span-9">
+              <Input
+                label="Nome do Equipamento"
+                placeholder="Ex: Concentrador de O2, CPAP, BiPAP..."
+                {...register('name', { required: 'Nome é obrigatório' })}
+                error={errors.name?.message}
+                required
+              />
+            </div>
+
+            <div className="md:col-span-4">
+              <Input
+                label="Número de Série"
+                placeholder="S/N do equipamento"
+                {...register('serial_number')}
+              />
+            </div>
+
+            <div className="md:col-span-4">
+              <Input
+                label="Nº de Tombamento"
+                placeholder="Número"
+                {...register('patrimony_code')}
+              />
+            </div>
+
+            <div className="md:col-span-4">
+              <Select
+                label="Status"
+                options={statusOptions}
+                {...register('status', { required: true })}
+                required
+              />
+            </div>
+
+            <div className="md:col-span-12">
+              <Textarea
+                label="Descrição"
+                placeholder="Descrição do equipamento..."
+                rows={3}
+                {...register('description')}
+              />
+            </div>
           </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input
-              label="Número de Série"
-              placeholder="S/N do equipamento"
-              {...register('serial_number')}
-            />
-            <Select
-              label="Status"
-              options={statusOptions}
-              {...register('status', { required: true })}
-              required
-            />
-          </div>
-
-          <Input
-            label="Código de Patrimônio"
-            placeholder="Código de patrimônio"
-            {...register('patrimony_code')}
-          />
-
-          <Textarea
-            label="Descrição"
-            placeholder="Descrição do equipamento..."
-            {...register('description')}
-          />
 
           <ModalFooter>
             <Button

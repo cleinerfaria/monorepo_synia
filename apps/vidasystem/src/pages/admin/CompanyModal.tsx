@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Button, Switch } from '@/components/ui';
+import { Modal, Input, Button, Switch, ColorPicker } from '@/components/ui';
 import {
   Company,
   useCreateCompany,
@@ -7,6 +7,7 @@ import {
   useDeleteCompany,
 } from '@/hooks/useCompanies';
 import { DEFAULT_PRIMARY_COLOR } from '@/design-system/theme/constants';
+import { formatCnpjInput, validateCnpj } from '@/lib/cnpj';
 import { AlertTriangle } from 'lucide-react';
 interface CompanyModalProps {
   isOpen: boolean;
@@ -34,25 +35,12 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
   const isLoading =
     createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
-  const formatCnpj = (value: string) => {
-    const digits = value.replace(/\D/g, '').slice(0, 14);
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
-    if (digits.length <= 8) {
-      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
-    }
-    if (digits.length <= 12) {
-      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
-    }
-    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
-  };
-
   useEffect(() => {
     if (company) {
       setFormData({
         name: company.name,
         trade_name: company.trade_name || '',
-        document: formatCnpj(company.document || ''),
+        document: formatCnpjInput(company.document || ''),
         primary_color: company.primary_color || DEFAULT_PRIMARY_COLOR,
         is_active: company.is_active ?? true,
       });
@@ -74,6 +62,10 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
 
     if (!formData.name.trim()) {
       newErrors.name = 'Nome é obrigatório';
+    }
+
+    if (formData.document.trim() && !validateCnpj(formData.document)) {
+      newErrors.document = 'CNPJ inválido';
     }
 
     setErrors(newErrors);
@@ -138,24 +130,23 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
         )}
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Razão Social *
-          </label>
           <Input
+            label="Razão Social"
             type="text"
+            autoUppercase={true}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="Nome da empresa"
+            required
             error={errors.name}
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Nome Fantasia
-          </label>
           <Input
+            label="Nome Fantasia"
             type="text"
+            autoUppercase={true}
             value={formData.trade_name}
             onChange={(e) => setFormData({ ...formData, trade_name: e.target.value })}
             placeholder="Nome fantasia"
@@ -163,37 +154,29 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            CNPJ
-          </label>
           <Input
+            label="CNPJ"
             type="text"
             value={formData.document}
-            onChange={(e) => setFormData({ ...formData, document: formatCnpj(e.target.value) })}
+            onChange={(e) =>
+              setFormData({ ...formData, document: formatCnpjInput(e.target.value) })
+            }
             placeholder="00.000.000/0000-00"
             inputMode="numeric"
+            error={errors.document}
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Cor Principal
-          </label>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={formData.primary_color}
-              onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
-              className="h-10 w-14 cursor-pointer rounded"
-            />
-            <Input
-              type="text"
-              value={formData.primary_color}
-              onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
-              placeholder={DEFAULT_PRIMARY_COLOR}
-              className="flex-1"
-            />
-          </div>
+          <ColorPicker
+            label="Cor Principal"
+            value={formData.primary_color}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setFormData({ ...formData, primary_color: e.target.value })
+            }
+            placeholder={DEFAULT_PRIMARY_COLOR}
+            hint="Cor principal utilizada para identificar a empresa no sistema"
+          />
         </div>
 
         <div className="flex items-center">

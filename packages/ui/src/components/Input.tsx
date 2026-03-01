@@ -1,4 +1,4 @@
-import { forwardRef, InputHTMLAttributes } from 'react';
+import { forwardRef, type ChangeEvent, type InputHTMLAttributes } from 'react';
 import { clsx } from 'clsx';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -6,10 +6,35 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   hint?: string;
   inputSize?: 'sm' | 'md';
+  autoUppercase?: boolean;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, hint, type = 'text', inputSize = 'md', ...props }, ref) => {
+  (
+    {
+      className,
+      label,
+      error,
+      hint,
+      type = 'text',
+      inputSize = 'md',
+      autoUppercase = false,
+      onChange,
+      ...props
+    },
+    ref
+  ) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+      if (autoUppercase) {
+        const normalizedValue = e.target.value.toLocaleUpperCase('pt-BR');
+        if (e.target.value !== normalizedValue) {
+          e.target.value = normalizedValue;
+        }
+      }
+
+      onChange?.(e);
+    };
+
     return (
       <div className="w-full">
         {label && (
@@ -28,6 +53,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className
           )}
           ref={ref}
+          onChange={handleChange}
           {...props}
         />
         {hint && !error && <p className="text-content-muted ml-1 mt-1 text-xs">{hint}</p>}

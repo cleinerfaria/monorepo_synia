@@ -88,25 +88,31 @@ export function useCreateCompany() {
     mutationFn: async (input: CreateCompanyInput) => {
       const insertData: Record<string, any> = {
         name: input.name,
-        trade_name: input.trade_name || null,
-        document: input.document || null,
         primary_color: input.primary_color || DEFAULT_PRIMARY_COLOR,
-        company_unit_id: input.company_unit_id || null,
-        care_modality: input.care_modality || null,
-        tax_regime: input.tax_regime || null,
-        special_tax_regime: input.special_tax_regime || null,
-        taxation_nature: input.taxation_nature || null,
-        cnae: input.cnae || null,
-        cnes: input.cnes || null,
-        state_registration: input.state_registration || null,
-        email: input.email || null,
-        website: input.website || null,
-        is_active: input.is_active ?? true,
       };
 
-      if (input.theme_preference) {
-        insertData.theme_preference = input.theme_preference;
-      }
+      const optionalFields: Array<keyof Omit<CreateCompanyInput, 'name' | 'primary_color'>> = [
+        'trade_name',
+        'document',
+        'theme_preference',
+        'company_unit_id',
+        'care_modality',
+        'tax_regime',
+        'special_tax_regime',
+        'taxation_nature',
+        'cnae',
+        'cnes',
+        'state_registration',
+        'email',
+        'website',
+        'is_active',
+      ];
+
+      optionalFields.forEach((field) => {
+        if (input[field] !== undefined) {
+          insertData[field] = input[field];
+        }
+      });
 
       const { data, error } = await supabase.from('company').insert(insertData).select().single();
 

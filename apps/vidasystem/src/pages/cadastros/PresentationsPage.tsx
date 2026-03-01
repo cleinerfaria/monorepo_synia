@@ -858,6 +858,7 @@ export default function PresentationsPage() {
 
           <Input
             label="Razão Social"
+            autoUppercase={true}
             placeholder="Nome completo da empresa"
             {...registerNewManufacturer('name', { required: 'Razão social é obrigatória' })}
             error={newManufacturerErrors.name?.message}
@@ -866,6 +867,7 @@ export default function PresentationsPage() {
 
           <Input
             label="Nome Fantasia (opcional)"
+            autoUppercase={true}
             placeholder="Nome comercial da empresa"
             {...registerNewManufacturer('trade_name')}
           />
