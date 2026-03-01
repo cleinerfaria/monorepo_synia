@@ -296,11 +296,7 @@ export default function ActiveIngredientsPage() {
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Input
-              label="Código"
-              placeholder="Código do sistema externo (DCB, etc.)"
-              {...register('code')}
-            />
+            <Input label="Código" placeholder="Código" {...register('code')} />
             <Input
               label="Nome"
               placeholder="Ex: Captopril, Dipirona, Omeprazol"

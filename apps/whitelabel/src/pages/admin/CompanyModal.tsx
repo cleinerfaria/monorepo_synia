@@ -171,6 +171,7 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
           <Input
             type="text"
             value={formData.name}
+            autoUppercase={true}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="Nome da empresa"
             error={errors.name}
@@ -184,6 +185,7 @@ export default function CompanyModal({ isOpen, onClose, company }: CompanyModalP
           <Input
             type="text"
             value={formData.trade_name}
+            autoUppercase={true}
             onChange={(e) => setFormData({ ...formData, trade_name: e.target.value })}
             placeholder="Nome fantasia"
           />

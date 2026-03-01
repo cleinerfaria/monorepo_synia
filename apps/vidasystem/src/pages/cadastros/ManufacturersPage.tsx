@@ -50,6 +50,7 @@ interface ManufacturerFormData {
 }
 
 const PAGE_SIZE = DEFAULT_LIST_PAGE_SIZE;
+const normalizeManufacturerName = (value: string): string => value.toLocaleUpperCase('pt-BR');
 
 export default function ManufacturersPage() {
   const [currentPage, setCurrentPage] = useListPageState();
@@ -140,8 +141,8 @@ export default function ManufacturersPage() {
     setSelectedManufacturer(manufacturer);
     reset({
       code: manufacturer.code || '',
-      name: manufacturer.name,
-      trade_name: manufacturer.trade_name || '',
+      name: normalizeManufacturerName(manufacturer.name),
+      trade_name: normalizeManufacturerName(manufacturer.trade_name || ''),
       document: manufacturer.document || '',
       website: manufacturer.website || '',
       phone: manufacturer.phone || '',
@@ -206,8 +207,9 @@ export default function ManufacturersPage() {
 
     const payload = {
       ...data,
+      name: normalizeManufacturerName(data.name),
       code: toNullable(data.code),
-      trade_name: toNullable(data.trade_name),
+      trade_name: toNullable(normalizeManufacturerName(data.trade_name)),
       document: toNullable(data.document),
       website: toNullable(data.website),
       phone: toNullable(data.phone),
@@ -445,17 +447,14 @@ export default function ManufacturersPage() {
             <form className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                 <div className="md:col-span-2">
-                  <Input
-                    label="Código"
-                    placeholder="Código do sistema externo"
-                    {...register('code')}
-                  />
+                  <Input label="Código" placeholder="Código" {...register('code')} />
                 </div>
                 <div className="md:col-span-5">
                   <Input
                     label="Razão Social"
                     placeholder="Nome oficial da empresa"
                     {...register('name', { required: 'Razão social é obrigatória' })}
+                    autoUppercase
                     error={errors.name?.message}
                     required
                   />
@@ -465,6 +464,7 @@ export default function ManufacturersPage() {
                     label="Nome Fantasia"
                     placeholder="Nome comercial"
                     {...register('trade_name')}
+                    autoUppercase
                   />
                 </div>
               </div>

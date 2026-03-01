@@ -16,7 +16,7 @@ CROSS JOIN (
     ('Endovenosa', 'EV', 'Administração diretamente na veia'),
     ('Intramuscular', 'IM', 'Administração no músculo'),
     ('Subcutânea', 'SC', 'Administração sob a pele'),
-    ('Tópica', 'TOP', 'Aplicação na pele'),
+    ('Tópica', 'TO', 'Aplicação na pele'),
     ('Retal', 'VR', 'Administração pelo reto'),
     ('Nasal', 'VN', 'Administração pelo nariz'),
     ('Inalatória', 'INAL', 'Administração por inalação'),

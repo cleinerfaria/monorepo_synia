@@ -16,7 +16,7 @@ export function useClientContacts(clientId: string | undefined) {
 
       const { data, error } = await supabase
         .from('client_contact')
-        .select('*')
+        .select('*, active:is_active')
         .eq('client_id', clientId)
         .eq('company_id', companyId)
         .order('is_primary', { ascending: false })
@@ -32,53 +32,68 @@ export function useClientContacts(clientId: string | undefined) {
 export function useSaveClientContacts() {
   const queryClient = useQueryClient();
   const { company } = useAuthStore();
-  const _companyId = company?.id ?? null;
+  const companyId = company?.id ?? null;
 
   return useMutation({
     mutationFn: async ({ clientId, contacts }: { clientId: string; contacts: ClientContact[] }) => {
       if (!company?.id) throw new Error('No company');
 
       // Deletar contatos existentes que não estão na lista
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('client_contact')
         .select('id')
         .eq('client_id', clientId)
-        .eq('company_id', company.id);
+        .eq('company_id', companyId);
+
+      if (existingError) throw existingError;
 
       const existingIds = existing?.map((c) => c.id) || [];
       const currentIds = contacts.filter((c) => !c.id.startsWith('temp-')).map((c) => c.id);
       const toDelete = existingIds.filter((id) => !currentIds.includes(id));
 
       if (toDelete.length > 0) {
-        await supabase.from('client_contact').delete().in('id', toDelete);
+        const { error: deleteError } = await supabase
+          .from('client_contact')
+          .delete()
+          .eq('company_id', companyId)
+          .in('id', toDelete);
+
+        if (deleteError) throw deleteError;
       }
 
       // Processar cada contato
       for (const contact of contacts) {
-        const contactData = {
+        const contactData: Record<string, any> = {
           ...contact,
           client_id: clientId,
-          company_id: company.id,
+          company_id: companyId,
         };
+        if (contactData.active !== undefined) {
+          contactData.is_active = contactData.active;
+          delete contactData.active;
+        }
 
         if (contact.id.startsWith('temp-')) {
           // Inserir novo
           const { id: _id, ...insertData } = contactData;
-          await supabase.from('client_contact').insert(insertData);
+          const { error: insertError } = await supabase.from('client_contact').insert(insertData);
+          if (insertError) throw insertError;
         } else {
           // Atualizar existente
           const { id: contactId, ...updateData } = contactData;
-          await supabase
+          const { error: updateError } = await supabase
             .from('client_contact')
             .update(updateData)
             .eq('id', contactId)
-            .eq('company_id', company.id);
+            .eq('company_id', companyId);
+
+          if (updateError) throw updateError;
         }
       }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEY, variables.clientId],
+        queryKey: [QUERY_KEY, variables.clientId, companyId],
       });
       toast.success('Contatos salvos com sucesso!');
     },

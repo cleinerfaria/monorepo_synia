@@ -27,6 +27,7 @@ import type { Client, ClientContact } from '@/types/database';
 import ClientContactForm from '@/components/client/ClientContactForm';
 import { useAuthStore } from '@/stores/authStore';
 import { UF_OPTIONS, fetchAddressFromZip, formatZipInput } from '@/lib/addressZip';
+import { validateCnpj } from '@/lib/cnpj';
 
 // Funções de formatação
 const formatDocument = (document: string): string => {
@@ -60,24 +61,28 @@ const formatPhone = (phone: string): string => {
 };
 
 // Máscaras para inputs
-const applyDocumentMask = (value: string): string => {
+const applyDocumentMask = (
+  value: string,
+  type: ClientFormData['type']
+): string => {
   const cleanValue = value.replace(/\D/g, '');
 
-  if (cleanValue.length <= 11) {
+  if (type === 'individual') {
     // CPF
     return cleanValue
+      .slice(0, 11)
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{2})$/, '$1-$2');
-  } else {
-    // CNPJ
-    return cleanValue
-      .slice(0, 14)
-      .replace(/(\d{2})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1/$2')
-      .replace(/(\d{4})(\d{2})$/, '$1-$2');
   }
+
+  // CNPJ
+  return cleanValue
+    .slice(0, 14)
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d{2})$/, '$1-$2');
 };
 
 const applyPhoneMask = (value: string): string => {
@@ -93,6 +98,34 @@ const applyPhoneMask = (value: string): string => {
       .replace(/(\d{2})(\d)/, '($1) $2')
       .replace(/(\d{5})(\d{4})$/, '$1-$2');
   }
+};
+
+const normalizeClientName = (value: string): string => value.toLocaleUpperCase('pt-BR');
+
+const validateCPF = (cpf: string): boolean => {
+  const digits = cpf.replace(/\D/g, '');
+
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(digits[i]) * (10 - i);
+  }
+
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(digits[9])) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(digits[i]) * (11 - i);
+  }
+
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+
+  return remainder === parseInt(digits[10]);
 };
 
 interface ClientFormData {
@@ -161,14 +194,41 @@ export default function ClientsPage() {
   // Observar mudanças nos campos
   const watchType = watch('type');
   const watchState = watch('state');
+  const watchDocument = watch('document');
+  const isIndividualClient = watchType === 'individual';
+  const documentLabel = isIndividualClient ? 'CPF' : 'CNPJ';
+  const documentPlaceholder = isIndividualClient ? '000.000.000-00' : '00.000.000/0000-00';
 
   const activeValue = watch('active');
   const { ref: activeRef, name: activeName, onBlur: activeOnBlur } = register('active');
+  const {
+    ref: documentRef,
+    ...documentField
+  } = register('document', {
+    validate: (value) => {
+      if (!value?.trim()) return true;
+
+      const isValid = isIndividualClient ? validateCPF(value) : validateCnpj(value);
+      return isValid || `${documentLabel} inválido`;
+    },
+  });
 
   const openCreateModal = () => {
     setSelectedClient(null);
     setIsModalOpen(true);
   };
+
+  useEffect(() => {
+    if (!watchDocument) return;
+
+    const normalizedDocument = applyDocumentMask(watchDocument, watchType || 'company');
+    if (normalizedDocument === watchDocument) return;
+
+    setValue('document', normalizedDocument, {
+      shouldDirty: false,
+      shouldValidate: true,
+    });
+  }, [watchDocument, watchType, setValue]);
 
   // useEffect para controlar reset do formulário
   useEffect(() => {
@@ -178,7 +238,7 @@ export default function ClientsPage() {
         reset({
           code: selectedClient.code || '',
           type: (selectedClient.type as ClientFormData['type']) || 'company',
-          name: selectedClient.name,
+          name: normalizeClientName(selectedClient.name),
           document: selectedClient.document || '',
           email: selectedClient.email || '',
           phone: selectedClient.phone || '',
@@ -290,7 +350,8 @@ export default function ClientsPage() {
 
     const payload = {
       ...data,
-      name: data.name ? data.name.toUpperCase() : '',
+      name: normalizeClientName(data.name || ''),
+      document: toNullable(data.document),
       code: toNullable(data.code),
       zip: toNullable(data.zip),
       street: toNullable(data.street),
@@ -303,12 +364,21 @@ export default function ClientsPage() {
       tiss: toNullable(data.tiss),
       color: toNullable(data.color),
     };
-    if (selectedClient) {
-      await updateClient.mutateAsync({ id: selectedClient.id, ...payload });
-    } else {
-      await createClient.mutateAsync(payload);
+    try {
+      if (selectedClient) {
+        await updateClient.mutateAsync({ id: selectedClient.id, ...payload });
+        await saveContacts.mutateAsync({
+          clientId: selectedClient.id,
+          contacts,
+        });
+      } else {
+        await createClient.mutateAsync(payload);
+      }
+
+      setIsModalOpen(false);
+    } catch {
+      // Os hooks já exibem feedback de erro; mantém o modal aberto para correção
     }
-    setIsModalOpen(false);
   };
 
   const handleDelete = async () => {
@@ -505,7 +575,6 @@ export default function ClientsPage() {
                     onClick={openCreateModal}
                     size="sm"
                     variant="solid"
-                    icon={<Plus className="h-4 w-4" />}
                     label="Cadastrar Cliente"
                   />
                 }
@@ -575,15 +644,9 @@ export default function ClientsPage() {
                       label="Nome / Razão Social"
                       placeholder="Nome do cliente"
                       {...register('name', { required: 'Nome é obrigatório' })}
+                      autoUppercase
                       error={errors.name?.message}
                       required
-                      onBlur={(e) => {
-                        const value = e.target.value.toUpperCase();
-                        if (value !== e.target.value) {
-                          // Atualiza o valor do campo para caixa alta
-                          setValue('name', value);
-                        }
-                      }}
                     />
                   </div>
                 </div>
@@ -591,12 +654,18 @@ export default function ClientsPage() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                   <div className="md:col-span-3">
                     <Input
-                      label="CPF/CNPJ"
-                      placeholder="Números..."
-                      {...register('document')}
+                      label={documentLabel}
+                      placeholder={documentPlaceholder}
+                      inputMode="numeric"
+                      {...documentField}
+                      ref={documentRef}
+                      error={errors.document?.message}
                       onChange={(e) => {
-                        const maskedValue = applyDocumentMask(e.target.value);
-                        setValue('document', maskedValue, { shouldDirty: true });
+                        const maskedValue = applyDocumentMask(e.target.value, watchType || 'company');
+                        setValue('document', maskedValue, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
                       }}
                     />
                   </div>
@@ -764,7 +833,7 @@ export default function ClientsPage() {
                 size="md"
                 showIcon={false}
                 onClick={handleSubmit(onSubmit)}
-                disabled={createClient.isPending || updateClient.isPending}
+                disabled={createClient.isPending || updateClient.isPending || saveContacts.isPending}
                 label={selectedClient ? 'Salvar Alterações' : 'Cadastrar'}
               />
             </div>

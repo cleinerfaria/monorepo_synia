@@ -28,6 +28,7 @@ import type { Tables } from '@/types/database';
 type AdministrationRoute = Tables<'administration_routes'>;
 
 interface AdministrationRouteFormData {
+  code: string;
   name: string;
   abbreviation: string;
   description: string;
@@ -112,6 +113,7 @@ export default function AdministrationRoutesPage() {
   const openCreateModal = () => {
     setSelectedRoute(null);
     reset({
+      code: '',
       name: '',
       abbreviation: '',
       description: '',
@@ -124,6 +126,7 @@ export default function AdministrationRoutesPage() {
   const openEditModal = (route: AdministrationRoute) => {
     setSelectedRoute(route);
     reset({
+      code: route.code || '',
       name: route.name,
       abbreviation: route.abbreviation || '',
       description: route.description || '',
@@ -135,6 +138,7 @@ export default function AdministrationRoutesPage() {
 
   const onSubmit = async (data: AdministrationRouteFormData) => {
     const payload = {
+      code: data.code || null,
       name: data.name,
       abbreviation: data.abbreviation || null,
       description: data.description || null,
@@ -325,6 +329,7 @@ export default function AdministrationRoutesPage() {
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input label="Código" placeholder="Ex: vo, iv, sc" {...register('code')} />
             <Input
               label="Nome"
               placeholder="Ex: Oral, Intravenosa, Subcutânea"
@@ -332,6 +337,9 @@ export default function AdministrationRoutesPage() {
               error={errors.name?.message}
               required
             />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Input label="Abreviação" placeholder="Ex: VO, IV, SC" {...register('abbreviation')} />
           </div>
 

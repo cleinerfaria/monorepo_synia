@@ -440,11 +440,7 @@ export default function ProfessionalFormPage() {
             {activeTab === 'basic' && (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <Input
-                    label="Código"
-                    placeholder="Código do sistema externo"
-                    {...register('code')}
-                  />
+                  <Input label="Código" placeholder="Código" {...register('code')} />
                   <Input
                     label="Nome Completo"
                     placeholder="Nome do profissional"

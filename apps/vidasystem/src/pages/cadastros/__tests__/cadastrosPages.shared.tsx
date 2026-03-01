@@ -84,6 +84,7 @@ const mocks = vi.hoisted(() => ({
   administrationRoutes: [
     {
       id: 'route-1',
+      code: 'vo',
       name: 'Via Oral',
       abbreviation: 'VO',
       description: null,
@@ -446,11 +447,28 @@ vi.mock('@/hooks/useProductGroups', () => ({
 vi.mock('@/components/ui', () => {
   const Input = React.forwardRef<
     HTMLInputElement,
-    React.InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string }
-  >(({ label, error: _error, required: _required, ...props }, ref) => (
+    React.InputHTMLAttributes<HTMLInputElement> & {
+      label?: string;
+      error?: string;
+      autoUppercase?: boolean;
+    }
+  >(({ label, error: _error, required: _required, autoUppercase = false, onChange, ...props }, ref) => (
     <label>
       {label}
-      <input ref={ref} aria-label={label} {...props} />
+      <input
+        ref={ref}
+        aria-label={label}
+        onChange={(e) => {
+          if (autoUppercase) {
+            const normalizedValue = e.target.value.toLocaleUpperCase('pt-BR');
+            if (e.target.value !== normalizedValue) {
+              e.target.value = normalizedValue;
+            }
+          }
+          onChange?.(e);
+        }}
+        {...props}
+      />
     </label>
   ));
   Input.displayName = 'MockInput';
@@ -887,6 +905,7 @@ export const modalPages: ModalPageCase[] = [
     createSpy: mocks.createAdministrationRoute,
     updateSpy: mocks.updateAdministrationRoute,
     fillCreate: async (user) => {
+      await user.type(screen.getByLabelText('Código'), 'via_teste');
       await user.type(screen.getByLabelText('Nome'), 'Via Teste');
     },
   },
