@@ -18,9 +18,24 @@ interface _ClienteData {
   nome_cliente: string;
 }
 
+interface _GrupoData {
+  id: string;
+  name: string;
+}
+
+interface _RegionalData {
+  id: string;
+  name: string;
+}
+
 interface _ProdutoData {
   cod_produto: string;
   nome_produto: string;
+}
+
+interface _VendedorData {
+  value: string;
+  label: string;
 }
 
 /**
@@ -274,6 +289,83 @@ export function useClienteOptions() {
 }
 
 /**
+ * Hook para buscar opções de grupo
+ */
+export function useGrupoOptions() {
+  const { company } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['filter-options', 'grupo', company?.id],
+    queryFn: async (): Promise<FilterOption[]> => {
+      if (!company) {
+        throw new Error('Nenhuma empresa selecionada');
+      }
+
+      const query = `
+        SELECT DISTINCT
+          g.id::text as value,
+          g.name as label
+        FROM public.grupo g
+        WHERE g.id IS NOT NULL
+          AND g.name IS NOT NULL
+          AND g.name <> ''
+        ORDER BY g.name
+      `;
+
+      const rows = await executeCompanyQuery<Array<_GrupoData & { value: string; label: string }>>(
+        company.id,
+        query
+      );
+
+      return rows.map((row) => ({
+        value: String(row.value || ''),
+        label: String(row.label || ''),
+      }));
+    },
+    enabled: !!company,
+    staleTime: 1000 * 60 * 60,
+  });
+}
+
+/**
+ * Hook para buscar opções de regional
+ */
+export function useRegionalOptions() {
+  const { company } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['filter-options', 'regional', company?.id],
+    queryFn: async (): Promise<FilterOption[]> => {
+      if (!company) {
+        throw new Error('Nenhuma empresa selecionada');
+      }
+
+      const query = `
+        SELECT DISTINCT
+          r.id::text as value,
+          r.name as label
+        FROM public.regional r
+        WHERE r.id IS NOT NULL
+          AND r.name IS NOT NULL
+          AND r.name <> ''
+        ORDER BY r.name
+      `;
+
+      const rows = await executeCompanyQuery<
+        Array<_RegionalData & { value: string; label: string }>
+      >(company.id, query);
+
+      return rows.map((row) => ({
+        value: String(row.value || ''),
+        label: String(row.label || ''),
+      }));
+    },
+    enabled: !!company,
+    staleTime: 1000 * 60 * 60,
+  });
+}
+
+/**
  * Hook para buscar opções de produto
  */
 export function useProdutoOptions() {
@@ -327,6 +419,60 @@ export function useProdutoOptions() {
     },
     enabled: !!company,
     staleTime: 1000 * 60 * 60, // 1 hora
+  });
+}
+
+/**
+ * Hook para buscar opções de vendedor
+ */
+export function useVendedorOptions(enabled = true) {
+  const { company } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['filter-options', 'vendedor', company?.id],
+    queryFn: async (): Promise<FilterOption[]> => {
+      if (!company) {
+        throw new Error('Nenhuma empresa selecionada');
+      }
+
+      const primaryQuery = `
+        SELECT DISTINCT
+          trim(m.nome_vendedor) as value,
+          trim(m.nome_vendedor) as label
+        FROM public.movimentacao m
+        WHERE m.nome_vendedor IS NOT NULL
+          AND trim(m.nome_vendedor) <> ''
+        ORDER BY trim(m.nome_vendedor)
+      `;
+
+      const fallbackQuery = `
+        SELECT DISTINCT
+          trim(nome_vendedor) as value,
+          trim(nome_vendedor) as label
+        FROM movimentos
+        WHERE nome_vendedor IS NOT NULL
+          AND trim(nome_vendedor) <> ''
+        ORDER BY trim(nome_vendedor)
+      `;
+
+      try {
+        const rows = await executeCompanyQueryWithFallback<_VendedorData[]>(
+          company.id,
+          primaryQuery,
+          fallbackQuery
+        );
+
+        return rows.map((row) => ({
+          value: String(row.value || ''),
+          label: String(row.label || ''),
+        }));
+      } catch (error) {
+        console.error('❌ [Vendedor] Erro ao buscar vendedores:', error);
+        throw new Error('Erro ao buscar vendedores da empresa');
+      }
+    },
+    enabled: !!company && enabled,
+    staleTime: 1000 * 60 * 60,
   });
 }
 

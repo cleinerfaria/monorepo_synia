@@ -1,8 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase, resolvedSupabaseUrl, resolvedSupabaseAnonKey } from '@/lib/supabase';
-import type { SalesMovement } from '@/types/sales';
+import type { DashboardQueryFilters, SalesMovement } from '@/types/sales';
 import { buildOverviewDataQuery } from './queries/overviewDataQuery';
+
+const escapeSqlValue = (value: string) => value.replace(/'/g, "''");
+const toInList = (values?: string[]) =>
+  values && values.length > 0 ? values.map((value) => `'${escapeSqlValue(value)}'`).join(',') : null;
 
 async function fetchLatestMovementCreatedAt(companyId: string): Promise<string | null> {
   const {
@@ -108,11 +112,7 @@ async function fetchSalesData(
   companyId: string,
   startDate: Date,
   endDate: Date,
-  filters?: {
-    filial?: string[];
-    clientes?: string[];
-    produto?: string[];
-  }
+  filters?: DashboardQueryFilters
 ): Promise<SalesMovement[]> {
   const {
     data: { session },
@@ -159,6 +159,10 @@ async function fetchSalesData(
   // Construir filtros de data usando UTC para evitar problemas de fuso horário
   const startDateStr = startDate.toISOString().split('T')[0];
   const endDateStr = endDate.toISOString().split('T')[0];
+  const filialList = toInList(filters?.filial);
+  const clienteList = toInList(filters?.clientes);
+  const grupoList = toInList(filters?.grupo);
+  const regionalList = toInList(filters?.regional);
 
   // Query otimizada usando CTEs para melhor performance
   // Primeiro vamos verificar se as tabelas existem
@@ -197,61 +201,44 @@ async function fetchSalesData(
     checkResult.data?.rows?.[0]?.cli_exists
   ) {
     query = `
-      with mov_filtrada as (
-        select
-          m.id_movimentacao,
-          m.cod_filial,
-          m.cod_cliente,
-          m.dt_mov
-        from public.movimentacao m
-        where m.dt_mov >= '${startDateStr}'
-          and m.dt_mov <= '${endDateStr}'
-          ${
-            filters?.filial && filters.filial.length > 0
-              ? `AND m.cod_filial IN (${filters.filial.map((f) => `'${f}'`).join(',')})`
-              : ''
-          }
-          ${
-            filters?.clientes && filters.clientes.length > 0
-              ? `AND m.cod_cliente IN (${filters.clientes.map((c) => `'${c}'`).join(',')})`
-              : ''
-          }
-      ),
-      itens_ag as (
-        select
-          mf.dt_mov,
-          mf.cod_filial,
-          mf.cod_cliente,
-          mi.id_produto,
-          mi.vr_venda,
-          mi.qt_itens_venda,
-          mi.qtd_litros
-        from mov_filtrada mf
-        join public.movimentacao_item mi
-          on mi.id_movimentacao = mf.id_movimentacao
-        ${
-          filters?.produto && filters.produto.length > 0
-            ? `WHERE mi.id_produto IN (${filters.produto.map((p) => `'${p}'`).join(',')})`
-            : ''
-        }
-      )
       select
-        ia.dt_mov,
+        m.dt_mov,
         c.id::text as cod_cliente,
         coalesce(c.razao_social, c.nome) as nome_cliente,
         p.id::text as cod_produto,
         p.nome as nome_produto,
-        ia.vr_venda,
-        ia.qt_itens_venda as qtd_itens_venda,
+        gr.id::text as cod_grupo,
+        gr.name as nome_grupo,
+        r.id::text as cod_regional,
+        r.name as nome_regional,
+        mi.vr_venda,
+        mi.qt_itens_venda as qtd_itens_venda,
         f.id::text as cod_filial,
         f.nome as nome_filial,
         '' as nome_vendedor,
-        ia.qtd_litros
-      from itens_ag ia
-      left join public.cliente c on c.id = ia.cod_cliente
-      left join public.filial  f on f.id = ia.cod_filial
-      left join public.produto p on p.id = ia.id_produto
-      ORDER BY ia.dt_mov DESC
+        mi.qtd_litros
+      from public.movimentacao m
+      join public.movimentacao_item mi
+        on mi.id_movimentacao = m.id_movimentacao
+      left join public.cliente c
+        on c.id = m.cod_cliente
+      left join public.grupo_relacionamento grr
+        on grr.cliente_id = m.cod_cliente
+      left join public.grupo gr
+        on gr.id = grr.grupo_id
+      left join public.regional r
+        on r.id = gr.regional_id
+      left join public.filial f
+        on f.id = m.cod_filial
+      left join public.produto p
+        on p.id = mi.id_produto
+      where m.dt_mov >= '${startDateStr}'
+        and m.dt_mov <= '${endDateStr}'
+        ${filialList ? `AND m.cod_filial IN (${filialList})` : ''}
+        ${clienteList ? `AND m.cod_cliente IN (${clienteList})` : ''}
+        ${grupoList ? `AND gr.id IN (${grupoList})` : ''}
+        ${regionalList ? `AND gr.regional_id IN (${regionalList})` : ''}
+      ORDER BY m.dt_mov DESC
       LIMIT 50000
     `;
   } else {
@@ -260,37 +247,47 @@ async function fetchSalesData(
       '⚠️ [fetchSalesData] Tabelas normalizadas não encontradas, usando fallback para movimentos'
     );
 
-    let whereClause = `WHERE dt_mov >= '${startDateStr}' AND dt_mov <= '${endDateStr}'`;
+    let whereClause = `WHERE mv.dt_mov >= '${startDateStr}' AND mv.dt_mov <= '${endDateStr}'`;
 
-    if (filters?.filial && filters.filial.length > 0) {
-      const filiaisList = filters.filial.map((f) => `'${f}'`).join(',');
-      whereClause += ` AND cod_filial IN (${filiaisList})`;
+    if (filialList) {
+      whereClause += ` AND mv.cod_filial IN (${filialList})`;
     }
-    if (filters?.clientes && filters.clientes.length > 0) {
-      const clientesList = filters.clientes.map((c) => `'${c}'`).join(',');
-      whereClause += ` AND cod_cliente IN (${clientesList})`;
+    if (clienteList) {
+      whereClause += ` AND mv.cod_cliente IN (${clienteList})`;
     }
-    if (filters?.produto && filters.produto.length > 0) {
-      const produtosList = filters.produto.map((p) => `'${p}'`).join(',');
-      whereClause += ` AND cod_produto IN (${produtosList})`;
+    if (grupoList) {
+      whereClause += ` AND gr.id IN (${grupoList})`;
+    }
+    if (regionalList) {
+      whereClause += ` AND gr.regional_id IN (${regionalList})`;
     }
 
     query = `
       SELECT 
-        dt_mov,
-        cod_cliente,
-        nome_cliente,
-        cod_produto,
-        nome_produto,
-        vr_venda,
-        qtd_itens_venda,
-        cod_filial,
-        nome_filial,
-        nome_vendedor,
-        qtd_litros
-      FROM movimentos
+        mv.dt_mov,
+        mv.cod_cliente,
+        mv.nome_cliente,
+        mv.cod_produto,
+        mv.nome_produto,
+        gr.id::text as cod_grupo,
+        gr.name as nome_grupo,
+        r.id::text as cod_regional,
+        r.name as nome_regional,
+        mv.vr_venda,
+        mv.qtd_itens_venda,
+        mv.cod_filial,
+        mv.nome_filial,
+        mv.nome_vendedor,
+        mv.qtd_litros
+      FROM movimentos mv
+      LEFT JOIN public.grupo_relacionamento grr
+        ON grr.cliente_id::text = mv.cod_cliente::text
+      LEFT JOIN public.grupo gr
+        ON gr.id = grr.grupo_id
+      LEFT JOIN public.regional r
+        ON r.id = gr.regional_id
       ${whereClause}
-      ORDER BY dt_mov DESC
+      ORDER BY mv.dt_mov DESC
       LIMIT 50000
     `;
   }
@@ -346,6 +343,10 @@ async function fetchSalesData(
       nome_cliente: row.nome_cliente ? String(row.nome_cliente) : '',
       cod_produto: row.cod_produto ? String(row.cod_produto) : '',
       nome_produto: row.nome_produto ? String(row.nome_produto) : '',
+      cod_grupo: row.cod_grupo ? String(row.cod_grupo) : null,
+      nome_grupo: row.nome_grupo ? String(row.nome_grupo) : null,
+      cod_regional: row.cod_regional ? String(row.cod_regional) : null,
+      nome_regional: row.nome_regional ? String(row.nome_regional) : null,
       vr_venda,
       qtd_itens_venda: toNumber(row.qtd_itens_venda),
       cod_filial: row.cod_filial ? String(row.cod_filial) : '',
@@ -399,11 +400,7 @@ function getUFFromCEP(cep: string): string | undefined {
 export function useSalesData(
   startDate: Date,
   endDate: Date,
-  filters?: {
-    filial?: string[];
-    clientes?: string[];
-    produto?: string[];
-  }
+  filters?: DashboardQueryFilters
 ) {
   const { company } = useAuthStore();
 
@@ -444,7 +441,8 @@ async function fetchClientGoalsData(
   filters?: {
     filial?: string[];
     clientes?: string[];
-    produto?: string[];
+    grupo?: string[];
+    regional?: string[];
   }
 ): Promise<ClientGoalData[]> {
   const {
@@ -488,7 +486,12 @@ async function fetchClientGoalsData(
 
   const filialList = toInList(filters?.filial);
   const clienteList = toInList(filters?.clientes);
-  const produtoList = toInList(filters?.produto);
+  const grupoList = toInList(filters?.grupo);
+  const regionalList = toInList(filters?.regional);
+
+  if (clienteList) {
+    return [];
+  }
 
   const metaColumnsResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
     method: 'POST',
@@ -533,20 +536,18 @@ async function fetchClientGoalsData(
   const findMetaColumn = (candidates: string[]) =>
     metaColumns.find((col) => candidates.includes(String(col.column_name || '').toLowerCase()));
 
-  const clientColumn = findMetaColumn(['client_id', 'cliente_id', 'cod_cliente', 'id_cliente']);
+  const groupColumn = findMetaColumn(['grupo_id', 'group_id']);
   const valueColumn = findMetaColumn(['valor', 'meta', 'valor_meta']);
   const monthColumn = findMetaColumn(['mes', 'competencia', 'dt_mes', 'data_mes', 'data']);
-  const filialMetaColumn = findMetaColumn(['cod_filial', 'filial_id', 'id_filial']);
 
-  if (!clientColumn || !valueColumn || !monthColumn) {
+  if (!groupColumn || !valueColumn || !monthColumn) {
     return [];
   }
 
   const quoteIdent = (identifier: string) => `"${identifier.replace(/"/g, '""')}"`;
-  const metaClientCol = quoteIdent(String(clientColumn.column_name));
+  const metaGroupCol = quoteIdent(String(groupColumn.column_name));
   const metaValueCol = quoteIdent(String(valueColumn.column_name));
   const metaMonthCol = quoteIdent(String(monthColumn.column_name));
-  const metaFilialCol = filialMetaColumn ? quoteIdent(String(filialMetaColumn.column_name)) : null;
   const monthDataType = String(monthColumn.data_type || '').toLowerCase();
   const monthExpr =
     monthDataType.includes('date') || monthDataType.includes('timestamp')
@@ -594,54 +595,95 @@ async function fetchClientGoalsData(
   }
 
   let query: string;
+  const periodMonthsSubquery = `
+    (
+      SELECT generate_series(
+        date_trunc('month', '${startDateStr}'::date),
+        date_trunc('month', '${endDateStr}'::date),
+        interval '1 month'
+      )::date AS mes_ref
+    )
+  `;
 
   if (hasNormalizedTables) {
-    query = `
-      WITH base_filtrada AS (
+    const filteredGroupsSubquery = grupoList
+      ? `
+      (
         SELECT DISTINCT
-          date_trunc('month', m.dt_mov)::date AS mes_ref,
-          m.cod_cliente::text AS cod_cliente
+          gr.id::text AS cod_grupo
+        FROM public.grupo gr
+        WHERE gr.id IS NOT NULL
+          AND gr.id::text IN (${grupoList})
+          ${regionalList ? `AND gr.regional_id::text IN (${regionalList})` : ''}
+      )
+    `
+      : `
+      (
+        SELECT DISTINCT
+          gr.id::text AS cod_grupo
         FROM public.movimentacao m
-        JOIN public.movimentacao_item mi
-          ON mi.id_movimentacao = m.id_movimentacao
+        LEFT JOIN public.grupo_relacionamento grr
+          ON grr.cliente_id = m.cod_cliente
+        LEFT JOIN public.grupo gr
+          ON gr.id = grr.grupo_id
         WHERE m.dt_mov >= '${startDateStr}'
           AND m.dt_mov <= '${endDateStr}'
           ${filialList ? `AND m.cod_filial IN (${filialList})` : ''}
-          ${clienteList ? `AND m.cod_cliente IN (${clienteList})` : ''}
-          ${produtoList ? `AND mi.id_produto IN (${produtoList})` : ''}
+          ${regionalList ? `AND gr.regional_id::text IN (${regionalList})` : ''}
+          AND gr.id IS NOT NULL
       )
+    `;
+
+    query = `
       SELECT
-        bf.cod_cliente,
+        gf.cod_grupo AS cod_cliente,
         sum(mt.${metaValueCol})::numeric AS meta_faturamento
-      FROM base_filtrada bf
+      FROM ${filteredGroupsSubquery} AS gf
+      CROSS JOIN ${periodMonthsSubquery} AS mp
       LEFT JOIN public.meta mt
-        ON mt.${metaClientCol}::text = bf.cod_cliente
-       AND (${monthExpr}) = bf.mes_ref
-       ${filialList && metaFilialCol ? `AND mt.${metaFilialCol} IN (${filialList})` : ''}
-      GROUP BY bf.cod_cliente
+        ON mt.${metaGroupCol}::text = gf.cod_grupo
+       AND (${monthExpr}) = mp.mes_ref
+      GROUP BY gf.cod_grupo
     `;
   } else {
-    query = `
-      WITH base_filtrada AS (
+    const filteredGroupsSubquery = grupoList
+      ? `
+      (
         SELECT DISTINCT
-          date_trunc('month', dt_mov)::date AS mes_ref,
-          cod_cliente::text AS cod_cliente
-        FROM movimentos
-        WHERE dt_mov >= '${startDateStr}'
-          AND dt_mov <= '${endDateStr}'
-          ${filialList ? `AND cod_filial IN (${filialList})` : ''}
-          ${clienteList ? `AND cod_cliente IN (${clienteList})` : ''}
-          ${produtoList ? `AND cod_produto IN (${produtoList})` : ''}
+          gr.id::text AS cod_grupo
+        FROM public.grupo gr
+        WHERE gr.id IS NOT NULL
+          AND gr.id::text IN (${grupoList})
+          ${regionalList ? `AND gr.regional_id::text IN (${regionalList})` : ''}
       )
+    `
+      : `
+      (
+        SELECT DISTINCT
+          gr.id::text AS cod_grupo
+        FROM movimentos mv
+        LEFT JOIN public.grupo_relacionamento grr
+          ON grr.cliente_id::text = mv.cod_cliente::text
+        LEFT JOIN public.grupo gr
+          ON gr.id = grr.grupo_id
+        WHERE mv.dt_mov >= '${startDateStr}'
+          AND mv.dt_mov <= '${endDateStr}'
+          ${filialList ? `AND mv.cod_filial IN (${filialList})` : ''}
+          ${regionalList ? `AND gr.regional_id::text IN (${regionalList})` : ''}
+          AND gr.id IS NOT NULL
+      )
+    `;
+
+    query = `
       SELECT
-        bf.cod_cliente,
+        gf.cod_grupo AS cod_cliente,
         sum(mt.${metaValueCol})::numeric AS meta_faturamento
-      FROM base_filtrada bf
+      FROM ${filteredGroupsSubquery} AS gf
+      CROSS JOIN ${periodMonthsSubquery} AS mp
       LEFT JOIN public.meta mt
-        ON mt.${metaClientCol}::text = bf.cod_cliente
-       AND (${monthExpr}) = bf.mes_ref
-       ${filialList && metaFilialCol ? `AND mt.${metaFilialCol} IN (${filialList})` : ''}
-      GROUP BY bf.cod_cliente
+        ON mt.${metaGroupCol}::text = gf.cod_grupo
+       AND (${monthExpr}) = mp.mes_ref
+      GROUP BY gf.cod_grupo
     `;
   }
 
@@ -699,7 +741,8 @@ export function useClientGoalsData(
   filters?: {
     filial?: string[];
     clientes?: string[];
-    produto?: string[];
+    grupo?: string[];
+    regional?: string[];
   }
 ) {
   const { company } = useAuthStore();
@@ -811,11 +854,7 @@ export interface OverviewKPIs {
  */
 async function fetchOverviewData(
   companyId: string,
-  filters?: {
-    filial?: string[];
-    clientes?: string[];
-    produto?: string[];
-  }
+  filters?: DashboardQueryFilters
 ): Promise<OverviewMonthlyData[]> {
   const {
     data: { session },
@@ -852,15 +891,35 @@ async function fetchOverviewData(
 
   // Construir filtros
   const filialFilter =
-    filters?.filial && filters.filial.length > 0 ? `'${filters.filial.join("','")}'` : null;
+    filters?.filial && filters.filial.length > 0
+      ? `'${filters.filial.map(escapeSqlValue).join("','")}'`
+      : null;
   const clienteFilter =
-    filters?.clientes && filters.clientes.length > 0 ? `'${filters.clientes.join("','")}'` : null;
-  const produtoFilter =
-    filters?.produto && filters.produto.length > 0 ? `'${filters.produto.join("','")}'` : null;
+    filters?.clientes && filters.clientes.length > 0
+      ? `'${filters.clientes.map(escapeSqlValue).join("','")}'`
+      : null;
+  const grupoFilter =
+    filters?.grupo && filters.grupo.length > 0
+      ? `'${filters.grupo.map(escapeSqlValue).join("','")}'`
+      : null;
+  const regionalFilter =
+    filters?.regional && filters.regional.length > 0
+      ? `'${filters.regional.map(escapeSqlValue).join("','")}'`
+      : null;
+  const vendedorFilter =
+    filters?.vendedor && filters.vendedor.length > 0
+      ? `'${filters.vendedor.map(escapeSqlValue).join("','")}'`
+      : null;
 
   // Query otimizada com CTEs - FONTE ÚNICA DE DADOS
   // Sempre busca últimos 12 meses + 12 anteriores para YoY
-  const query = buildOverviewDataQuery(filialFilter, clienteFilter, produtoFilter);
+  const query = buildOverviewDataQuery(
+    filialFilter,
+    clienteFilter,
+    grupoFilter,
+    regionalFilter,
+    vendedorFilter
+  );
 
   const queryResponse = await fetch(`${resolvedSupabaseUrl}/functions/v1/company-database`, {
     method: 'POST',
@@ -936,7 +995,9 @@ async function fetchOverviewData(
 export function useOverviewData(filters?: {
   filial?: string[];
   clientes?: string[];
-  produto?: string[];
+  grupo?: string[];
+  regional?: string[];
+  vendedor?: string[];
 }) {
   const { company } = useAuthStore();
 
@@ -1017,49 +1078,25 @@ async function fetchOverviewKPIs(
   // Formatar datas para a query
   const startDateStr = startDate.toISOString().split('T')[0];
   const endDateStr = endDate.toISOString().split('T')[0];
+  const baseSubquery = `
+    SELECT
+      date_trunc('month', m.dt_mov)::date AS mes,
+      m.cod_cliente,
+      mi.id_produto,
+      mi.vr_venda,
+      mi.qtd_litros
+    FROM public.movimentacao m
+    JOIN public.movimentacao_item mi
+      ON mi.id_movimentacao = m.id_movimentacao
+    WHERE m.dt_mov >= '${startDateStr}'
+      AND m.dt_mov <= '${endDateStr}'
+      ${clienteFilter ? `AND m.cod_cliente IN (${clienteFilter})` : ''}
+      ${filialFilter ? `AND m.cod_filial IN (${filialFilter})` : ''}
+      ${produtoFilter ? `AND mi.id_produto IN (${produtoFilter})` : ''}
+  `;
 
   // Query otimizada para KPIs da visão geral
   const query = `
-    WITH base AS (
-      SELECT
-        date_trunc('month', m.dt_mov)::date AS mes,
-        m.cod_cliente,
-        mi.id_produto,
-        mi.vr_venda,
-        mi.qtd_litros
-      FROM public.movimentacao m
-      JOIN public.movimentacao_item mi
-        ON mi.id_movimentacao = m.id_movimentacao
-      WHERE m.dt_mov >= '${startDateStr}'
-        AND m.dt_mov <= '${endDateStr}'
-        ${clienteFilter ? `AND m.cod_cliente IN (${clienteFilter})` : ''}
-        ${filialFilter ? `AND m.cod_filial IN (${filialFilter})` : ''}
-        ${produtoFilter ? `AND mi.id_produto IN (${produtoFilter})` : ''}
-    ),
-    totais_mes AS (
-      SELECT
-        mes,
-        sum(vr_venda) AS faturamento_total,
-        sum(qtd_litros) AS volume_litros,
-        count(DISTINCT cod_cliente) AS clientes_ativos
-      FROM base
-      GROUP BY mes
-    ),
-    produto_mes AS (
-      SELECT
-        mes,
-        id_produto,
-        sum(vr_venda) AS faturamento_produto
-      FROM base
-      GROUP BY mes, id_produto
-    ),
-    produto_lider AS (
-      SELECT
-        mes,
-        max(faturamento_produto) / nullif(sum(faturamento_produto), 0) AS produto_lider_share
-      FROM produto_mes
-      GROUP BY mes
-    )
     SELECT
       t.mes,
       t.faturamento_total::numeric AS faturamento_total,
@@ -1068,8 +1105,29 @@ async function fetchOverviewKPIs(
       t.clientes_ativos::integer AS clientes_ativos,
       (t.faturamento_total / nullif(t.clientes_ativos, 0))::numeric AS ticket_medio,
       pl.produto_lider_share::numeric AS produto_lider_share
-    FROM totais_mes t
-    LEFT JOIN produto_lider pl ON pl.mes = t.mes
+    FROM (
+      SELECT
+        mes,
+        sum(vr_venda) AS faturamento_total,
+        sum(qtd_litros) AS volume_litros,
+        count(DISTINCT cod_cliente) AS clientes_ativos
+      FROM (${baseSubquery}) AS base
+      GROUP BY mes
+    ) t
+    LEFT JOIN (
+      SELECT
+        pm.mes,
+        max(pm.faturamento_produto) / nullif(sum(pm.faturamento_produto), 0) AS produto_lider_share
+      FROM (
+        SELECT
+          mes,
+          id_produto,
+          sum(vr_venda) AS faturamento_produto
+        FROM (${baseSubquery}) AS base
+        GROUP BY mes, id_produto
+      ) pm
+      GROUP BY pm.mes
+    ) pl ON pl.mes = t.mes
     ORDER BY t.mes
   `;
 
@@ -1885,11 +1943,7 @@ export interface RevenueByStateData {
  */
 async function fetchRevenueByState(
   companyId: string,
-  filters?: {
-    filial?: string[];
-    clientes?: string[];
-    produto?: string[];
-  }
+  filters?: DashboardQueryFilters
 ): Promise<RevenueByStateData[]> {
   const {
     data: { session },
@@ -1927,15 +1981,23 @@ async function fetchRevenueByState(
   // Construir filtros opcionais
   const filialFilter =
     filters?.filial && filters.filial.length > 0
-      ? filters.filial.map((f) => `'${f}'`).join(',')
+      ? filters.filial.map((f) => `'${escapeSqlValue(f)}'`).join(',')
       : null;
   const clienteFilter =
     filters?.clientes && filters.clientes.length > 0
-      ? filters.clientes.map((c) => `'${c}'`).join(',')
+      ? filters.clientes.map((c) => `'${escapeSqlValue(c)}'`).join(',')
       : null;
-  const produtoFilter =
-    filters?.produto && filters.produto.length > 0
-      ? filters.produto.map((p) => `'${p}'`).join(',')
+  const grupoFilter =
+    filters?.grupo && filters.grupo.length > 0
+      ? filters.grupo.map((g) => `'${escapeSqlValue(g)}'`).join(',')
+      : null;
+  const regionalFilter =
+    filters?.regional && filters.regional.length > 0
+      ? filters.regional.map((r) => `'${escapeSqlValue(r)}'`).join(',')
+      : null;
+  const vendedorFilter =
+    filters?.vendedor && filters.vendedor.length > 0
+      ? filters.vendedor.map((v) => `'${escapeSqlValue(v)}'`).join(',')
       : null;
 
   // Query para faturamento por UF nos últimos 12 meses
@@ -1948,13 +2010,19 @@ async function fetchRevenueByState(
       ON mi.id_movimentacao = m.id_movimentacao
     JOIN public.cliente c
       ON c.id = m.cod_cliente
+    LEFT JOIN public.grupo_relacionamento grr
+      ON grr.cliente_id = c.id
+    LEFT JOIN public.grupo gr
+      ON gr.id = grr.grupo_id
     WHERE m.dt_mov >= date_trunc('month', current_date) - interval '11 months'
       AND m.dt_mov < date_trunc('month', current_date) + interval '1 month'
       AND c.endereco_uf IS NOT NULL
       AND trim(c.endereco_uf) <> ''
       ${clienteFilter ? `AND m.cod_cliente IN (${clienteFilter})` : ''}
       ${filialFilter ? `AND m.cod_filial IN (${filialFilter})` : ''}
-      ${produtoFilter ? `AND mi.id_produto IN (${produtoFilter})` : ''}
+      ${grupoFilter ? `AND gr.id IN (${grupoFilter})` : ''}
+      ${regionalFilter ? `AND gr.regional_id IN (${regionalFilter})` : ''}
+      ${vendedorFilter ? `AND m.nome_vendedor IN (${vendedorFilter})` : ''}
     GROUP BY 1
     ORDER BY faturamento DESC
   `;
@@ -1997,7 +2065,9 @@ async function fetchRevenueByState(
 export function useRevenueByState(filters?: {
   filial?: string[];
   clientes?: string[];
-  produto?: string[];
+  grupo?: string[];
+  regional?: string[];
+  vendedor?: string[];
 }) {
   const { company } = useAuthStore();
 
@@ -2028,11 +2098,7 @@ export interface RevenueByRegionData {
  */
 async function fetchRevenueByRegion(
   companyId: string,
-  filters?: {
-    filial?: string[];
-    clientes?: string[];
-    produto?: string[];
-  }
+  filters?: DashboardQueryFilters
 ): Promise<RevenueByRegionData[]> {
   const {
     data: { session },
@@ -2070,15 +2136,19 @@ async function fetchRevenueByRegion(
   // Construir filtros opcionais
   const filialFilter =
     filters?.filial && filters.filial.length > 0
-      ? filters.filial.map((f) => `'${f}'`).join(',')
+      ? filters.filial.map((f) => `'${escapeSqlValue(f)}'`).join(',')
       : null;
   const clienteFilter =
     filters?.clientes && filters.clientes.length > 0
-      ? filters.clientes.map((c) => `'${c}'`).join(',')
+      ? filters.clientes.map((c) => `'${escapeSqlValue(c)}'`).join(',')
       : null;
-  const produtoFilter =
-    filters?.produto && filters.produto.length > 0
-      ? filters.produto.map((p) => `'${p}'`).join(',')
+  const grupoFilter =
+    filters?.grupo && filters.grupo.length > 0
+      ? filters.grupo.map((g) => `'${escapeSqlValue(g)}'`).join(',')
+      : null;
+  const regionalFilter =
+    filters?.regional && filters.regional.length > 0
+      ? filters.regional.map((r) => `'${escapeSqlValue(r)}'`).join(',')
       : null;
 
   // Query para faturamento por região nos últimos 12 meses
@@ -2098,13 +2168,18 @@ async function fetchRevenueByRegion(
       ON mi.id_movimentacao = m.id_movimentacao
     JOIN public.cliente c
       ON c.id = m.cod_cliente
+    LEFT JOIN public.grupo_relacionamento grr
+      ON grr.cliente_id = c.id
+    LEFT JOIN public.grupo gr
+      ON gr.id = grr.grupo_id
     WHERE m.dt_mov >= date_trunc('month', current_date) - interval '11 months'
       AND m.dt_mov < date_trunc('month', current_date) + interval '1 month'
       AND c.endereco_uf IS NOT NULL
       AND trim(c.endereco_uf) <> ''
       ${clienteFilter ? `AND m.cod_cliente IN (${clienteFilter})` : ''}
       ${filialFilter ? `AND m.cod_filial IN (${filialFilter})` : ''}
-      ${produtoFilter ? `AND mi.id_produto IN (${produtoFilter})` : ''}
+      ${grupoFilter ? `AND gr.id IN (${grupoFilter})` : ''}
+      ${regionalFilter ? `AND gr.regional_id IN (${regionalFilter})` : ''}
     GROUP BY 1
     ORDER BY faturamento DESC
   `;
@@ -2147,7 +2222,8 @@ async function fetchRevenueByRegion(
 export function useRevenueByRegion(filters?: {
   filial?: string[];
   clientes?: string[];
-  produto?: string[];
+  grupo?: string[];
+  regional?: string[];
 }) {
   const { company } = useAuthStore();
 

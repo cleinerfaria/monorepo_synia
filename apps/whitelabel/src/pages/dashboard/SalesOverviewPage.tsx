@@ -1,13 +1,5 @@
-import { useMemo, lazy, Suspense } from 'react';
-import {
-  DollarSign,
-  Users,
-  Target,
-  RefreshCw,
-  ArrowUpRight,
-  ArrowDownRight,
-  Wine,
-} from 'lucide-react';
+﻿import { useMemo, lazy, Suspense } from 'react';
+import { DollarSign, Target, RefreshCw, ArrowUpRight, ArrowDownRight, Wine } from 'lucide-react';
 import { SalesFiltersBar, PremiumTable, DualLineChart } from '@/components/sales';
 const BrazilMapChart = lazy(() => import('@/components/sales/BrazilMapChart'));
 import {
@@ -17,7 +9,7 @@ import {
 } from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
 import { toNumber, toPercent, formatMonth } from '@/utils/metrics';
-import { NEUTRAL_COLORS } from '@/lib/themeConstants';
+import { NEUTRAL_COLORS, STATUS_COLORS } from '@/lib/themeConstants';
 
 /**
  * Formata valor em reais
@@ -36,7 +28,7 @@ function toBRL(value: number): string {
  * Comportamento:
  * - Gráfico e tabela sempre mostram últimos 12 meses (fixos)
  * - KPIs mudam instantaneamente com filtro de data (filtragem local)
- * - Nova consulta ao banco apenas com filtros de filial/cliente/produto
+ * - Nova consulta ao banco apenas com filtros de filial/cliente/grupo/regional
  */
 export default function SalesOverviewPage() {
   const {
@@ -55,18 +47,30 @@ export default function SalesOverviewPage() {
     handleApplyClientesFilter,
     handleCancelClientesFilter,
     hasClientesPendingChanges,
-    produto,
-    produtoTemp,
-    handleProdutoChange,
-    handleApplyProdutoFilter,
-    handleCancelProdutoFilter,
-    hasProdutoPendingChanges,
+    grupo,
+    grupoTemp,
+    handleGrupoChange,
+    handleApplyGrupoFilter,
+    handleCancelGrupoFilter,
+    hasGrupoPendingChanges,
+    regional,
+    regionalTemp,
+    handleRegionalChange,
+    handleApplyRegionalFilter,
+    handleCancelRegionalFilter,
+    hasRegionalPendingChanges,
+    vendedor,
+    vendedorTemp,
+    handleVendedorChange,
+    handleApplyVendedorFilter,
+    handleCancelVendedorFilter,
+    hasVendedorPendingChanges,
     clearFilters,
     queryFilters,
   } = useSalesFilters();
 
   // FONTE ÚNICA DE DADOS - Query otimizada com CTEs
-  // Só refaz consulta quando mudar filtros de filial/cliente/produto
+  // Só refaz consulta quando mudar filtros de filial/cliente/grupo/regional
   const { data: overviewData, isLoading, isFetching, refetch } = useOverviewData(queryFilters);
   const { data: latestMovementCreatedAt, refetch: refetchLatestMovementCreatedAt } =
     useLatestMovementCreatedAt();
@@ -92,6 +96,8 @@ export default function SalesOverviewPage() {
         faturamento: 0,
         faturamentoMoM: null as number | null,
         faturamentoYoY: null as number | null,
+        metaMes: 0,
+        atingimentoMetaPct: null as number | null,
         volume: 0,
         volumeMoM: null as number | null,
         volumeYoY: null as number | null,
@@ -106,17 +112,17 @@ export default function SalesOverviewPage() {
     );
 
     if (dadosPeriodo.length === 0) {
-      // Se não houver dados no período, usar o último mês disponível
-      const ultimoMes = overviewData[overviewData.length - 1];
       return {
-        faturamento: ultimoMes.faturamento,
-        faturamentoMoM: ultimoMes.crescimento_faturamento_mom_pct,
-        faturamentoYoY: ultimoMes.crescimento_faturamento_yoy_pct,
-        volume: ultimoMes.volume_litros,
-        volumeMoM: ultimoMes.crescimento_volume_mom_pct,
-        volumeYoY: ultimoMes.crescimento_volume_yoy_pct,
-        clientesAtivos: ultimoMes.clientes_ativos,
-        ticketMedio: ultimoMes.ticket_medio,
+        faturamento: 0,
+        faturamentoMoM: null as number | null,
+        faturamentoYoY: null as number | null,
+        metaMes: 0,
+        atingimentoMetaPct: null as number | null,
+        volume: 0,
+        volumeMoM: null as number | null,
+        volumeYoY: null as number | null,
+        clientesAtivos: 0,
+        ticketMedio: 0,
       };
     }
 
@@ -127,6 +133,11 @@ export default function SalesOverviewPage() {
         faturamento: mes.faturamento,
         faturamentoMoM: mes.crescimento_faturamento_mom_pct,
         faturamentoYoY: mes.crescimento_faturamento_yoy_pct,
+        metaMes: mes.meta_faturamento ?? 0,
+        atingimentoMetaPct:
+          mes.meta_faturamento && mes.meta_faturamento > 0
+            ? (mes.faturamento / mes.meta_faturamento) * 100
+            : null,
         volume: mes.volume_litros,
         volumeMoM: mes.crescimento_volume_mom_pct,
         volumeYoY: mes.crescimento_volume_yoy_pct,
@@ -137,6 +148,7 @@ export default function SalesOverviewPage() {
 
     // Se for múltiplos meses, agregar
     const faturamentoTotal = dadosPeriodo.reduce((sum, m) => sum + m.faturamento, 0);
+    const metaTotal = dadosPeriodo.reduce((sum, m) => sum + (m.meta_faturamento ?? 0), 0);
     const volumeTotal = dadosPeriodo.reduce((sum, m) => sum + m.volume_litros, 0);
     const clientesMax = Math.max(...dadosPeriodo.map((m) => m.clientes_ativos));
     const ticketMedio = clientesMax > 0 ? faturamentoTotal / clientesMax : 0;
@@ -148,6 +160,8 @@ export default function SalesOverviewPage() {
       faturamento: faturamentoTotal,
       faturamentoMoM: ultimoMesPeriodo.crescimento_faturamento_mom_pct,
       faturamentoYoY: ultimoMesPeriodo.crescimento_faturamento_yoy_pct,
+      metaMes: metaTotal,
+      atingimentoMetaPct: metaTotal > 0 ? (faturamentoTotal / metaTotal) * 100 : null,
       volume: volumeTotal,
       volumeMoM: ultimoMesPeriodo.crescimento_volume_mom_pct,
       volumeYoY: ultimoMesPeriodo.crescimento_volume_yoy_pct,
@@ -192,6 +206,32 @@ export default function SalesOverviewPage() {
   // Estado de loading
   const isLoadingData = isLoading || isFetching;
 
+  const currentMonthProgress = useMemo(() => {
+    if (selectedPeriod.start !== selectedPeriod.end) {
+      return null;
+    }
+
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    if (selectedPeriod.start !== currentMonthKey) {
+      return null;
+    }
+
+    const currentDay = now.getDate();
+    const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const metaProporcional = kpis.metaMes > 0 ? (kpis.metaMes / totalDaysInMonth) * currentDay : 0;
+    const atingimentoMetaProporcionalPct =
+      metaProporcional > 0 ? (kpis.faturamento / metaProporcional) * 100 : null;
+
+    return {
+      currentDay,
+      totalDaysInMonth,
+      metaProporcional,
+      atingimentoMetaProporcionalPct,
+    };
+  }, [kpis.faturamento, kpis.metaMes, selectedPeriod.end, selectedPeriod.start]);
+
   // Colunas da tabela de detalhamento mensal
   const tableColumns = useMemo(
     () => [
@@ -222,6 +262,38 @@ export default function SalesOverviewPage() {
             return <span className="text-gray-400">-</span>;
           }
           return <span className="text-gray-600 dark:text-gray-400">{toBRL(val)}</span>;
+        },
+      },
+      {
+        key: 'meta_faturamento',
+        header: 'Meta',
+        align: 'right' as const,
+        render: (value: unknown) => (
+          <span className="font-semibold text-amber-600 dark:text-amber-400">
+            {toBRL(Number(value ?? 0))}
+          </span>
+        ),
+      },
+      {
+        key: 'atingimento_meta_pct',
+        header: '% da Meta',
+        align: 'right' as const,
+        render: (value: unknown) => {
+          const pct = value as number | null;
+          if (pct === null) {
+            return <span className="text-gray-400">-</span>;
+          }
+
+          const isAchieved = pct >= 100;
+
+          return (
+            <span
+              className="font-semibold"
+              style={{ color: isAchieved ? STATUS_COLORS.success : STATUS_COLORS.danger }}
+            >
+              {toPercent(pct)}
+            </span>
+          );
         },
       },
       {
@@ -344,22 +416,6 @@ export default function SalesOverviewPage() {
           );
         },
       },
-      {
-        key: 'clientes_ativos',
-        header: 'Clientes',
-        align: 'right' as const,
-        render: (value: unknown) => (
-          <span className="text-gray-700 dark:text-gray-300">{toNumber(Number(value))}</span>
-        ),
-      },
-      {
-        key: 'ticket_medio',
-        header: 'Ticket Médio',
-        align: 'right' as const,
-        render: (value: unknown) => (
-          <span className="text-gray-700 dark:text-gray-300">{toBRL(Number(value))}</span>
-        ),
-      },
     ],
     []
   );
@@ -367,7 +423,13 @@ export default function SalesOverviewPage() {
   // Dados da tabela ordenados do mais recente para o mais antigo (sempre FIXO)
   const tableData = useMemo(() => {
     if (!overviewData) return [];
-    return [...overviewData].reverse();
+    return [...overviewData].reverse().map((item) => ({
+      ...item,
+      atingimento_meta_pct:
+        item.meta_faturamento && item.meta_faturamento > 0
+          ? (item.faturamento / item.meta_faturamento) * 100
+          : null,
+    }));
   }, [overviewData]);
 
   // Renderiza badge de crescimento inline
@@ -388,6 +450,25 @@ export default function SalesOverviewPage() {
     );
   };
 
+  const renderMetaBadge = (value: number | null) => {
+    if (value === null) {
+      return <span className="text-xs text-gray-400">Atingido: N/A</span>;
+    }
+
+    const isAchieved = value >= 100;
+
+    return (
+      <span
+        className={`inline-flex items-center gap-0.5 text-xs font-medium ${
+          isAchieved ? 'text-primary-600 dark:text-primary-400' : 'text-red-600 dark:text-red-400'
+        }`}
+      >
+        {isAchieved ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+        Atingido: {toPercent(value)}
+      </span>
+    );
+  };
+
   // Componente de Card KPI com design consistente
   const KpiCardCustom = ({
     label,
@@ -396,6 +477,7 @@ export default function SalesOverviewPage() {
     isPrimary = false,
     mom,
     yoy,
+    footer,
     isLoading: loading = false,
   }: {
     label: string;
@@ -404,6 +486,7 @@ export default function SalesOverviewPage() {
     isPrimary?: boolean;
     mom?: number | null;
     yoy?: number | null;
+    footer?: React.ReactNode;
     isLoading?: boolean;
   }) => (
     <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700/50 dark:bg-gray-800/50">
@@ -430,6 +513,7 @@ export default function SalesOverviewPage() {
               {yoy !== undefined && renderGrowthBadge(yoy, 'YoY')}
             </div>
           )}
+          {footer && <div className="mt-2 space-y-1">{footer}</div>}
         </div>
         <div
           className={`flex h-10 w-10 items-center justify-center ${
@@ -478,17 +562,33 @@ export default function SalesOverviewPage() {
         onApplyClientesFilter={handleApplyClientesFilter}
         onCancelClientesFilter={handleCancelClientesFilter}
         hasClientesPendingChanges={hasClientesPendingChanges}
-        produto={produto}
-        produtoTemp={produtoTemp}
-        onProdutoChange={handleProdutoChange}
-        onApplyProdutoFilter={handleApplyProdutoFilter}
-        onCancelProdutoFilter={handleCancelProdutoFilter}
-        hasProdutoPendingChanges={hasProdutoPendingChanges}
+        grupo={grupo}
+        grupoTemp={grupoTemp}
+        onGrupoChange={handleGrupoChange}
+        onApplyGrupoFilter={handleApplyGrupoFilter}
+        onCancelGrupoFilter={handleCancelGrupoFilter}
+        hasGrupoPendingChanges={hasGrupoPendingChanges}
+        regional={regional}
+        regionalTemp={regionalTemp}
+        onRegionalChange={handleRegionalChange}
+        onApplyRegionalFilter={handleApplyRegionalFilter}
+        onCancelRegionalFilter={handleCancelRegionalFilter}
+        hasRegionalPendingChanges={hasRegionalPendingChanges}
+        vendedor={vendedor}
+        vendedorTemp={vendedorTemp}
+        onVendedorChange={handleVendedorChange}
+        onApplyVendedorFilter={handleApplyVendedorFilter}
+        onCancelVendedorFilter={handleCancelVendedorFilter}
+        hasVendedorPendingChanges={hasVendedorPendingChanges}
         onClearFilters={clearFilters}
       />
 
-      {/* KPIs - 4 Cards com design consistente */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* KPIs */}
+      <div
+        className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${
+          currentMonthProgress ? 'lg:grid-cols-4' : 'lg:grid-cols-3'
+        }`}
+      >
         {/* Faturamento */}
         <KpiCardCustom
           label="Faturamento Total"
@@ -500,6 +600,39 @@ export default function SalesOverviewPage() {
           isLoading={isLoadingData}
         />
 
+        {/* Meta do Mês */}
+        <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700/50 dark:bg-gray-800/50">
+          {isLoadingData && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-800/50">
+              <div className="border-primary-500 h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
+            </div>
+          )}
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Meta do Mês
+              </p>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {toBRL(kpis.metaMes)}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                {renderMetaBadge(kpis.atingimentoMetaPct)}
+              </div>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center text-gray-400 dark:text-gray-500">
+              <Target className="h-6 w-6" />
+            </div>
+          </div>
+        </div>
+        {currentMonthProgress && (
+          <KpiCardCustom
+            label={`Meta proporcional (${currentMonthProgress.currentDay}/${currentMonthProgress.totalDaysInMonth})`}
+            value={toBRL(currentMonthProgress.metaProporcional)}
+            icon={Target}
+            footer={renderMetaBadge(currentMonthProgress.atingimentoMetaProporcionalPct)}
+            isLoading={isLoadingData}
+          />
+        )}
         {/* Volume */}
         <KpiCardCustom
           label="Volume (L)"
@@ -507,23 +640,6 @@ export default function SalesOverviewPage() {
           icon={Wine}
           mom={kpis.volumeMoM}
           yoy={kpis.volumeYoY}
-          isLoading={isLoadingData}
-        />
-
-        {/* Clientes Ativos */}
-        <KpiCardCustom
-          label="Clientes Ativos"
-          value={toNumber(kpis.clientesAtivos)}
-          icon={Users}
-          isLoading={isLoadingData}
-        />
-
-        {/* Ticket Médio */}
-        <KpiCardCustom
-          label="Ticket Médio"
-          value={toBRL(kpis.ticketMedio)}
-          icon={Target}
-          isPrimary
           isLoading={isLoadingData}
         />
       </div>
@@ -542,8 +658,21 @@ export default function SalesOverviewPage() {
             isLoading={isLoadingData}
             anoAnteriorColor={NEUTRAL_COLORS.gray400}
             metaColor="#eab308"
+            showMetaMarkers
           />
         </div>
+      </div>
+
+      {/* Tabela de Detalhamento Mensal (sempre últimos 12 meses - FIXO) */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Detalhamento Mensal</h2>
+
+        <PremiumTable
+          columns={tableColumns}
+          data={tableData}
+          emptyMessage="Nenhum dado encontrado"
+          isLoading={isLoadingData}
+        />
       </div>
 
       {/* Mapa do Brasil - Faturamento por Estado (últimos 12 meses) */}
@@ -565,18 +694,6 @@ export default function SalesOverviewPage() {
           subtitle="Últimos 12 meses"
         />
       </Suspense>
-
-      {/* Tabela de Detalhamento Mensal (sempre últimos 12 meses - FIXO) */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Detalhamento Mensal</h2>
-
-        <PremiumTable
-          columns={tableColumns}
-          data={tableData}
-          emptyMessage="Nenhum dado encontrado"
-          isLoading={isLoadingData}
-        />
-      </div>
 
       {/* Rodapé */}
       <div className="flex items-center justify-end gap-2 text-xs text-gray-400 dark:text-gray-500">

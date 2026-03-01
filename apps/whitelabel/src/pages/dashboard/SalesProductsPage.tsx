@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Package, Layers, TrendingUp, Crown, Search, RefreshCw } from 'lucide-react';
 import { Button, Input } from '@synia/ui';
 import { KpiCard, SalesFiltersBar, SimpleChart, ChartCard, PremiumTable } from '@/components/sales';
@@ -12,7 +11,6 @@ import type { ChartDataPoint, ProductAggregate } from '@/types/sales';
  * Página de Produtos - Análise de Performance de Produtos
  */
 export default function SalesProductsPage() {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
 
   const {
@@ -33,12 +31,18 @@ export default function SalesProductsPage() {
     handleApplyClientesFilter,
     handleCancelClientesFilter,
     hasClientesPendingChanges,
-    produto,
-    produtoTemp,
-    handleProdutoChange,
-    handleApplyProdutoFilter,
-    handleCancelProdutoFilter,
-    hasProdutoPendingChanges,
+    grupo,
+    grupoTemp,
+    handleGrupoChange,
+    handleApplyGrupoFilter,
+    handleCancelGrupoFilter,
+    hasGrupoPendingChanges,
+    regional,
+    regionalTemp,
+    handleRegionalChange,
+    handleApplyRegionalFilter,
+    handleCancelRegionalFilter,
+    hasRegionalPendingChanges,
     clearFilters,
     queryFilters,
   } = useSalesFilters();
@@ -185,11 +189,6 @@ export default function SalesProductsPage() {
   // Estado de loading
   const isLoadingData = isLoading || isFetching;
 
-  // Click handler para filtrar por produto
-  const handleProductClick = (row: ProductAggregate & { rank: number }) => {
-    navigate(`/dashboard/produtos?produto=${row.cod_produto}`);
-  };
-
   // Colunas da tabela
   const tableColumns = [
     {
@@ -273,12 +272,18 @@ export default function SalesProductsPage() {
         onApplyClientesFilter={handleApplyClientesFilter}
         onCancelClientesFilter={handleCancelClientesFilter}
         hasClientesPendingChanges={hasClientesPendingChanges}
-        produto={produto}
-        produtoTemp={produtoTemp}
-        onProdutoChange={handleProdutoChange}
-        onApplyProdutoFilter={handleApplyProdutoFilter}
-        onCancelProdutoFilter={handleCancelProdutoFilter}
-        hasProdutoPendingChanges={hasProdutoPendingChanges}
+        grupo={grupo}
+        grupoTemp={grupoTemp}
+        onGrupoChange={handleGrupoChange}
+        onApplyGrupoFilter={handleApplyGrupoFilter}
+        onCancelGrupoFilter={handleCancelGrupoFilter}
+        hasGrupoPendingChanges={hasGrupoPendingChanges}
+        regional={regional}
+        regionalTemp={regionalTemp}
+        onRegionalChange={handleRegionalChange}
+        onApplyRegionalFilter={handleApplyRegionalFilter}
+        onCancelRegionalFilter={handleCancelRegionalFilter}
+        hasRegionalPendingChanges={hasRegionalPendingChanges}
         onClearFilters={clearFilters}
       />
 
@@ -353,7 +358,6 @@ export default function SalesProductsPage() {
         <PremiumTable
           columns={tableColumns}
           data={filteredProducts}
-          onRowClick={handleProductClick}
           emptyMessage="Nenhum produto encontrado"
           isLoading={isLoadingData}
         />

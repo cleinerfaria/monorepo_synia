@@ -1,8 +1,14 @@
 import { Select, MultiSelect } from '@synia/ui';
-import { periodOptions } from '@/hooks/useSalesFilters';
-import { useFilialOptions, useClienteOptions, useProdutoOptions } from '@/hooks/useFilterOptions';
 import { Calendar, X } from 'lucide-react';
 import { clsx } from 'clsx';
+import { getPeriodOptions } from '@/hooks/useSalesFilters';
+import {
+  useFilialOptions,
+  useClienteOptions,
+  useGrupoOptions,
+  useRegionalOptions,
+  useVendedorOptions,
+} from '@/hooks/useFilterOptions';
 
 interface SalesFiltersBarProps {
   period: string;
@@ -18,12 +24,24 @@ interface SalesFiltersBarProps {
   onApplyClientesFilter: () => void;
   onCancelClientesFilter: () => void;
   hasClientesPendingChanges: boolean;
-  produto: string[];
-  produtoTemp: string[];
-  onProdutoChange: (value: string[]) => void;
-  onApplyProdutoFilter: () => void;
-  onCancelProdutoFilter: () => void;
-  hasProdutoPendingChanges: boolean;
+  grupo: string[];
+  grupoTemp: string[];
+  onGrupoChange: (value: string[]) => void;
+  onApplyGrupoFilter: () => void;
+  onCancelGrupoFilter: () => void;
+  hasGrupoPendingChanges: boolean;
+  regional: string[];
+  regionalTemp: string[];
+  onRegionalChange: (value: string[]) => void;
+  onApplyRegionalFilter: () => void;
+  onCancelRegionalFilter: () => void;
+  hasRegionalPendingChanges: boolean;
+  vendedor?: string[];
+  vendedorTemp?: string[];
+  onVendedorChange?: (value: string[]) => void;
+  onApplyVendedorFilter?: () => void;
+  onCancelVendedorFilter?: () => void;
+  hasVendedorPendingChanges?: boolean;
   onClearFilters: () => void;
   className?: string;
   showPeriodFilter?: boolean;
@@ -45,18 +63,35 @@ export default function SalesFiltersBar({
   onCancelClientesFilter,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hasClientesPendingChanges,
-  produto,
-  produtoTemp,
-  onProdutoChange,
-  onApplyProdutoFilter,
-  onCancelProdutoFilter,
+  grupo,
+  grupoTemp,
+  onGrupoChange,
+  onApplyGrupoFilter,
+  onCancelGrupoFilter,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  hasProdutoPendingChanges,
+  hasGrupoPendingChanges,
+  regional,
+  regionalTemp,
+  onRegionalChange,
+  onApplyRegionalFilter,
+  onCancelRegionalFilter,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hasRegionalPendingChanges,
+  vendedor = [],
+  vendedorTemp = [],
+  onVendedorChange,
+  onApplyVendedorFilter,
+  onCancelVendedorFilter,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hasVendedorPendingChanges,
   onClearFilters,
   className,
   showPeriodFilter = true,
 }: SalesFiltersBarProps) {
-  // Buscar opções dos filtros
+  const showVendedorFilter =
+    !!onVendedorChange && !!onApplyVendedorFilter && !!onCancelVendedorFilter;
+
+  const periodOptions = getPeriodOptions(period);
   const { data: filialOptions = [], isLoading: isLoadingFiliais } = useFilialOptions();
   const {
     data: clienteOptions = [],
@@ -66,27 +101,39 @@ export default function SalesFiltersBar({
     fetchNextPage: loadMoreClientes,
     onSearch: onSearchClientes,
   } = useClienteOptions();
-  const { data: produtoOptions = [], isLoading: isLoadingProdutos } = useProdutoOptions();
+  const { data: grupoOptions = [], isLoading: isLoadingGrupos } = useGrupoOptions();
+  const { data: regionalOptions = [], isLoading: isLoadingRegionais } = useRegionalOptions();
+  const { data: vendedorOptions = [], isLoading: isLoadingVendedores } =
+    useVendedorOptions(showVendedorFilter);
 
-  const hasActiveFilters = filial.length > 0 || clientesTemp.length > 0 || produto.length > 0;
+  const hasActiveFilters =
+    filial.length > 0 ||
+    clientesTemp.length > 0 ||
+    grupo.length > 0 ||
+    regional.length > 0 ||
+    vendedor.length > 0;
 
   return (
     <div
       className={clsx(
-        'flex items-center gap-3 rounded-xl border border-gray-100 bg-white/80 p-3',
+        'relative flex items-center gap-3 rounded-xl border border-gray-100 bg-white/80 p-3',
+        'shadow-sm backdrop-blur-sm',
         'dark:border-gray-700/50 dark:bg-gray-800/50',
-        'relative shadow-sm backdrop-blur-sm',
         className
       )}
     >
-      {/* Grid com filtros */}
       <div
         className={clsx(
           'grid flex-1 grid-cols-1 gap-3',
-          showPeriodFilter ? 'md:grid-cols-4' : 'md:grid-cols-3'
+          showPeriodFilter
+            ? showVendedorFilter
+              ? 'md:grid-cols-6'
+              : 'md:grid-cols-5'
+            : showVendedorFilter
+              ? 'md:grid-cols-5'
+              : 'md:grid-cols-4'
         )}
       >
-        {/* Período */}
         {showPeriodFilter && (
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Período</label>
@@ -103,7 +150,6 @@ export default function SalesFiltersBar({
           </div>
         )}
 
-        {/* Filial */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Filial</label>
           <div className="relative">
@@ -120,7 +166,38 @@ export default function SalesFiltersBar({
           </div>
         </div>
 
-        {/* Cliente */}
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Regional</label>
+          <div className="relative">
+            <MultiSelect
+              options={regionalOptions}
+              value={regionalTemp}
+              onChange={onRegionalChange}
+              onApply={onApplyRegionalFilter}
+              onCancel={onCancelRegionalFilter}
+              placeholder={isLoadingRegionais ? 'Carregando...' : 'Todas as regionais'}
+              disabled={isLoadingRegionais}
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Grupo</label>
+          <div className="relative">
+            <MultiSelect
+              options={grupoOptions}
+              value={grupoTemp}
+              onChange={onGrupoChange}
+              onApply={onApplyGrupoFilter}
+              onCancel={onCancelGrupoFilter}
+              placeholder={isLoadingGrupos ? 'Carregando...' : 'Todos os grupos'}
+              disabled={isLoadingGrupos}
+              className="w-full"
+            />
+          </div>
+        </div>
+
         <div className="space-y-1">
           <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Cliente</label>
           <div className="relative">
@@ -143,25 +220,25 @@ export default function SalesFiltersBar({
           </div>
         </div>
 
-        {/* Produto */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Produto</label>
-          <div className="relative">
-            <MultiSelect
-              options={produtoOptions}
-              value={produtoTemp}
-              onChange={onProdutoChange}
-              onApply={onApplyProdutoFilter}
-              onCancel={onCancelProdutoFilter}
-              placeholder={isLoadingProdutos ? 'Carregando...' : 'Todos os produtos'}
-              disabled={isLoadingProdutos}
-              className="w-full"
-            />
+        {showVendedorFilter && (
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Vendedor</label>
+            <div className="relative">
+              <MultiSelect
+                options={vendedorOptions}
+                value={vendedorTemp}
+                onChange={onVendedorChange!}
+                onApply={onApplyVendedorFilter!}
+                onCancel={onCancelVendedorFilter!}
+                placeholder={isLoadingVendedores ? 'Carregando...' : 'Todos os vendedores'}
+                disabled={isLoadingVendedores}
+                className="w-full"
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Ações */}
       <div className="flex flex-shrink-0 items-center gap-2">
         {hasActiveFilters && (
           <button

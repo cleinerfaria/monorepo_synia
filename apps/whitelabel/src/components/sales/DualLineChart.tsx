@@ -154,18 +154,24 @@ export function DualLineChart({
         return { x, y, value: d.anoAnterior, name: d.name, date: d.date, index: i };
       });
 
-      const metaPts = data.map((d, i) => {
-        const metaValue = d.meta || 0;
+      const metaPts = data.flatMap((d, i) => {
+        const metaValue = d.meta ?? 0;
+        if (metaValue <= 0) {
+          return [];
+        }
+
         const x = padding.left + (i / Math.max(data.length - 1, 1)) * chartWidth;
         const y = padding.top + chartHeight - (metaValue / (max || 1)) * chartHeight;
-        return {
-          x,
-          y,
-          value: metaValue,
-          name: d.name,
-          date: d.date,
-          index: i,
-        };
+        return [
+          {
+            x,
+            y,
+            value: metaValue,
+            name: d.name,
+            date: d.date,
+            index: i,
+          },
+        ];
       });
 
       const faturamentoPts = data
@@ -256,8 +262,33 @@ export function DualLineChart({
     return path;
   };
 
+  const splitIntoContiguousSegments = <T extends { index: number }>(pts: T[]) => {
+    if (pts.length === 0) return [] as T[][];
+
+    const segments: T[][] = [];
+    let currentSegment: T[] = [pts[0]];
+
+    for (let i = 1; i < pts.length; i++) {
+      const currentPoint = pts[i];
+      const previousPoint = pts[i - 1];
+
+      if (currentPoint.index === previousPoint.index + 1) {
+        currentSegment.push(currentPoint);
+        continue;
+      }
+
+      segments.push(currentSegment);
+      currentSegment = [currentPoint];
+    }
+
+    segments.push(currentSegment);
+    return segments;
+  };
+
   const anoAnteriorLinePath = createSmoothPath(anoAnteriorPoints);
-  const metaLinePath = metaPoints.length > 0 ? createSmoothPath(metaPoints) : '';
+  const metaLinePaths = splitIntoContiguousSegments(metaPoints)
+    .map((segment) => createSmoothPath(segment))
+    .filter(Boolean);
   const faturamentoLinePath = createSmoothPath(faturamentoPoints);
 
   // Área preenchida para faturamento
@@ -396,20 +427,22 @@ export function DualLineChart({
         )}
 
         {/* Linha de Meta (sólida amarela) */}
-        {showMetaLine && metaPoints.length > 0 && (
-          <path
-            d={metaLinePath}
-            fill="none"
-            stroke={finalMetaColor}
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={clsx(
-              'transition-all duration-1000 ease-out',
-              isAnimated ? 'opacity-100' : 'opacity-0'
-            )}
-          />
-        )}
+        {showMetaLine &&
+          metaLinePaths.map((metaLinePath, index) => (
+            <path
+              key={`meta-line-${index}`}
+              d={metaLinePath}
+              fill="none"
+              stroke={finalMetaColor}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={clsx(
+                'transition-all duration-1000 ease-out',
+                isAnimated ? 'opacity-100' : 'opacity-0'
+              )}
+            />
+          ))}
 
         {/* Pontos da linha de Ano Anterior (opcional) */}
         {showAnoAnteriorMarkers &&
@@ -454,18 +487,16 @@ export function DualLineChart({
         {/* Pontos da linha de Meta (opcional) */}
         {showMetaMarkers &&
           metaPoints.map((p, i) => {
-            const isMax = p.value === Math.max(...metaPoints.map((pt) => pt.value));
             const isHovered = hoveredIndex === p.index;
-            const isHighlighted = isMax || isHovered;
 
             return (
               <g key={`meta-point-${i}`}>
                 {/* Halo para ponto destacado */}
-                {isHighlighted && (
+                {isHovered && (
                   <circle
                     cx={p.x}
                     cy={p.y}
-                    r={isMax ? 12 : 10}
+                    r={9}
                     fill={finalMetaColor}
                     fillOpacity={0.15}
                     filter="url(#pointGlow)"
@@ -477,10 +508,10 @@ export function DualLineChart({
                 <circle
                   cx={p.x}
                   cy={p.y}
-                  r={isHighlighted ? 5 : 3.5}
+                  r={isHovered ? 4 : 3}
                   fill="white"
                   stroke={finalMetaColor}
-                  strokeWidth={isHighlighted ? 2.5 : 2}
+                  strokeWidth={isHovered ? 2.25 : 1.75}
                   className={clsx(
                     'transition-all duration-200 ease-out dark:fill-black',
                     isAnimated ? 'opacity-100' : 'opacity-0'
@@ -597,7 +628,17 @@ export function DualLineChart({
               if (tooltipX + tooltipWidth > viewBoxWidth - padding.right) {
                 tooltipX = viewBoxWidth - padding.right - tooltipWidth;
               }
-              const tooltipY = fatPt.y - tooltipHeight - 12;
+              const tooltipMargin = 8;
+              const tooltipPreferredY = fatPt.y - tooltipHeight - 12;
+              const tooltipBottomLimit =
+                viewBoxHeight - padding.bottom - tooltipHeight - tooltipMargin;
+              const tooltipY =
+                tooltipPreferredY >= padding.top
+                  ? tooltipPreferredY
+                  : Math.max(
+                      padding.top + tooltipMargin,
+                      Math.min(fatPt.y + 16, tooltipBottomLimit)
+                    );
 
               return (
                 <g

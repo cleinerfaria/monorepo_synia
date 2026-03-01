@@ -62,7 +62,7 @@ const navigation: NavItem[] = [
     children: [
       { name: 'Visão Geral', href: '/dashboard/visao-geral' },
       { name: 'Produtos', href: '/dashboard/produtos' },
-      { name: 'Clientes', href: '/dashboard/clientes' },
+      { name: 'Grupos', href: '/dashboard/grupos' },
       { name: 'Meta', href: '/dashboard/meta' },
     ],
   },
@@ -163,7 +163,7 @@ function getFilteredNavigation(
         const defaultChildren = [
           { name: 'Visão Geral', href: '/dashboard/visao-geral' },
           { name: 'Produtos', href: '/dashboard/produtos' },
-          { name: 'Clientes', href: '/dashboard/clientes' },
+          { name: 'Grupos', href: '/dashboard/grupos' },
           { name: 'Meta', href: '/dashboard/meta' },
         ];
 

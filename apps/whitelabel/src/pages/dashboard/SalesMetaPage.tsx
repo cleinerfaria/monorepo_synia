@@ -35,12 +35,18 @@ export default function SalesMetaPage() {
     handleApplyClientesFilter,
     handleCancelClientesFilter,
     hasClientesPendingChanges,
-    produto,
-    produtoTemp,
-    handleProdutoChange,
-    handleApplyProdutoFilter,
-    handleCancelProdutoFilter,
-    hasProdutoPendingChanges,
+    grupo,
+    grupoTemp,
+    handleGrupoChange,
+    handleApplyGrupoFilter,
+    handleCancelGrupoFilter,
+    hasGrupoPendingChanges,
+    regional,
+    regionalTemp,
+    handleRegionalChange,
+    handleApplyRegionalFilter,
+    handleCancelRegionalFilter,
+    hasRegionalPendingChanges,
     clearFilters,
     queryFilters,
   } = useSalesFilters();
@@ -322,12 +328,18 @@ export default function SalesMetaPage() {
         onApplyClientesFilter={handleApplyClientesFilter}
         onCancelClientesFilter={handleCancelClientesFilter}
         hasClientesPendingChanges={hasClientesPendingChanges}
-        produto={produto}
-        produtoTemp={produtoTemp}
-        onProdutoChange={handleProdutoChange}
-        onApplyProdutoFilter={handleApplyProdutoFilter}
-        onCancelProdutoFilter={handleCancelProdutoFilter}
-        hasProdutoPendingChanges={hasProdutoPendingChanges}
+        grupo={grupo}
+        grupoTemp={grupoTemp}
+        onGrupoChange={handleGrupoChange}
+        onApplyGrupoFilter={handleApplyGrupoFilter}
+        onCancelGrupoFilter={handleCancelGrupoFilter}
+        hasGrupoPendingChanges={hasGrupoPendingChanges}
+        regional={regional}
+        regionalTemp={regionalTemp}
+        onRegionalChange={handleRegionalChange}
+        onApplyRegionalFilter={handleApplyRegionalFilter}
+        onCancelRegionalFilter={handleCancelRegionalFilter}
+        hasRegionalPendingChanges={hasRegionalPendingChanges}
         onClearFilters={clearFilters}
         showPeriodFilter={false}
       />

@@ -1,5 +1,5 @@
-/**
- * Tipos para o módulo de vendas/dashboard
+﻿/**
+ * Tipos para o mÃ³dulo de vendas/dashboard
  */
 
 // Estrutura de movimento de venda (linha do banco)
@@ -9,16 +9,20 @@ export interface SalesMovement {
   nome_cliente: string;
   cod_produto: string;
   nome_produto: string;
+  cod_grupo?: string | null;
+  nome_grupo?: string | null;
+  cod_regional?: string | null;
+  nome_regional?: string | null;
   vr_venda: number;
   qtd_itens_venda: number;
   cod_filial: string;
   nome_filial: string;
   nome_vendedor: string;
   qtd_litros?: number | null;
-  uf?: string; // Para simular região
+  uf?: string; // Para simular regiÃ£o
 }
 
-// Opções de período
+// OpÃ§Ãµes de perÃ­odo
 export interface PeriodOption {
   value: string;
   label: string;
@@ -30,8 +34,18 @@ export interface SalesFilters {
   startDate?: Date;
   endDate?: Date;
   filial?: string[];
-  cliente?: string[];
-  produto?: string[];
+  clientes?: string[];
+  grupo?: string[];
+  regional?: string[];
+  vendedor?: string[];
+}
+
+export interface DashboardQueryFilters {
+  filial?: string[];
+  clientes?: string[];
+  grupo?: string[];
+  regional?: string[];
+  vendedor?: string[];
 }
 
 // KPI Card data
@@ -44,7 +58,7 @@ export interface KpiData {
   color?: 'default' | 'success' | 'warning' | 'danger' | 'teal';
 }
 
-// Dados para gráficos
+// Dados para grÃ¡ficos
 export interface ChartDataPoint {
   name: string;
   value: number;
@@ -60,8 +74,13 @@ export interface ClientAggregate {
   atingimento_meta_pct?: number | null;
   volume: number;
   compras: number;
+  total_clientes?: number;
   ultima_compra: string;
   uf?: string;
+  cod_grupo?: string | null;
+  nome_grupo?: string | null;
+  cod_regional?: string | null;
+  nome_regional?: string | null;
 }
 
 // Dados agregados por produto
@@ -73,7 +92,7 @@ export interface ProductAggregate {
   percentual: number;
 }
 
-// Dados por região
+// Dados por regiÃ£o
 export interface RegionData {
   region: string;
   regionName: string;
@@ -86,3 +105,5 @@ export interface RankingItem {
   name: string;
   value: number;
 }
+
+
