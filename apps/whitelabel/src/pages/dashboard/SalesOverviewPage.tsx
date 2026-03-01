@@ -35,7 +35,7 @@ function toBRL(value: number): string {
  * Comportamento:
  * - Gráfico e tabela sempre mostram últimos 12 meses (fixos)
  * - KPIs mudam instantaneamente com filtro de data (filtragem local)
- * - Nova consulta ao banco apenas com filtros de filial/cliente/produto
+ * - Nova consulta ao banco apenas com filtros de filial/cliente/grupo/regional
  */
 export default function SalesOverviewPage() {
   const {
@@ -113,22 +113,17 @@ export default function SalesOverviewPage() {
     );
 
     if (dadosPeriodo.length === 0) {
-      // Se não houver dados no período, usar o último mês disponível
-      const ultimoMes = overviewData[overviewData.length - 1];
       return {
-        faturamento: ultimoMes.faturamento,
-        faturamentoMoM: ultimoMes.crescimento_faturamento_mom_pct,
-        faturamentoYoY: ultimoMes.crescimento_faturamento_yoy_pct,
-        metaMes: ultimoMes.meta_faturamento ?? 0,
-        atingimentoMetaPct:
-          ultimoMes.meta_faturamento && ultimoMes.meta_faturamento > 0
-            ? (ultimoMes.faturamento / ultimoMes.meta_faturamento) * 100
-            : null,
-        volume: ultimoMes.volume_litros,
-        volumeMoM: ultimoMes.crescimento_volume_mom_pct,
-        volumeYoY: ultimoMes.crescimento_volume_yoy_pct,
-        clientesAtivos: ultimoMes.clientes_ativos,
-        ticketMedio: ultimoMes.ticket_medio,
+        faturamento: 0,
+        faturamentoMoM: null as number | null,
+        faturamentoYoY: null as number | null,
+        metaMes: 0,
+        atingimentoMetaPct: null as number | null,
+        volume: 0,
+        volumeMoM: null as number | null,
+        volumeYoY: null as number | null,
+        clientesAtivos: 0,
+        ticketMedio: 0,
       };
     }
 
@@ -596,6 +591,7 @@ export default function SalesOverviewPage() {
             isLoading={isLoadingData}
             anoAnteriorColor={NEUTRAL_COLORS.gray400}
             metaColor="#eab308"
+            showMetaMarkers
           />
         </div>
       </div>

@@ -140,25 +140,19 @@ export default function SalesFiltersBar({
           </div>
         </div>
 
-        {/* Cliente */}
+        {/* Regional */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Cliente</label>
+          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Regional</label>
           <div className="relative">
             <MultiSelect
-              options={clienteOptions}
-              value={clientesTemp}
-              onChange={onClientesTempChange}
-              onApply={onApplyClientesFilter}
-              onCancel={onCancelClientesFilter}
-              placeholder={isLoadingClientes ? 'Carregando...' : 'Todos os clientes'}
-              disabled={isLoadingClientes}
+              options={regionalOptions}
+              value={regionalTemp}
+              onChange={onRegionalChange}
+              onApply={onApplyRegionalFilter}
+              onCancel={onCancelRegionalFilter}
+              placeholder={isLoadingRegionais ? 'Carregando...' : 'Todas as regionais'}
+              disabled={isLoadingRegionais}
               className="w-full"
-              onSearch={onSearchClientes}
-              onLoadMore={loadMoreClientes}
-              hasMore={hasMoreClientes}
-              isLoadingMore={isLoadingMoreClientes}
-              searchPlaceholder="Buscar cliente..."
-              emptyMessage={isLoadingClientes ? 'Buscando...' : 'Nenhum cliente encontrado'}
             />
           </div>
         </div>
@@ -180,19 +174,25 @@ export default function SalesFiltersBar({
           </div>
         </div>
 
-        {/* Regional */}
+        {/* Cliente */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Regional</label>
+          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Cliente</label>
           <div className="relative">
             <MultiSelect
-              options={regionalOptions}
-              value={regionalTemp}
-              onChange={onRegionalChange}
-              onApply={onApplyRegionalFilter}
-              onCancel={onCancelRegionalFilter}
-              placeholder={isLoadingRegionais ? 'Carregando...' : 'Todas as regionais'}
-              disabled={isLoadingRegionais}
+              options={clienteOptions}
+              value={clientesTemp}
+              onChange={onClientesTempChange}
+              onApply={onApplyClientesFilter}
+              onCancel={onCancelClientesFilter}
+              placeholder={isLoadingClientes ? 'Carregando...' : 'Todos os clientes'}
+              disabled={isLoadingClientes}
               className="w-full"
+              onSearch={onSearchClientes}
+              onLoadMore={loadMoreClientes}
+              hasMore={hasMoreClientes}
+              isLoadingMore={isLoadingMoreClientes}
+              searchPlaceholder="Buscar cliente..."
+              emptyMessage={isLoadingClientes ? 'Buscando...' : 'Nenhum cliente encontrado'}
             />
           </div>
         </div>

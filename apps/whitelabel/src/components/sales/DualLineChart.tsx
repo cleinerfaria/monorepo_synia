@@ -487,18 +487,16 @@ export function DualLineChart({
         {/* Pontos da linha de Meta (opcional) */}
         {showMetaMarkers &&
           metaPoints.map((p, i) => {
-            const isMax = p.value === Math.max(...metaPoints.map((pt) => pt.value));
             const isHovered = hoveredIndex === p.index;
-            const isHighlighted = isMax || isHovered;
 
             return (
               <g key={`meta-point-${i}`}>
                 {/* Halo para ponto destacado */}
-                {isHighlighted && (
+                {isHovered && (
                   <circle
                     cx={p.x}
                     cy={p.y}
-                    r={isMax ? 12 : 10}
+                    r={9}
                     fill={finalMetaColor}
                     fillOpacity={0.15}
                     filter="url(#pointGlow)"
@@ -510,10 +508,10 @@ export function DualLineChart({
                 <circle
                   cx={p.x}
                   cy={p.y}
-                  r={isHighlighted ? 5 : 3.5}
+                  r={isHovered ? 4 : 3}
                   fill="white"
                   stroke={finalMetaColor}
-                  strokeWidth={isHighlighted ? 2.5 : 2}
+                  strokeWidth={isHovered ? 2.25 : 1.75}
                   className={clsx(
                     'transition-all duration-200 ease-out dark:fill-black',
                     isAnimated ? 'opacity-100' : 'opacity-0'
@@ -630,7 +628,17 @@ export function DualLineChart({
               if (tooltipX + tooltipWidth > viewBoxWidth - padding.right) {
                 tooltipX = viewBoxWidth - padding.right - tooltipWidth;
               }
-              const tooltipY = fatPt.y - tooltipHeight - 12;
+              const tooltipMargin = 8;
+              const tooltipPreferredY = fatPt.y - tooltipHeight - 12;
+              const tooltipBottomLimit =
+                viewBoxHeight - padding.bottom - tooltipHeight - tooltipMargin;
+              const tooltipY =
+                tooltipPreferredY >= padding.top
+                  ? tooltipPreferredY
+                  : Math.max(
+                      padding.top + tooltipMargin,
+                      Math.min(fatPt.y + 16, tooltipBottomLimit)
+                    );
 
               return (
                 <g

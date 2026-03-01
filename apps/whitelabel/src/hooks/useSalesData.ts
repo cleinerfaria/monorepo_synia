@@ -201,39 +201,8 @@ async function fetchSalesData(
     checkResult.data?.rows?.[0]?.cli_exists
   ) {
     query = `
-      with mov_filtrada as (
-        select
-          m.id_movimentacao,
-          m.cod_filial,
-          m.cod_cliente,
-          m.dt_mov
-        from public.movimentacao m
-        left join public.grupo_relacionamento grr
-          on grr.cliente_id = m.cod_cliente
-        left join public.grupo gr
-          on gr.id = grr.grupo_id
-        where m.dt_mov >= '${startDateStr}'
-          and m.dt_mov <= '${endDateStr}'
-          ${filialList ? `AND m.cod_filial IN (${filialList})` : ''}
-          ${clienteList ? `AND m.cod_cliente IN (${clienteList})` : ''}
-          ${grupoList ? `AND gr.id IN (${grupoList})` : ''}
-          ${regionalList ? `AND gr.regional_id IN (${regionalList})` : ''}
-      ),
-      itens_ag as (
-        select
-          mf.dt_mov,
-          mf.cod_filial,
-          mf.cod_cliente,
-          mi.id_produto,
-          mi.vr_venda,
-          mi.qt_itens_venda,
-          mi.qtd_litros
-        from mov_filtrada mf
-        join public.movimentacao_item mi
-          on mi.id_movimentacao = mf.id_movimentacao
-      )
       select
-        ia.dt_mov,
+        m.dt_mov,
         c.id::text as cod_cliente,
         coalesce(c.razao_social, c.nome) as nome_cliente,
         p.id::text as cod_produto,
@@ -242,20 +211,34 @@ async function fetchSalesData(
         gr.name as nome_grupo,
         r.id::text as cod_regional,
         r.name as nome_regional,
-        ia.vr_venda,
-        ia.qt_itens_venda as qtd_itens_venda,
+        mi.vr_venda,
+        mi.qt_itens_venda as qtd_itens_venda,
         f.id::text as cod_filial,
         f.nome as nome_filial,
         '' as nome_vendedor,
-        ia.qtd_litros
-      from itens_ag ia
-      left join public.cliente c on c.id = ia.cod_cliente
-      left join public.grupo_relacionamento grr on grr.cliente_id = ia.cod_cliente
-      left join public.grupo gr on gr.id = grr.grupo_id
-      left join public.regional r on r.id = gr.regional_id
-      left join public.filial  f on f.id = ia.cod_filial
-      left join public.produto p on p.id = ia.id_produto
-      ORDER BY ia.dt_mov DESC
+        mi.qtd_litros
+      from public.movimentacao m
+      join public.movimentacao_item mi
+        on mi.id_movimentacao = m.id_movimentacao
+      left join public.cliente c
+        on c.id = m.cod_cliente
+      left join public.grupo_relacionamento grr
+        on grr.cliente_id = m.cod_cliente
+      left join public.grupo gr
+        on gr.id = grr.grupo_id
+      left join public.regional r
+        on r.id = gr.regional_id
+      left join public.filial f
+        on f.id = m.cod_filial
+      left join public.produto p
+        on p.id = mi.id_produto
+      where m.dt_mov >= '${startDateStr}'
+        and m.dt_mov <= '${endDateStr}'
+        ${filialList ? `AND m.cod_filial IN (${filialList})` : ''}
+        ${clienteList ? `AND m.cod_cliente IN (${clienteList})` : ''}
+        ${grupoList ? `AND gr.id IN (${grupoList})` : ''}
+        ${regionalList ? `AND gr.regional_id IN (${regionalList})` : ''}
+      ORDER BY m.dt_mov DESC
       LIMIT 50000
     `;
   } else {
@@ -612,16 +595,33 @@ async function fetchClientGoalsData(
   }
 
   let query: string;
+  const periodMonthsSubquery = `
+    (
+      SELECT generate_series(
+        date_trunc('month', '${startDateStr}'::date),
+        date_trunc('month', '${endDateStr}'::date),
+        interval '1 month'
+      )::date AS mes_ref
+    )
+  `;
 
   if (hasNormalizedTables) {
-    query = `
-      WITH base_filtrada AS (
+    const filteredGroupsSubquery = grupoList
+      ? `
+      (
         SELECT DISTINCT
-          date_trunc('month', m.dt_mov)::date AS mes_ref,
+          gr.id::text AS cod_grupo
+        FROM public.grupo gr
+        WHERE gr.id IS NOT NULL
+          AND gr.id::text IN (${grupoList})
+          ${regionalList ? `AND gr.regional_id::text IN (${regionalList})` : ''}
+      )
+    `
+      : `
+      (
+        SELECT DISTINCT
           gr.id::text AS cod_grupo
         FROM public.movimentacao m
-        JOIN public.movimentacao_item mi
-          ON mi.id_movimentacao = m.id_movimentacao
         LEFT JOIN public.grupo_relacionamento grr
           ON grr.cliente_id = m.cod_cliente
         LEFT JOIN public.grupo gr
@@ -629,24 +629,37 @@ async function fetchClientGoalsData(
         WHERE m.dt_mov >= '${startDateStr}'
           AND m.dt_mov <= '${endDateStr}'
           ${filialList ? `AND m.cod_filial IN (${filialList})` : ''}
-          ${grupoList ? `AND gr.id::text IN (${grupoList})` : ''}
           ${regionalList ? `AND gr.regional_id::text IN (${regionalList})` : ''}
           AND gr.id IS NOT NULL
       )
+    `;
+
+    query = `
       SELECT
-        bf.cod_grupo AS cod_cliente,
+        gf.cod_grupo AS cod_cliente,
         sum(mt.${metaValueCol})::numeric AS meta_faturamento
-      FROM base_filtrada bf
+      FROM ${filteredGroupsSubquery} AS gf
+      CROSS JOIN ${periodMonthsSubquery} AS mp
       LEFT JOIN public.meta mt
-        ON mt.${metaGroupCol}::text = bf.cod_grupo
-       AND (${monthExpr}) = bf.mes_ref
-      GROUP BY bf.cod_grupo
+        ON mt.${metaGroupCol}::text = gf.cod_grupo
+       AND (${monthExpr}) = mp.mes_ref
+      GROUP BY gf.cod_grupo
     `;
   } else {
-    query = `
-      WITH base_filtrada AS (
+    const filteredGroupsSubquery = grupoList
+      ? `
+      (
         SELECT DISTINCT
-          date_trunc('month', mv.dt_mov)::date AS mes_ref,
+          gr.id::text AS cod_grupo
+        FROM public.grupo gr
+        WHERE gr.id IS NOT NULL
+          AND gr.id::text IN (${grupoList})
+          ${regionalList ? `AND gr.regional_id::text IN (${regionalList})` : ''}
+      )
+    `
+      : `
+      (
+        SELECT DISTINCT
           gr.id::text AS cod_grupo
         FROM movimentos mv
         LEFT JOIN public.grupo_relacionamento grr
@@ -656,18 +669,21 @@ async function fetchClientGoalsData(
         WHERE mv.dt_mov >= '${startDateStr}'
           AND mv.dt_mov <= '${endDateStr}'
           ${filialList ? `AND mv.cod_filial IN (${filialList})` : ''}
-          ${grupoList ? `AND gr.id::text IN (${grupoList})` : ''}
           ${regionalList ? `AND gr.regional_id::text IN (${regionalList})` : ''}
           AND gr.id IS NOT NULL
       )
+    `;
+
+    query = `
       SELECT
-        bf.cod_grupo AS cod_cliente,
+        gf.cod_grupo AS cod_cliente,
         sum(mt.${metaValueCol})::numeric AS meta_faturamento
-      FROM base_filtrada bf
+      FROM ${filteredGroupsSubquery} AS gf
+      CROSS JOIN ${periodMonthsSubquery} AS mp
       LEFT JOIN public.meta mt
-        ON mt.${metaGroupCol}::text = bf.cod_grupo
-       AND (${monthExpr}) = bf.mes_ref
-      GROUP BY bf.cod_grupo
+        ON mt.${metaGroupCol}::text = gf.cod_grupo
+       AND (${monthExpr}) = mp.mes_ref
+      GROUP BY gf.cod_grupo
     `;
   }
 
@@ -1051,49 +1067,25 @@ async function fetchOverviewKPIs(
   // Formatar datas para a query
   const startDateStr = startDate.toISOString().split('T')[0];
   const endDateStr = endDate.toISOString().split('T')[0];
+  const baseSubquery = `
+    SELECT
+      date_trunc('month', m.dt_mov)::date AS mes,
+      m.cod_cliente,
+      mi.id_produto,
+      mi.vr_venda,
+      mi.qtd_litros
+    FROM public.movimentacao m
+    JOIN public.movimentacao_item mi
+      ON mi.id_movimentacao = m.id_movimentacao
+    WHERE m.dt_mov >= '${startDateStr}'
+      AND m.dt_mov <= '${endDateStr}'
+      ${clienteFilter ? `AND m.cod_cliente IN (${clienteFilter})` : ''}
+      ${filialFilter ? `AND m.cod_filial IN (${filialFilter})` : ''}
+      ${produtoFilter ? `AND mi.id_produto IN (${produtoFilter})` : ''}
+  `;
 
   // Query otimizada para KPIs da visão geral
   const query = `
-    WITH base AS (
-      SELECT
-        date_trunc('month', m.dt_mov)::date AS mes,
-        m.cod_cliente,
-        mi.id_produto,
-        mi.vr_venda,
-        mi.qtd_litros
-      FROM public.movimentacao m
-      JOIN public.movimentacao_item mi
-        ON mi.id_movimentacao = m.id_movimentacao
-      WHERE m.dt_mov >= '${startDateStr}'
-        AND m.dt_mov <= '${endDateStr}'
-        ${clienteFilter ? `AND m.cod_cliente IN (${clienteFilter})` : ''}
-        ${filialFilter ? `AND m.cod_filial IN (${filialFilter})` : ''}
-        ${produtoFilter ? `AND mi.id_produto IN (${produtoFilter})` : ''}
-    ),
-    totais_mes AS (
-      SELECT
-        mes,
-        sum(vr_venda) AS faturamento_total,
-        sum(qtd_litros) AS volume_litros,
-        count(DISTINCT cod_cliente) AS clientes_ativos
-      FROM base
-      GROUP BY mes
-    ),
-    produto_mes AS (
-      SELECT
-        mes,
-        id_produto,
-        sum(vr_venda) AS faturamento_produto
-      FROM base
-      GROUP BY mes, id_produto
-    ),
-    produto_lider AS (
-      SELECT
-        mes,
-        max(faturamento_produto) / nullif(sum(faturamento_produto), 0) AS produto_lider_share
-      FROM produto_mes
-      GROUP BY mes
-    )
     SELECT
       t.mes,
       t.faturamento_total::numeric AS faturamento_total,
@@ -1102,8 +1094,29 @@ async function fetchOverviewKPIs(
       t.clientes_ativos::integer AS clientes_ativos,
       (t.faturamento_total / nullif(t.clientes_ativos, 0))::numeric AS ticket_medio,
       pl.produto_lider_share::numeric AS produto_lider_share
-    FROM totais_mes t
-    LEFT JOIN produto_lider pl ON pl.mes = t.mes
+    FROM (
+      SELECT
+        mes,
+        sum(vr_venda) AS faturamento_total,
+        sum(qtd_litros) AS volume_litros,
+        count(DISTINCT cod_cliente) AS clientes_ativos
+      FROM (${baseSubquery}) AS base
+      GROUP BY mes
+    ) t
+    LEFT JOIN (
+      SELECT
+        pm.mes,
+        max(pm.faturamento_produto) / nullif(sum(pm.faturamento_produto), 0) AS produto_lider_share
+      FROM (
+        SELECT
+          mes,
+          id_produto,
+          sum(vr_venda) AS faturamento_produto
+        FROM (${baseSubquery}) AS base
+        GROUP BY mes, id_produto
+      ) pm
+      GROUP BY pm.mes
+    ) pl ON pl.mes = t.mes
     ORDER BY t.mes
   `;
 
