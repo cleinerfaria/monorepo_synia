@@ -196,6 +196,7 @@ export type Database = {
           abbreviation: string | null;
           active: boolean | null;
           company_id: string;
+          code: string | null;
           created_at: string | null;
           description: string | null;
           id: string;
@@ -207,6 +208,7 @@ export type Database = {
           abbreviation?: string | null;
           active?: boolean | null;
           company_id: string;
+          code?: string | null;
           created_at?: string | null;
           description?: string | null;
           id?: string;
@@ -218,6 +220,7 @@ export type Database = {
           abbreviation?: string | null;
           active?: boolean | null;
           company_id?: string;
+          code?: string | null;
           created_at?: string | null;
           description?: string | null;
           id?: string;
