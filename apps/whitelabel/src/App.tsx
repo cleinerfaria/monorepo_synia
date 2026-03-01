@@ -317,7 +317,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="dashboard/clientes"
+                    path="dashboard/grupos"
                     element={
                       <Suspense fallback={<RouteLoader />}>
                         <SalesClientsPage />

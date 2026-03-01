@@ -14,7 +14,8 @@
 export function buildOverviewDataQuery(
   filialFilter: string | null,
   clienteFilter: string | null,
-  produtoFilter: string | null
+  grupoFilter: string | null,
+  regionalFilter: string | null
 ): string {
   return `
 WITH base AS (
@@ -22,17 +23,24 @@ WITH base AS (
     date_trunc('month', m.dt_mov)::date AS mes,
     m.cod_cliente::text AS cod_cliente,
     m.cod_filial::text AS cod_filial,
+    gr.id::text AS grupo_id,
+    gr.regional_id::text AS regional_id,
     mi.id_produto,
     mi.vr_venda,
     mi.qtd_litros
   FROM public.movimentacao m
   JOIN public.movimentacao_item mi
     ON mi.id_movimentacao = m.id_movimentacao
+  LEFT JOIN public.grupo_relacionamento grr
+    ON grr.cliente_id = m.cod_cliente
+  LEFT JOIN public.grupo gr
+    ON gr.id = grr.grupo_id
   WHERE m.dt_mov >= date_trunc('month', current_date) - interval '23 months'
     AND m.dt_mov <  date_trunc('month', current_date) + interval '1 month'
     ${filialFilter ? `AND m.cod_filial IN (${filialFilter})` : ''}
     ${clienteFilter ? `AND m.cod_cliente IN (${clienteFilter})` : ''}
-    ${produtoFilter ? `AND mi.id_produto IN (${produtoFilter})` : ''}
+    ${grupoFilter ? `AND gr.id IN (${grupoFilter})` : ''}
+    ${regionalFilter ? `AND gr.regional_id IN (${regionalFilter})` : ''}
 ),
 
 totais_mes AS (
@@ -62,27 +70,18 @@ produto_lider AS (
   GROUP BY mes
 ),
 
--- =====================================================
--- Clientes filtrados por mês (para calcular meta)
--- =====================================================
-clientes_filtrados_mes AS (
-  SELECT DISTINCT
-    mes,
-    cod_cliente
-  FROM base
-),
-
--- =====================================================
--- Meta do mês (somando metas dos clientes filtrados)
+-- Meta do mês (somando metas cadastradas no mês)
 -- =====================================================
 meta_mes AS (
   SELECT
     date_trunc('month', mt.mes)::date AS mes,
     sum(mt.valor)::numeric AS meta_faturamento
   FROM public.meta mt
-  JOIN clientes_filtrados_mes cf
-    ON cf.mes = date_trunc('month', mt.mes)::date
-   AND cf.cod_cliente = mt.client_id::text
+  LEFT JOIN public.grupo gr
+    ON gr.id = mt.grupo_id
+  WHERE ${clienteFilter ? 'false' : 'true'}
+    ${grupoFilter ? `AND mt.grupo_id::text IN (${grupoFilter})` : ''}
+    ${regionalFilter ? `AND gr.regional_id::text IN (${regionalFilter})` : ''}
   GROUP BY 1
 ),
 

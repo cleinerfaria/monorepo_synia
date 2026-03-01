@@ -1,7 +1,6 @@
-import { useMemo, lazy, Suspense } from 'react';
+﻿import { useMemo, lazy, Suspense } from 'react';
 import {
   DollarSign,
-  Users,
   Target,
   RefreshCw,
   ArrowUpRight,
@@ -55,18 +54,24 @@ export default function SalesOverviewPage() {
     handleApplyClientesFilter,
     handleCancelClientesFilter,
     hasClientesPendingChanges,
-    produto,
-    produtoTemp,
-    handleProdutoChange,
-    handleApplyProdutoFilter,
-    handleCancelProdutoFilter,
-    hasProdutoPendingChanges,
+    grupo,
+    grupoTemp,
+    handleGrupoChange,
+    handleApplyGrupoFilter,
+    handleCancelGrupoFilter,
+    hasGrupoPendingChanges,
+    regional,
+    regionalTemp,
+    handleRegionalChange,
+    handleApplyRegionalFilter,
+    handleCancelRegionalFilter,
+    hasRegionalPendingChanges,
     clearFilters,
     queryFilters,
   } = useSalesFilters();
 
   // FONTE ÚNICA DE DADOS - Query otimizada com CTEs
-  // Só refaz consulta quando mudar filtros de filial/cliente/produto
+  // Só refaz consulta quando mudar filtros de filial/cliente/grupo/regional
   const { data: overviewData, isLoading, isFetching, refetch } = useOverviewData(queryFilters);
   const { data: latestMovementCreatedAt, refetch: refetchLatestMovementCreatedAt } =
     useLatestMovementCreatedAt();
@@ -92,6 +97,8 @@ export default function SalesOverviewPage() {
         faturamento: 0,
         faturamentoMoM: null as number | null,
         faturamentoYoY: null as number | null,
+        metaMes: 0,
+        atingimentoMetaPct: null as number | null,
         volume: 0,
         volumeMoM: null as number | null,
         volumeYoY: null as number | null,
@@ -112,6 +119,11 @@ export default function SalesOverviewPage() {
         faturamento: ultimoMes.faturamento,
         faturamentoMoM: ultimoMes.crescimento_faturamento_mom_pct,
         faturamentoYoY: ultimoMes.crescimento_faturamento_yoy_pct,
+        metaMes: ultimoMes.meta_faturamento ?? 0,
+        atingimentoMetaPct:
+          ultimoMes.meta_faturamento && ultimoMes.meta_faturamento > 0
+            ? (ultimoMes.faturamento / ultimoMes.meta_faturamento) * 100
+            : null,
         volume: ultimoMes.volume_litros,
         volumeMoM: ultimoMes.crescimento_volume_mom_pct,
         volumeYoY: ultimoMes.crescimento_volume_yoy_pct,
@@ -127,6 +139,11 @@ export default function SalesOverviewPage() {
         faturamento: mes.faturamento,
         faturamentoMoM: mes.crescimento_faturamento_mom_pct,
         faturamentoYoY: mes.crescimento_faturamento_yoy_pct,
+        metaMes: mes.meta_faturamento ?? 0,
+        atingimentoMetaPct:
+          mes.meta_faturamento && mes.meta_faturamento > 0
+            ? (mes.faturamento / mes.meta_faturamento) * 100
+            : null,
         volume: mes.volume_litros,
         volumeMoM: mes.crescimento_volume_mom_pct,
         volumeYoY: mes.crescimento_volume_yoy_pct,
@@ -137,6 +154,7 @@ export default function SalesOverviewPage() {
 
     // Se for múltiplos meses, agregar
     const faturamentoTotal = dadosPeriodo.reduce((sum, m) => sum + m.faturamento, 0);
+    const metaTotal = dadosPeriodo.reduce((sum, m) => sum + (m.meta_faturamento ?? 0), 0);
     const volumeTotal = dadosPeriodo.reduce((sum, m) => sum + m.volume_litros, 0);
     const clientesMax = Math.max(...dadosPeriodo.map((m) => m.clientes_ativos));
     const ticketMedio = clientesMax > 0 ? faturamentoTotal / clientesMax : 0;
@@ -148,6 +166,8 @@ export default function SalesOverviewPage() {
       faturamento: faturamentoTotal,
       faturamentoMoM: ultimoMesPeriodo.crescimento_faturamento_mom_pct,
       faturamentoYoY: ultimoMesPeriodo.crescimento_faturamento_yoy_pct,
+      metaMes: metaTotal,
+      atingimentoMetaPct: metaTotal > 0 ? (faturamentoTotal / metaTotal) * 100 : null,
       volume: volumeTotal,
       volumeMoM: ultimoMesPeriodo.crescimento_volume_mom_pct,
       volumeYoY: ultimoMesPeriodo.crescimento_volume_yoy_pct,
@@ -388,6 +408,25 @@ export default function SalesOverviewPage() {
     );
   };
 
+  const renderMetaBadge = (value: number | null) => {
+    if (value === null) {
+      return <span className="text-xs text-gray-400">Atingido: N/A</span>;
+    }
+
+    const isAchieved = value >= 100;
+
+    return (
+      <span
+        className={`inline-flex items-center gap-0.5 text-xs font-medium ${
+          isAchieved ? 'text-primary-600 dark:text-primary-400' : 'text-red-600 dark:text-red-400'
+        }`}
+      >
+        {isAchieved ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+        Atingido: {toPercent(value)}
+      </span>
+    );
+  };
+
   // Componente de Card KPI com design consistente
   const KpiCardCustom = ({
     label,
@@ -478,17 +517,23 @@ export default function SalesOverviewPage() {
         onApplyClientesFilter={handleApplyClientesFilter}
         onCancelClientesFilter={handleCancelClientesFilter}
         hasClientesPendingChanges={hasClientesPendingChanges}
-        produto={produto}
-        produtoTemp={produtoTemp}
-        onProdutoChange={handleProdutoChange}
-        onApplyProdutoFilter={handleApplyProdutoFilter}
-        onCancelProdutoFilter={handleCancelProdutoFilter}
-        hasProdutoPendingChanges={hasProdutoPendingChanges}
+        grupo={grupo}
+        grupoTemp={grupoTemp}
+        onGrupoChange={handleGrupoChange}
+        onApplyGrupoFilter={handleApplyGrupoFilter}
+        onCancelGrupoFilter={handleCancelGrupoFilter}
+        hasGrupoPendingChanges={hasGrupoPendingChanges}
+        regional={regional}
+        regionalTemp={regionalTemp}
+        onRegionalChange={handleRegionalChange}
+        onApplyRegionalFilter={handleApplyRegionalFilter}
+        onCancelRegionalFilter={handleCancelRegionalFilter}
+        hasRegionalPendingChanges={hasRegionalPendingChanges}
         onClearFilters={clearFilters}
       />
 
-      {/* KPIs - 4 Cards com design consistente */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* KPIs */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Faturamento */}
         <KpiCardCustom
           label="Faturamento Total"
@@ -500,6 +545,31 @@ export default function SalesOverviewPage() {
           isLoading={isLoadingData}
         />
 
+        {/* Meta do Mês */}
+        <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700/50 dark:bg-gray-800/50">
+          {isLoadingData && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-800/50">
+              <div className="border-primary-500 h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
+            </div>
+          )}
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Meta do Mês
+              </p>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {toBRL(kpis.metaMes)}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                {renderMetaBadge(kpis.atingimentoMetaPct)}
+              </div>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center text-gray-400 dark:text-gray-500">
+              <Target className="h-6 w-6" />
+            </div>
+          </div>
+        </div>
+
         {/* Volume */}
         <KpiCardCustom
           label="Volume (L)"
@@ -510,22 +580,6 @@ export default function SalesOverviewPage() {
           isLoading={isLoadingData}
         />
 
-        {/* Clientes Ativos */}
-        <KpiCardCustom
-          label="Clientes Ativos"
-          value={toNumber(kpis.clientesAtivos)}
-          icon={Users}
-          isLoading={isLoadingData}
-        />
-
-        {/* Ticket Médio */}
-        <KpiCardCustom
-          label="Ticket Médio"
-          value={toBRL(kpis.ticketMedio)}
-          icon={Target}
-          isPrimary
-          isLoading={isLoadingData}
-        />
       </div>
 
       {/* Gráfico de Faturamento (sempre últimos 12 meses - FIXO) */}

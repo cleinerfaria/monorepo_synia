@@ -1,24 +1,16 @@
-import { useMemo, lazy, Suspense } from 'react';
+﻿import { useMemo, lazy, Suspense } from 'react';
 import { Users, Crown, PieChart, Target, MapPin, RefreshCw } from 'lucide-react';
 import { KpiCard, SalesFiltersBar, SimpleChart, ChartCard, PremiumTable } from '@/components/sales';
 const BrazilMapChart = lazy(() => import('@/components/sales/BrazilMapChart'));
 import {
   useSalesData,
+  useClientGoalsData,
   useRevenueByState,
   useRevenueByRegion,
-  useClientGoalsData,
   useLatestMovementCreatedAt,
 } from '@/hooks/useSalesData';
 import { useSalesFilters } from '@/hooks/useSalesFilters';
-import {
-  sum,
-  distinctCount,
-  toBRL,
-  toNumber,
-  toPercent,
-  toAxisBRL,
-  formatDate,
-} from '@/utils/metrics';
+import { sum, toBRL, toNumber, toPercent, toAxisBRL } from '@/utils/metrics';
 import type { ChartDataPoint, ClientAggregate } from '@/types/sales';
 
 /**
@@ -43,12 +35,18 @@ export default function SalesClientsPage() {
     handleApplyClientesFilter,
     handleCancelClientesFilter,
     hasClientesPendingChanges,
-    produto,
-    produtoTemp,
-    handleProdutoChange,
-    handleApplyProdutoFilter,
-    handleCancelProdutoFilter,
-    hasProdutoPendingChanges,
+    grupo,
+    grupoTemp,
+    handleGrupoChange,
+    handleApplyGrupoFilter,
+    handleCancelGrupoFilter,
+    hasGrupoPendingChanges,
+    regional,
+    regionalTemp,
+    handleRegionalChange,
+    handleApplyRegionalFilter,
+    handleCancelRegionalFilter,
+    hasRegionalPendingChanges,
     clearFilters,
     queryFilters,
   } = useSalesFilters();
@@ -60,14 +58,13 @@ export default function SalesClientsPage() {
     isFetching,
     refetch,
   } = useSalesData(startDate, endDate, queryFilters);
+  const {
+    data: clientGoalsData = [],
+    isLoading: isLoadingGoals,
+    isFetching: isFetchingGoals,
+  } = useClientGoalsData(startDate, endDate, queryFilters);
   const { data: latestMovementCreatedAt, refetch: refetchLatestMovementCreatedAt } =
     useLatestMovementCreatedAt();
-
-  const {
-    data: clientGoalsData,
-    isLoading: isLoadingClientGoals,
-    isFetching: isFetchingClientGoals,
-  } = useClientGoalsData(startDate, endDate, queryFilters);
 
   // Dados de faturamento por estado (UF) - últimos 12 meses
   const {
@@ -83,13 +80,7 @@ export default function SalesClientsPage() {
     isFetching: isFetchingRegionData,
   } = useRevenueByRegion(queryFilters);
 
-  const clientGoalsMap = useMemo(() => {
-    return new Map(
-      (clientGoalsData || []).map((item) => [item.cod_cliente, item.meta_faturamento])
-    );
-  }, [clientGoalsData]);
-
-  // Dados agregados por cliente
+  // Dados agregados por grupo
   const clientData = useMemo(() => {
     if (!salesData || salesData.length === 0) return [];
 
@@ -100,13 +91,22 @@ export default function SalesClientsPage() {
       return isNaN(num) ? 0 : num;
     };
 
-    // Agregar por cliente
     const clienteMap = new Map<string, ClientAggregate>();
+    const clientsByGroupMap = new Map<string, Set<string>>();
+    const goalByGroupMap = new Map(
+      clientGoalsData.map((goal) => [goal.cod_cliente, goal.meta_faturamento ?? 0])
+    );
 
     salesData.forEach((item) => {
       const vr = safeNum(item.vr_venda);
       const vol = safeNum(item.qtd_itens_venda);
-      const existing = clienteMap.get(item.cod_cliente);
+      const groupId = item.cod_grupo || 'sem-grupo';
+      const groupName = item.nome_grupo || 'Sem grupo';
+      const regionalName = item.nome_regional || '-';
+      const existing = clienteMap.get(groupId);
+      const clients = clientsByGroupMap.get(groupId) ?? new Set<string>();
+      clients.add(item.cod_cliente);
+      clientsByGroupMap.set(groupId, clients);
 
       if (existing) {
         existing.faturamento += vr;
@@ -116,31 +116,36 @@ export default function SalesClientsPage() {
           existing.ultima_compra = item.dt_mov;
         }
       } else {
-        clienteMap.set(item.cod_cliente, {
-          cod_cliente: item.cod_cliente,
-          nome_cliente: item.nome_cliente,
+        clienteMap.set(groupId, {
+          cod_cliente: groupId,
+          nome_cliente: groupName,
           faturamento: vr,
           volume: vol,
           compras: 1,
           ultima_compra: item.dt_mov,
           uf: item.uf,
+          cod_grupo: item.cod_grupo,
+          nome_grupo: groupName,
+          cod_regional: item.cod_regional,
+          nome_regional: regionalName,
         });
       }
     });
 
     return Array.from(clienteMap.values())
-      .map((cliente) => {
-        const meta = clientGoalsMap.get(cliente.cod_cliente) ?? null;
-        const hasMeta = meta !== null && meta > 0;
+      .map((group) => {
+        const metaFaturamento = group.cod_grupo ? (goalByGroupMap.get(group.cod_grupo) ?? 0) : 0;
 
         return {
-          ...cliente,
-          meta_faturamento: hasMeta ? meta : null,
-          atingimento_meta_pct: hasMeta ? cliente.faturamento / meta : null,
+          ...group,
+          total_clientes: clientsByGroupMap.get(group.cod_cliente)?.size ?? 0,
+          meta_faturamento: metaFaturamento > 0 ? metaFaturamento : null,
+          atingimento_meta_pct:
+            metaFaturamento > 0 ? (group.faturamento / metaFaturamento) * 100 : null,
         };
       })
       .sort((a, b) => b.faturamento - a.faturamento);
-  }, [salesData, clientGoalsMap]);
+  }, [salesData, clientGoalsData]);
 
   // Faturamento total para cálculo de representatividade
   const faturamentoTotal = useMemo(() => {
@@ -151,16 +156,16 @@ export default function SalesClientsPage() {
   const kpis = useMemo(() => {
     if (!salesData || salesData.length === 0) {
       return {
-        distribuidoresAtivos: 0,
+        gruposAtivos: 0,
         topClientePercent: 0,
         concentracaoTop5: 0,
         faturamentoMedio: 0,
       };
     }
 
-    const distribuidoresAtivos = distinctCount(salesData, 'cod_cliente');
+    const gruposAtivos = clientData.length;
     const faturamentoTotal = sum(salesData, 'vr_venda');
-    const faturamentoMedio = distribuidoresAtivos > 0 ? faturamentoTotal / distribuidoresAtivos : 0;
+    const faturamentoMedio = gruposAtivos > 0 ? faturamentoTotal / gruposAtivos : 0;
 
     // Top cliente %
     const topCliente = clientData[0];
@@ -173,45 +178,61 @@ export default function SalesClientsPage() {
     const concentracaoTop5 = faturamentoTotal > 0 ? (top5Faturamento / faturamentoTotal) * 100 : 0;
 
     return {
-      distribuidoresAtivos,
+      gruposAtivos,
       topClientePercent,
       concentracaoTop5,
       faturamentoMedio,
     };
   }, [salesData, clientData]);
 
-  // Top 10 clientes para gráfico
+  // Top 10 grupos para gráfico
   const topClientesChart = useMemo(() => {
     return clientData.slice(0, 10).map((c) => ({
-      name: `${c.cod_cliente} - ${c.nome_cliente.length > 40 ? c.nome_cliente.substring(0, 40) + '...' : c.nome_cliente}`,
+      name: `${c.nome_cliente.length > 40 ? c.nome_cliente.substring(0, 40) + '...' : c.nome_cliente}`,
       value: c.faturamento,
     })) as ChartDataPoint[];
   }, [clientData]);
 
-  // Clientes ativos por semana
-  const clientesPorSemana = useMemo(() => {
-    if (!salesData) return [];
-
-    // Contar clientes distintos por semana
-    const weekMap = new Map<string, Set<string>>();
-
-    salesData.forEach((item) => {
-      const date = new Date(item.dt_mov);
-      const week = getWeekKey(date);
-
-      if (!weekMap.has(week)) {
-        weekMap.set(week, new Set());
+  // Resumo por regional
+  const regionalSummary = useMemo(() => {
+    const regionalMap = new Map<
+      string,
+      {
+        regional: string;
+        grupos: number;
+        faturamento: number;
+        meta: number;
       }
-      weekMap.get(week)!.add(item.cod_cliente);
+    >();
+
+    clientData.forEach((group) => {
+      const regionalName = group.nome_regional || '-';
+      const existing = regionalMap.get(regionalName);
+      const meta = group.meta_faturamento ?? 0;
+
+      if (existing) {
+        existing.grupos += 1;
+        existing.faturamento += group.faturamento;
+        existing.meta += meta;
+        return;
+      }
+
+      regionalMap.set(regionalName, {
+        regional: regionalName,
+        grupos: 1,
+        faturamento: group.faturamento,
+        meta,
+      });
     });
 
-    return Array.from(weekMap.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([week, clients]) => ({
-        name: week.split('-W')[1] ? `S${week.split('-W')[1]}` : week,
-        value: clients.size,
-      })) as ChartDataPoint[];
-  }, [salesData]);
+    return Array.from(regionalMap.values())
+      .map((item) => ({
+        ...item,
+        percentual_total: faturamentoTotal > 0 ? (item.faturamento / faturamentoTotal) * 100 : 0,
+        percentual_meta: item.meta > 0 ? (item.faturamento / item.meta) * 100 : null,
+      }))
+      .sort((a, b) => b.faturamento - a.faturamento);
+  }, [clientData, faturamentoTotal]);
 
   // Dados por região (do banco de dados)
   const regiaoData = useMemo(() => {
@@ -233,17 +254,22 @@ export default function SalesClientsPage() {
 
   // Estado de loading
   const isLoadingData = isLoading || isFetching;
-  const isLoadingClientsTable = isLoadingData || isLoadingClientGoals || isFetchingClientGoals;
+  const isLoadingClientsTable = isLoadingData || isLoadingGoals || isFetchingGoals;
 
   // Colunas da tabela de clientes
   const tableColumns = [
     {
       key: 'nome_cliente',
-      header: 'Nome',
-      render: (value: unknown, row: ClientAggregate) => (
-        <span className="font-medium text-gray-900 dark:text-white">
-          {row.cod_cliente} - {String(value)}
-        </span>
+      header: 'Grupo',
+      render: (value: unknown) => (
+        <span className="font-medium text-gray-900 dark:text-white">{String(value)}</span>
+      ),
+    },
+    {
+      key: 'nome_regional',
+      header: 'Regional',
+      render: (value: unknown) => (
+        <span className="text-gray-700 dark:text-gray-300">{String(value || '-')}</span>
       ),
     },
     {
@@ -257,47 +283,6 @@ export default function SalesClientsPage() {
       ),
     },
     {
-      key: 'meta_faturamento',
-      header: 'Meta',
-      align: 'right' as const,
-      render: (value: unknown) => {
-        const meta = value === null || value === undefined ? null : Number(value);
-
-        if (meta === null || !Number.isFinite(meta) || meta <= 0) {
-          return <span className="text-gray-400 dark:text-gray-500">-</span>;
-        }
-
-        return <span className="text-gray-700 dark:text-gray-300">{toBRL(meta)}</span>;
-      },
-    },
-    {
-      key: 'atingimento_meta_pct',
-      header: '% Meta',
-      align: 'right' as const,
-      render: (value: unknown) => {
-        const pct = value === null || value === undefined ? null : Number(value);
-
-        if (pct === null || !Number.isFinite(pct)) {
-          return <span className="text-gray-400 dark:text-gray-500">-</span>;
-        }
-
-        const isAchieved = pct >= 1;
-        const percentageValue = (pct * 100).toFixed(1);
-
-        return (
-          <span
-            className={`inline-flex items-center gap-1 font-medium ${
-              isAchieved
-                ? 'text-primary-600 dark:text-primary-400'
-                : 'text-red-600 dark:text-red-400'
-            }`}
-          >
-            {percentageValue}%
-          </span>
-        );
-      },
-    },
-    {
       key: 'percentual_total',
       header: '% Total',
       align: 'right' as const,
@@ -309,6 +294,34 @@ export default function SalesClientsPage() {
           </span>
         );
       },
+    },
+    {
+      key: 'meta_faturamento',
+      header: 'Meta',
+      align: 'right' as const,
+      render: (value: unknown) => (
+        <span className="text-gray-700 dark:text-gray-300">
+          {value === null || value === undefined ? '-' : toBRL(Number(value))}
+        </span>
+      ),
+    },
+    {
+      key: 'atingimento_meta_pct',
+      header: '% Atingido',
+      align: 'right' as const,
+      render: (value: unknown) => (
+        <span className="font-medium text-gray-600 dark:text-gray-400">
+          {value === null || value === undefined ? '-' : toPercent(Number(value))}
+        </span>
+      ),
+    },
+    {
+      key: 'total_clientes',
+      header: '# Clientes',
+      align: 'right' as const,
+      render: (value: unknown) => (
+        <span className="text-gray-700 dark:text-gray-300">{toNumber(Number(value))}</span>
+      ),
     },
     {
       key: 'volume',
@@ -326,12 +339,60 @@ export default function SalesClientsPage() {
         <span className="text-gray-700 dark:text-gray-300">{toNumber(Number(value))}</span>
       ),
     },
+  ];
+
+  const regionalTableColumns = [
     {
-      key: 'ultima_compra',
-      header: 'Última Compra',
+      key: 'regional',
+      header: 'Regional',
+      render: (value: unknown) => (
+        <span className="font-medium text-gray-900 dark:text-white">{String(value || '-')}</span>
+      ),
+    },
+    {
+      key: 'grupos',
+      header: '# Grupos',
       align: 'right' as const,
       render: (value: unknown) => (
-        <span className="text-gray-700 dark:text-gray-300">{formatDate(String(value))}</span>
+        <span className="text-gray-700 dark:text-gray-300">{toNumber(Number(value))}</span>
+      ),
+    },
+    {
+      key: 'faturamento',
+      header: 'Faturamento',
+      align: 'right' as const,
+      render: (value: unknown) => (
+        <span className="font-semibold text-teal-600 dark:text-teal-400">
+          {toBRL(Number(value))}
+        </span>
+      ),
+    },
+    {
+      key: 'percentual_total',
+      header: '% Total',
+      align: 'right' as const,
+      render: (value: unknown) => (
+        <span className="text-gray-700 dark:text-gray-300">{toPercent(Number(value))}</span>
+      ),
+    },
+    {
+      key: 'meta',
+      header: 'Meta',
+      align: 'right' as const,
+      render: (value: unknown) => (
+        <span className="text-gray-700 dark:text-gray-300">
+          {value === null || value === undefined || Number(value) <= 0 ? '-' : toBRL(Number(value))}
+        </span>
+      ),
+    },
+    {
+      key: 'percentual_meta',
+      header: '% Meta',
+      align: 'right' as const,
+      render: (value: unknown) => (
+        <span className="text-gray-700 dark:text-gray-300">
+          {value === null || value === undefined ? '-' : toPercent(Number(value))}
+        </span>
       ),
     },
   ];
@@ -342,7 +403,7 @@ export default function SalesClientsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 lg:text-3xl dark:text-white">
-            Clientes
+            Grupos
           </h1>
           <p className="mt-1 text-gray-500 dark:text-gray-400">
             Análise de distribuidores e carteira de clientes
@@ -375,25 +436,31 @@ export default function SalesClientsPage() {
         onApplyClientesFilter={handleApplyClientesFilter}
         onCancelClientesFilter={handleCancelClientesFilter}
         hasClientesPendingChanges={hasClientesPendingChanges}
-        produto={produto}
-        produtoTemp={produtoTemp}
-        onProdutoChange={handleProdutoChange}
-        onApplyProdutoFilter={handleApplyProdutoFilter}
-        onCancelProdutoFilter={handleCancelProdutoFilter}
-        hasProdutoPendingChanges={hasProdutoPendingChanges}
+        grupo={grupo}
+        grupoTemp={grupoTemp}
+        onGrupoChange={handleGrupoChange}
+        onApplyGrupoFilter={handleApplyGrupoFilter}
+        onCancelGrupoFilter={handleCancelGrupoFilter}
+        hasGrupoPendingChanges={hasGrupoPendingChanges}
+        regional={regional}
+        regionalTemp={regionalTemp}
+        onRegionalChange={handleRegionalChange}
+        onApplyRegionalFilter={handleApplyRegionalFilter}
+        onCancelRegionalFilter={handleCancelRegionalFilter}
+        hasRegionalPendingChanges={hasRegionalPendingChanges}
         onClearFilters={clearFilters}
       />
 
       {/* KPIs */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          label="Distribuidores Ativos"
-          value={toNumber(kpis.distribuidoresAtivos)}
+          label="Grupos Ativos"
+          value={toNumber(kpis.gruposAtivos)}
           icon={Users}
           isLoading={isLoadingData}
         />
         <KpiCard
-          label="Top Cliente"
+          label="Top Grupo"
           value={toPercent(kpis.topClientePercent)}
           changeLabel="do total"
           icon={Crown}
@@ -417,8 +484,8 @@ export default function SalesClientsPage() {
 
       {/* Gráficos Principais */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Top 10 Clientes */}
-        <ChartCard title="Top 10 Clientes" subtitle="Maiores distribuidores por faturamento">
+        {/* Top 10 Grupos */}
+        <ChartCard title="Top 10 Grupos" subtitle="Maiores grupos por faturamento">
           <SimpleChart
             data={topClientesChart}
             type="horizontal-bar"
@@ -428,19 +495,21 @@ export default function SalesClientsPage() {
           />
         </ChartCard>
 
-        {/* Clientes Ativos por Semana */}
-        <ChartCard
-          title="Clientes Ativos por Semana"
-          subtitle="Evolução semanal de clientes compradores"
-        >
-          <SimpleChart
-            data={clientesPorSemana}
-            type="line"
-            height={300}
-            valueFormatter={toNumber}
-            isLoading={isLoadingData}
+        {/* Faturamento por Regional */}
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Faturamento por Regional
+            </h2>
+          </div>
+
+          <PremiumTable
+            columns={regionalTableColumns}
+            data={regionalSummary}
+            emptyMessage="Nenhuma regional encontrada"
+            isLoading={isLoadingClientsTable}
           />
-        </ChartCard>
+        </div>
       </div>
 
       {/* Card de Regiões */}
@@ -497,19 +566,19 @@ export default function SalesClientsPage() {
       {/* Tabela de Clientes */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Detalhamento de Clientes
+          Detalhamento de Grupos
         </h2>
 
         <PremiumTable
           columns={tableColumns}
           data={clientData.slice(0, 50)}
-          emptyMessage="Nenhum cliente encontrado"
+          emptyMessage="Nenhum grupo encontrado"
           isLoading={isLoadingClientsTable}
         />
 
         {clientData.length > 50 && (
           <p className="text-center text-xs text-gray-400 dark:text-gray-500">
-            Exibindo os 50 maiores clientes de {clientData.length} total
+            Exibindo os 50 maiores grupos de {clientData.length} no total
           </p>
         )}
       </div>

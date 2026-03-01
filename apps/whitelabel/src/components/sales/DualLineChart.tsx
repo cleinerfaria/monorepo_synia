@@ -154,18 +154,24 @@ export function DualLineChart({
         return { x, y, value: d.anoAnterior, name: d.name, date: d.date, index: i };
       });
 
-      const metaPts = data.map((d, i) => {
-        const metaValue = d.meta || 0;
+      const metaPts = data.flatMap((d, i) => {
+        const metaValue = d.meta ?? 0;
+        if (metaValue <= 0) {
+          return [];
+        }
+
         const x = padding.left + (i / Math.max(data.length - 1, 1)) * chartWidth;
         const y = padding.top + chartHeight - (metaValue / (max || 1)) * chartHeight;
-        return {
-          x,
-          y,
-          value: metaValue,
-          name: d.name,
-          date: d.date,
-          index: i,
-        };
+        return [
+          {
+            x,
+            y,
+            value: metaValue,
+            name: d.name,
+            date: d.date,
+            index: i,
+          },
+        ];
       });
 
       const faturamentoPts = data
@@ -256,8 +262,33 @@ export function DualLineChart({
     return path;
   };
 
+  const splitIntoContiguousSegments = <T extends { index: number }>(pts: T[]) => {
+    if (pts.length === 0) return [] as T[][];
+
+    const segments: T[][] = [];
+    let currentSegment: T[] = [pts[0]];
+
+    for (let i = 1; i < pts.length; i++) {
+      const currentPoint = pts[i];
+      const previousPoint = pts[i - 1];
+
+      if (currentPoint.index === previousPoint.index + 1) {
+        currentSegment.push(currentPoint);
+        continue;
+      }
+
+      segments.push(currentSegment);
+      currentSegment = [currentPoint];
+    }
+
+    segments.push(currentSegment);
+    return segments;
+  };
+
   const anoAnteriorLinePath = createSmoothPath(anoAnteriorPoints);
-  const metaLinePath = metaPoints.length > 0 ? createSmoothPath(metaPoints) : '';
+  const metaLinePaths = splitIntoContiguousSegments(metaPoints)
+    .map((segment) => createSmoothPath(segment))
+    .filter(Boolean);
   const faturamentoLinePath = createSmoothPath(faturamentoPoints);
 
   // Área preenchida para faturamento
@@ -396,20 +427,22 @@ export function DualLineChart({
         )}
 
         {/* Linha de Meta (sólida amarela) */}
-        {showMetaLine && metaPoints.length > 0 && (
-          <path
-            d={metaLinePath}
-            fill="none"
-            stroke={finalMetaColor}
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={clsx(
-              'transition-all duration-1000 ease-out',
-              isAnimated ? 'opacity-100' : 'opacity-0'
-            )}
-          />
-        )}
+        {showMetaLine &&
+          metaLinePaths.map((metaLinePath, index) => (
+            <path
+              key={`meta-line-${index}`}
+              d={metaLinePath}
+              fill="none"
+              stroke={finalMetaColor}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={clsx(
+                'transition-all duration-1000 ease-out',
+                isAnimated ? 'opacity-100' : 'opacity-0'
+              )}
+            />
+          ))}
 
         {/* Pontos da linha de Ano Anterior (opcional) */}
         {showAnoAnteriorMarkers &&

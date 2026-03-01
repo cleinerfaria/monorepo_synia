@@ -20,19 +20,24 @@ export function useSalesFilters() {
   const [clientesAplicados, setClientesAplicados] = useState<string[]>(
     searchParams.get('clientes') ? searchParams.get('clientes')!.split(',') : []
   );
-  const [produto, setProduto] = useState<string[]>(
-    searchParams.get('produto') ? searchParams.get('produto')!.split(',') : []
+  const [grupo, setGrupo] = useState<string[]>(
+    searchParams.get('grupo') ? searchParams.get('grupo')!.split(',') : []
+  );
+  const [regional, setRegional] = useState<string[]>(
+    searchParams.get('regional') ? searchParams.get('regional')!.split(',') : []
   );
 
   // Estado dos filtros temporários (antes da confirmação)
   const [clientesTemp, setClientesTemp] = useState<string[]>(clientesAplicados);
   const [filialTemp, setFilialTemp] = useState<string[]>(filial);
-  const [produtoTemp, setProdutoTemp] = useState<string[]>(produto);
+  const [grupoTemp, setGrupoTemp] = useState<string[]>(grupo);
+  const [regionalTemp, setRegionalTemp] = useState<string[]>(regional);
 
   // Refs para rastrear o tamanho anterior dos arrays (detecção de remoção)
   const prevClientesTempLengthRef = useRef(clientesTemp.length);
   const prevFilialTempLengthRef = useRef(filialTemp.length);
-  const prevProdutoTempLengthRef = useRef(produtoTemp.length);
+  const prevGrupoTempLengthRef = useRef(grupoTemp.length);
+  const prevRegionalTempLengthRef = useRef(regionalTemp.length);
 
   // Calcula as datas baseado no período
   const { startDate, endDate } = useMemo(() => {
@@ -50,14 +55,15 @@ export function useSalesFilters() {
         SalesFilters & {
           clientes?: string[];
           filial?: string[];
-          produto?: string[];
+          grupo?: string[];
+          regional?: string[];
         }
       >
     ) => {
       const params = new URLSearchParams(searchParams);
 
       Object.entries(newFilters).forEach(([key, value]) => {
-        if (['clientes', 'filial', 'produto'].includes(key) && Array.isArray(value)) {
+        if (['clientes', 'filial', 'grupo', 'regional'].includes(key) && Array.isArray(value)) {
           if (value.length > 0) {
             params.set(key, value.join(','));
           } else {
@@ -95,13 +101,21 @@ export function useSalesFilters() {
   }, [filialTemp, updateSearchParams]);
 
   useEffect(() => {
-    if (produtoTemp.length < prevProdutoTempLengthRef.current) {
+    if (grupoTemp.length < prevGrupoTempLengthRef.current) {
       // Usuário removeu um produto - aplicar automaticamente
-      setProduto(produtoTemp);
-      updateSearchParams({ produto: produtoTemp });
+      setGrupo(grupoTemp);
+      updateSearchParams({ grupo: grupoTemp });
     }
-    prevProdutoTempLengthRef.current = produtoTemp.length;
-  }, [produtoTemp, updateSearchParams]);
+    prevGrupoTempLengthRef.current = grupoTemp.length;
+  }, [grupoTemp, updateSearchParams]);
+
+  useEffect(() => {
+    if (regionalTemp.length < prevRegionalTempLengthRef.current) {
+      setRegional(regionalTemp);
+      updateSearchParams({ regional: regionalTemp });
+    }
+    prevRegionalTempLengthRef.current = regionalTemp.length;
+  }, [regionalTemp, updateSearchParams]);
 
   // Handlers - sanitizam o valor antes de armazenar
   const handlePeriodChange = useCallback(
@@ -153,18 +167,31 @@ export function useSalesFilters() {
     setClientesTemp(clientesAplicados);
   }, [clientesAplicados]);
 
-  const handleProdutoChange = useCallback((value: string[]) => {
-    setProdutoTemp(value);
+  const handleGrupoChange = useCallback((value: string[]) => {
+    setGrupoTemp(value);
   }, []);
 
-  const handleApplyProdutoFilter = useCallback(() => {
-    setProduto(produtoTemp);
-    updateSearchParams({ produto: produtoTemp });
-  }, [produtoTemp, updateSearchParams]);
+  const handleApplyGrupoFilter = useCallback(() => {
+    setGrupo(grupoTemp);
+    updateSearchParams({ grupo: grupoTemp });
+  }, [grupoTemp, updateSearchParams]);
 
-  const handleCancelProdutoFilter = useCallback(() => {
-    setProdutoTemp(produto);
-  }, [produto]);
+  const handleCancelGrupoFilter = useCallback(() => {
+    setGrupoTemp(grupo);
+  }, [grupo]);
+
+  const handleRegionalChange = useCallback((value: string[]) => {
+    setRegionalTemp(value);
+  }, []);
+
+  const handleApplyRegionalFilter = useCallback(() => {
+    setRegional(regionalTemp);
+    updateSearchParams({ regional: regionalTemp });
+  }, [regionalTemp, updateSearchParams]);
+
+  const handleCancelRegionalFilter = useCallback(() => {
+    setRegionalTemp(regional);
+  }, [regional]);
 
   const handleCustomDateChange = useCallback((start: Date, end: Date) => {
     setCustomStartDate(start);
@@ -178,8 +205,10 @@ export function useSalesFilters() {
     setFilialTemp([]);
     setClientesAplicados([]);
     setClientesTemp([]);
-    setProduto([]);
-    setProdutoTemp([]);
+    setGrupo([]);
+    setGrupoTemp([]);
+    setRegional([]);
+    setRegionalTemp([]);
     setCustomStartDate(undefined);
     setCustomEndDate(undefined);
     setSearchParams(new URLSearchParams());
@@ -195,8 +224,10 @@ export function useSalesFilters() {
     filialTemp,
     clientesAplicados,
     clientesTemp,
-    produto,
-    produtoTemp,
+    grupo,
+    grupoTemp,
+    regional,
+    regionalTemp,
 
     // Handlers
     handlePeriodChange,
@@ -206,22 +237,27 @@ export function useSalesFilters() {
     handleClientesTempChange,
     handleApplyClientesFilter,
     handleCancelClientesFilter,
-    handleProdutoChange,
-    handleApplyProdutoFilter,
-    handleCancelProdutoFilter,
+    handleGrupoChange,
+    handleApplyGrupoFilter,
+    handleCancelGrupoFilter,
+    handleRegionalChange,
+    handleApplyRegionalFilter,
+    handleCancelRegionalFilter,
     handleCustomDateChange,
     clearFilters,
 
     // Estados de controle
     hasClientesPendingChanges: JSON.stringify(clientesTemp) !== JSON.stringify(clientesAplicados),
     hasFilialPendingChanges: JSON.stringify(filialTemp) !== JSON.stringify(filial),
-    hasProdutoPendingChanges: JSON.stringify(produtoTemp) !== JSON.stringify(produto),
+    hasGrupoPendingChanges: JSON.stringify(grupoTemp) !== JSON.stringify(grupo),
+    hasRegionalPendingChanges: JSON.stringify(regionalTemp) !== JSON.stringify(regional),
 
     // Filtros para a query
     queryFilters: {
       filial: filial.length > 0 ? filial : undefined,
       clientes: clientesAplicados.length > 0 ? clientesAplicados : undefined,
-      produto: produto.length > 0 ? produto : undefined,
+      grupo: grupo.length > 0 ? grupo : undefined,
+      regional: regional.length > 0 ? regional : undefined,
     },
   };
 }

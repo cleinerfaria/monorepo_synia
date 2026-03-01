@@ -1,6 +1,11 @@
 import { Select, MultiSelect } from '@synia/ui';
 import { periodOptions } from '@/hooks/useSalesFilters';
-import { useFilialOptions, useClienteOptions, useProdutoOptions } from '@/hooks/useFilterOptions';
+import {
+  useFilialOptions,
+  useClienteOptions,
+  useGrupoOptions,
+  useRegionalOptions,
+} from '@/hooks/useFilterOptions';
 import { Calendar, X } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -18,12 +23,18 @@ interface SalesFiltersBarProps {
   onApplyClientesFilter: () => void;
   onCancelClientesFilter: () => void;
   hasClientesPendingChanges: boolean;
-  produto: string[];
-  produtoTemp: string[];
-  onProdutoChange: (value: string[]) => void;
-  onApplyProdutoFilter: () => void;
-  onCancelProdutoFilter: () => void;
-  hasProdutoPendingChanges: boolean;
+  grupo: string[];
+  grupoTemp: string[];
+  onGrupoChange: (value: string[]) => void;
+  onApplyGrupoFilter: () => void;
+  onCancelGrupoFilter: () => void;
+  hasGrupoPendingChanges: boolean;
+  regional: string[];
+  regionalTemp: string[];
+  onRegionalChange: (value: string[]) => void;
+  onApplyRegionalFilter: () => void;
+  onCancelRegionalFilter: () => void;
+  hasRegionalPendingChanges: boolean;
   onClearFilters: () => void;
   className?: string;
   showPeriodFilter?: boolean;
@@ -45,13 +56,20 @@ export default function SalesFiltersBar({
   onCancelClientesFilter,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hasClientesPendingChanges,
-  produto,
-  produtoTemp,
-  onProdutoChange,
-  onApplyProdutoFilter,
-  onCancelProdutoFilter,
+  grupo,
+  grupoTemp,
+  onGrupoChange,
+  onApplyGrupoFilter,
+  onCancelGrupoFilter,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  hasProdutoPendingChanges,
+  hasGrupoPendingChanges,
+  regional,
+  regionalTemp,
+  onRegionalChange,
+  onApplyRegionalFilter,
+  onCancelRegionalFilter,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hasRegionalPendingChanges,
   onClearFilters,
   className,
   showPeriodFilter = true,
@@ -66,9 +84,11 @@ export default function SalesFiltersBar({
     fetchNextPage: loadMoreClientes,
     onSearch: onSearchClientes,
   } = useClienteOptions();
-  const { data: produtoOptions = [], isLoading: isLoadingProdutos } = useProdutoOptions();
+  const { data: grupoOptions = [], isLoading: isLoadingGrupos } = useGrupoOptions();
+  const { data: regionalOptions = [], isLoading: isLoadingRegionais } = useRegionalOptions();
 
-  const hasActiveFilters = filial.length > 0 || clientesTemp.length > 0 || produto.length > 0;
+  const hasActiveFilters =
+    filial.length > 0 || clientesTemp.length > 0 || grupo.length > 0 || regional.length > 0;
 
   return (
     <div
@@ -83,7 +103,7 @@ export default function SalesFiltersBar({
       <div
         className={clsx(
           'grid flex-1 grid-cols-1 gap-3',
-          showPeriodFilter ? 'md:grid-cols-4' : 'md:grid-cols-3'
+          showPeriodFilter ? 'md:grid-cols-5' : 'md:grid-cols-4'
         )}
       >
         {/* Período */}
@@ -143,18 +163,35 @@ export default function SalesFiltersBar({
           </div>
         </div>
 
-        {/* Produto */}
+        {/* Grupo */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Produto</label>
+          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Grupo</label>
           <div className="relative">
             <MultiSelect
-              options={produtoOptions}
-              value={produtoTemp}
-              onChange={onProdutoChange}
-              onApply={onApplyProdutoFilter}
-              onCancel={onCancelProdutoFilter}
-              placeholder={isLoadingProdutos ? 'Carregando...' : 'Todos os produtos'}
-              disabled={isLoadingProdutos}
+              options={grupoOptions}
+              value={grupoTemp}
+              onChange={onGrupoChange}
+              onApply={onApplyGrupoFilter}
+              onCancel={onCancelGrupoFilter}
+              placeholder={isLoadingGrupos ? 'Carregando...' : 'Todos os grupos'}
+              disabled={isLoadingGrupos}
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        {/* Regional */}
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-600 dark:text-gray-300">Regional</label>
+          <div className="relative">
+            <MultiSelect
+              options={regionalOptions}
+              value={regionalTemp}
+              onChange={onRegionalChange}
+              onApply={onApplyRegionalFilter}
+              onCancel={onCancelRegionalFilter}
+              placeholder={isLoadingRegionais ? 'Carregando...' : 'Todas as regionais'}
+              disabled={isLoadingRegionais}
               className="w-full"
             />
           </div>
